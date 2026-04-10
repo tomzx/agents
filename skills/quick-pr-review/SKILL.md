@@ -27,25 +27,15 @@ Fetch PR metadata + latest commit SHA
          /         \
        Yes           No (new or updated)
         |                    |
-   No-op, done         Run review checks
+   No-op, done          Run checks
                              |
-                             v
-                  - Documentation updated?
-                  - Tests/CI passing?
-                  - Change is reversible?
-                  - Change is part of the spec?
-                  - Public interface impact?
-                             |
-                  Any irreversible public
-                  interface changes?
+                  Any blocking failures?
                      /           \
                    Yes             No
                     |               |
-              Do not approve    All checks pass?
-              Post/update          /       \
-              comment            Yes        No
-                               Approve   Post/update
-                                         comment only
+              Post/update        Approve +
+              comment only      post/update
+                                  comment
 ```
 
 ## Steps
