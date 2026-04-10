@@ -1,6 +1,7 @@
 ---
 name: label-issue
 description: Add relevant labels to a GitHub issue based on its description, and recommend new labels if needed.
+argument-hint: <issue-number>
 ---
 
 Pull the information about the issue $1 using `gh`.

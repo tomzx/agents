@@ -1,6 +1,7 @@
 ---
 name: create-issue
 description: Create a GitHub issue with background, acceptance criteria, and time budget sections.
+argument-hint: <repository>
 ---
 
 Create an issue in the repository $1 using `gh issue create`.
