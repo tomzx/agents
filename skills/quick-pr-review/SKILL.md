@@ -53,6 +53,18 @@ Extract:
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
 
+Also determine the commit of the dot-claude repository (where this skill lives):
+
+```bash
+git -C "$(dirname "$(dirname "$0")")" rev-parse HEAD
+```
+
+Or if the skill directory path is known (e.g. from the skill loader path), run `git rev-parse HEAD` from that directory.
+
+Extract:
+- `SKILL_COMMIT`: full commit SHA of the dot-claude repo
+- `SKILL_SHORT_SHA`: first 7 characters of SKILL_COMMIT
+
 ### 2. Find existing review comment
 
 ```bash
@@ -109,6 +121,9 @@ Reviewed commit: `SHORT_SHA`
 - [x/[ ]] Change is reversible
 - [x/[ ]] Change is part of the spec
 - [x/[ ]] No irreversible public interface changes
+
+---
+Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/SKILL_COMMIT/skills/quick-pr-review/SKILL.md) (`SKILL_SHORT_SHA`)
 ```
 
 For each failing check, append a block after the bullet list:
@@ -137,6 +152,9 @@ CI check `unit-tests` is failing - fix the failing tests before merging.
 
 # No irreversible public interface changes
 `removeUser()` is removed from the public SDK without a deprecation period or major version bump.
+
+---
+Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234.../skills/quick-pr-review/SKILL.md) (`abc1234`)
 ```
 
 ### 5. Create or update the comment
