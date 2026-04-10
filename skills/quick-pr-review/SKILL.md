@@ -2,7 +2,7 @@
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or irreversible public interface changes.
 allowed-tools: Bash(gh:*, git:*)
-argument-hint: <pr-number>
+argument-hint: <owner/repo> <pr-number>
 ---
 
 # Quick PR Review
@@ -12,7 +12,8 @@ Rapidly reviews a GitHub pull request and approves it to unblock others. Creates
 ## Prerequisites
 
 - `gh` CLI authenticated with write access to the target repository
-- PR number (`$1`) identifying an open pull request
+- `$1`: repository in `owner/repo` format
+- `$2`: PR number identifying an open pull request
 
 ## Workflow
 
@@ -43,20 +44,19 @@ Fetch PR metadata + latest commit SHA
 ### 1. Gather PR information
 
 ```bash
-gh pr view $1 --json number,title,body,headRefName,headRefOid,baseRefName,state,reviews,statusCheckRollup,url
-gh pr diff $1
-gh repo view --json owner,name --jq '"\\(.owner.login)/\\(.name)"'
+gh pr view $2 --repo $1 --json number,title,body,headRefName,headRefOid,baseRefName,state,reviews,statusCheckRollup,url
+gh pr diff $2 --repo $1
 ```
 
 Extract:
+- `REPO`: `$1` (`owner/repo`)
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
-- `REPO`: `owner/repo` string
 
 ### 2. Find existing review comment
 
 ```bash
-gh api repos/{REPO}/issues/$1/comments \
+gh api repos/{REPO}/issues/$2/comments \
   --jq '.[] | select(.body | test("<!-- quick-pr-review -->")) | {id: .id, body: .body}' \
   | head -1
 ```
@@ -143,7 +143,7 @@ CI check `unit-tests` is failing - fix the failing tests before merging.
 
 **If no existing comment:**
 ```bash
-gh pr comment $1 --repo {REPO} --body "{COMMENT_BODY}"
+gh pr comment $2 --repo {REPO} --body "{COMMENT_BODY}"
 ```
 
 **If existing comment (different commit):**
@@ -160,7 +160,7 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 - No failing checks that represent significant risk (tests failing, or non-reversible destructive operations)
 
 ```bash
-gh pr review $1 --repo {REPO} --approve --body "LGTM - no blocking issues found."
+gh pr review $2 --repo {REPO} --approve --body "LGTM - no blocking issues found."
 ```
 
 **Do not approve** when:
@@ -181,25 +181,25 @@ Report to the user:
 
 **Scenario 1: Clean PR, approve**
 ```
-/quick-pr-review 42
+/quick-pr-review owner/myrepo 42
 ```
 All checks pass, no public interface changes. Approve and post review comment.
 
 **Scenario 2: Failing CI**
 ```
-/quick-pr-review 88
+/quick-pr-review owner/myrepo 88
 ```
 CI is red. Post comment with `[ ] Tests pass` and the failing check name. Do not approve.
 
 **Scenario 3: Irreversible public interface change**
 ```
-/quick-pr-review 55
+/quick-pr-review owner/myrepo 55
 ```
 Diff removes a public API method. Post comment with `[ ] No irreversible public interface changes`. Do not approve.
 
 **Scenario 4: Re-run on same commit**
 ```
-/quick-pr-review 42
+/quick-pr-review owner/myrepo 42
 ```
 Review comment already exists for the current HEAD commit. Skip and report "already up to date".
 
@@ -207,10 +207,9 @@ Review comment already exists for the current HEAD commit. Skip and report "alre
 
 | Command | Description |
 |---|---|
-| `gh pr view <pr> --json headRefOid,statusCheckRollup,...` | Fetch PR metadata including latest commit and CI status |
-| `gh pr diff <pr>` | Show the full PR diff |
-| `gh pr comment <pr> --body "..."` | Post a new comment on the PR |
+| `gh pr view <pr> --repo <owner/repo> --json headRefOid,statusCheckRollup,...` | Fetch PR metadata including latest commit and CI status |
+| `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
+| `gh pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
 | `gh api repos/{owner}/{repo}/issues/<pr>/comments` | List all comments on a PR |
-| `gh pr review <pr> --approve --body "..."` | Approve the PR |
-| `gh repo view --json owner,name --jq '"\\(.owner.login)/\\(.name)"'` | Get the current repo's owner/name |
+| `gh pr review <pr> --repo <owner/repo> --approve --body "..."` | Approve the PR |
