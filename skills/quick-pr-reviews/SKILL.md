@@ -1,12 +1,13 @@
 ---
-name: review-requested-prs
-description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed.
+name: quick-pr-reviews
+description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations.
 allowed-tools: Bash(gh:*)
+argument-hint: [org1 org2 ...]
 ---
 
-# Review Requested PRs
+# Quick PR Reviews
 
-Finds all open PRs where you are a requested reviewer, checks each one for new commits since the last quick-pr-review comment, and runs `/quick-pr-review` on those that have changed.
+Finds all open PRs where you are a requested reviewer, checks each one for new commits since the last quick-pr-review comment, and runs `/quick-pr-review` on those that have changed. Accepts an optional list of organizations to limit the scope.
 
 ## Prerequisites
 
@@ -17,6 +18,8 @@ Finds all open PRs where you are a requested reviewer, checks each one for new c
 
 ```
 Fetch open PRs with review requested
+              |
+     Filter by org(s) if provided
               |
               v
   For each PR, check existing
@@ -44,8 +47,15 @@ This returns a list of PRs. For each entry extract:
 - `REPO`: `repository.nameWithOwner`
 - `PR`: `number`
 - `HEAD_COMMIT`: `headRefOid`
+- `ORG`: the owner portion of `repository.nameWithOwner` (everything before `/`)
 
-### 2. For each PR, check for an existing review comment
+### 2. Filter by organization (if arguments provided)
+
+If one or more organizations are provided as `$@`, discard any PR whose `ORG` does not appear in the list.
+
+If no arguments are provided, process all PRs returned in step 1.
+
+### 3. For each PR, check for an existing review comment
 
 ```bash
 gh api repos/{REPO}/issues/{PR}/comments \
@@ -57,7 +67,7 @@ Extract `COMMENT_COMMIT` from the marker line `<!-- quick-pr-review:COMMIT_SHA -
 - If `COMMENT_COMMIT == HEAD_COMMIT`: skip (no changes since last review).
 - Otherwise: needs review.
 
-### 3. Run quick-pr-review on changed PRs
+### 4. Run quick-pr-review on changed PRs
 
 For each PR that needs review, invoke:
 
@@ -67,7 +77,7 @@ For each PR that needs review, invoke:
 
 Process PRs sequentially to avoid rate limiting.
 
-### 4. Report summary
+### 5. Report summary
 
 After processing all PRs, output a summary table:
 
@@ -79,21 +89,27 @@ After processing all PRs, output a summary table:
 
 ## Example Usage
 
-**Scenario 1: Several PRs, some updated**
+**Scenario 1: All orgs, some PRs updated**
 ```
-/review-requested-prs
+/quick-pr-reviews
 ```
-Finds 5 open PRs. 2 have new commits since last review, 3 are unchanged. Runs `/quick-pr-review` on the 2 updated ones and reports the summary.
+Finds 5 open PRs across multiple orgs. 2 have new commits, 3 unchanged. Runs `/quick-pr-review` on the 2 updated ones.
 
-**Scenario 2: No PRs awaiting review**
+**Scenario 2: Filter to specific organizations**
 ```
-/review-requested-prs
+/quick-pr-reviews acme widgets-inc
+```
+Fetches all review-requested PRs, then discards any not belonging to `acme` or `widgets-inc` before checking for changes.
+
+**Scenario 3: No PRs awaiting review**
+```
+/quick-pr-reviews
 ```
 Search returns no results. Report "No open PRs awaiting your review."
 
-**Scenario 3: All PRs already reviewed**
+**Scenario 4: All PRs already reviewed**
 ```
-/review-requested-prs
+/quick-pr-reviews
 ```
 All existing review comments match the current HEAD commit. Report all as skipped.
 
