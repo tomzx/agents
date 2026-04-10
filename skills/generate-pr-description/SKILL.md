@@ -4,38 +4,102 @@ description: Generate a PR description based on changes. If a repository/issue i
 argument-hint: [repository] [issue]
 ---
 
-Generate a PR description using the follow changes.
+# Generate PR Description
 
-!`git diff $(gt parent)..HEAD` (use `gt`, which is the graphite CLI)
+Generates a structured PR description from the current branch's diff against its Graphite parent, optionally cross-referencing a GitHub issue to assess acceptance criteria coverage.
 
-If a repository/issue is provided, use `gt issue view $2 --repo $1` to get the issue details and use its description to assess issue completeness as part of the PR description.
+## Prerequisites
 
-The PR description should be in the following format:
+- `gt` (Graphite CLI) installed and authenticated in a git repository
+- `gh` CLI authenticated (required only when `$1` and `$2` are provided)
+- Current branch must have commits relative to its parent
+
+## Workflow
 
 ```
+Compute diff (gt parent -> HEAD)
+        |
+        v
+Issue provided? ($1 $2)
+   /         \
+ Yes           No
+  |             |
+  v             v
+Fetch issue   Skip issue
+details       lookup
+  |             |
+  v             |
+Assess          |
+acceptance      |
+criteria        |
+  |             |
+  +------+------+
+         |
+         v
+Generate PR description markdown
+```
+
+## Steps
+
+1. Compute the diff:
+   ```
+   git diff $(gt parent)..HEAD
+   ```
+2. If `$1` (repository) and `$2` (issue number) are provided, fetch the issue:
+   ```
+   gt issue view $2 --repo $1
+   ```
+3. Generate the PR description following the output format below.
+4. Return the result inside a markdown code block with each sentence on its own line.
+
+## Output Format
+
+```markdown
 # What
 
-A summary of the changes in this PR.
-Use the present tense.
+<present-tense summary of changes; bullet points where appropriate>
 
 # Why
 
-A summary of the reason for the changes in this PR.
+<reason for the changes>
 
 # How to test
 
-A summary of how to test the changes in this PR.
+<testing steps>
 
 # Acceptance criteria covered
 
-A summary of the acceptance criteria covered by this PR.
+<which criteria from the issue are addressed>
 
 # References
 
 - https://github.com/$1/issues/$2
-- To be filled by the user (if the above link is not provided)
 ```
 
-The returned response should be returned within a markdown code block.
-Each sentence should be its own line.
-Use bullet points whenever appropriate.
+## Example Usage
+
+**Scenario 1: PR without issue**
+```
+/generate-pr-description
+```
+Diffs current branch vs parent, produces description with "To be filled by the user" in the References section.
+
+**Scenario 2: PR linked to an issue**
+```
+/generate-pr-description owner/myrepo 42
+```
+Fetches issue #42 from `owner/myrepo`, maps its acceptance criteria to the changes, and includes the issue link in References.
+
+**Scenario 3: Partial implementation**
+```
+/generate-pr-description owner/api-service 100
+```
+Issue has 5 acceptance criteria; this PR covers 3. "Acceptance criteria covered" lists only the 3 addressed and notes the remaining 2 are out of scope.
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `git diff $(gt parent)..HEAD` | Diff current branch against its Graphite parent |
+| `gt issue view <issue> --repo <owner/repo>` | Fetch issue details via Graphite CLI |
+| `gh issue view <issue> --repo <owner/repo>` | Fetch issue details via gh CLI |

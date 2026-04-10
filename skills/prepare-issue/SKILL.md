@@ -6,51 +6,107 @@ argument-hint: <issue-url>
 
 BASE_DIR=!`scripts/get-env ISSUES_DIR`
 
-Pull the information and comments about the issue $1 using `gh issue view --comments`.
-Write the raw output of the command to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/issue.md`.
+# Prepare Issue Implementation Plan
 
-Pull the codebase for the repository using `gh repo clone` in a directory under `src/{owner}/{repository}`.
-Make sure that the trunk branch (main/master) is checked out and up to date.
+Fetches a GitHub issue, clones the relevant codebase, and produces a detailed implementation plan. If the issue lacks sufficient information, requests clarification via a comment before planning.
 
-Given the codebase, the issue description, and any discussion within the issue comments, determine if there is enough information to implement the issue.
-If there is not enough information, ask for more information by using `gh issue comment`.
-If there is enough information, create a plan to implement the issue.
+## Prerequisites
 
-Write the plan to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/prepare-issue.md`.
+- `gh` CLI authenticated with access to the repository
+- `ISSUES_DIR` environment variable set (resolved via `scripts/get-env ISSUES_DIR`)
+- Write access to the issue (for posting clarification comments)
+- `scripts/get-env` utility available
 
-The plan should be in the following format (each section as a bullet point list):
+## Workflow
 
 ```
+Fetch issue + comments ($1)
+            |
+            v
+     Clone repository
+     (trunk branch)
+            |
+            v
+   Is information sufficient?
+         /          \
+       Yes            No
+        |              |
+        v              v
+  Write plan      Post clarification
+  to file         comment via gh
+                  then wait
+```
+
+## Steps
+
+1. Fetch issue details and comments:
+   ```
+   gh issue view $1 --comments
+   ```
+   Write raw output to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/issue.md`.
+
+2. Clone the repository at the trunk branch:
+   ```
+   gh repo clone <owner>/<repo> src/<owner>/<repo>
+   cd src/<owner>/<repo> && git checkout main
+   ```
+
+3. Given the codebase, issue description, and comments, assess whether there is enough information to implement.
+   - If not: post a comment requesting specifics:
+     ```
+     gh issue comment $1 --body "..."
+     ```
+   - If yes: proceed to write the plan.
+
+4. Write the plan to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/prepare-issue.md`:
+
+```markdown
 ---
-created_at: {now in iso 8601 format}
-issue: $1 (link to issue)
+created_at: <ISO 8601 timestamp>
+issue: $1
 ---
 
 # Summary
 
-A high level overview of what needs to get done.
-
 # Expectations and Assumptions
-
-A list of expectations and assumptions about the issue.
 
 # Current State
 
-A summary of the current state of the codebase related to the issue.
-
 # Related Issues
-
-A list of related issues that may impact the implementation of the issue.
 
 # Information Sufficiency Assessment
 
-An evaluation of whether there is enough information to implement the issue.
-
 # Open Questions
 
-A list of open questions that need to be answered before implementation can begin.
-
 # Implementation Plan
-
-A detailed plan to address the issue.
 ```
+
+## Example Usage
+
+**Scenario 1: Well-defined feature issue**
+```
+/prepare-issue https://github.com/owner/repo/issues/42
+```
+Issue has clear requirements. Clone repo, analyze codebase, produce a full implementation plan with file-level steps.
+
+**Scenario 2: Vague bug report**
+```
+/prepare-issue https://github.com/owner/repo/issues/77
+```
+Issue says "login is broken" with no reproduction steps. Post comment: "Could you provide steps to reproduce, the expected behavior, and what you observe instead?"
+
+**Scenario 3: Issue with related dependencies**
+```
+/prepare-issue https://github.com/owner/repo/issues/100
+```
+Issue references two related issues. Include them in the "Related Issues" section and note how they affect the implementation plan.
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `gh issue view <issue-url> --comments` | Fetch issue and all comments |
+| `gh repo clone <owner>/<repo> <directory>` | Clone repository into a local directory |
+| `gh issue comment <issue-url> --body "..."` | Post a clarification comment on the issue |
+| `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |
+| `git checkout main` | Check out the trunk branch |

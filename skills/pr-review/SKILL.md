@@ -7,9 +7,47 @@ argument-hint: <pr-number>
 
 BASE_DIR=!`scripts/get-env ISSUES_DIR`
 
+# Review Pull Request
+
+Conducts a comprehensive code review of a GitHub pull request, covering pre-review setup, code quality, testing, security, architecture, and operational concerns. Writes findings to a structured markdown file.
+
+## Prerequisites
+
+- `gh` CLI authenticated with read access to the target repository
+- `ISSUES_DIR` environment variable set (resolved via `scripts/get-env ISSUES_DIR`)
+- PR number (`$1`) identifying an open pull request
+- `scripts/get-env` utility available
+
+## Workflow
+
+```
+Fetch PR metadata + comments ($1)
+            |
+            v
+  Pre-Review Checklist
+  (build, metadata, objective)
+            |
+            v
+  Code Review Checklist
+  (quality, tests, architecture,
+   ops, security, docs)
+            |
+            v
+  Context-Specific Review
+  (feature / bug fix / DB / API?)
+            |
+            v
+  Write pr-review.md
+  (create or update)
+```
+
 ## Setup
 
-Pull the information about the PR $1 using `gh pr view issue-number --repo owner/repository --comments` and write the raw output to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md`.
+Fetch PR information and write the raw output:
+```
+gh pr view $1 --repo <owner>/<repository> --comments
+```
+Write to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md`.
 
 ## Pre-Review Checklist
 
@@ -179,3 +217,31 @@ Indicate the date+time (using ISO 8601 format) the file was generated in the fil
 
 When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/pr-review.md`.
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
+
+## Example Usage
+
+**Scenario 1: New feature PR**
+```
+/pr-review 42
+```
+PR adds a payment processing endpoint. Review verifies implementation matches the linked issue's acceptance criteria, checks for missing test coverage, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit.
+
+**Scenario 2: Bug fix PR**
+```
+/pr-review 88
+```
+PR fixes a null pointer. Review confirms the fix addresses the root cause (not just a symptom), verifies a regression test is included, and marks 🟢 ready to merge.
+
+**Scenario 3: Re-review after changes**
+```
+/pr-review 55
+```
+`pr-review.md` already exists from a previous run. Update the file and summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `gh pr view <pr-number> --repo <owner>/<repo> --comments` | Fetch PR details and review comments |
+| `gh issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details |
+| `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |

@@ -8,63 +8,92 @@ TODAY=`date +%Y-%m-%d`
 YEAR=`date +%Y`
 WEEK=`date +%V`
 
-# Summarize Slack Activity
-Summarize what I discussed on slack based on the notes (`.slack.md` files) taken during the week ending {TODAY} in the directory `{BASE_DIR}`.
-Write the response to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.md`.
+# Generate End-of-Week Summary
 
-# Summarize #help-ml-infrastructure Slack Channel Activity
-Summarize the activity in the #help-ml-infrastructure Slack channel during the week ending {TODAY}. (use slack MCP server to get the messages)
-Write the response to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.help-ml-infrastructure.md`.
+Produces a weekly digest covering personal Slack activity, a monitored Slack channel, each colleague's contributions, outstanding action items, and thanks from the week.
 
-Use the following format:
+## Prerequisites
+
+- Slack MCP server connected and authenticated with access to relevant channels
+- `NOTES_DIR` environment variable set, containing daily `.slack.md` note files
+- `COLLEAGUES` environment variable set (resolved via `scripts/get-env COLLEAGUES`)
+- `scripts/get-env` utility available
+
+## Pipeline
+
 ```
-# Issue (one entry per issue)
+Personal Slack  --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.md
+#help-ml-infra  --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.help-ml-infrastructure.md
+Colleagues      --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/slack/{COLLEAGUE}.md (parallel)
+                    {BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.colleagues.md
+Action Items    --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md
+Thanks          --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md
+```
+
+## Steps
+
+### 1. Summarize Personal Slack Activity
+
+Summarize `.slack.md` files in `{BASE_DIR}` from the week ending {TODAY}. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.md`.
+
+### 2. Summarize #help-ml-infrastructure Channel
+
+Fetch messages from the #help-ml-infrastructure Slack channel during the week ending {TODAY}. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.help-ml-infrastructure.md`:
+
+```markdown
+# <Issue title> (one entry per issue)
 
 ## Link
-
-A link to the slack message.
-
 ## Participants
-A list of the participants in the conversations.
-
 ## Issue
-A summary of the issue discussed.
-
 ## Key events
-A summary of the key events discussed.
-
 ## Outcome
-A summary of the outcome of the conversations.
 
 # Overall
 
 ## Response Quality
-
-A summary of the response quality of the conversations.
-
 ## Common Issues
-
-A summary of the common issues identified in the conversations.
-
 ## Action Items
-
-A summary of the action items generated from the conversations.
 ```
 
-# Summarize Colleagues Slack Channel Activity
-For each person in the following list !`scripts/get-env COLLEAGUES`, summarize their slack activity during the week ending {TODAY}.
-Get the replies from all the thread in which they were discussing to gather additional context.
-At the end, list all the channels they contributed to.
-Use slack MCP server to get the messages.
-Run all those in parallels using subagents.
-Write each person's summary to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack/{COLLEAGUE}.md`.
+### 3. Summarize Colleague Activity (parallel)
 
-Summarize the overall activity of the colleagues during the week ending {TODAY} in the file `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.colleagues.md`.
+Resolve the colleagues list:
+```
+scripts/get-env COLLEAGUES
+```
 
-# Summarize Action Items
-Summarize the action items I need to follow up on based on the notes taken during the week ending {TODAY} in the directory `{BASE_DIR}`.
-Write the response to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`.
+For each person in the list, run as a subagent in parallel: fetch their Slack messages and thread replies during the week, list all channels they contributed to. Write each to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack/{COLLEAGUE}.md`.
 
-# Summarize Thanks
-Summarize the thanks I want to give to others during the week ending {TODAY}.
-Write the response to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md`.
+Aggregate into `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.colleagues.md`.
+
+### 4. Summarize Action Items
+
+Review all notes from the week in `{BASE_DIR}` and extract pending action items. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`.
+
+### 5. Summarize Thanks
+
+Compile thanks from the week's notes. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md`.
+
+## Example Usage
+
+**Scenario 1: Standard week-end run**
+```
+/end-of-week-summary
+```
+Processes week 15 of 2026. Creates `{NOTES_DIR}/2026/weekly/15/` with all output files.
+
+**Scenario 2: Multiple colleagues**
+With 4 colleagues in `COLLEAGUES`, 4 subagents run in parallel to fetch their Slack activity, then results are merged into `slack.colleagues.md`.
+
+**Scenario 3: Quiet week**
+Few Slack messages and no action items. Summaries are brief; `action-items.md` notes "No outstanding action items."
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `scripts/get-env COLLEAGUES` | Resolve the list of colleagues to summarize |
+| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `date +%V` | Get the ISO week number |
+| `date +%Y-%m-%d` | Get today's date in ISO format |

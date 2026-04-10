@@ -10,17 +10,43 @@ MONTH=`date +%m`
 DAY=`date +%d`
 NEXT_WORKDAY=`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "tomorrow")" +%Y-%m-%d`
 
-# Summarize GitHub Activity
-Call `$HOME/repos/git/personal-automation/others/summarize-github-activity tomzx {TODAY} {TODAY} Shopify,shop`.
-Write the output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md`.
+# Generate End-of-Day Summary
 
-# Summarize Slack Activity
-Summarize what I discussed on slack on {TODAY}?
-Write the response to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.md`.
+Produces structured summaries of GitHub and Slack activity for the current day, an overall accomplishments/blockers report, a timeline, and a standup draft for the next workday.
 
-The slack summary should be in the following format (each section as a bullet point list):
+## Prerequisites
+
+- Slack MCP server connected and authenticated
+- `gh` CLI authenticated
+- `summarize-github-activity` script at `$HOME/repos/git/personal-automation/others/summarize-github-activity`
+- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
+- `scripts/get-env` utility available
+
+## Pipeline
 
 ```
+GitHub Activity --> {BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md
+Slack Activity  --> {BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.md
+Overall Summary --> {BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md
+Timeline        --> {BASE_DIR}/{YEAR}/{MONTH}/{DAY}.timeline.md
+Standup         --> {BASE_DIR}/{YEAR}/{MONTH}/{NEXT_WORKDAY}.standup.md
+```
+
+## Steps
+
+### 1. Summarize GitHub Activity
+
+```
+$HOME/repos/git/personal-automation/others/summarize-github-activity tomzx {TODAY} {TODAY} Shopify,shop
+```
+
+Write output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md`.
+
+### 2. Summarize Slack Activity
+
+Summarize Slack messages from {TODAY} via the Slack MCP server. Write to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.md`:
+
+```markdown
 # Summary
 
 A summary of the key conversations.
@@ -34,85 +60,62 @@ A list of the key conversations (including a link to the conversation).
 A list of the action items generated.
 ```
 
-Use my slack activity to identify who I collaborated with and what I want to thank them for.
+Use Slack activity to identify collaborators to thank.
 
-# Summarize overall activity
-Summarize my overall activity on {TODAY}?
-Write the response to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md`.
+### 3. Summarize Overall Activity
 
-The overall summary should be in the following format (each section as a bullet point list):
+Combine GitHub and Slack data. Write to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md`:
 
-```
+```markdown
 # Accomplishments
-
-A summary of what I accomplished.
-
 # Decisions
-
-A summary of the decisions I made.
-
 # Blockers/Waiting for
-
-A summary of what I was blocked by or waiting for.
-
 # For Your Information
-
-A summary of what I should let others be aware of.
-
 # Need to Discuss
-
-A summary of what I need to discuss with others.
-
 # Thanks
-
-A summary of what I want to thank others for, organized by person.
-
 # Next Steps
-
-A summary of what I need to do next.
 ```
 
-Avoid repeating the same information said differently within the same section.
+Avoid repeating the same information differently within the same section.
 
-# Timeline
-Using the information collected, create a timeline of the day.
+### 4. Build Timeline
 
-Write the response to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.timeline.md`.
+Write a chronological view to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.timeline.md`:
 
-The timeline should be in the following format (each section as a bullet point list):
-
-```
+```markdown
 # Timeline
 
-* Timestamp - Activity
+* HH:MM - Activity
 ```
 
-# Standup
-Generate information to share in the next day's standup.
-Write the response to `{BASE_DIR}/{YEAR}/{MONTH}/{NEXT_WORKDAY}.standup.md`.
+### 5. Generate Standup
 
-The standup should be in the following format (each section as a bullet point list):
+Write to `{BASE_DIR}/{YEAR}/{MONTH}/{NEXT_WORKDAY}.standup.md` (max 5 bullet points per section):
 
-```
+```markdown
 # What I did yesterday
-
-A summary of what I did yesterday.
-
 # What I will do today
-
-A summary of what I will do today.
-
 # Blockers/Waiting for
-
-A summary of what I am blocked by or waiting for.
-
 # For Your Information
-
-A summary of what I should let others be aware of.
-
 # Thanks
-
-A summary of what I want to thank others for, organized by person.
 ```
 
-Each section should be at most 5 bullet points.
+## Example Usage
+
+**Scenario 1: Regular weekday**
+Run at end of Thursday. Generates 5 files; standup targets Friday's date.
+
+**Scenario 2: End of Friday**
+`NEXT_WORKDAY` resolves to the following Monday. Standup file is created for Monday.
+
+**Scenario 3: Light activity day**
+Few GitHub events and minimal Slack. Summaries are brief; Overall may have mostly empty sections except Accomplishments.
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `date +%Y-%m-%d` | Get today's date in ISO format |
+| `date -d "next Monday" +%Y-%m-%d` | Get next Monday's date |
+| `$HOME/repos/git/personal-automation/others/summarize-github-activity <user> <from> <to> <exclude>` | Summarize GitHub activity for a user |
