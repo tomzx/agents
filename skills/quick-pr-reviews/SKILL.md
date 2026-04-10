@@ -1,13 +1,13 @@
 ---
 name: quick-pr-reviews
-description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations.
+description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations or repositories (owner/repo).
 allowed-tools: Bash(gh:*)
-argument-hint: [org1 org2 ...]
+argument-hint: [org1 org2 ... | owner/repo1 owner/repo2 ...]
 ---
 
 # Quick PR Reviews
 
-Finds all open PRs where you are a requested reviewer, checks each one for new commits since the last quick-pr-review comment, and runs `/quick-pr-review` on those that have changed. Accepts an optional list of organizations to limit the scope.
+Finds all open PRs where you are a requested reviewer, checks each one for new commits since the last quick-pr-review comment, and runs `/quick-pr-review` on those that have changed. Accepts an optional list of organizations (e.g. `acme`) or repositories in `owner/repo` format (e.g. `acme/api`) to limit the scope. Filters are applied at the GitHub search API level for efficiency.
 
 ## Prerequisites
 
@@ -17,9 +17,9 @@ Finds all open PRs where you are a requested reviewer, checks each one for new c
 ## Workflow
 
 ```
-Fetch open PRs with review requested
+Parse arguments into orgs and repos
               |
-     Filter by org(s) if provided
+     Build search with --owner / --repo
               |
               v
   For each PR, check existing
@@ -35,7 +35,13 @@ Fetch open PRs with review requested
 
 ## Steps
 
-### 1. Fetch PRs awaiting your review
+### 1. Parse arguments and build search command
+
+Separate `$@` into two groups:
+- **Orgs**: arguments that do not contain `/` (e.g. `acme`, `widgets-inc`)
+- **Repos**: arguments in `owner/repo` format (contain a `/`, e.g. `acme/api`, `org/web-app`)
+
+Build the `gh search prs` command as follows:
 
 ```bash
 gh search prs --review-requested @me --state open \
@@ -43,19 +49,18 @@ gh search prs --review-requested @me --state open \
   --limit 100
 ```
 
+Append filter flags based on parsed arguments:
+- For each org, add `--owner <org>`
+- For each repo, add `--repo <owner/repo>`
+
+If no arguments are provided, run the base command without `--owner` or `--repo` flags (fetches all review-requested PRs).
+
 This returns a list of PRs. For each entry extract:
 - `REPO`: `repository.nameWithOwner`
 - `PR`: `number`
 - `HEAD_COMMIT`: `headRefOid`
-- `ORG`: the owner portion of `repository.nameWithOwner` (everything before `/`)
 
-### 2. Filter by organization (if arguments provided)
-
-If one or more organizations are provided as `$@`, discard any PR whose `ORG` does not appear in the list.
-
-If no arguments are provided, process all PRs returned in step 1.
-
-### 3. For each PR, check for an existing review comment
+### 2. For each PR, check for an existing review comment
 
 ```bash
 gh api repos/{REPO}/issues/{PR}/comments \
@@ -67,7 +72,7 @@ Extract `COMMENT_COMMIT` from the marker line `<!-- quick-pr-review:COMMIT_SHA -
 - If `COMMENT_COMMIT == HEAD_COMMIT`: skip (no changes since last review).
 - Otherwise: needs review.
 
-### 4. Run quick-pr-review on changed PRs
+### 3. Run quick-pr-review on changed PRs
 
 For each PR that needs review, invoke:
 
@@ -77,7 +82,7 @@ For each PR that needs review, invoke:
 
 Process PRs sequentially to avoid rate limiting.
 
-### 5. Report summary
+### 4. Report summary
 
 After processing all PRs, output a summary table:
 
@@ -99,15 +104,27 @@ Finds 5 open PRs across multiple orgs. 2 have new commits, 3 unchanged. Runs `/q
 ```
 /quick-pr-reviews acme widgets-inc
 ```
-Fetches all review-requested PRs, then discards any not belonging to `acme` or `widgets-inc` before checking for changes.
+Adds `--owner acme --owner widgets-inc` to the search. Only PRs from those orgs are returned.
 
-**Scenario 3: No PRs awaiting review**
+**Scenario 3: Filter to specific repositories**
+```
+/quick-pr-reviews acme/api acme/web-app
+```
+Adds `--repo acme/api --repo acme/web-app` to the search. Only PRs from those repos are returned.
+
+**Scenario 4: Mixed org and repo filters**
+```
+/quick-pr-reviews acme acme/api other-org/toolkit
+```
+Adds `--owner acme --repo acme/api --repo other-org/toolkit`. Results include all `acme` org PRs plus the two specific repos.
+
+**Scenario 5: No PRs awaiting review**
 ```
 /quick-pr-reviews
 ```
 Search returns no results. Report "No open PRs awaiting your review."
 
-**Scenario 4: All PRs already reviewed**
+**Scenario 6: All PRs already reviewed**
 ```
 /quick-pr-reviews
 ```
