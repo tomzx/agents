@@ -1,3 +1,9 @@
+---
+name: handle-pr-comment
+description: Reply to a comment on a GitHub pull request, implementing changes if appropriate, using the codebase and comment history as context.
+argument-hint: <pr-url>
+---
+
 # Goal
 
 Reply to a comment on a pull request appropriately, using the codebase, pull request description and comment history as context.

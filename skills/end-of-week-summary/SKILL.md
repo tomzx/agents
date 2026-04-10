@@ -1,5 +1,12 @@
+---
+name: end-of-week-summary
+description: Summarize weekly Slack activity, colleague activity, action items, and thanks for the week.
+---
+
 BASE_DIR=!`scripts/get-env NOTES_DIR`
 TODAY=`date +%Y-%m-%d`
+YEAR=`date +%Y`
+WEEK=`date +%V`
 
 # Summarize Slack Activity
 Summarize what I discussed on slack based on the notes (`.slack.md` files) taken during the week ending {TODAY} in the directory `{BASE_DIR}`.

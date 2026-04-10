@@ -1,6 +1,7 @@
 ---
-argument-hint: [repository] [issue]
+name: generate-pr-description
 description: Generate a PR description based on changes. If a repository/issue is provided, use its description to assess issue completeness.
+argument-hint: [repository] [issue]
 ---
 
 Generate a PR description using the follow changes.

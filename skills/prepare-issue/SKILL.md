@@ -1,3 +1,9 @@
+---
+name: prepare-issue
+description: Analyze a GitHub issue and create a detailed implementation plan, requesting more information if needed.
+argument-hint: <issue-url>
+---
+
 BASE_DIR=!`scripts/get-env ISSUES_DIR`
 
 Pull the information and comments about the issue $1 using `gh issue view --comments`.

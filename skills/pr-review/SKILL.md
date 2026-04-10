@@ -1,5 +1,6 @@
 ---
-description: Conduct a comprehensive code review of a GitHub pull request
+name: pr-review
+description: Conduct a comprehensive code review of a GitHub pull request.
 allowed-tools: Bash(gh:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: <pr-number>
 ---
@@ -8,7 +9,7 @@ BASE_DIR=!`scripts/get-env ISSUES_DIR`
 
 ## Setup
 
-Pull the information about the PR $1 using `gh pr view issue-number --repo owner/repository --comments` and write the raw output to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/gh-pr-view.md`.
+Pull the information about the PR $1 using `gh pr view issue-number --repo owner/repository --comments` and write the raw output to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md`.
 
 ## Pre-Review Checklist
 
@@ -176,5 +177,5 @@ Put 🔴/🟢 at the top of the document to indicate the overall status of the r
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
-When reviewing, write the response to `{ISSUES_DIR}/{REPOSITORY}/{PR_NUMBER}/pr-review.md`.
+When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/pr-review.md`.
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
