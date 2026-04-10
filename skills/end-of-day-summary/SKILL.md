@@ -1,3 +1,8 @@
+---
+name: end-of-day-summary
+description: Summarize GitHub activity, Slack activity, and overall activity for the day, then generate a standup for the next day.
+---
+
 BASE_DIR=!`scripts/get-env NOTES_DIR`
 TODAY=`date +%Y-%m-%d`
 

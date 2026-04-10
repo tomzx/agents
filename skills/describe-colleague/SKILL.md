@@ -1,4 +1,6 @@
 ---
+name: describe-colleague
+description: Generate a profile for a colleague based on their Slack and GitHub activity, covering strengths, weaknesses, interests, avoids, and other relevant information.
 argument-hint: [colleague]
 ---
 

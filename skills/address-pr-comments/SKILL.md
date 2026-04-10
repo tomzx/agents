@@ -1,3 +1,8 @@
+---
+name: address-pr-comments
+description: Pull and address review comments on a GitHub pull request, implementing appropriate changes or explaining why a change won't be made.
+---
+
 Pull the comments about the PR $1 using `gh pr view $1 --comments`.
 
 For each comment, determine whether the feedback is appropriate and actionable.
