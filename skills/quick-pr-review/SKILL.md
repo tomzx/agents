@@ -266,7 +266,7 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 - No failing checks that represent significant risk (tests failing, or non-reversible destructive operations)
 
 ```bash
-gh pr review $2 --repo {REPO} --approve --body "LGTM - no blocking issues found."
+gh pr review $2 --repo {REPO} --approve
 ```
 
 **Do not approve** when:
@@ -320,4 +320,4 @@ Review comment already exists for the current HEAD commit. Skip and report "alre
 | `gh pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
 | `gh api repos/{owner}/{repo}/issues/<pr>/comments` | List all comments on a PR |
-| `gh pr review <pr> --repo <owner/repo> --approve --body "..."` | Approve the PR |
+| `gh pr review <pr> --repo <owner/repo> --approve` | Approve the PR |
