@@ -45,7 +45,7 @@ Build the `gh search prs` command as follows:
 
 ```bash
 gh search prs --review-requested @me --state open \
-  --json number,repository,title,headRefOid \
+  --json number,repository,title \
   --limit 100
 ```
 
@@ -58,7 +58,15 @@ If no arguments are provided, run the base command without `--owner` or `--repo`
 This returns a list of PRs. For each entry extract:
 - `REPO`: `repository.nameWithOwner`
 - `PR`: `number`
-- `HEAD_COMMIT`: `headRefOid`
+
+Then fetch the head commit SHA for each PR:
+
+```bash
+gh pr view {PR} --repo {REPO} --json headRefOid --jq '.headRefOid'
+```
+
+This gives you:
+- `HEAD_COMMIT`: the output of the above command
 
 ### 2. For each PR, check for an existing review comment
 
