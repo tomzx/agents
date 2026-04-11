@@ -1,0 +1,169 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "PyGithub>=2.0.0",
+# ]
+# ///
+"""
+quick-pr-reviews - List open PRs where you are a requested reviewer and determine
+which ones need a new quick-pr-review run.
+
+Usage: quick-pr-reviews [org1 org2 ... | owner/repo1 owner/repo2 ...]
+
+Arguments can be org names (no slash) or full repo names (with slash). With no
+arguments, all orgs and repos are included.
+
+Outputs a JSON array. Each entry has:
+  repo          - "owner/repo"
+  pr            - PR number
+  title         - PR title
+  needs_review  - true if a quick-pr-review run is warranted
+  reason        - one of: no_prior_review | new_commit | ci_now_passing |
+                          no_changes | ci_still_failing | error
+
+Environment:
+  GITHUB_TOKEN  Required. A GitHub personal access token or app token with
+                repo read access.
+"""
+
+import json
+import os
+import re
+import sys
+from typing import Any
+
+from github import Github
+from github.GithubException import GithubException
+
+
+COMMENT_MARKER = "<!-- quick-pr-review:"
+
+
+def get_github_client() -> Github:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        sys.exit("Error: GITHUB_TOKEN environment variable is not set")
+    return Github(token)
+
+
+def find_existing_comment(repo, pr_number: int) -> dict[str, Any] | None:
+    """Return the most recent quick-pr-review comment on a PR, or None."""
+    issue = repo.get_issue(pr_number)
+    last_comment = None
+    for comment in issue.get_comments():
+        if COMMENT_MARKER in comment.body:
+            last_comment = comment
+    if last_comment is None:
+        return None
+    match = re.search(r"<!-- quick-pr-review:([a-f0-9]+) -->", last_comment.body)
+    commit_sha = match.group(1) if match else None
+    ci_was_failing = "- [ ] Tests pass" in last_comment.body
+    return {
+        "id": last_comment.id,
+        "commit_sha": commit_sha,
+        "ci_was_failing": ci_was_failing,
+    }
+
+
+def ci_all_passing(repo, head_commit_sha: str) -> bool:
+    """Return True if all CI checks for the commit are complete and passing."""
+    commit = repo.get_commit(head_commit_sha)
+    try:
+        for run in commit.get_check_runs():
+            if run.status != "completed":
+                return False
+            if run.conclusion not in ("success", "neutral", "skipped"):
+                return False
+    except GithubException:
+        pass
+    try:
+        combined = commit.get_combined_status()
+        if combined.state in ("failure", "error", "pending"):
+            return False
+    except GithubException:
+        pass
+    return True
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    orgs = [a for a in args if "/" not in a]
+    repos = [a for a in args if "/" in a]
+
+    g = get_github_client()
+    me = g.get_user().login
+
+    query = f"is:open is:pr review-requested:{me}"
+    for org in orgs:
+        query += f" org:{org}"
+    for repo in repos:
+        query += f" repo:{repo}"
+
+    results = []
+    for issue in g.search_issues(query):
+        repo_name = issue.repository.full_name
+        pr_number = issue.number
+        try:
+            repo = g.get_repo(repo_name)
+            pr = repo.get_pull(pr_number)
+            head_commit_sha = pr.head.sha
+
+            existing = find_existing_comment(repo, pr_number)
+
+            if existing is None:
+                results.append({
+                    "repo": repo_name,
+                    "pr": pr_number,
+                    "title": pr.title,
+                    "needs_review": True,
+                    "reason": "no_prior_review",
+                })
+            elif existing["commit_sha"] != head_commit_sha:
+                results.append({
+                    "repo": repo_name,
+                    "pr": pr_number,
+                    "title": pr.title,
+                    "needs_review": True,
+                    "reason": "new_commit",
+                })
+            elif existing["ci_was_failing"]:
+                if ci_all_passing(repo, head_commit_sha):
+                    results.append({
+                        "repo": repo_name,
+                        "pr": pr_number,
+                        "title": pr.title,
+                        "needs_review": True,
+                        "reason": "ci_now_passing",
+                    })
+                else:
+                    results.append({
+                        "repo": repo_name,
+                        "pr": pr_number,
+                        "title": pr.title,
+                        "needs_review": False,
+                        "reason": "ci_still_failing",
+                    })
+            else:
+                results.append({
+                    "repo": repo_name,
+                    "pr": pr_number,
+                    "title": pr.title,
+                    "needs_review": False,
+                    "reason": "no_changes",
+                })
+
+        except GithubException as e:
+            results.append({
+                "repo": repo_name,
+                "pr": pr_number,
+                "title": issue.title,
+                "needs_review": False,
+                "reason": f"error: {e}",
+            })
+
+    print(json.dumps(results, indent=2))
+
+
+if __name__ == "__main__":
+    main()

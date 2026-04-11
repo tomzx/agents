@@ -1,0 +1,269 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "PyGithub>=2.0.0",
+# ]
+# ///
+"""
+quick-pr-review - Deterministic parts of the PR review workflow.
+
+Subcommands:
+  fetch <owner/repo> <pr-number>
+      Fetch PR data and output JSON for LLM analysis.
+      Exits with status "up_to_date" if the review comment already covers the
+      current HEAD commit. Otherwise outputs full PR data, diff, CI status,
+      and dependency change info.
+
+  post <owner/repo> <pr-number> [--approve]
+      Read a review comment body from stdin and create or update the
+      quick-pr-review comment on the PR. Pass --approve to also submit a
+      GitHub approval review.
+
+Environment:
+  GITHUB_TOKEN  Required. A GitHub personal access token or app token with
+                repo read/write access.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from typing import Any
+
+from github import Github
+from github.GithubException import GithubException
+
+
+COMMENT_MARKER = "<!-- quick-pr-review:"
+
+DEPENDENCY_FILE_PATTERNS = [
+    r"(^|/)package\.json$",
+    r"(^|/)package-lock\.json$",
+    r"(^|/)yarn\.lock$",
+    r"(^|/)pnpm-lock\.yaml$",
+    r"(^|/)Gemfile$",
+    r"(^|/)Gemfile\.lock$",
+    r"(^|/)requirements.*\.txt$",
+    r"(^|/)pyproject\.toml$",
+    r"(^|/)uv\.lock$",
+    r"(^|/)poetry\.lock$",
+    r"(^|/)go\.mod$",
+    r"(^|/)go\.sum$",
+    r"(^|/)Cargo\.toml$",
+    r"(^|/)Cargo\.lock$",
+]
+
+
+def get_github_client() -> Github:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        sys.exit("Error: GITHUB_TOKEN environment variable is not set")
+    return Github(token)
+
+
+def get_skill_commit() -> str:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_dir = os.path.dirname(script_dir)
+    try:
+        result = subprocess.run(
+            ["git", "-C", repo_dir, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+
+def is_dependency_file(filename: str) -> bool:
+    return any(re.search(pat, filename) for pat in DEPENDENCY_FILE_PATTERNS)
+
+
+def get_diff(pr) -> str:
+    """Reconstruct unified diff from PR files via the GitHub API."""
+    parts = []
+    for f in pr.get_files():
+        if f.status == "renamed":
+            parts.append(f"diff --git a/{f.previous_filename} b/{f.filename}")
+            parts.append(f"rename from {f.previous_filename}")
+            parts.append(f"rename to {f.filename}")
+        else:
+            parts.append(f"diff --git a/{f.filename} b/{f.filename}")
+
+        if f.status == "added":
+            parts.append("--- /dev/null")
+            parts.append(f"+++ b/{f.filename}")
+        elif f.status == "removed":
+            parts.append(f"--- a/{f.filename}")
+            parts.append("+++ /dev/null")
+        else:
+            parts.append(f"--- a/{f.filename}")
+            parts.append(f"+++ b/{f.filename}")
+
+        if f.patch:
+            parts.append(f.patch)
+        else:
+            parts.append("(binary file or large diff not available)")
+        parts.append("")
+    return "\n".join(parts)
+
+
+def check_ci_status(repo, head_commit_sha: str) -> dict[str, Any]:
+    """Return CI pass/fail/pending info for the given commit."""
+    commit = repo.get_commit(head_commit_sha)
+    failing: list[dict[str, str]] = []
+    pending: list[str] = []
+
+    try:
+        for run in commit.get_check_runs():
+            if run.status != "completed":
+                pending.append(run.name)
+            elif run.conclusion not in ("success", "neutral", "skipped"):
+                failing.append({"name": run.name, "conclusion": run.conclusion})
+    except GithubException:
+        pass
+
+    try:
+        combined = commit.get_combined_status()
+        for status in combined.statuses:
+            if status.state in ("failure", "error"):
+                failing.append({"name": status.context, "conclusion": status.state})
+            elif status.state == "pending" and status.context not in pending:
+                pending.append(status.context)
+    except GithubException:
+        pass
+
+    return {
+        "all_passing": not failing and not pending,
+        "pending": pending,
+        "failing": failing,
+    }
+
+
+def find_existing_comment(repo, pr_number: int) -> dict[str, Any] | None:
+    """Return the most recent quick-pr-review comment on a PR, or None."""
+    issue = repo.get_issue(pr_number)
+    last_comment = None
+    for comment in issue.get_comments():
+        if COMMENT_MARKER in comment.body:
+            last_comment = comment
+    if last_comment is None:
+        return None
+    match = re.search(r"<!-- quick-pr-review:([a-f0-9]+) -->", last_comment.body)
+    commit_sha = match.group(1) if match else None
+    return {"id": last_comment.id, "commit_sha": commit_sha}
+
+
+def cmd_fetch(owner_repo: str, pr_number: int) -> None:
+    g = get_github_client()
+    repo = g.get_repo(owner_repo)
+    pr = repo.get_pull(pr_number)
+
+    head_commit_sha = pr.head.sha
+    skill_commit = get_skill_commit()
+
+    existing_comment = find_existing_comment(repo, pr_number)
+
+    if existing_comment and existing_comment["commit_sha"] == head_commit_sha:
+        print(json.dumps({
+            "status": "up_to_date",
+            "message": f"Review already up to date for commit {head_commit_sha[:7]}.",
+            "head_commit": head_commit_sha,
+        }))
+        return
+
+    diff = get_diff(pr)
+
+    changed_files = list(pr.get_files())
+    dep_files_changed = [f.filename for f in changed_files if is_dependency_file(f.filename)]
+    has_new_dep_additions = any(
+        f.additions > 0 for f in changed_files if is_dependency_file(f.filename)
+    )
+
+    ci = check_ci_status(repo, head_commit_sha)
+
+    print(json.dumps({
+        "status": "needs_review",
+        "pr": {
+            "number": pr.number,
+            "title": pr.title,
+            "body": pr.body,
+            "head_commit": head_commit_sha,
+            "base_branch": pr.base.ref,
+            "url": pr.html_url,
+            "state": pr.state,
+        },
+        "diff": diff,
+        "ci": ci,
+        "dependency_files_changed": dep_files_changed,
+        "has_new_dependency_additions": has_new_dep_additions,
+        "existing_comment": existing_comment,
+        "head_commit": head_commit_sha,
+        "skill_commit": skill_commit,
+    }, indent=2))
+
+
+def cmd_post(owner_repo: str, pr_number: int, approve: bool) -> None:
+    comment_body = sys.stdin.read().strip()
+    if not comment_body:
+        sys.exit("Error: comment body is empty (read from stdin)")
+
+    g = get_github_client()
+    repo = g.get_repo(owner_repo)
+
+    existing_comment = find_existing_comment(repo, pr_number)
+
+    if existing_comment:
+        comment = repo.get_issue_comment(existing_comment["id"])
+        comment.edit(comment_body)
+        print(f"Updated existing comment {existing_comment['id']}")
+    else:
+        issue = repo.get_issue(pr_number)
+        new_comment = issue.create_comment(comment_body)
+        print(f"Created new comment {new_comment.id}")
+
+    if approve:
+        pr = repo.get_pull(pr_number)
+        pr.create_review(event="APPROVE")
+        print("Approved PR")
+    else:
+        print("PR not approved (one or more blocking checks failed)")
+
+
+def main() -> None:
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+
+    subcmd = sys.argv[1]
+
+    if subcmd == "fetch":
+        if len(sys.argv) < 4:
+            sys.exit("Usage: quick-pr-review fetch <owner/repo> <pr-number>")
+        owner_repo = sys.argv[2]
+        try:
+            pr_number = int(sys.argv[3])
+        except ValueError:
+            sys.exit("Error: pr-number must be an integer")
+        cmd_fetch(owner_repo, pr_number)
+
+    elif subcmd == "post":
+        if len(sys.argv) < 4:
+            sys.exit("Usage: quick-pr-review post <owner/repo> <pr-number> [--approve]")
+        owner_repo = sys.argv[2]
+        try:
+            pr_number = int(sys.argv[3])
+        except ValueError:
+            sys.exit("Error: pr-number must be an integer")
+        approve = "--approve" in sys.argv[4:]
+        cmd_post(owner_repo, pr_number, approve)
+
+    else:
+        sys.exit(f"Unknown subcommand: {subcmd!r}. Expected 'fetch' or 'post'.")
+
+
+if __name__ == "__main__":
+    main()
