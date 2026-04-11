@@ -22,21 +22,21 @@ Fetch PR metadata + latest commit SHA
               |
               v
      Find existing review comment
-     (<!-- quick-pr-review --> marker)
+     (<!-- quick-pr-review: marker)
               |
         Same commit?
          /         \
        Yes           No (new or updated)
         |                    |
-   No-op, done          Run checks
-                             |
-                  Any blocking failures?
-                     /           \
-                   Yes             No
-                    |               |
-              Post/update        Approve +
-              comment only      post/update
-                                  comment
+      No-op            Run checks
+                            |
+                 Any blocking failures?
+                    /           \
+                  Yes             No
+                   |               |
+             Post/update        Approve +
+             comment only      post/update
+                                 comment
 ```
 
 ## Steps
@@ -69,13 +69,13 @@ Extract:
 
 ```bash
 gh api repos/{REPO}/issues/$2/comments \
-  --jq '.[] | select(.body | test("<!-- quick-pr-review -->")) | {id: .id, body: .body}' \
+  --jq '.[] | select(.body | test("<!-- quick-pr-review:")) | {id: .id, body: .body}' \
   | head -1
 ```
 
 If a comment exists, extract the commit SHA from the marker line `<!-- quick-pr-review:COMMIT_SHA -->`.
 
-If `COMMENT_COMMIT == HEAD_COMMIT`: the PR has not changed since last review. Output "Review already up to date for commit `SHORT_SHA`." and stop.
+If `COMMENT_COMMIT == HEAD_COMMIT`: output "Review already up to date for commit `SHORT_SHA`." and stop.
 
 ### 3. Run review checks
 

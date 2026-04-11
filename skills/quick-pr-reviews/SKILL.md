@@ -23,14 +23,23 @@ Parse arguments into orgs and repos
               |
               v
   For each PR, check existing
-  <!-- quick-pr-review --> comment
+  <!-- quick-pr-review: marker
               |
        Commit changed?
         /          \
       No             Yes
       |               |
-    Skip         /quick-pr-review
-                  <owner/repo> <pr>
+ Was "Tests pass"     |
+ failing last time?   |
+    /        \        |
+  No          Yes     |
+   |           |      |
+   |    CI now green? |
+   |     /       \    |
+   |   No         \   |
+   |    |          \  |
+ Skip  Skip   /quick-pr-review
+                <owner/repo> <pr>
 ```
 
 ## Steps
@@ -72,12 +81,21 @@ This gives you:
 
 ```bash
 gh api repos/{REPO}/issues/{PR}/comments \
-  --jq '[.[] | select(.body | test("<!-- quick-pr-review -->"))] | last | {id: .id, body: .body}'
+  --jq '[.[] | select(.body | test("<!-- quick-pr-review:"))] | last | {id: .id, body: .body}'
 ```
 
 Extract `COMMENT_COMMIT` from the marker line `<!-- quick-pr-review:COMMIT_SHA -->` in the comment body, if present.
 
-- If `COMMENT_COMMIT == HEAD_COMMIT`: skip (no changes since last review).
+- If `COMMENT_COMMIT == HEAD_COMMIT`: the PR has not changed since last review. Before skipping, check whether the previous comment contains `- [ ] Tests pass` (i.e., CI was failing). If it does, re-fetch the current CI status:
+
+  ```bash
+  gh pr view {PR} --repo {REPO} --json statusCheckRollup --jq '.statusCheckRollup'
+  ```
+
+  If all checks are now passing or skipped, the PR needs review (proceed to step 3). If CI is still failing, skip and report "Skipped (CI still failing)".
+
+  If the previous comment does not have a "Tests pass" failure, skip (no changes since last review).
+
 - Otherwise: needs review.
 
 ### 3. Run quick-pr-review on changed PRs
@@ -99,6 +117,7 @@ After processing all PRs, output a summary table:
 | owner/repo | #42 | Reviewed (approved) |
 | owner/repo | #88 | Reviewed (comment posted) |
 | owner/repo | #55 | Skipped (no changes) |
+| owner/repo | #77 | Skipped (CI still failing) |
 
 ## Example Usage
 
@@ -132,7 +151,19 @@ Adds `--owner acme --repo acme/api --repo other-org/toolkit`. Results include al
 ```
 Search returns no results. Report "No open PRs awaiting your review."
 
-**Scenario 6: All PRs already reviewed**
+**Scenario 6: Same commit but CI was failing, now passes**
+```
+/quick-pr-reviews
+```
+A PR has no new commits but the previous review comment contains `- [ ] Tests pass`. Re-fetches CI status: all checks are now green. Runs `/quick-pr-review` to update the comment and approve.
+
+**Scenario 7: Same commit, CI still failing**
+```
+/quick-pr-reviews
+```
+A PR has no new commits but the previous review comment contains `- [ ] Tests pass`. Re-fetches CI status: checks are still failing. Skips and reports "Skipped (CI still failing)".
+
+**Scenario 8: All PRs already reviewed**
 ```
 /quick-pr-reviews
 ```
@@ -143,4 +174,5 @@ All existing review comments match the current HEAD commit. Report all as skippe
 | Command | Description |
 |---|---|
 | `gh search prs --review-requested @me --state open --json number,repository,title,headRefOid` | List open PRs where you are a requested reviewer |
+| `gh pr view <pr> --repo <owner/repo> --json statusCheckRollup --jq '.statusCheckRollup'` | Fetch CI status for a PR |
 | `gh api repos/{owner}/{repo}/issues/{pr}/comments` | List comments on a PR |
