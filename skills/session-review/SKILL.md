@@ -71,7 +71,16 @@ For each relevant spec:
 - Remove or update any requirements that the change made obsolete.
 - Run `/spec-review` on updated specs to check for ambiguities, inconsistencies, or missing information.
 
-### 6. Update AGENTS.md
+### 6. Observability Review
+
+Check that the change has appropriate logging, metrics, and tracing at key decision points:
+
+- Are significant events (errors, state transitions, external calls) logged with enough context to diagnose issues in production?
+- If the project uses structured logging, are new log statements consistent with the existing format and fields?
+- If the change adds a new code path that could be slow or fail, is there a metric or trace span covering it?
+- Remove any debug logging that was added temporarily during development.
+
+### 7. Update AGENTS.md
 
 Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions. For each:
 
@@ -109,6 +118,11 @@ After completing all steps, print a summary:
 ### Specifications
 - [ ] Updated: <list of updated spec files, or "none needed">
 - [ ] Spec review run: yes / no
+
+### Observability
+- [ ] Logging adequate for production diagnosis: yes / no
+- [ ] Debug logging removed: yes / n/a
+- [ ] Metrics/tracing added for new slow or failure-prone paths: yes / n/a
 
 ### AGENTS.md Updates
 - [ ] Added rules: <list of new rules, or "none">
