@@ -253,6 +253,7 @@ REPO_NAME=$(echo {REPO} | cut -d/ -f2)
 REVIEW_DIR=~/.quick-pr-review/${OWNER}/${REPO_NAME}
 REVIEW_FILE=${REVIEW_DIR}/$2-{SHORT_SHA}.md
 
+git -C ~/.quick-pr-review rev-parse --git-dir > /dev/null 2>&1 || git init ~/.quick-pr-review
 mkdir -p "${REVIEW_DIR}"
 printf '%s' "{COMMENT_BODY}" > "${REVIEW_FILE}"
 git -C ~/.quick-pr-review add "${REVIEW_FILE}"
