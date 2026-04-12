@@ -1,11 +1,9 @@
 ---
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
-allowed-tools: Bash(gh:*, git:*), Read, Write, Glob
+allowed-tools: Bash(gh:*, git:*), Read
 argument-hint: <owner/repo> <pr-number>
 ---
-
-BASE_DIR=!`scripts/get-env NOTES_DIR`
 
 # Quick PR Review
 
@@ -81,7 +79,7 @@ Extract:
 
 ### 2. Load author trust profile
 
-`TRUST_PROFILE_PATH`: `{BASE_DIR}/developer-trust-profiles/{PR_AUTHOR}.md`
+`TRUST_PROFILE_PATH`: `~/.developer-trust/{PR_AUTHOR}.md`
 
 If the file exists, read it and extract:
 - `TRUST_LEVEL`: the value after `**Level**:` (one of `trusted`, `neutral`, `cautious`, `always_reject`)
@@ -359,7 +357,7 @@ After posting the comment and applying the approval decision, update the author'
 /developer-trust-profile {PR_AUTHOR} --after-review {REPO} {PR_NUMBER} {approved|not_approved}
 ```
 
-This records the review outcome and observations in `{BASE_DIR}/developer-trust-profiles/{PR_AUTHOR}.md`, creating the file if it does not exist.
+This records the review outcome and observations in `~/.developer-trust/{PR_AUTHOR}.md`, creating the file if it does not exist.
 
 ## Output
 
@@ -411,7 +409,7 @@ Author profile has `always_reject` level. Skips all checks. Posts comment indica
 ```
 /quick-pr-review owner/myrepo 101
 ```
-No trust profile found for the author. Defaults to `neutral`. After review, creates a new profile at `{NOTES_DIR}/developer-trust-profiles/{author}.md` with the first review history entry and initial observations.
+No trust profile found for the author. Defaults to `neutral`. After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
 
 ## Useful Commands Reference
 
@@ -423,4 +421,3 @@ No trust profile found for the author. Defaults to `neutral`. After review, crea
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
 | `gh api repos/{owner}/{repo}/issues/<pr>/comments` | List all comments on a PR |
 | `gh pr review <pr> --repo <owner/repo> --approve` | Approve the PR |
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |

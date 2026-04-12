@@ -5,22 +5,19 @@ allowed-tools: Bash(gh:*, git:*), Read, Write, Glob
 argument-hint: <github_username> [--after-review <owner/repo> <pr_number> <approved|not_approved>]
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
-
 # Developer Trust Profile
 
 Manages per-developer trust profiles that inform PR review behavior. Each profile lives in its own file and accumulates observations across reviews. Call this skill to view a profile, create one from scratch, or update it after a PR review.
 
 ## Prerequisites
 
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
 - GitHub username (`$1`) of the developer
 - Optional: `--after-review <owner/repo> <pr_number> <approved|not_approved>` to update after a review
 
 ## Profile Location
 
 ```
-{BASE_DIR}/developer-trust-profiles/{github_username}.md
+~/.developer-trust/{github_username}.md
 ```
 
 ## Trust Levels
@@ -64,7 +61,7 @@ Parse `$@`:
   - `PR_NUMBER`: next argument
   - `OUTCOME`: next argument (`approved` or `not_approved`)
 
-`PROFILE_PATH`: `{BASE_DIR}/developer-trust-profiles/{GITHUB_USERNAME}.md`
+`PROFILE_PATH`: `~/.developer-trust/{GITHUB_USERNAME}.md`
 
 ### 2. Load existing profile
 
@@ -165,7 +162,7 @@ _Last updated: {ISO_DATE}_
 ```
 /developer-trust-profile alice
 ```
-Reads `{NOTES_DIR}/developer-trust-profiles/alice.md` and prints a summary. If no profile exists, reports that alice has no profile yet.
+Reads `~/.developer-trust/alice.md` and prints a summary. If no profile exists, reports that alice has no profile yet.
 
 **Scenario 2: Create a profile from scratch via first review**
 ```
@@ -189,6 +186,5 @@ Carol's profile shows 4 consecutive non-approvals, all due to missing tests. Upd
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `gh pr view <pr> --repo <owner/repo> --json ...` | Fetch PR metadata |
 | `gh pr diff <pr> --repo <owner/repo>` | Fetch the PR diff |
