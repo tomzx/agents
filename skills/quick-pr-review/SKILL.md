@@ -250,9 +250,8 @@ Write the comment body to a file in `~/.quick-pr-review` and commit it:
 ```bash
 OWNER=$(echo {REPO} | cut -d/ -f1)
 REPO_NAME=$(echo {REPO} | cut -d/ -f2)
-DATETIME=$(date -u +%Y%m%dT%H%M%SZ)
 REVIEW_DIR=~/.quick-pr-review/${OWNER}/${REPO_NAME}
-REVIEW_FILE=${REVIEW_DIR}/$2-{SHORT_SHA}-${DATETIME}.md
+REVIEW_FILE=${REVIEW_DIR}/$2-{SHORT_SHA}.md
 
 mkdir -p "${REVIEW_DIR}"
 printf '%s' "{COMMENT_BODY}" > "${REVIEW_FILE}"
