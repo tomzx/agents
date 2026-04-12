@@ -24,6 +24,7 @@ Processes recent Slack messages from monitored channels and tracked colleagues, 
 | `{BASE_DIR}/slack-vision-monitor/last-run.txt` | ISO timestamp of the previous successful run |
 | `{BASE_DIR}/slack-vision-monitor/knowledge-base.md` | Accumulated facts extracted from messages |
 | `{BASE_DIR}/slack-vision-monitor/flags.md` | Flagged conversations with draft responses |
+| `{BASE_DIR}/slack-vision-monitor/colleagues/{username}.md` | Per-colleague misalignment history |
 
 ## Config Format
 
@@ -68,6 +69,8 @@ Read the vision file at `VISION_FILE`. If it does not exist, abort with a clear 
 Read `{BASE_DIR}/slack-vision-monitor/knowledge-base.md` if it exists.
 
 Read `{BASE_DIR}/slack-vision-monitor/flags.md` if it exists.
+
+For each colleague in `COLLEAGUES`, read `{BASE_DIR}/slack-vision-monitor/colleagues/{username}.md` if it exists.
 
 ### 2. Fetch Messages
 
@@ -135,7 +138,7 @@ For each flagged item, record:
 - A brief explanation of the conflict (1-2 sentences)
 - A draft reply message suitable for posting in that thread
 
-### 6. Write Flags
+### 6. Write Flags and Update Colleague Histories
 
 If new flags were found, append them to `{BASE_DIR}/slack-vision-monitor/flags.md`:
 
@@ -155,6 +158,20 @@ If new flags were found, append them to `{BASE_DIR}/slack-vision-monitor/flags.m
 ---
 ```
 
+For each flag that involves a tracked colleague, append a row to that colleague's history file at `{BASE_DIR}/slack-vision-monitor/colleagues/{username}.md`. Create the file with a header if it does not exist.
+
+Colleague history format:
+
+```markdown
+# Misalignment History: @{username}
+
+| Timestamp | Channel | Summary |
+|-----------|---------|---------|
+| {ISO_TIMESTAMP} | #{channel} | {one-line summary of the conflict} |
+```
+
+Append new rows in chronological order. Do not modify existing rows. Each row captures when and where the misalignment occurred and a brief description specific enough to be useful without re-reading the full flags file.
+
 ### 7. Report to User
 
 After processing, output a concise summary:
@@ -169,6 +186,8 @@ Vision conflicts flagged: {count}
 ```
 
 If any conflicts were flagged, list each one with its channel, a one-line description of the conflict, and remind the user that draft replies are in `{BASE_DIR}/slack-vision-monitor/flags.md`.
+
+If any flagged conflicts involved tracked colleagues, list each affected colleague and their total misalignment count (from their history file), e.g. `@alice — 3 total misalignments (colleagues/alice.md)`.
 
 If no conflicts were found, say so clearly.
 
@@ -216,7 +235,10 @@ A colleague posts in #architecture proposing a new service that contradicts the 
 **Scenario 3: Colleague tracked across channels**
 A tracked colleague posts in #sales-engineering (a channel not in the monitored list) advocating for a vendor tool the vision explicitly rules out. Because the colleague is tracked, the message is caught and flagged even though the channel is not monitored directly.
 
-**Scenario 4: First run (no last-run file)**
+**Scenario 4: Colleague with repeat misalignments**
+A tracked colleague @bob has been flagged twice before. On this run he posts again in #infrastructure contradicting the "no new cloud vendors without an RFC" principle. The agent appends a third row to `colleagues/bob.md` and the summary reports `@bob — 3 total misalignments`. The history file gives a quick audit trail without having to scan all flags.
+
+**Scenario 5: First run (no last-run file)**
 No `last-run.txt` exists. The agent defaults to the last 5 minutes and processes whatever messages fall in that window. This is intentionally conservative to avoid processing a flood of historical messages on first run.
 
 ## Useful Commands Reference
