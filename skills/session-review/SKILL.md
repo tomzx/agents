@@ -1,0 +1,137 @@
+---
+name: session-review
+description: End-of-session checklist to ensure changes are well-tested, documented, specified, as simple as possible, and that new practices are encoded in AGENTS.md.
+---
+
+# Session Review
+
+Runs a structured end-of-session review to ensure every change made during the session is properly covered by tests, documented, specified, intentional, and as clean as possible. Also extracts and persists any newly identified practices.
+
+## Prerequisites
+
+- A git repository with changes from the current session
+- AGENTS.md present in the repository root (or a known location)
+- Spec files accessible (if the project uses specifications)
+
+## Steps
+
+### 1. Collect the Intent Behind the Change
+
+Review `git diff HEAD~..HEAD` (or all commits since the session started) and ask the user:
+
+> "What was the goal of this session? What problem were you solving, and what approach did you take?"
+
+Record the stated intent. If the user does not respond, infer the intent from commit messages and changed code.
+
+### 2. Add Tests to Cover the Change
+
+Identify all changed or added functions, classes, and modules. For each:
+
+- Check whether a test already exists that exercises the new or modified behavior.
+- If no test covers it, write one (or ask the user to confirm before writing).
+- Focus on "green path" tests that cover the main functionality.
+- Run the test suite to confirm all tests pass:
+  ```
+  # Python
+  uv run pytest
+
+  # JavaScript / TypeScript
+  npm test
+
+  # Go
+  go test ./...
+  ```
+- Report any failing tests and fix them before proceeding.
+
+### 3. Update Documentation
+
+For each changed public interface, module, or behavior:
+
+- Update inline docstrings or comments if the behavior changed.
+- Update any relevant `README.md`, `docs/`, or wiki pages.
+- If the project uses a changelog (`CHANGELOG.md`), add an entry under `## Unreleased`.
+- If the project uses the Divio documentation system (tutorials, how-tos, reference, explanation), identify which document type needs updating and make the edit.
+
+### 4. Update Specifications
+
+Locate spec files related to the changed code (e.g., `specs/`, `*.spec.md`, `docs/specs/`).
+
+For each relevant spec:
+
+- Confirm the spec reflects the current behavior after the change.
+- Add new requirements or constraints introduced by this session.
+- Remove or update any requirements that the change made obsolete.
+- Run `/spec-review` on updated specs to check for ambiguities, inconsistencies, or missing information.
+
+### 5. Simplicity Review
+
+Paste the changed code into context and ask:
+
+> "Could this be implemented more simply, cleanly, succinctly, or elegantly? Are there any abstractions that can be removed, renamed, or consolidated? Is there anything here that is over-engineered for what is actually needed?"
+
+Apply any improvements the review surfaces, then re-run tests to confirm nothing broke.
+
+### 6. Update AGENTS.md
+
+Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions. For each:
+
+- Write a concise rule in the appropriate section of `AGENTS.md`.
+- Prefer concrete, actionable statements over vague guidance.
+- Do not duplicate rules that already exist.
+
+Examples of things to encode:
+- A linting or formatting rule that was enforced during the session
+- A library or tool preference that emerged
+- A naming convention that was established
+- An architectural constraint that was discovered
+- A testing pattern that proved useful
+
+## Output Format
+
+After completing all steps, print a summary:
+
+```markdown
+## Session Review Summary
+
+### Intent
+<One or two sentences describing the goal of the session.>
+
+### Tests
+- [ ] Tests added or confirmed for: <list of changed units>
+- [ ] Test suite passes
+
+### Documentation
+- [ ] Updated: <list of updated files, or "none needed">
+
+### Specifications
+- [ ] Updated: <list of updated spec files, or "none needed">
+- [ ] Spec review run: yes / no
+
+### Simplicity Review
+<Brief summary of what was found and any improvements made, or "No changes needed.">
+
+### AGENTS.md Updates
+- [ ] Added rules: <list of new rules, or "none">
+```
+
+## Example Usage
+
+**Scenario 1: Python feature addition**
+New endpoint added to a FastAPI service. Session review adds a pytest test for the happy path, updates the OpenAPI description in the spec file, confirms the README example still works, and encodes a rule in AGENTS.md about always using `structlog` for endpoint logging.
+
+**Scenario 2: Refactor session**
+Internal module restructured with no behavior change. Session review confirms all existing tests still pass, updates the architecture spec to reflect the new module boundary, and notes in AGENTS.md that the old module name is deprecated.
+
+**Scenario 3: Bug fix**
+Off-by-one error fixed in a date calculation. Session review adds a regression test for the specific input that triggered the bug, updates the relevant spec with a note about boundary conditions, and the simplicity review confirms no further changes are needed.
+
+## Useful Commands Reference
+
+| Command | Description |
+|---|---|
+| `git diff HEAD~..HEAD` | Show changes from the most recent commit |
+| `git log --oneline -20` | Show recent commits for session scope |
+| `uv run pytest` | Run Python test suite |
+| `uv run ruff check . && uv run ruff format .` | Lint and format Python code |
+| `npm test` | Run JavaScript/TypeScript test suite |
+| `go test ./...` | Run Go test suite |
