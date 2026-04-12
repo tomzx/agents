@@ -32,6 +32,8 @@ Manages per-developer trust profiles that inform PR review behavior. Each profil
 ## Workflow
 
 ```
+Ensure ~/.developer-trust is a git repo
+              |
 Read existing profile (or start fresh)
               |
       Mode: view or update?
@@ -48,11 +50,24 @@ Read existing profile (or start fresh)
                     + append review history row
                            |
                     Write profile file
+                           |
+                    git commit
 ```
 
 ## Steps
 
-### 1. Resolve paths and arguments
+### 1. Initialize repository
+
+Ensure `~/.developer-trust` exists and is a git repository:
+
+```bash
+mkdir -p ~/.developer-trust
+git -C ~/.developer-trust init
+```
+
+`git init` is idempotent: safe to run even if the directory is already a repository.
+
+### 2. Resolve paths and arguments
 
 Parse `$@`:
 - `GITHUB_USERNAME`: `$1`
@@ -63,11 +78,11 @@ Parse `$@`:
 
 `PROFILE_PATH`: `~/.developer-trust/{GITHUB_USERNAME}.md`
 
-### 2. Load existing profile
+### 3. Load existing profile
 
 If `PROFILE_PATH` exists, read it. Extract current trust level, strengths, weaknesses, patterns, and review history. If it does not exist, initialize with defaults (trust level: `neutral`, all sections empty).
 
-### 3a. View mode (no `--after-review`)
+### 4a. View mode (no `--after-review`)
 
 Print the profile contents and summarize:
 - Trust level and reason
@@ -77,7 +92,7 @@ Print the profile contents and summarize:
 
 Stop here.
 
-### 3b. Update mode (`--after-review` present)
+### 4b. Update mode (`--after-review` present)
 
 #### Fetch PR context
 
@@ -114,9 +129,20 @@ Add a new row to the Review History table:
 | {ISO_DATE} | {REPO} | #{PR_NUMBER} | {Approved/Not approved} | {one-line observation} |
 ```
 
-### 4. Write the profile
+### 5. Write the profile
 
 Write or overwrite `PROFILE_PATH` with the updated content using the format below.
+
+### 6. Commit the change
+
+Stage and commit the updated profile:
+
+```bash
+git -C ~/.developer-trust add {GITHUB_USERNAME}.md
+git -C ~/.developer-trust commit -m "Update {GITHUB_USERNAME} trust profile ({OUTCOME}: {REPO}#{PR_NUMBER})"
+```
+
+For view-mode runs (step 4a), skip this step.
 
 ## Profile Format
 
@@ -186,5 +212,7 @@ Carol's profile shows 4 consecutive non-approvals, all due to missing tests. Upd
 
 | Command | Description |
 |---|---|
+| `mkdir -p ~/.developer-trust && git -C ~/.developer-trust init` | Initialize the trust store as a git repo |
 | `gh pr view <pr> --repo <owner/repo> --json ...` | Fetch PR metadata |
 | `gh pr diff <pr> --repo <owner/repo>` | Fetch the PR diff |
+| `git -C ~/.developer-trust add <file> && git -C ~/.developer-trust commit -m "..."` | Stage and commit a profile update |
