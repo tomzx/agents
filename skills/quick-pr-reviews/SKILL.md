@@ -11,7 +11,7 @@ Finds all open PRs where you are a requested reviewer, determines which ones nee
 
 ## Prerequisites
 
-- `GITHUB_TOKEN` environment variable set with repo read access
+- `GITHUB_TOKEN` env var set with repo read access, or `gh` CLI authenticated (`gh auth login`)
 - `uv` available on PATH
 - `quick-pr-review` skill available
 

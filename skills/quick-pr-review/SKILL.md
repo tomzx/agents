@@ -11,7 +11,7 @@ Rapidly reviews a GitHub pull request and approves it to unblock others. Creates
 
 ## Prerequisites
 
-- `GITHUB_TOKEN` environment variable set with repo read/write access
+- `GITHUB_TOKEN` env var set with repo read/write access, or `gh` CLI authenticated (`gh auth login`)
 - `uv` available on PATH
 - `$1`: repository in `owner/repo` format
 - `$2`: PR number identifying an open pull request

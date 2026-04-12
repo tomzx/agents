@@ -23,13 +23,14 @@ Outputs a JSON array. Each entry has:
                           no_changes | ci_still_failing | error
 
 Environment:
-  GITHUB_TOKEN  Required. A GitHub personal access token or app token with
-                repo read access.
+  GITHUB_TOKEN  Optional. A GitHub personal access token or app token with
+                repo read access. Falls back to 'gh auth token' if unset.
 """
 
 import json
 import os
 import re
+import subprocess
 import sys
 from typing import Any
 
@@ -40,11 +41,27 @@ from github.GithubException import GithubException
 COMMENT_MARKER = "<!-- quick-pr-review:"
 
 
-def get_github_client() -> Github:
+def get_github_token() -> str:
     token = os.environ.get("GITHUB_TOKEN")
-    if not token:
-        sys.exit("Error: GITHUB_TOKEN environment variable is not set")
-    return Github(token)
+    if token:
+        return token
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        token = result.stdout.strip()
+        if token:
+            return token
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    sys.exit("Error: no GitHub token found (set GITHUB_TOKEN or authenticate with 'gh auth login')")
+
+
+def get_github_client() -> Github:
+    return Github(get_github_token())
 
 
 def find_existing_comment(repo, pr_number: int) -> dict[str, Any] | None:
