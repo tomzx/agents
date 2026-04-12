@@ -1,11 +1,11 @@
 ---
-name: initialize-developer-trust
+name: initialize-developer-trust-profile
 description: Bootstrap a developer trust profile by scanning the last N merged PRs they authored in a repository. Synthesizes observations across all PRs and writes an initial trust profile.
 allowed-tools: Bash(gh:*, git:*), Read, Write, Glob
 argument-hint: <github_username> <owner/repo> [count]
 ---
 
-# Initialize Developer Trust
+# Initialize Developer Trust Profile
 
 Bootstraps a developer trust profile by analyzing the last N merged PRs they authored in a given repository. Applies the same observation and trust-level principles as `developer-trust-profile`, but processes a batch of PRs in one pass to produce a well-grounded initial profile.
 
@@ -223,31 +223,31 @@ Report to the user:
 
 **Scenario 1: Initialize with default count**
 ```
-/initialize-developer-trust alice owner/myrepo
+/initialize-developer-trust-profile alice owner/myrepo
 ```
 Fetches last 10 merged PRs by alice in `owner/myrepo`, synthesizes observations, writes `~/.developer-trust/alice.md` with an initial trust level.
 
 **Scenario 2: Initialize with custom count**
 ```
-/initialize-developer-trust bob owner/myrepo 25
+/initialize-developer-trust-profile bob owner/myrepo 25
 ```
 Fetches last 25 merged PRs by bob, producing a more grounded initial profile.
 
 **Scenario 3: Developer with no merged PRs**
 ```
-/initialize-developer-trust carol owner/myrepo
+/initialize-developer-trust-profile carol owner/myrepo
 ```
 No merged or closed PRs found for carol. Reports the absence and stops without writing a file.
 
 **Scenario 4: Overwriting an existing profile**
 ```
-/initialize-developer-trust alice owner/myrepo
+/initialize-developer-trust-profile alice owner/myrepo
 ```
 `~/.developer-trust/alice.md` already exists. Notifies the user it will be overwritten, then proceeds with the batch analysis and rewrites the file.
 
 **Scenario 5: Developer with consistently poor quality PRs**
 ```
-/initialize-developer-trust dave owner/myrepo 15
+/initialize-developer-trust-profile dave owner/myrepo 15
 ```
 All 15 PRs show missing tests, vague descriptions, and frequent scope creep. Trust level set to `cautious` with reason documenting the recurring issues.
 
