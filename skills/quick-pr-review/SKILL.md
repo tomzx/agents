@@ -243,7 +243,24 @@ Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234
 <sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
 ```
 
-### 5. Create or update the comment
+### 5. Save review to local repository
+
+Write the comment body to a file in `~/.quick-pr-review` and commit it:
+
+```bash
+OWNER=$(echo {REPO} | cut -d/ -f1)
+REPO_NAME=$(echo {REPO} | cut -d/ -f2)
+REVIEW_DIR=~/.quick-pr-review/${OWNER}/${REPO_NAME}
+REVIEW_FILE=${REVIEW_DIR}/$2-{SHORT_SHA}.md
+
+git -C ~/.quick-pr-review rev-parse --git-dir > /dev/null 2>&1 || git init ~/.quick-pr-review
+mkdir -p "${REVIEW_DIR}"
+printf '%s' "{COMMENT_BODY}" > "${REVIEW_FILE}"
+git -C ~/.quick-pr-review add "${REVIEW_FILE}"
+git -C ~/.quick-pr-review commit -m "Review {REPO}: PR #$2 @ {SHORT_SHA}"
+```
+
+### 6. Create or update the comment
 
 **If no existing comment:**
 ```bash
@@ -257,7 +274,7 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
   -f body="{COMMENT_BODY}"
 ```
 
-### 6. Approve or not
+### 7. Approve or not
 
 **Approve** when all of the following are true:
 - No significant public interface changes (removals, breaking changes, or substantial new API surface)
