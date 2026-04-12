@@ -47,11 +47,18 @@ Processes recent Slack messages from monitored channels and tracked colleagues, 
 
 - slack-username-1
 - slack-username-2
+
+## Watch Phrases
+
+- exact phrase or keyword
+- another term
 ```
 
 **Monitored channels**: channels the agent fetches messages from directly.
 
 **Tracked colleagues**: people whose messages are fetched from any channel they post in (catches conversations happening in channels you are not monitoring). Use this for key stakeholders whose alignment matters most.
+
+**Watch phrases**: terms searched workspace-wide regardless of channel or author. Use these to catch specific topics, technology names, competitor names, or buzzwords that warrant attention anywhere they appear. Each match pulls the full thread into the vision alignment check. Phrase matches are also surfaced directly in the report even when no vision conflict is found, so you stay aware of where those topics are being discussed.
 
 ## Steps
 
@@ -61,6 +68,7 @@ Read `{BASE_DIR}/slack-vision-monitor/config.md`. Extract:
 - `VISION_FILE`: path on the first non-blank line under `## Vision File`
 - `CHANNELS`: list of channel names under `## Monitored Channels`
 - `COLLEAGUES`: list of Slack usernames under `## Tracked Colleagues`
+- `WATCH_PHRASES`: list of terms under `## Watch Phrases` (empty list if section absent)
 
 Read `{BASE_DIR}/slack-vision-monitor/last-run.txt` if it exists. Store as `LAST_RUN`. If the file does not exist, default `LAST_RUN` to 5 minutes ago (`{NOW}` minus 5 minutes).
 
@@ -79,6 +87,8 @@ Use the Slack MCP server to fetch messages posted after `LAST_RUN`.
 **Per monitored channel**: fetch all messages in that channel since `LAST_RUN`. Include thread replies. Collect sender, timestamp, channel, text, thread URL.
 
 **Per tracked colleague**: search for messages by that user across all channels since `LAST_RUN`. Include thread replies they authored. Collect the same fields. Skip any messages already collected from monitored channels to avoid duplicates.
+
+**Per watch phrase**: for each phrase in `WATCH_PHRASES`, run a workspace-wide Slack search restricted to messages since `LAST_RUN`. Fetch the full thread for each matching message. Tag each result with the phrase(s) that triggered it. Skip any messages already collected from channels or colleague searches to avoid duplicates. A single message may match multiple phrases; record all matching phrases against it.
 
 If a channel does not exist or you lack access, log a warning and continue with the remaining channels.
 
@@ -183,13 +193,16 @@ Checked since: {LAST_RUN}
 Messages scanned: {total count}
 Facts added to knowledge base: {count}
 Vision conflicts flagged: {count}
+Phrase matches: {count} across {N} phrase(s)
 ```
 
 If any conflicts were flagged, list each one with its channel, a one-line description of the conflict, and remind the user that draft replies are in `{BASE_DIR}/slack-vision-monitor/flags.md`.
 
 If any flagged conflicts involved tracked colleagues, list each affected colleague and their total misalignment count (from their history file), e.g. `@alice — 3 total misalignments (colleagues/alice.md)`.
 
-If no conflicts were found, say so clearly.
+If any watch phrase produced matches (even without a vision conflict), list each phrase alongside the channel(s) and sender(s) where it appeared so the user is aware of where those topics surfaced.
+
+If no conflicts and no phrase matches were found, say so clearly.
 
 ### 8. Update Last-Run Timestamp
 
@@ -238,7 +251,13 @@ A tracked colleague posts in #sales-engineering (a channel not in the monitored 
 **Scenario 4: Colleague with repeat misalignments**
 A tracked colleague @bob has been flagged twice before. On this run he posts again in #infrastructure contradicting the "no new cloud vendors without an RFC" principle. The agent appends a third row to `colleagues/bob.md` and the summary reports `@bob — 3 total misalignments`. The history file gives a quick audit trail without having to scan all flags.
 
-**Scenario 5: First run (no last-run file)**
+**Scenario 5: Watch phrase match, no vision conflict**
+The phrase "big rewrite" appears in #backend-guild. The thread is a casual discussion and does not contradict any vision principle. No flag is raised, but the report lists `"big rewrite" — #backend-guild (@carol, @dave)` so the user knows the topic is circulating and can decide whether to engage.
+
+**Scenario 6: Watch phrase match triggers a flag**
+The phrase "switch to Kubernetes" appears in a DM group channel not otherwise monitored. The vision explicitly says "no new infrastructure complexity without an architecture review." The thread is flagged, a draft reply is written, and the match is credited to both the phrase trigger and the vision conflict in the report.
+
+**Scenario 7: First run (no last-run file)**
 No `last-run.txt` exists. The agent defaults to the last 5 minutes and processes whatever messages fall in that window. This is intentionally conservative to avoid processing a flood of historical messages on first run.
 
 ## Useful Commands Reference
