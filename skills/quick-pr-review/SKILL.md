@@ -1,7 +1,7 @@
 ---
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
-allowed-tools: Bash(gh:*, git:*)
+allowed-tools: Bash(gh:*, git:*), Read
 argument-hint: <owner/repo> <pr-number>
 ---
 
@@ -21,22 +21,32 @@ Rapidly reviews a GitHub pull request and approves it to unblock others. Creates
 Fetch PR metadata + latest commit SHA
               |
               v
-     Find existing review comment
-     (<!-- quick-pr-review: marker)
+     Load author trust profile
+     (neutral if not found)
               |
-        Same commit?
-         /         \
-       Yes           No (new or updated)
-        |                    |
-      No-op            Run checks
-                            |
-                 Any blocking failures?
-                    /           \
-                  Yes             No
-                   |               |
-             Post/update        Approve +
-             comment only      post/update
-                                 comment
+       always_reject?
+        /          \
+      Yes            No
+       |              |
+     Skip           Find existing review comment
+     (report        (<!-- quick-pr-review: marker)
+      to user)               |
+                       Same commit?
+                        /         \
+                      Yes           No (new or updated)
+                       |                    |
+                     No-op            Run checks
+                                     (cautious = stricter)
+                                          |
+                              Any blocking failures?
+                                 /           \
+                               Yes             No
+                                |               |
+                          Post/update        Approve +
+                          comment only      post/update
+                                              comment
+                                                 |
+                                       Update trust profile
 ```
 
 ## Steps
@@ -44,7 +54,7 @@ Fetch PR metadata + latest commit SHA
 ### 1. Gather PR information
 
 ```bash
-gh pr view $2 --repo $1 --json number,title,body,headRefName,headRefOid,baseRefName,state,reviews,statusCheckRollup,url
+gh pr view $2 --repo $1 --json number,title,body,headRefName,headRefOid,baseRefName,state,reviews,statusCheckRollup,url,author
 gh pr diff $2 --repo $1
 ```
 
@@ -52,6 +62,7 @@ Extract:
 - `REPO`: `$1` (`owner/repo`)
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
+- `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 
 Also determine the commit of the dot-claude repository (where this skill lives):
 
@@ -65,7 +76,25 @@ Extract:
 - `SKILL_COMMIT`: full commit SHA of the dot-claude repo
 - `SKILL_SHORT_SHA`: first 7 characters of SKILL_COMMIT
 
-### 2. Find existing review comment
+### 2. Load author trust profile
+
+`TRUST_PROFILE_PATH`: `~/.developer-trust/{PR_AUTHOR}.md`
+
+If the file exists, read it and extract:
+- `TRUST_LEVEL`: the value after `**Level**:` (one of `trusted`, `neutral`, `cautious`, `always_reject`)
+- `TRUST_REASON`: the value after `**Reason**:`
+
+If the file does not exist, default to `TRUST_LEVEL=neutral` and `TRUST_REASON=` (no prior history).
+
+**If `TRUST_LEVEL == always_reject`**: stop immediately. Do not fetch the diff, post a comment, or approve. Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
+
+The trust level modifies behavior in steps 2, 4, and 8:
+- `trusted`: Standard checks. On borderline cases (e.g., a check that could go either way), lean toward passing.
+- `neutral`: Standard behavior (no adjustment).
+- `cautious`: Apply stricter interpretation. Flag marginal cases as failing.
+- `always_reject`: Skip this PR entirely. Do not post a comment or approve. Report to the user that the PR was skipped.
+
+### 3. Find existing review comment
 
 ```bash
 gh api repos/{REPO}/issues/$2/comments \
@@ -77,9 +106,11 @@ If a comment exists, extract the commit SHA from the marker line `<!-- quick-pr-
 
 If `COMMENT_COMMIT == HEAD_COMMIT`: output "Review already up to date for commit `SHORT_SHA`." and stop.
 
-### 3. Run review checks
+### 4. Run review checks
 
 Evaluate each item below. Record each as passing (`[x]`) or failing (`[ ]`). Checks are ordered by impact/risk level (highest first).
+
+When `TRUST_LEVEL == cautious`: apply stricter interpretation. When a check is borderline (e.g., a change is arguably a public interface addition but minor), treat it as failing.
 
 #### Public interface impact (approval gate)
 - Scan the diff for **significant changes to public interfaces**, both removals and additions:
@@ -130,7 +161,7 @@ Evaluate each item below. Record each as passing (`[x]`) or failing (`[ ]`). Che
 - Does the diff include updates to README, docs/, or relevant user-facing documentation when the change adds or modifies user-visible behavior?
 - For purely internal changes (refactors, tests), documentation is not required.
 
-### 4. Compose the review comment body
+### 5. Compose the review comment body
 
 ```
 <!-- quick-pr-review:HEAD_COMMIT -->
@@ -243,7 +274,7 @@ Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234
 <sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
 ```
 
-### 5. Save review to local repository
+### 6. Save review to local repository
 
 Write the comment body to a file in `~/.quick-pr-review` and commit it:
 
@@ -260,7 +291,7 @@ git -C ~/.quick-pr-review add "${REVIEW_FILE}"
 git -C ~/.quick-pr-review commit -m "Review {REPO}: PR #$2 @ {SHORT_SHA}"
 ```
 
-### 6. Create or update the comment
+### 7. Create or update the comment
 
 **If no existing comment:**
 ```bash
@@ -274,7 +305,7 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
   -f body="{COMMENT_BODY}"
 ```
 
-### 7. Approve or not
+### 8. Approve or not
 
 **Approve** when all of the following are true:
 - No significant public interface changes (removals, breaking changes, or substantial new API surface)
@@ -295,12 +326,23 @@ gh pr review $2 --repo {REPO} --approve
 
 In the do-not-approve case, only post/update the comment. Do not request changes automatically unless the issue is clearly blocking (e.g., tests failing, data loss risk).
 
+### 9. Update developer trust profile
+
+After posting the comment and applying the approval decision, update the author's trust profile:
+
+```
+/developer-trust-profile {PR_AUTHOR} --after-review {REPO} {PR_NUMBER} {approved|not_approved}
+```
+
+This records the review outcome and observations in `~/.developer-trust/{PR_AUTHOR}.md`, creating the file if it does not exist.
+
 ## Output
 
 Report to the user:
 - Whether the comment was created or updated
 - The short commit SHA reviewed
 - Whether the PR was approved or not, and why
+- Whether the trust profile was created or updated (and at which path)
 
 ## Example Usage
 
@@ -328,11 +370,29 @@ Diff removes a public API method or introduces substantial new API surface. Post
 ```
 Review comment already exists for the current HEAD commit. Skip and report "already up to date".
 
+**Scenario 5: Author with cautious trust level**
+```
+/quick-pr-review owner/myrepo 99
+```
+Author profile exists with `cautious` level. Applies stricter check interpretation. A borderline new export that might normally pass is flagged as failing. Profile is updated with new review entry.
+
+**Scenario 6: Author with always_reject trust level**
+```
+/quick-pr-review owner/myrepo 77
+```
+Author profile has `always_reject` level. Skill stops immediately after loading the profile. No comment is posted, no approval issued. Reports: "Skipped PR #77 (owner/myrepo) — author is flagged for manual review only."
+
+**Scenario 7: First review for an unknown author**
+```
+/quick-pr-review owner/myrepo 101
+```
+No trust profile found for the author. Defaults to `neutral`. After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
+
 ## Useful Commands Reference
 
 | Command | Description |
 |---|---|
-| `gh pr view <pr> --repo <owner/repo> --json headRefOid,statusCheckRollup,...` | Fetch PR metadata including latest commit and CI status |
+| `gh pr view <pr> --repo <owner/repo> --json headRefOid,statusCheckRollup,author,...` | Fetch PR metadata including latest commit, CI status, and author |
 | `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
 | `gh pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
