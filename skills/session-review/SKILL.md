@@ -1,6 +1,6 @@
 ---
 name: session-review
-description: End-of-session checklist to ensure changes are well-tested, documented, specified, as simple as possible, and that new practices are encoded in AGENTS.md.
+description: End-of-session checklist covering code quality (tests, docs, specs, simplicity, observability) and higher-level concerns (architectural fit, breaking changes, rollback, technical debt, communication).
 ---
 
 # Session Review
@@ -80,7 +80,57 @@ Check that the change has appropriate logging, metrics, and tracing at key decis
 - If the change adds a new code path that could be slow or fail, is there a metric or trace span covering it?
 - Remove any debug logging that was added temporarily during development.
 
-### 7. Update AGENTS.md
+### 7. Architectural Fit
+
+Step back from the implementation and ask whether the change sits cleanly within the existing design:
+
+- Does any module now do too much, or has a new responsibility been added without a clear home?
+- Are dependencies pointing in the right direction (e.g., no lower-level modules depending on higher-level ones)?
+- Does the abstraction feel right at this level, or is it either too leaky or too opaque?
+- Would a future developer reading this code find it obvious where the logic lives and why?
+
+If the design feels awkward, note it. Either fix it now or record it explicitly as debt in step 9.
+
+### 8. Breaking Changes
+
+Check whether anything in the public surface has changed:
+
+- API contracts (endpoints, request/response shapes, status codes)
+- Exported types, function signatures, or module interfaces
+- Event or message payloads
+- Database schema or file formats
+- Configuration keys or environment variables
+
+For each breaking change, identify the consumers and determine whether they need to be updated, notified, or given a migration path before this ships.
+
+### 9. Rollback / Reversibility
+
+Assess how easy it would be to undo this change if it causes problems in production:
+
+- Is the change purely in code and trivially revertable by redeploying the previous version?
+- Are there irreversible side effects: data migrations, dropped columns, published events, sent emails, external API calls with lasting state?
+- If the change is hard to reverse, document a rollback procedure or mitigation plan (a feature flag, a compensating migration, a manual remediation script).
+
+### 10. Technical Debt Delta
+
+Reflect on whether the session improved or worsened the codebase's long-term health:
+
+- Were any shortcuts taken that should be tracked? Create issues for them rather than leaving silent TODOs.
+- Was any existing debt paid down? Note it so the trend is visible over time.
+- Did the change make the next related change easier or harder?
+
+### 11. Communication / Coordination
+
+Identify anyone who needs to know about this change:
+
+- Teammates who own code that calls or depends on what changed.
+- Consumers of a shared library, API, or event schema.
+- Stakeholders who need to know a behavior changed or a feature shipped.
+- On-call engineers if the change affects production risk.
+
+For each, determine whether to notify now, at deploy time, or after observing production.
+
+### 12. Update AGENTS.md
 
 Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions. For each:
 
@@ -123,6 +173,24 @@ After completing all steps, print a summary:
 - [ ] Logging adequate for production diagnosis: yes / no
 - [ ] Debug logging removed: yes / n/a
 - [ ] Metrics/tracing added for new slow or failure-prone paths: yes / n/a
+
+### Architectural Fit
+<One sentence on whether the design feels clean, or what feels awkward and why.>
+
+### Breaking Changes
+- [ ] Breaking changes identified: <list, or "none">
+- [ ] Consumers notified or updated: yes / n/a
+
+### Rollback / Reversibility
+- [ ] Reversible by redeploy: yes / no
+- [ ] Irreversible side effects documented: yes / n/a
+
+### Technical Debt Delta
+- [ ] Shortcuts taken and tracked as issues: <list, or "none">
+- [ ] Debt paid down: <list, or "none">
+
+### Communication / Coordination
+- [ ] Parties to notify: <list, or "none">
 
 ### AGENTS.md Updates
 - [ ] Added rules: <list of new rules, or "none">
