@@ -23,7 +23,15 @@ Review `git diff HEAD~..HEAD` (or all commits since the session started) and ask
 
 Record the stated intent. If the user does not respond, infer the intent from commit messages and changed code.
 
-### 2. Add Tests to Cover the Change
+### 2. Simplicity Review
+
+Before writing any tests or docs, review the changed code and ask:
+
+> "Could this be implemented more simply, cleanly, succinctly, or elegantly? Are there any abstractions that can be removed, renamed, or consolidated? Is there anything here that is over-engineered for what is actually needed?"
+
+Apply any improvements the review surfaces. Tests, docs, and specs are written against this final, clean implementation.
+
+### 3. Add Tests to Cover the Change
 
 Identify all changed or added functions, classes, and modules. For each:
 
@@ -43,7 +51,7 @@ Identify all changed or added functions, classes, and modules. For each:
   ```
 - Report any failing tests and fix them before proceeding.
 
-### 3. Update Documentation
+### 4. Update Documentation
 
 For each changed public interface, module, or behavior:
 
@@ -52,7 +60,7 @@ For each changed public interface, module, or behavior:
 - If the project uses a changelog (`CHANGELOG.md`), add an entry under `## Unreleased`.
 - If the project uses the Divio documentation system (tutorials, how-tos, reference, explanation), identify which document type needs updating and make the edit.
 
-### 4. Update Specifications
+### 5. Update Specifications
 
 Locate spec files related to the changed code (e.g., `specs/`, `*.spec.md`, `docs/specs/`).
 
@@ -62,14 +70,6 @@ For each relevant spec:
 - Add new requirements or constraints introduced by this session.
 - Remove or update any requirements that the change made obsolete.
 - Run `/spec-review` on updated specs to check for ambiguities, inconsistencies, or missing information.
-
-### 5. Simplicity Review
-
-Paste the changed code into context and ask:
-
-> "Could this be implemented more simply, cleanly, succinctly, or elegantly? Are there any abstractions that can be removed, renamed, or consolidated? Is there anything here that is over-engineered for what is actually needed?"
-
-Apply any improvements the review surfaces, then re-run tests to confirm nothing broke.
 
 ### 6. Update AGENTS.md
 
@@ -96,6 +96,9 @@ After completing all steps, print a summary:
 ### Intent
 <One or two sentences describing the goal of the session.>
 
+### Simplicity Review
+<Brief summary of what was found and any improvements made, or "No changes needed.">
+
 ### Tests
 - [ ] Tests added or confirmed for: <list of changed units>
 - [ ] Test suite passes
@@ -106,9 +109,6 @@ After completing all steps, print a summary:
 ### Specifications
 - [ ] Updated: <list of updated spec files, or "none needed">
 - [ ] Spec review run: yes / no
-
-### Simplicity Review
-<Brief summary of what was found and any improvements made, or "No changes needed.">
 
 ### AGENTS.md Updates
 - [ ] Added rules: <list of new rules, or "none">
