@@ -24,30 +24,29 @@ Fetch PR metadata + latest commit SHA
      Load author trust profile
      (neutral if not found)
               |
-              v
-     Find existing review comment
-     (<!-- quick-pr-review: marker)
-              |
-        Same commit?
-         /         \
-       Yes           No (new or updated)
-        |                    |
-      No-op         always_reject?
-                     /          \
-                   Yes            No
-                    |              |
-              Post comment     Run checks
-              (manual review   (cautious = stricter)
-               required)           |
-                        Any blocking failures?
-                           /           \
-                         Yes             No
-                          |               |
-                    Post/update        Approve +
-                    comment only      post/update
-                                        comment
-                                           |
-                                  Update trust profile
+       always_reject?
+        /          \
+      Yes            No
+       |              |
+     Skip           Find existing review comment
+     (report        (<!-- quick-pr-review: marker)
+      to user)               |
+                       Same commit?
+                        /         \
+                      Yes           No (new or updated)
+                       |                    |
+                     No-op            Run checks
+                                     (cautious = stricter)
+                                          |
+                              Any blocking failures?
+                                 /           \
+                               Yes             No
+                                |               |
+                          Post/update        Approve +
+                          comment only      post/update
+                                              comment
+                                                 |
+                                       Update trust profile
 ```
 
 ## Steps
@@ -87,11 +86,13 @@ If the file exists, read it and extract:
 
 If the file does not exist, default to `TRUST_LEVEL=neutral` and `TRUST_REASON=` (no prior history).
 
-The trust level modifies behavior in steps 4 and 8:
+**If `TRUST_LEVEL == always_reject`**: stop immediately. Do not fetch the diff, post a comment, or approve. Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
+
+The trust level modifies behavior in steps 2, 4, and 8:
 - `trusted`: Standard checks. On borderline cases (e.g., a check that could go either way), lean toward passing.
 - `neutral`: Standard behavior (no adjustment).
-- `cautious`: Apply stricter interpretation. Flag marginal cases as failing. Add a note in the review comment.
-- `always_reject`: Skip detailed checks. Do not approve. Post a comment indicating manual review is required.
+- `cautious`: Apply stricter interpretation. Flag marginal cases as failing.
+- `always_reject`: Skip this PR entirely. Do not post a comment or approve. Report to the user that the PR was skipped.
 
 ### 3. Find existing review comment
 
@@ -107,9 +108,7 @@ If `COMMENT_COMMIT == HEAD_COMMIT`: output "Review already up to date for commit
 
 ### 4. Run review checks
 
-**If `TRUST_LEVEL == always_reject`**: skip the individual checks. The comment body (step 5) will indicate that automated review is not available for this author and manual human review is required. Proceed directly to step 7.
-
-Otherwise, evaluate each item below. Record each as passing (`[x]`) or failing (`[ ]`). Checks are ordered by impact/risk level (highest first).
+Evaluate each item below. Record each as passing (`[x]`) or failing (`[ ]`). Checks are ordered by impact/risk level (highest first).
 
 When `TRUST_LEVEL == cautious`: apply stricter interpretation. When a check is borderline (e.g., a change is arguably a public interface addition but minor), treat it as failing.
 
@@ -181,9 +180,6 @@ Reviewed commit: SHORT_SHA
 - [x/[ ]] Change is part of the spec
 - [x/[ ]] Documentation updated
 
-[Include the block below only when TRUST_LEVEL is not neutral:]
-> **Note**: This review applied {cautious scrutiny / manual-review policy} based on the author's trust profile.
-
 <details>
 <summary>Evaluation details</summary>
 
@@ -209,22 +205,6 @@ Reviewed commit: SHORT_SHA
 <Reasoning>
 
 </details>
-
----
-Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/SKILL_COMMIT/skills/quick-pr-review/SKILL.md) (`SKILL_SHORT_SHA`)
-<sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
-```
-
-For `always_reject`, use this body instead (all checks omitted):
-
-```
-<!-- quick-pr-review:HEAD_COMMIT -->
-## Quick PR Review
-
-Reviewed commit: SHORT_SHA
-❌ **Not approved** — manual review required
-
-> This author's trust profile requires human review before auto-approval. No automated checks were applied.
 
 ---
 Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/SKILL_COMMIT/skills/quick-pr-review/SKILL.md) (`SKILL_SHORT_SHA`)
@@ -327,8 +307,6 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 
 ### 8. Approve or not
 
-**Do not approve** (regardless of checks) when `TRUST_LEVEL == always_reject`.
-
 **Approve** when all of the following are true:
 - No significant public interface changes (removals, breaking changes, or substantial new API surface)
 - No security-sensitive changes
@@ -340,7 +318,6 @@ gh pr review $2 --repo {REPO} --approve
 ```
 
 **Do not approve** when:
-- `TRUST_LEVEL == always_reject` (see above)
 - Significant public interface changes are detected (removals, breaking changes, or substantial new API surface including specs/ADRs that define new public contracts)
 - Security-sensitive changes are detected (auth, crypto, secrets, security config, input validation)
 - New dependencies are introduced
@@ -397,13 +374,13 @@ Review comment already exists for the current HEAD commit. Skip and report "alre
 ```
 /quick-pr-review owner/myrepo 99
 ```
-Author profile exists with `cautious` level. Applies stricter check interpretation. A borderline new export that might normally pass is flagged as failing. Comment includes a note about heightened scrutiny. Profile is updated with new review entry.
+Author profile exists with `cautious` level. Applies stricter check interpretation. A borderline new export that might normally pass is flagged as failing. Profile is updated with new review entry.
 
 **Scenario 6: Author with always_reject trust level**
 ```
 /quick-pr-review owner/myrepo 77
 ```
-Author profile has `always_reject` level. Skips all checks. Posts comment indicating manual review is required. Does not approve. Profile updated with the entry.
+Author profile has `always_reject` level. Skill stops immediately after loading the profile. No comment is posted, no approval issued. Reports: "Skipped PR #77 (owner/myrepo) — author is flagged for manual review only."
 
 **Scenario 7: First review for an unknown author**
 ```
