@@ -2,26 +2,30 @@
 name: initialize-developer-trust-profile
 description: Bootstrap a developer trust profile by scanning the last N PRs they authored (merged and rejected), determining outcome from actual review results.
 allowed-tools: Bash(gh:*)
-argument-hint: <github_username> <owner/repo> [count]
+argument-hint: <github_username> [count] [--orgs <org>...]
 ---
 
 # Initialize Developer Trust Profile
 
-Bootstraps a developer trust profile by processing the last N PRs authored by a developer, delegating each one to `/developer-trust-profile`. Samples both merged and rejected PRs to avoid survivorship bias, and derives the outcome from actual review data rather than assuming all merged PRs are clean approvals.
+Bootstraps a developer trust profile by processing the last N PRs authored by a developer across **all repositories** visible to `gh` (not a single repo), delegating each one to `/developer-trust-profile`. Samples both merged and rejected PRs to avoid survivorship bias, and derives the outcome from actual review data rather than assuming all merged PRs are clean approvals.
+
+Optionally pass **`--orgs`** followed by one or more GitHub organization logins to restrict results to PRs in repos owned by those orgs (or use multiple `--owner` flags in the commands below). Omit `--orgs` to consider PRs in any repo the token can access.
 
 ## Prerequisites
 
-- `gh` CLI authenticated with read access to the target repository
+- `gh` CLI authenticated with read access to the repositories you expect to search (public repos work without extra scope; private repos need appropriate token access)
 - `$1`: GitHub username of the developer
-- `$2`: repository in `owner/repo` format
-- `$3` (optional): number of PRs to scan (default: 10)
+- `$2` (optional): number of PRs to scan (default: 10). Must be a positive integer if provided.
+- `--orgs` (optional): one or more organization names; only PRs under those orgs are included
 
 ## Workflow
 
 ```
 Resolve arguments
       |
-Fetch merged PRs + closed-without-merge PRs
+Build optional --owner flags from org list
+      |
+Fetch merged PRs + closed-without-merge PRs (global or org-scoped)
       |
 Merge, sort by date, take most recent N
       |
@@ -47,39 +51,47 @@ Stop       For each PR (oldest first):
 
 ### 1. Resolve arguments
 
-- `GITHUB_USERNAME`: `$1`
-- `REPO`: `$2` (`owner/repo`)
-- `COUNT`: `$3` if provided, otherwise `10`
+- `GITHUB_USERNAME`: first positional argument
+- `COUNT`: second positional if it is a positive integer, otherwise default `10`
+- `ORGS`: empty unless `--orgs` appears; every token after `--orgs` until the end of the argument list is an organization login (e.g. `acme-corp`, `myorg`)
+
+Build an array of extra `gh` flags for org scoping. For each org in `ORGS`, add `--owner <org>` to **both** search invocations below. If `ORGS` is empty, do not pass `--owner` (search spans all visible repos).
 
 ### 2. Fetch PRs
 
-Fetch merged PRs:
+Use `gh search prs` (not `gh pr list --repo`). It returns `repository.nameWithOwner` as the repo slug for later `gh pr view` calls.
+
+**Owner flags:** If you use shell variables, something like `EXTRA_OWNERS=(--owner acme --owner beta)` when orgs are `acme` and `beta`.
+
+Fetch merged PRs (newest first by last activity):
 
 ```bash
-gh pr list --repo {REPO} \
-  --author {GITHUB_USERNAME} \
-  --state merged \
+gh search prs --author {GITHUB_USERNAME} --merged \
+  --sort updated --order desc \
   --limit {COUNT} \
-  --json number,mergedAt \
-  --jq '[.[] | {number, date: .mergedAt, merged: true}]'
+  {EXTRA_OWNERS...} \
+  --json number,repository,closedAt,updatedAt \
+  --jq '[.[] | {number, repo: .repository.nameWithOwner, date: (.closedAt // .updatedAt), merged: true}]'
 ```
 
-Fetch closed-without-merge PRs (closed state in gh CLI includes merged; filter them out):
+Fetch closed, not merged PRs:
 
 ```bash
-gh pr list --repo {REPO} \
-  --author {GITHUB_USERNAME} \
-  --state closed \
+gh search prs --author {GITHUB_USERNAME} --merged=false --state closed \
+  --sort updated --order desc \
   --limit {COUNT} \
-  --json number,closedAt,mergedAt \
-  --jq '[.[] | select(.mergedAt == null) | {number, date: .closedAt, merged: false}]'
+  {EXTRA_OWNERS...} \
+  --json number,repository,closedAt,updatedAt \
+  --jq '[.[] | {number, repo: .repository.nameWithOwner, date: (.closedAt // .updatedAt), merged: false}]'
 ```
 
-Combine both lists, sort by date descending, take the most recent `COUNT` entries. If no PRs are found at all, report to the user and stop. Do not create a profile.
+Combine both JSON arrays, sort by `date` descending, take the first `COUNT` entries. If the combined list is empty, report to the user and stop. Do not create a profile.
+
+**Note:** Search uses GitHub’s search index; very new PRs can appear slightly later than on the web UI. Results respect private-repo access for the authenticated user.
 
 ### 3. Determine outcome for each PR
 
-For each PR, fetch its review data:
+For each PR, use the `repo` field (`owner/name`) from the search result:
 
 ```bash
 gh pr view {PR_NUMBER} --repo {REPO} --json reviews \
@@ -101,7 +113,7 @@ For each PR (oldest first), invoke:
 /developer-trust-profile {GITHUB_USERNAME} --after-review {REPO} {PR_NUMBER} {OUTCOME}
 ```
 
-This handles fetching the diff, synthesizing observations, updating the trust level, writing the profile, and committing.
+`REPO` is `repository.nameWithOwner` from search (e.g. `acme/webapp`). This handles fetching the diff, synthesizing observations, updating the trust level, writing the profile, and committing.
 
 ### 5. Report summary
 
@@ -109,37 +121,55 @@ After all PRs are processed, report:
 - Number of PRs processed, broken down by outcome (N approved, M not_approved)
 - The final trust level and reason (read from the written profile)
 - The profile path
+- If orgs were used, note the org filter so the user knows the sample scope
 
 ## Example Usage
 
-**Scenario 1: Initialize with default count**
-```
-/initialize-developer-trust-profile alice owner/myrepo
-```
-Fetches last 10 PRs by alice across merged and rejected, derives outcomes from review data, calls `/developer-trust-profile` for each.
+**Scenario 1: Initialize with default count (all repos)**
 
-**Scenario 2: Initialize with custom count**
 ```
-/initialize-developer-trust-profile bob owner/myrepo 25
+/initialize-developer-trust-profile alice
 ```
-Processes 25 PRs for a more grounded profile.
 
-**Scenario 3: Developer with no PRs**
-```
-/initialize-developer-trust-profile carol owner/myrepo
-```
-No PRs found. Reports the absence and stops.
+Fetches the last 10 PRs by alice across merged and closed-unmerged PRs anywhere visible, derives outcomes from review data, calls `/developer-trust-profile` for each.
 
-**Scenario 4: Developer with mixed history**
+**Scenario 2: Custom count**
+
 ```
-/initialize-developer-trust-profile dave owner/myrepo
+/initialize-developer-trust-profile bob 25
 ```
-Finds 6 merged PRs and 4 rejected ones. Of the merged PRs, 2 had CHANGES_REQUESTED reviews before eventually being approved. Those 2 are labeled `not_approved`. Final profile reflects the mixed track record.
+
+Processes 25 PRs for a more grounded profile (still cross-repo).
+
+**Scenario 3: Limit to specific organizations**
+
+```
+/initialize-developer-trust-profile carol 15 --orgs acme-corp beta-labs
+```
+
+Only PRs in repositories owned by `acme-corp` or `beta-labs` are considered.
+
+**Scenario 4: Developer with no PRs**
+
+```
+/initialize-developer-trust-profile dave --orgs single-org
+```
+
+No PRs match the search. Reports the absence and stops.
+
+**Scenario 5: Mixed history**
+
+```
+/initialize-developer-trust-profile erin 10
+```
+
+Finds merged and rejected PRs in various repos. Outcomes follow review data. Final profile reflects the mixed track record.
 
 ## Useful Commands Reference
 
 | Command | Description |
 |---|---|
-| `gh pr list --repo <r> --author <u> --state merged --limit N --json number,mergedAt` | Fetch merged PRs |
-| `gh pr list --repo <r> --author <u> --state closed --limit N --json number,closedAt,mergedAt --jq '[.[] \| select(.mergedAt == null)]'` | Fetch closed-without-merge PRs |
-| `gh pr view <pr> --repo <r> --json reviews` | Fetch review events for a PR |
+| `gh search prs --author <u> --merged --sort updated --order desc --limit N --json number,repository,closedAt,updatedAt` | Merged PRs by author (cross-repo) |
+| `gh search prs --author <u> --merged=false --state closed --sort updated --order desc --limit N ...` | Closed, unmerged PRs by author |
+| `gh search prs ... --owner <org> --owner <org2>` | Restrict search to repos under those org owners |
+| `gh pr view <n> --repo <owner/name> --json reviews` | Review events for a PR |
