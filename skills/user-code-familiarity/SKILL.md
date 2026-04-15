@@ -1,7 +1,7 @@
 ---
 name: user-code-familiarity
 description: Build a profile of users' familiarity with a codebase based on their GitHub contributions, including areas contributed to, issue types resolved, and technologies used.
-argument-hint: <username> [organization]
+argument-hint: "<username> [organization]"
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`

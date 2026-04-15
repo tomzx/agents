@@ -2,7 +2,7 @@
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
 allowed-tools: Bash(gh:*, git:*), Read
-argument-hint: <owner/repo> <pr-number>
+argument-hint: "<owner/repo> <pr-number>"
 ---
 
 # Quick PR Review

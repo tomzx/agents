@@ -2,7 +2,7 @@
 name: developer-trust-profile
 description: Create, view, or update a developer trust profile for a GitHub user. Tracks trust level, strengths, weaknesses, PR patterns, and review history.
 allowed-tools: Bash(gh:*, git:*), Read, Write, Glob
-argument-hint: <github_username> [--after-review <owner/repo> <pr_number> <approved|not_approved>]
+argument-hint: "<github_username> [--after-review <owner/repo> <pr_number> <approved|not_approved>]"
 ---
 
 # Developer Trust Profile

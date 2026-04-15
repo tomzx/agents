@@ -1,7 +1,7 @@
 ---
 name: create-issue
 description: Create a GitHub issue with background, acceptance criteria, and time budget sections.
-argument-hint: <repository>
+argument-hint: "<repository>"
 ---
 
 # Create GitHub Issue

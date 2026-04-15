@@ -2,7 +2,7 @@
 name: quick-pr-reviews
 description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations or repositories (owner/repo).
 allowed-tools: Bash(gh:*)
-argument-hint: [org1 org2 ... | owner/repo1 owner/repo2 ...]
+argument-hint: "[org1 org2 ... | owner/repo1 owner/repo2 ...]"
 ---
 
 # Quick PR Reviews

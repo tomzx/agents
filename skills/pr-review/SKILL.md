@@ -2,7 +2,7 @@
 name: pr-review
 description: Conduct a comprehensive code review of a GitHub pull request.
 allowed-tools: Bash(gh:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
-argument-hint: <pr-number>
+argument-hint: "<pr-number>"
 ---
 
 BASE_DIR=!`scripts/get-env ISSUES_DIR`

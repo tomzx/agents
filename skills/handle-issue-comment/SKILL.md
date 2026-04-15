@@ -1,7 +1,7 @@
 ---
 name: handle-issue-comment
 description: Reply to a comment on a GitHub issue using the codebase, issue description, and comment history as context.
-argument-hint: <issue-url>
+argument-hint: "<issue-url>"
 ---
 
 # Handle Issue Comment

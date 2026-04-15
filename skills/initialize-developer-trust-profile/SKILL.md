@@ -2,7 +2,7 @@
 name: initialize-developer-trust-profile
 description: Bootstrap a developer trust profile by scanning the last N PRs they authored (merged and rejected), determining outcome from actual review results.
 allowed-tools: Bash(gh:*)
-argument-hint: <github_username> [count] [--orgs <org>...]
+argument-hint: "<github_username> [count] [--orgs <org>...]"
 ---
 
 # Initialize Developer Trust Profile
