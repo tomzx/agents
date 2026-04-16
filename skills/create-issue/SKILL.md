@@ -15,11 +15,8 @@ Creates a structured GitHub issue in the specified repository with background, a
 
 ## Steps
 
-1. List available labels to verify which exist:
-   ```
-   gh label list --repo $1
-   ```
-2. Create the issue with the structured body:
+1. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
+2. Create the issue with the structured body (no label preflight):
    ```
    gh issue create --repo $1 --title "<title>" --body "$(cat <<'EOF'
    # Background
@@ -37,7 +34,7 @@ Creates a structured GitHub issue in the specified repository with background, a
    EOF
    )" --label "not-urgent" --label "not-important"
    ```
-3. Apply additional labels if specified in the request instead of the defaults.
+3. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
 
 ## Example Usage
 
@@ -64,4 +61,4 @@ User provides a list of requirements. Convert each into a checklist item under A
 | Command | Description |
 |---|---|
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
-| `gh label list --repo <repo>` | List available labels in the repository |
+| `gh label create <name> --repo <repo>` | Add a missing label before retrying (only if you have permission) |
