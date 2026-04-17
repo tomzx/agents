@@ -1,7 +1,7 @@
 ---
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
-allowed-tools: Bash(gh:*, git:*), Read
+allowed-tools: Bash(gh:*, git:*, say), Read
 argument-hint: "<owner/repo> <pr-number>"
 ---
 
@@ -343,6 +343,18 @@ Report to the user:
 - The short commit SHA reviewed
 - Whether the PR was approved or not, and why
 - Whether the trust profile was created or updated (and at which path)
+
+### Notify the user when their review is needed
+
+If the PR was **not approved** or you otherwise need the user to personally review the PR (e.g., ambiguous risk, policy judgment), speak a short audible alert on macOS so they notice even if the chat is in the background:
+
+```bash
+say "{REPO} #{PR_NUMBER} needs your review"
+```
+
+Use exactly that wording (substitute `REPO` and `PR_NUMBER` only). Run `say` **after** you have posted or updated the GitHub comment, in addition to the normal text report above.
+
+**Do not** run `say` when the PR was **skipped** because `TRUST_LEVEL == always_reject` (no review, no comment—only the text report to the user).
 
 ## Example Usage
 
