@@ -64,17 +64,12 @@ Extract:
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 
-Also determine the commit of the dot-claude repository (where this skill lives):
-
-```bash
-git -C "$(dirname "$(dirname "$0")")" rev-parse HEAD
-```
-
-Or if the skill directory path is known (e.g. from the skill loader path), run `git rev-parse HEAD` from that directory.
+Also resolve dot-claude attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`. Use the **Reviewed with** line and optional `{BASE}/issues/new` sub-line from that skill.
 
 Extract:
 - `SKILL_COMMIT`: full commit SHA of the dot-claude repo
-- `SKILL_SHORT_SHA`: first 7 characters of SKILL_COMMIT
+- `SKILL_SHORT_SHA`: short SHA from the same procedure
+- `SKILL_FILE_URL`: URL to `skills/quick-pr-review/SKILL.md` at `SKILL_COMMIT`
 
 ### 2. Load author trust profile
 
@@ -207,9 +202,11 @@ Reviewed commit: SHORT_SHA
 </details>
 
 ---
-Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/SKILL_COMMIT/skills/quick-pr-review/SKILL.md) (`SKILL_SHORT_SHA`)
-<sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
+Reviewed with [quick-pr-review](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
+<sub>This should not have been approved? [Let me know]({BASE}/issues/new).</sub>
 ```
+
+Substitute `SKILL_FILE_URL`, `SKILL_SHORT_SHA`, and `{BASE}` per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md).
 
 For each failing check, append a block after the bullet list:
 
@@ -270,9 +267,11 @@ No user-facing behavior changes detected; documentation update not required.
 </details>
 
 ---
-Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234.../skills/quick-pr-review/SKILL.md) (`abc1234`)
+Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234deadbeef.../skills/quick-pr-review/SKILL.md) (`abc1234`)
 <sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
 ```
+
+(Example URLs illustrate shape; substitute real `SKILL_FILE_URL`, `{BASE}`, and SHAs from your repo.)
 
 ### 6. Save review to local repository
 
@@ -410,3 +409,4 @@ No trust profile found for the author. Defaults to `neutral`. After review, crea
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
 | `gh api repos/{owner}/{repo}/issues/<pr>/comments` | List all comments on a PR |
 | `gh pr review <pr> --repo <owner/repo> --approve` | Approve the PR |
+| `say "..."` | macOS TTS: alert the user when manual review is needed (see **Output**) |

@@ -13,6 +13,10 @@ Replies to a comment on a GitHub issue with a relevant, context-aware response d
 - `gh` CLI authenticated with access to the target repository
 - Issue URL (`$1`) pointing to an existing GitHub issue
 
+### Skill attribution (GitHub)
+
+Before posting any issue comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-issue-comment`.
+
 ## Steps
 
 1. Fetch the issue and all its comments:
@@ -25,7 +29,7 @@ Replies to a comment on a GitHub issue with a relevant, context-aware response d
    ```
 3. Review the full comment thread to understand the discussion.
 4. Draft a reply that directly addresses the latest comment, grounded in codebase evidence and prior discussion.
-5. Post the reply:
+5. Post the reply (body = main reply plus **Skill attribution** footer):
    ```
    gh issue comment $1 --body "..."
    ```

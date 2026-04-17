@@ -17,6 +17,10 @@ Fetches a GitHub issue, clones the relevant codebase, and produces a detailed im
 - Write access to the issue (for posting clarification comments)
 - `scripts/get-env` utility available
 
+### Skill attribution (GitHub)
+
+Before posting any clarification comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `prepare-issue`.
+
 ## Workflow
 
 ```
@@ -52,7 +56,7 @@ Fetch issue + comments ($1)
    ```
 
 3. Given the codebase, issue description, and comments, assess whether there is enough information to implement.
-   - If not: post a comment requesting specifics:
+   - If not: post a comment requesting specifics (body includes **Skill attribution** footer):
      ```
      gh issue comment $1 --body "..."
      ```

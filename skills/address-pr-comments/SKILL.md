@@ -13,6 +13,10 @@ Reviews and responds to all comments on a GitHub pull request, implementing vali
 - `gh` CLI authenticated with write access to the target repository
 - PR number (`$1`) identifying an open pull request with at least one review comment
 
+### Skill attribution (GitHub)
+
+Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `address-pr-comments`.
+
 ## Workflow
 
 ```
@@ -52,7 +56,7 @@ Commit/post     Skip
 4. If actionable: implement the requested changes in the codebase.
 5. If not actionable: draft a reply explaining why the change will not be made.
 6. Present the content, reasoning, and proposed action to the user for approval.
-7. On approval: commit code changes or post the reply as a PR comment.
+7. On approval: commit code changes or post the reply as a PR comment. When posting a reply, include the **Skill attribution** footer on the comment body (omit the footer if you only push commits and do not post a comment).
 
 ## Example Usage
 

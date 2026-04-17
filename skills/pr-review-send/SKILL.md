@@ -14,13 +14,17 @@ Posts individual PR review comments to GitHub by file and line number using the 
 - GitHub authentication configured for the script
 - Must run from within `$HOME/repos/git/personal-automation`
 
+### Skill attribution (GitHub)
+
+Before each `pr-comment.py` invocation, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `pr-review-send` to the `--comment` text.
+
 ## Steps
 
 1. Navigate to the automation directory:
    ```
    cd $HOME/repos/git/personal-automation
    ```
-2. Post a review comment:
+2. Post a review comment (`--comment` includes main text plus **Skill attribution** footer):
    ```
    uv run $HOME/repos/git/personal-automation/others/pr-comment.py <owner>/<repo> <pr-number> \
      --file <path/to/file.py> \

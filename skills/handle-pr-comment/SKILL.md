@@ -14,6 +14,10 @@ Evaluates a comment on a GitHub pull request and responds appropriately - either
 - PR URL (`$1`) pointing to an open pull request
 - Git push access to the PR branch
 
+### Skill attribution (GitHub)
+
+Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-pr-comment`.
+
 ## Workflow
 
 ```
@@ -60,7 +64,7 @@ Fetch PR metadata + comment history
 7. Present reasoning to the user for approval.
 8. On approval:
    - For code changes: commit and push to the PR branch.
-   - For rejections: post the reply comment via `gh`.
+   - For rejections: post the reply comment via `gh` with the **Skill attribution** footer on the comment body.
 
 ## Example Usage
 

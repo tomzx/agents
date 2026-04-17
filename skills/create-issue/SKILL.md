@@ -13,6 +13,10 @@ Creates a structured GitHub issue in the specified repository with background, a
 - `gh` CLI authenticated with write access to the target repository
 - Repository name in `owner/repo` format (`$1`)
 
+### Skill attribution (GitHub)
+
+Before creating an issue with `gh issue create`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Created with** footer for `SKILL_DIR` = `create-issue` to the issue body.
+
 ## Steps
 
 1. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
@@ -31,9 +35,14 @@ Creates a structured GitHub issue in the specified repository with background, a
    # Time budget
 
    <estimate>, after which the implementer should reassess or seek help.
+
+   ---
+
+   Created with [create-issue]({SKILL_FILE_URL}) (`SKILL_SHORT_SHA`)
    EOF
    )" --label "not-urgent" --label "not-important"
    ```
+   Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command.
 3. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
 
 ## Example Usage
