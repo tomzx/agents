@@ -1,16 +1,15 @@
 ---
 name: task-tracking
-description: Plan and track feature implementation as a live checklist. Creates a TodoWrite task list before starting work, marks each task complete as it finishes, and verifies every task is checked at the end.
+description: Plan and track feature implementation as a live checklist. Writes a TASKS.md file before starting work, updates it as each task completes, and verifies every task is checked at the end.
 ---
 
 # Task Tracking
 
-Plans a feature implementation as an explicit checklist, keeps it updated during work, and confirms full completion at the end.
+Plans a feature implementation as an explicit checklist in a `TASKS.md` file, keeps it updated during work, and confirms full completion at the end.
 
 ## Prerequisites
 
 - A clear feature request or task description from the user
-- TodoWrite tool available
 
 ## Steps
 
@@ -24,7 +23,15 @@ Before writing any code or running any commands, analyze the request and break i
 
 ### 2. Write the initial checklist
 
-Call TodoWrite with all tasks set to status `pending` before starting any work. Use descriptive content strings so the list is readable without context.
+Create `TASKS.md` in the repository root with all tasks unchecked before starting any work:
+
+```markdown
+# Tasks
+
+- [ ] Task one
+- [ ] Task two
+- [ ] Task three
+```
 
 Example tasks for a typical feature:
 - Explore codebase to understand existing patterns
@@ -35,26 +42,26 @@ Example tasks for a typical feature:
 - Run linter/formatter and fix any issues
 - Commit changes
 
-Add, remove, or reorder tasks to fit the actual feature. Do not use a generic template, tailor the list to what the work actually requires.
+Tailor the list to what the work actually requires. Do not use a generic template.
 
 ### 3. Execute and update
 
 Work through the checklist in order:
 
-1. Start the next `pending` task
+1. Start the next unchecked task
 2. Do the work
-3. Immediately mark that task `completed` via TodoWrite before moving to the next
-4. If you discover mid-task that an additional step is needed, add it to the list before continuing
+3. Immediately edit `TASKS.md` to mark that task checked (`- [x]`) before moving on
+4. If a new step is discovered mid-task, append it to `TASKS.md` before continuing
 
-Never batch-complete multiple tasks at once. Mark each one complete the moment it finishes.
+Never batch-complete multiple tasks at once. Check each one the moment it finishes.
 
 ### 4. Handle blockers
 
-If a task cannot be completed (missing information, unexpected state, external dependency), mark it `in_progress` and surface the blocker to the user. Do not silently skip tasks or mark them complete without finishing them.
+If a task cannot be completed (missing information, unexpected state, external dependency), add a note inline in `TASKS.md` and surface the blocker to the user. Do not silently skip tasks or mark them complete without finishing them.
 
 ### 5. Final verification
 
-After all tasks appear complete, call TodoWrite (or review the current list) to confirm every task has status `completed`. If any remain `pending` or `in_progress`, resolve them before declaring the feature done.
+After all tasks appear complete, read `TASKS.md` and confirm every item is `[x]`. If any remain `[ ]`, resolve them before declaring the feature done.
 
 Report to the user: "All N tasks completed." or list any that remain open.
 
@@ -62,7 +69,10 @@ Report to the user: "All N tasks completed." or list any that remain open.
 
 Feature request: "Add a --verbose flag to the CLI"
 
-Initial checklist:
+Initial `TASKS.md`:
+```markdown
+# Tasks
+
 - [ ] Read existing CLI argument parsing code
 - [ ] Identify where logging is configured
 - [ ] Add --verbose argument definition
@@ -72,5 +82,19 @@ Initial checklist:
 - [ ] Run tests
 - [ ] Run linter
 - [ ] Commit
+```
 
-As work proceeds each item flips to checked. The feature is done when the list is entirely checked.
+Final `TASKS.md` when done:
+```markdown
+# Tasks
+
+- [x] Read existing CLI argument parsing code
+- [x] Identify where logging is configured
+- [x] Add --verbose argument definition
+- [x] Wire verbose flag to logging level
+- [x] Update help text / docstring
+- [x] Add test for --verbose flag behavior
+- [x] Run tests
+- [x] Run linter
+- [x] Commit
+```
