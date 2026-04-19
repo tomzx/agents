@@ -19,13 +19,18 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
 
 ## Steps
 
-1. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
-2. Create the issue with the structured body (no label preflight):
+1. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
+2. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
+3. Create the issue with the structured body (no label preflight). For bug reports, include a **Version** section with the version the user provided:
    ```
    gh issue create --repo $1 --title "<title>" --body "$(cat <<'EOF'
    # Background
 
    <context and motivation>
+
+   # Version
+
+   <version the user reported> (include only for bug reports)
 
    # Acceptance Criteria
 
@@ -43,7 +48,7 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
    )" --label "not-urgent" --label "not-important"
    ```
    Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command.
-3. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
+4. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
 
 ## Example Usage
 
