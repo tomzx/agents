@@ -91,7 +91,28 @@ Step back from the implementation and ask whether the change sits cleanly within
 
 If the design feels awkward, note it. Either fix it now or record it explicitly as debt in step 9.
 
-### 8. Breaking Changes
+### 8. Architecture Decision Records
+
+Review the decisions made during this session and determine whether any warrant an ADR. A decision warrants an ADR if it:
+
+- Affects the overall structure, technology choices, or design patterns of the system
+- Has meaningful trade-offs that future developers should understand
+- Is not obvious from the code alone (i.e., the "why" is non-trivial)
+- Could be revisited or questioned in the future without this record
+
+Ask the user:
+
+> "Did this session involve any significant architectural or technical decisions that should be recorded as an ADR? For example: choosing a library, adopting a pattern, deciding on a data model, or making a trade-off between approaches."
+
+For each identified decision, run the `adr` skill to collect details and create the record:
+
+```
+/adr <decision title>
+```
+
+If no decisions warrant an ADR, note that explicitly in the summary.
+
+### 9. Breaking Changes
 
 Check whether anything in the public surface has changed:
 
@@ -103,7 +124,7 @@ Check whether anything in the public surface has changed:
 
 For each breaking change, identify the consumers and determine whether they need to be updated, notified, or given a migration path before this ships.
 
-### 9. Rollback / Reversibility
+### 10. Rollback / Reversibility
 
 Assess how easy it would be to undo this change if it causes problems in production:
 
@@ -111,7 +132,7 @@ Assess how easy it would be to undo this change if it causes problems in product
 - Are there irreversible side effects: data migrations, dropped columns, published events, sent emails, external API calls with lasting state?
 - If the change is hard to reverse, document a rollback procedure or mitigation plan (a feature flag, a compensating migration, a manual remediation script).
 
-### 10. Technical Debt Delta
+### 11. Technical Debt Delta
 
 Reflect on whether the session improved or worsened the codebase's long-term health:
 
@@ -119,7 +140,7 @@ Reflect on whether the session improved or worsened the codebase's long-term hea
 - Was any existing debt paid down? Note it so the trend is visible over time.
 - Did the change make the next related change easier or harder?
 
-### 11. Communication / Coordination
+### 12. Communication / Coordination
 
 Identify anyone who needs to know about this change:
 
@@ -130,7 +151,7 @@ Identify anyone who needs to know about this change:
 
 For each, determine whether to notify now, at deploy time, or after observing production.
 
-### 12. Update AGENTS.md
+### 13. Update AGENTS.md
 
 Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions. For each:
 
@@ -176,6 +197,9 @@ After completing all steps, print a summary:
 
 ### Architectural Fit
 <One sentence on whether the design feels clean, or what feels awkward and why.>
+
+### Architecture Decision Records
+- [ ] ADRs created: <list of ADR files created, or "none needed">
 
 ### Breaking Changes
 - [ ] Breaking changes identified: <list, or "none">
