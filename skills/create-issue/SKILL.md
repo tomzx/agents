@@ -1,17 +1,17 @@
 ---
 name: create-issue
 description: Create a GitHub issue with background, acceptance criteria, and time budget sections.
-argument-hint: "<repository>"
+argument-hint: "[repository]"
 ---
 
 # Create GitHub Issue
 
-Creates a structured GitHub issue in the specified repository with background, acceptance criteria, and a time budget so implementers have clear scope and exit criteria.
+Creates a structured GitHub issue in the specified repository with background, acceptance criteria, and (for private repositories) a time budget so implementers have clear scope and exit criteria.
 
 ## Prerequisites
 
 - `gh` CLI authenticated with write access to the target repository
-- Repository name in `owner/repo` format (`$1`)
+- Repository name in `owner/repo` format (`$1`), or omitted to use the repository in the current working directory
 
 ### Skill attribution (GitHub)
 
@@ -20,10 +20,11 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
 ## Steps
 
 1. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
-2. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
-3. Create the issue with the structured body (no label preflight). For bug reports, include a **Version** section with the version the user provided:
+2. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`. A public repository is treated as open source; omit the **Time budget** section. A private repository includes it.
+3. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
+4. Create the issue with the structured body (no label preflight). For bug reports, include a **Version** section with the version the user provided. Omit `--repo` if no repository was provided (gh will infer it from the cwd):
    ```
-   gh issue create --repo $1 --title "<title>" --body "$(cat <<'EOF'
+   gh issue create [--repo $1] --title "<title>" --body "$(cat <<'EOF'
    # Background
 
    <context and motivation>
@@ -40,6 +41,7 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
    # Time budget
 
    <estimate>, after which the implementer should reassess or seek help.
+   (omit this section entirely for public/open-source repositories)
 
    ---
 
@@ -48,7 +50,7 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
    )" --label "not-urgent" --label "not-important"
    ```
    Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command.
-4. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
+5. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
 
 ## Example Usage
 
@@ -56,7 +58,7 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
 ```
 /create-issue owner/myrepo
 ```
-Creates an issue titled "Fix null pointer in user login" with background explaining the crash, acceptance criteria requiring a regression test and the fix, and a 2-hour time budget. Labels: `not-urgent`, `not-important`.
+Creates an issue titled "Fix null pointer in user login" with background explaining the crash, acceptance criteria requiring a regression test and the fix, and a 2-hour time budget (if private). Labels: `not-urgent`, `not-important`.
 
 **Scenario 2: Feature request with custom labels**
 ```
@@ -74,5 +76,6 @@ User provides a list of requirements. Convert each into a checklist item under A
 
 | Command | Description |
 |---|---|
+| `gh repo view [--repo <repo>] --json isPrivate --jq '.isPrivate'` | Check if a repository is private |
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
 | `gh label create <name> --repo <repo>` | Add a missing label before retrying (only if you have permission) |
