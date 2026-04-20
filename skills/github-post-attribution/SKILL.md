@@ -21,6 +21,15 @@ Skills that post content to GitHub should append a small footer: link to the **i
 
 `REPO_ROOT` = the directory that contains `skills/` (the dot-claude checkout). If unknown, infer from the path to the active skill file: go up from `skills/<anything>/SKILL.md` until `skills/` is a direct child.
 
+**Follow symlinks**: the `skills/` directory may be a symlink (e.g. `~/.opencode/skills → ~/src/dot-claude/skills`). Always resolve symlinks before determining `REPO_ROOT`:
+
+```bash
+SKILLS_DIR=$(readlink -f /path/to/skills)
+REPO_ROOT=$(dirname "$SKILLS_DIR")
+```
+
+If the skill file path is known, resolve it too: `REAL_PATH=$(readlink -f "$SKILL_FILE")`, then walk up to the directory containing `skills/`.
+
 ## Resolve commit and GitHub base URL
 
 ```bash
