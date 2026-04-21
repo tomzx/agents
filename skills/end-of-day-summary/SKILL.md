@@ -5,6 +5,8 @@ description: Summarize GitHub activity, Slack activity, and overall activity for
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
 TODAY=`date +%Y-%m-%d`
+YESTERDAY=`date -d "yesterday" +%Y-%m-%d`
+TOMORROW=`date -d "tomorrow" +%Y-%m-%d`
 YEAR=`date +%Y`
 MONTH=`date +%m`
 DAY=`date +%d`
@@ -16,10 +18,11 @@ Produces structured summaries of GitHub and Slack activity for the current day, 
 
 ## Prerequisites
 
-- Slack MCP server connected and authenticated
+- `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `collect_individual_threads.py`)
 - `gh` CLI authenticated
 - `summarize-github-activity` script at `$HOME/repos/git/personal-automation/others/summarize-github-activity`
 - `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
+- `SLACK_USER` environment variable set (resolved via `scripts/get-env SLACK_USER`; Slack username, e.g. `tom.rochette`)
 - `scripts/get-env` utility available
 
 ## Pipeline
@@ -44,7 +47,18 @@ Write output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md`.
 
 ### 2. Summarize Slack Activity
 
-Summarize Slack messages from {TODAY} via the Slack MCP server. Write to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.md`:
+Collect Slack threads for {TODAY} using `collect_individual_threads.py`. Slack's `after:`/`before:` search operators are exclusive, so use the day before and the day after {TODAY} as bounds:
+
+```bash
+SLACK_USER=`scripts/get-env SLACK_USER`
+
+uv run skills/slack-kb-individual/collect_individual_threads.py \
+  --user $SLACK_USER \
+  --after {YESTERDAY} --before {TOMORROW} \
+  -o {BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.jsonl
+```
+
+Read the resulting JSONL and summarize into `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.slack.md`:
 
 ```markdown
 # Summary

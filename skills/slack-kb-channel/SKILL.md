@@ -28,34 +28,32 @@ Do **not** add a separate `-threads.md` or other companion KB files for the same
 
 ## Ingestion (maintainers only — not part of memory)
 
-Use `devx agent-tools slack` (or Slack MCP) to pull history and threads. Raw outputs may be stored outside `memory/temporal/` or in tooling-only paths; **keep them out of the canonical temporal memory docs.**
+Use [`build_thread_kb.py`](build_thread_kb.py) to pull history and threads directly via the Slack API. Credentials (`SLACK_TOKEN`, `SLACK_COOKIE`) are loaded from `.env`. Raw outputs may be stored outside `memory/temporal/` or in tooling-only paths; **keep them out of the canonical temporal memory docs.**
 
 ### Batch thread metadata (recommended)
 
-[`build_thread_kb.py`](build_thread_kb.py) walks **any channel** (by Slack channel id) for a **calendar month (UTC)**, lists root messages in that window, then fetches each thread via `devx agent-tools slack`. It writes **JSONL** (one object per thread: `channel`, `ts`, `replies`, `preview`) — a **maintainer artifact** for ingestion and validation; it is not the published KB and is not pasted into memory as a thread table.
+[`build_thread_kb.py`](build_thread_kb.py) walks **any channel** (by Slack channel id) using `conversations.history` + `conversations.replies` directly. It supports a full **calendar month** (`--month`) or an arbitrary **date range** (`--after`/`--before`). It writes **JSONL** (one object per thread: `channel`, `ts`, `replies`, `preview`) — a **maintainer artifact** for ingestion and validation; it is not the published KB and is not pasted into memory as a thread table.
 
-Pass **`--channel <CHANNEL_ID>`** or set **`SLACK_CHANNEL_ID`**. Default output files include the channel id so different channels for the same month do not overwrite each other.
+Pass **`--channel <CHANNEL_ID>`** or set **`SLACK_CHANNEL_ID`**. Default output files include the channel id so different channels for the same period do not overwrite each other.
 
 ```bash
-# Requires `devx agent-tools slack auth setup` for Slack auth
-python3 skills/slack-kb-channel/build_thread_kb.py --channel <CHANNEL_ID> --month 2026-03 \
+# Full calendar month
+uv run skills/slack-kb-channel/build_thread_kb.py --channel <CHANNEL_ID> --month 2026-03 \
   --output memory/temporal/thread-fetch-2026-03-<CHANNEL_ID>.jsonl \
   --write-valid-list
+
+# Arbitrary date range (e.g. a week)
+uv run skills/slack-kb-channel/build_thread_kb.py --channel <CHANNEL_ID> \
+  --after 2026-04-07 --before 2026-04-14 \
+  --output /tmp/channel-week.jsonl
 ```
 
-- **`--skip-threads`**: only print / list root `thread_ts` values in the month (no per-thread API calls).
-- **`--write-valid-list`**: also writes `memory/temporal/extracted-thread-ts-YYYY-MM-<CHANNEL_ID>-valid.txt` (excludes rows where the thread fetch failed).
-
-### Single thread (manual)
-
-```bash
-devx agent-tools slack message thread <CHANNEL_ID> '<thread_ts>' \
-  --limit=200 --output json
-```
+- **`--skip-threads`**: only print / list root `thread_ts` values in the range (no per-thread API calls).
+- **`--write-valid-list`**: also writes `memory/temporal/extracted-thread-ts-<date>-<CHANNEL_ID>-valid.txt` (excludes rows where the thread fetch failed).
 
 **Workflow**
 
-1. Note the channel id and a **stable `<channel-slug>`** for filenames. Run **`build_thread_kb.py`** for `YYYY-MM` (or ingest via Slack MCP / export).
+1. Note the channel id and a **stable `<channel-slug>`** for filenames. Run **`build_thread_kb.py`** for `YYYY-MM` (or the relevant date range).
 2. Treat reply permalinks as **non-parent** timestamps when scraping; the script uses channel roots only.
 3. Optional: commit or ignore `memory/temporal/thread-fetch-*.jsonl` and `memory/temporal/extracted-thread-ts-*-valid.txt` per your hygiene.
 4. Refresh **`memory/temporal/<channel-slug>-YYYY-MM.md`**: themes and **Thread-derived findings** (with `thread_ts` where useful). Do **not** add a full thread index table to the memory file.

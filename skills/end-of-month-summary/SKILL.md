@@ -9,6 +9,8 @@ YEAR=`date +%Y`
 MONTH=`date +%m`
 MONTH_NAME=`date +%B`
 MONTH_START=`date -d "$(date +%Y-%m-01)" +%Y-%m-%d`
+MONTH_START_MINUS_ONE=`date -d "$MONTH_START - 1 day" +%Y-%m-%d`
+NEXT_MONTH_START=`date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d`
 
 # Generate End-of-Month Summary
 
@@ -16,11 +18,12 @@ Produces a monthly digest covering personal GitHub activity, personal Slack acti
 
 ## Prerequisites
 
-- Slack MCP server connected and authenticated with access to relevant channels
+- `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `collect_individual_threads.py`)
 - `gh` CLI authenticated
 - `summarize-github-activity` script at `$HOME/repos/git/personal-automation/others/summarize-github-activity`
 - `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
 - `COLLEAGUES` environment variable set (resolved via `scripts/get-env COLLEAGUES`)
+- `HELP_ML_CHANNEL_ID` environment variable set (resolved via `scripts/get-env HELP_ML_CHANNEL_ID`; Slack channel id for `#help-ml-infrastructure`)
 - `scripts/get-env` utility available
 
 ## Pipeline
@@ -65,7 +68,18 @@ A list of the action items generated.
 
 ### 3. Summarize #help-ml-infrastructure Channel
 
-Fetch messages from the #help-ml-infrastructure Slack channel during the month ending {TODAY}. Write to `{BASE_DIR}/{YEAR}/{MONTH}/slack.help-ml-infrastructure.md`:
+Fetch messages from the #help-ml-infrastructure Slack channel for the full month using `build_thread_kb.py`:
+
+```bash
+HELP_ML_CHANNEL_ID=`scripts/get-env HELP_ML_CHANNEL_ID`
+
+uv run skills/slack-kb-channel/build_thread_kb.py \
+  --channel $HELP_ML_CHANNEL_ID \
+  --month {YEAR}-{MONTH} \
+  --output {BASE_DIR}/{YEAR}/{MONTH}/thread-fetch-help-ml.jsonl
+```
+
+Read the resulting JSONL and summarize into `{BASE_DIR}/{YEAR}/{MONTH}/slack.help-ml-infrastructure.md`:
 
 ```markdown
 # <Issue title> (one entry per issue)
@@ -90,7 +104,16 @@ Resolve the colleagues list:
 scripts/get-env COLLEAGUES
 ```
 
-For each person in the list, run as a subagent in parallel: fetch their Slack messages and thread replies during the month, list all channels they contributed to. Write each to `{BASE_DIR}/{YEAR}/{MONTH}/slack/{COLLEAGUE}.md`.
+For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`. Slack's `after:` is exclusive, so pass the day before `MONTH_START` as `--after` and `NEXT_MONTH_START` as `--before`:
+
+```bash
+uv run skills/slack-kb-individual/collect_individual_threads.py \
+  --user <COLLEAGUE> \
+  --after {MONTH_START_MINUS_ONE} --before {NEXT_MONTH_START} \
+  -o {BASE_DIR}/{YEAR}/{MONTH}/slack/{COLLEAGUE}.jsonl
+```
+
+Read each JSONL and summarize into `{BASE_DIR}/{YEAR}/{MONTH}/slack/{COLLEAGUE}.md`, listing all channels they contributed to.
 
 Aggregate into `{BASE_DIR}/{YEAR}/{MONTH}/slack.colleagues.md`.
 
