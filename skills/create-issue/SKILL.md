@@ -17,6 +17,10 @@ Creates a structured GitHub issue in the specified repository with background, a
 
 Before creating an issue with `gh issue create`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Created with** footer for `SKILL_DIR` = `create-issue` to the issue body.
 
+## Formatting
+
+- Do not use curly or typographic quotation marks in any text you write for the issue (title, body, sections, lists, or examples). Use straight ASCII double quotes (`"`) and straight apostrophes (`'`) only.
+
 ## Steps
 
 1. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
