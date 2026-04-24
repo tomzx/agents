@@ -193,6 +193,123 @@ def slack_conversations_replies_all(
     return all_messages
 
 
+def slack_conversations_info(
+    token: str,
+    cookie: str,
+    channel_id: str,
+) -> dict[str, Any] | None:
+    """Return channel object from conversations.info, or None on failure."""
+    if not channel_id:
+        return None
+    r = _slack_request(
+        "GET",
+        "https://slack.com/api/conversations.info",
+        token,
+        cookie,
+        params={"channel": channel_id},
+    )
+    data = r.json()
+    if not data.get("ok"):
+        return None
+    return data.get("channel")
+
+
+def slack_users_info(
+    token: str,
+    cookie: str,
+    user_id: str,
+) -> dict[str, Any] | None:
+    """Return user object from users.info, or None on failure."""
+    if not user_id:
+        return None
+    r = _slack_request(
+        "GET",
+        "https://slack.com/api/users.info",
+        token,
+        cookie,
+        params={"user": user_id},
+    )
+    data = r.json()
+    if not data.get("ok"):
+        return None
+    return data.get("user")
+
+
+def _channel_label(ch: dict[str, Any] | None) -> str:
+    if not ch:
+        return ""
+    name = (ch.get("name") or "").strip()
+    if name:
+        return name
+    # DMs / MPIMs may use conversation_user_count, etc.
+    p = ch.get("purpose") or {}
+    purpose = (p.get("value") or "").strip()
+    if purpose:
+        return purpose[:80]
+    return ""
+
+
+def _user_display_name(user: dict[str, Any] | None) -> str:
+    if not user:
+        return ""
+    prof = user.get("profile") or {}
+    for key in ("real_name", "display_name"):
+        v = prof.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    nm = user.get("name")
+    if isinstance(nm, str) and nm.strip():
+        return nm.strip()
+    uid = user.get("id")
+    return str(uid) if uid else ""
+
+
+def _fetch_channel_name_map(
+    token: str,
+    cookie: str,
+    channel_ids: set[str],
+    workers: int = 8,
+) -> dict[str, str]:
+    """Resolve channel IDs to names via conversations.info (concurrent)."""
+    out: dict[str, str] = {}
+    ids = sorted(channel_ids)
+    if not ids:
+        return out
+
+    def one(cid: str) -> tuple[str, str]:
+        ch = slack_conversations_info(token, cookie, cid)
+        return cid, _channel_label(ch)
+
+    with ThreadPoolExecutor(max_workers=min(workers, len(ids))) as pool:
+        for cid, label in pool.map(one, ids):
+            if label:
+                out[cid] = label
+    return out
+
+
+def _fetch_user_name_map(
+    token: str,
+    cookie: str,
+    user_ids: set[str],
+    workers: int = 8,
+) -> dict[str, str]:
+    """Resolve user IDs to display names via users.info (concurrent)."""
+    out: dict[str, str] = {}
+    ids = sorted(user_ids)
+    if not ids:
+        return out
+
+    def one(uid: str) -> tuple[str, str]:
+        u = slack_users_info(token, cookie, uid)
+        return uid, _user_display_name(u)
+
+    with ThreadPoolExecutor(max_workers=min(workers, len(ids))) as pool:
+        for uid, label in pool.map(one, ids):
+            if label:
+                out[uid] = label
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Search pagination
 # ---------------------------------------------------------------------------
@@ -349,13 +466,22 @@ class ThreadMessage:
     ts: str
     user: str
     text: str
+    user_name: str = ""
 
     def to_json_obj(self) -> dict[str, Any]:
-        return {"ts": self.ts, "user": self.user, "text": self.text}
+        o: dict[str, Any] = {"ts": self.ts, "user": self.user, "text": self.text}
+        if self.user_name:
+            o["userName"] = self.user_name
+        return o
 
     @staticmethod
     def from_json_obj(o: dict[str, Any]) -> ThreadMessage:
-        return ThreadMessage(ts=o.get("ts", ""), user=o.get("user", ""), text=o.get("text", ""))
+        return ThreadMessage(
+            ts=o.get("ts", ""),
+            user=o.get("user", ""),
+            text=o.get("text", ""),
+            user_name=o.get("userName", "") or "",
+        )
 
 
 @dataclass
@@ -429,7 +555,11 @@ def fetch_one_thread(
     if len(preview) > 400:
         preview = preview[:397] + "..."
     thread_messages = [
-        ThreadMessage(ts=m.get("ts", ""), user=m.get("user", ""), text=m.get("text", ""))
+        ThreadMessage(
+            ts=m.get("ts", ""),
+            user=m.get("user", "") or "",
+            text=m.get("text", ""),
+        )
         for m in raw_msgs
     ]
     return ThreadRecord(
@@ -478,6 +608,54 @@ def fetch_threads_concurrent(
             )
 
     return [results[i] for i in range(total)]
+
+
+def enrich_thread_records(
+    token: str,
+    cookie: str,
+    records: list[ThreadRecord],
+    *,
+    workers: int = THREAD_FETCH_WORKERS,
+) -> None:
+    """
+    Fill channelName (when missing) and per-message userName via Slack APIs.
+    Mutates records in place.
+    """
+    need_channels: set[str] = set()
+    need_users: set[str] = set()
+
+    for rec in records:
+        if rec.channel and not (rec.channel_name or "").strip():
+            need_channels.add(rec.channel)
+        if rec.messages:
+            for m in rec.messages:
+                uid = (m.user or "").strip()
+                if uid and not (m.user_name or "").strip():
+                    need_users.add(uid)
+
+    if need_channels:
+        print(
+            f"  Resolving {len(need_channels)} channel name(s)...",
+            file=sys.stderr,
+        )
+        ch_map = _fetch_channel_name_map(token, cookie, need_channels, workers=workers)
+        for rec in records:
+            if rec.channel and not (rec.channel_name or "").strip():
+                rec.channel_name = ch_map.get(rec.channel, rec.channel_name)
+
+    if need_users:
+        print(
+            f"  Resolving {len(need_users)} user name(s)...",
+            file=sys.stderr,
+        )
+        u_map = _fetch_user_name_map(token, cookie, need_users, workers=workers)
+        for rec in records:
+            if not rec.messages:
+                continue
+            for m in rec.messages:
+                uid = (m.user or "").strip()
+                if uid and not (m.user_name or "").strip():
+                    m.user_name = u_map.get(uid, m.user_name)
 
 
 # ---------------------------------------------------------------------------
@@ -598,12 +776,14 @@ def run_full_scan(args: argparse.Namespace, out_path: Path | None, token: str, c
             _threads_to_skip_records(threads),
             key=lambda r: float(r.thread_ts),
         )
+        enrich_thread_records(token, cookie, records, workers=args.workers)
         write_output(records, out_path)
         return
 
     print(f"Fetching {len(sorted_infos)} threads ({args.workers} workers)...", file=sys.stderr)
     records = fetch_threads_concurrent(token, cookie, sorted_infos, thread_limit=args.thread_limit, workers=args.workers)
     print(f"\nDone: {len(records)} threads fetched", file=sys.stderr)
+    enrich_thread_records(token, cookie, records, workers=args.workers)
     write_output(records, out_path)
 
 
@@ -643,6 +823,7 @@ def run_incremental(args: argparse.Namespace, out_path: Path | None, token: str,
                 permalink=info.permalink,
             )
         records = sorted(merged.values(), key=lambda r: float(r.thread_ts))
+        enrich_thread_records(token, cookie, records, workers=args.workers)
         write_output(records, out_path)
         return
 
@@ -669,6 +850,7 @@ def run_incremental(args: argparse.Namespace, out_path: Path | None, token: str,
         f"{cached_kept} kept from cache, {refreshed_count} refreshed, {new_count} new",
         file=sys.stderr,
     )
+    enrich_thread_records(token, cookie, records, workers=args.workers)
     write_output(records, out_path)
 
 
