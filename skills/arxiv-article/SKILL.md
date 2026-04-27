@@ -5,7 +5,15 @@ description: Downloads an arXiv HTML article, converts it to markdown with pando
 
 # arXiv Article Processor
 
-Downloads an arXiv HTML article, converts it to markdown via pandoc, archives it under `~/.claude/memory/arxiv/articles/`, and produces a structured summary.
+Downloads an arXiv HTML article, converts it to markdown via pandoc, archives it under `$ARXIV_DIRECTORY`, and produces a structured summary.
+
+## Prerequisites
+
+`ARXIV_DIRECTORY` must be set to the directory where archived articles are stored (e.g., `~/arxiv-articles`). If the variable is unset, stop and ask the user to set it.
+
+```bash
+echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
+```
 
 ## Input
 
@@ -13,27 +21,33 @@ The URL of the arXiv HTML article. Expected format: `https://arxiv.org/html/{arx
 
 ## Steps
 
-### 1. Extract the arxiv ID
+### 1. Resolve archive directory
+
+```bash
+ARCHIVE_DIR="${ARXIV_DIRECTORY}"
+mkdir -p "$ARCHIVE_DIR"
+```
+
+### 2. Extract the arxiv ID
 
 From the URL, take the path segment after `/html/`. Strip any version suffix for the archive filename:
 
 - `https://arxiv.org/html/2504.12345v1` → base ID `2504.12345`, versioned ID `2504.12345v1`
 - `https://arxiv.org/html/2504.12345` → base ID `2504.12345`
 
-Use the base ID as the archive filename: `~/.claude/memory/arxiv/articles/{base_id}.md`.
+Use the base ID as the archive filename: `$ARCHIVE_DIR/{base_id}.md`.
 
-### 2. Check archive
+### 3. Check archive
 
 ```bash
-test -f ~/.claude/memory/arxiv/articles/{base_id}.md && echo "EXISTS" || echo "MISSING"
+test -f "$ARCHIVE_DIR/{base_id}.md" && echo "EXISTS" || echo "MISSING"
 ```
 
-If the file exists, skip to step 6 (summarize from the cached file).
+If the file exists, skip to step 7 (summarize from the cached file).
 
-### 3. Download HTML
+### 4. Download HTML
 
 ```bash
-mkdir -p ~/.claude/memory/arxiv/articles
 curl -L --silent --max-time 60 \
   -A "Mozilla/5.0 (compatible; research-bot/1.0)" \
   -o /tmp/arxiv_{base_id}.html \
@@ -42,31 +56,31 @@ curl -L --silent --max-time 60 \
 
 If the download fails (non-zero exit or empty file), report the error and stop.
 
-### 4. Convert to markdown with pandoc
+### 5. Convert to markdown with pandoc
 
 ```bash
 pandoc -f html -t markdown \
   --wrap=none \
   --strip-comments \
-  -o ~/.claude/memory/arxiv/articles/{base_id}.md \
+  -o "$ARCHIVE_DIR/{base_id}.md" \
   /tmp/arxiv_{base_id}.html
 ```
 
 If pandoc is not available (`which pandoc` returns nothing), fall back to saving the raw HTML:
 
 ```bash
-cp /tmp/arxiv_{base_id}.html ~/.claude/memory/arxiv/articles/{base_id}.html
+cp /tmp/arxiv_{base_id}.html "$ARCHIVE_DIR/{base_id}.html"
 ```
 
 and note in the summary that pandoc was unavailable.
 
-### 5. Clean up temp file
+### 6. Clean up temp file
 
 ```bash
 rm -f /tmp/arxiv_{base_id}.html
 ```
 
-### 6. Summarize
+### 7. Summarize
 
 Read the archived file. Because converted papers can be long, read the first 300 lines to locate the title, authors, abstract, and introduction, then skim section headings and the conclusion. Produce this structured summary:
 
