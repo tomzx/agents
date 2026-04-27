@@ -66,13 +66,7 @@ pandoc -f html -t markdown \
   /tmp/arxiv_{base_id}.html
 ```
 
-If pandoc is not available (`which pandoc` returns nothing), fall back to saving the raw HTML:
-
-```bash
-cp /tmp/arxiv_{base_id}.html "$ARCHIVE_DIR/{base_id}.html"
-```
-
-and note in the summary that pandoc was unavailable.
+If pandoc is not available (`which pandoc` returns nothing), report the error and stop. Do not proceed without pandoc.
 
 ### 6. Clean up temp file
 
@@ -82,7 +76,7 @@ rm -f /tmp/arxiv_{base_id}.html
 
 ### 7. Summarize
 
-Read the archived file. Because converted papers can be long, read the first 300 lines to locate the title, authors, abstract, and introduction, then skim section headings and the conclusion. Produce this structured summary:
+Read the full archived markdown file and produce this structured summary:
 
 ```markdown
 ## {Title}
@@ -106,4 +100,3 @@ Read the archived file. Because converted papers can be long, read the first 300
 {1 sentence: why this work matters or what it enables.}
 ```
 
-If the archive is the raw HTML fallback, parse title and abstract from the HTML tags before summarizing.
