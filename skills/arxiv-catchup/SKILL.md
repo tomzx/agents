@@ -7,9 +7,17 @@ description: Fetches new arXiv cs.AI papers published since the last processed d
 
 Fetches cs.AI papers from arXiv published since the last checkpoint date, calls **arxiv-article** for each, then advances the checkpoint to today.
 
+## Prerequisites
+
+`ARXIV_DIRECTORY` must be set to the directory where archived articles are stored (e.g., `~/arxiv-articles`). If the variable is unset, stop and ask the user to set it.
+
+```bash
+echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
+```
+
 ## State file
 
-`~/.claude/memory/arxiv/state.json`
+`~/.arxiv-catchup/state.json`
 
 ```json
 {"last_date": "2026-04-21"}
@@ -24,8 +32,8 @@ Fetches cs.AI papers from arXiv published since the last checkpoint date, calls 
 ### 1. Read the last-processed date
 
 ```bash
-mkdir -p ~/.claude/memory/arxiv
-cat ~/.claude/memory/arxiv/state.json 2>/dev/null || echo '{"last_date": "2026-04-21"}'
+mkdir -p ~/.arxiv-catchup
+cat ~/.arxiv-catchup/state.json 2>/dev/null || echo '{"last_date": "2026-04-21"}'
 ```
 
 Extract the value of `last_date`.
@@ -35,10 +43,9 @@ Extract the value of `last_date`.
 ```bash
 curl -L --silent --max-time 60 \
   -A "Mozilla/5.0 (compatible; research-bot/1.0)" \
+  -o /tmp/arxiv_catchup.html \
   "https://arxiv.org/catchup/cs.AI/{last_date}"
 ```
-
-Save the response to `/tmp/arxiv_catchup.html`.
 
 If the response is empty or the status is non-200, report the error and stop without updating state.
 
@@ -86,7 +93,7 @@ rm -f /tmp/arxiv_catchup.html
 After all articles are processed (or if the user confirms partial processing is acceptable), write today's date:
 
 ```bash
-echo "{\"last_date\": \"$(date +%Y-%m-%d)\"}" > ~/.claude/memory/arxiv/state.json
+echo "{\"last_date\": \"$(date +%Y-%m-%d)\"}" > ~/.arxiv-catchup/state.json
 ```
 
 ### 8. Final report
@@ -94,5 +101,5 @@ echo "{\"last_date\": \"$(date +%Y-%m-%d)\"}" > ~/.claude/memory/arxiv/state.jso
 ```
 Processed {N} articles ({M} newly archived, {K} already cached).
 Checkpoint advanced: {last_date} → {today}.
-Archives: ~/.claude/memory/arxiv/articles/
+Archives: $ARXIV_DIRECTORY
 ```
