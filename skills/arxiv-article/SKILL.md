@@ -5,7 +5,7 @@ description: Downloads an arXiv HTML article, converts it to markdown with pando
 
 # arXiv Article Processor
 
-Downloads an arXiv HTML article, converts it to markdown via pandoc, archives it under `$ARXIV_DIRECTORY`, and produces a structured summary.
+Downloads an arXiv HTML article, converts it to markdown via pandoc, archives it under `$ARXIV_DIRECTORY/{base_id}/`, and produces a structured summary.
 
 ## Prerequisites
 
@@ -14,6 +14,8 @@ Downloads an arXiv HTML article, converts it to markdown via pandoc, archives it
 ```bash
 echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
 ```
+
+If pandoc is not available (`which pandoc` returns nothing), report the error and stop. Do not proceed without pandoc.
 
 ## Input
 
@@ -35,48 +37,35 @@ From the URL, take the path segment after `/html/`. Strip any version suffix for
 - `https://arxiv.org/html/2504.12345v1` → base ID `2504.12345`, versioned ID `2504.12345v1`
 - `https://arxiv.org/html/2504.12345` → base ID `2504.12345`
 
-Use the base ID as the archive filename: `$ARCHIVE_DIR/{base_id}.md`.
+The article is stored under `$ARCHIVE_DIR/{base_id}/`.
 
 ### 3. Check archive
 
 ```bash
-test -f "$ARCHIVE_DIR/{base_id}.md" && echo "EXISTS" || echo "MISSING"
+test -f "$ARCHIVE_DIR/{base_id}/article.md" && echo "EXISTS" || echo "MISSING"
 ```
 
-If the file exists, skip to step 7 (summarize from the cached file).
+If the file exists, skip to step 5 (summarize from the cached file).
 
-### 4. Download HTML
+### 4. Download and convert with pandoc
 
-```bash
-curl -L --silent --max-time 60 \
-  -A "Mozilla/5.0 (compatible; research-bot/1.0)" \
-  -o /tmp/arxiv_{base_id}.html \
-  "{URL}"
-```
-
-If the download fails (non-zero exit or empty file), report the error and stop.
-
-### 5. Convert to markdown with pandoc
+Pass the URL directly to pandoc so it can resolve relative image URLs. Images are saved into `$ARCHIVE_DIR/{base_id}/` alongside the article.
 
 ```bash
+mkdir -p "$ARCHIVE_DIR/{base_id}"
 pandoc -f html -t markdown \
   --wrap=none \
   --strip-comments \
-  -o "$ARCHIVE_DIR/{base_id}.md" \
-  /tmp/arxiv_{base_id}.html
+  --extract-media="$ARCHIVE_DIR/{base_id}" \
+  -o "$ARCHIVE_DIR/{base_id}/article.md" \
+  "{URL}"
 ```
 
-If pandoc is not available (`which pandoc` returns nothing), report the error and stop. Do not proceed without pandoc.
+If the command fails, report the error and stop.
 
-### 6. Clean up temp file
+### 5. Summarize
 
-```bash
-rm -f /tmp/arxiv_{base_id}.html
-```
-
-### 7. Summarize
-
-Read the full archived markdown file and produce this structured summary:
+Read the full `$ARCHIVE_DIR/{base_id}/article.md` and produce this structured summary:
 
 ```markdown
 ## {Title}
@@ -100,5 +89,4 @@ Read the full archived markdown file and produce this structured summary:
 {1 sentence: why this work matters or what it enables.}
 ```
 
-Write the summary to `$ARCHIVE_DIR/{base_id}.summary.md`. If the file already exists (cached article case), overwrite it.
-
+Write the summary to `$ARCHIVE_DIR/{base_id}/summary.md`, overwriting if it already exists.
