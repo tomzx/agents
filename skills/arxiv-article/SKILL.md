@@ -100,3 +100,5 @@ Read the full archived markdown file and produce this structured summary:
 {1 sentence: why this work matters or what it enables.}
 ```
 
+Write the summary to `$ARCHIVE_DIR/{base_id}.summary.md`. If the file already exists (cached article case), overwrite it.
+
