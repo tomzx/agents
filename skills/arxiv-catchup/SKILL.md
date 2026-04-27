@@ -5,7 +5,7 @@ description: Fetches new arXiv cs.AI papers published since the last processed d
 
 # arXiv Catchup
 
-Fetches cs.AI papers from arXiv published since the last checkpoint date, calls **arxiv-article** for each, then advances the checkpoint to today.
+Fetches cs.AI papers from arXiv published since the last checkpoint date, calls **arxiv-article** for each (via parallel subagents), then advances the checkpoint to today.
 
 ## Prerequisites
 
@@ -20,10 +20,10 @@ echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
 `~/.arxiv-catchup/state.json`
 
 ```json
-{"last_date": "2026-04-21"}
+{"last_date": "YYYY-MM-DD"}
 ```
 
-- If the file does not exist, use `2026-04-21` as the default start date.
+- If the file does not exist, ask the user what start date to use before proceeding.
 - The date is always in `YYYY-MM-DD` format.
 - After all articles are processed, update the file with today's date.
 
@@ -33,10 +33,14 @@ echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
 
 ```bash
 mkdir -p ~/.arxiv-catchup
-cat ~/.arxiv-catchup/state.json 2>/dev/null || echo '{"last_date": "2026-04-21"}'
+cat ~/.arxiv-catchup/state.json 2>/dev/null
 ```
 
-Extract the value of `last_date`.
+If the file does not exist or is empty, ask the user:
+
+> "No catchup state found. From what date should I start? (YYYY-MM-DD)"
+
+Wait for the user's answer, then use it as `last_date`.
 
 ### 2. Fetch the catchup page
 
@@ -51,7 +55,11 @@ If the response is empty or the status is non-200, report the error and stop wit
 
 ### 3. Extract HTML article links
 
-Parse the downloaded HTML to find all links to the HTML version of articles. The links follow the pattern `/html/{arxiv_id}`:
+The catchup page contains three sections: **New submissions**, **Cross-lists**, and **Replacements**. Ignore all articles under the Replacements section.
+
+Parse the HTML to collect links from New submissions and Cross-lists only. In the page source, replacement entries appear after a heading such as `Replacements` or `replaced`. Discard any `/html/` links that appear after that heading.
+
+Extract links following the pattern `/html/{arxiv_id}`:
 
 ```bash
 grep -oP '(?<=href=")[^"]*' /tmp/arxiv_catchup.html \
@@ -66,21 +74,19 @@ If that yields nothing, also try the absolute-URL form:
 grep -oP 'https://arxiv\.org/html/[^\s"<>]+' /tmp/arxiv_catchup.html | sort -u
 ```
 
-Collect the deduplicated list of HTML URLs. If the list is still empty after both attempts, report that no HTML-version links were found on the page and stop.
+Collect the deduplicated list. If the list is still empty after both attempts, report that no HTML-version links were found and stop.
 
 ### 4. Report what was found
 
 Print a brief header before processing:
 
 ```
-Found {N} articles to process (since {last_date}).
+Found {N} articles to process (since {last_date}): {new} new, {cross} cross-lists.
 ```
 
-### 5. Process each article
+### 5. Process each article in parallel
 
-For each HTML URL, invoke the **arxiv-article** skill. Work through them one at a time and print each summary as it completes so the user sees progress.
-
-If there are more than 30 articles, ask the user whether to continue or limit to the first 30.
+Dispatch one subagent per article URL, all in parallel. Each subagent runs the **arxiv-article** skill for its assigned URL. Collect all summaries and print them as they arrive.
 
 ### 6. Clean up
 
@@ -90,7 +96,7 @@ rm -f /tmp/arxiv_catchup.html
 
 ### 7. Update state
 
-After all articles are processed (or if the user confirms partial processing is acceptable), write today's date:
+After all subagents complete, write today's date:
 
 ```bash
 echo "{\"last_date\": \"$(date +%Y-%m-%d)\"}" > ~/.arxiv-catchup/state.json
