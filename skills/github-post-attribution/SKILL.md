@@ -17,27 +17,22 @@ Skills that post content to GitHub should append a small footer: link to the **i
 - Any `gh` command that creates or updates issue/PR text visible on GitHub.
 - Invoked **by name** from other skills (e.g. “follow `skills/github-post-attribution/SKILL.md` before posting”).
 
-## Resolve repository root
+## Resolve repository root, commit, and GitHub base URL
 
-`REPO_ROOT` = the directory that contains `skills/` (the dot-claude checkout). If unknown, infer from the path to the active skill file: go up from `skills/<anything>/SKILL.md` until `skills/` is a direct child.
+`REPO_ROOT` = the directory that contains `skills/` (the dot-claude checkout). The path to this file is always known from the `Read` call that loaded it. Use it directly -- no additional filesystem exploration needed.
 
-**Follow symlinks**: the `skills/` directory may be a symlink (e.g. `~/.opencode/skills → ~/src/dot-claude/skills`). Always resolve symlinks before determining `REPO_ROOT`:
-
-```bash
-SKILLS_DIR=$(readlink -f /path/to/skills)
-REPO_ROOT=$(dirname "$SKILLS_DIR")
-```
-
-If the skill file path is known, resolve it too: `REAL_PATH=$(readlink -f "$SKILL_FILE")`, then walk up to the directory containing `skills/`.
-
-## Resolve commit and GitHub base URL
+Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.claude/skills → ~/src/dot-claude/skills`) and capture all values in one call:
 
 ```bash
+REPO_ROOT=$(git -C "$(dirname "$(readlink -f /path/to/this/SKILL.md)")" rev-parse --show-toplevel)
 SKILL_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD)
-SKILL_SHORT_SHA=$(git -C "$REPO_ROOT" rev-parse --short=7 HEAD)
+SKILL_SHORT_SHA=${SKILL_COMMIT:0:7}
+REMOTE_URL=$(git -C "$REPO_ROOT" remote get-url origin)
 ```
 
-From `git -C "$REPO_ROOT" remote get-url origin`, normalize to `https://github.com/{owner}/{repo}`:
+Replace `/path/to/this/SKILL.md` with the absolute path used in the `Read` call. `readlink -f` resolves any symlinks before `git` sees the path, so `--show-toplevel` always returns the real repo root.
+
+From `REMOTE_URL`, normalize to `https://github.com/{owner}/{repo}`:
 
 - `git@github.com:owner/repo.git` → `https://github.com/owner/repo`
 - `https://github.com/owner/repo.git` → `https://github.com/owner/repo`
