@@ -14,6 +14,10 @@ Generates a structured PR description from the current branch's diff against its
 - `gh` CLI authenticated (required only when `$1` and `$2` are provided)
 - Current branch must have commits relative to its parent
 
+### Skill attribution (GitHub)
+
+Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `generate-pr-description` to the end of the description body. This footer travels with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
+
 ## Workflow
 
 ```
@@ -49,8 +53,9 @@ Generate PR description markdown
    ```
    gt issue view $2 --repo $1
    ```
-3. Generate the PR description following the output format below.
-4. Return the result inside a markdown code block with each sentence on its own line.
+3. Resolve dot-claude attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `generate-pr-description`.
+4. Generate the PR description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
+5. Return the result inside a markdown code block with each sentence on its own line.
 
 ## Output Format
 
@@ -74,7 +79,12 @@ Generate PR description markdown
 # References
 
 - https://github.com/$1/issues/$2
+
+---
+Generated with [generate-pr-description](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 ```
+
+Substitute `SKILL_FILE_URL` and `SKILL_SHORT_SHA` per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md).
 
 ## Example Usage
 
