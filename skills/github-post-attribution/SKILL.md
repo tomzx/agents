@@ -24,10 +24,11 @@ Skills that post content to GitHub should append a small footer: link to the **i
 Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.claude/skills → ~/src/dot-claude/skills`) and capture all values in one call:
 
 ```bash
-REPO_ROOT=$(git -C "$(dirname "$(readlink -f /path/to/this/SKILL.md)")" rev-parse --show-toplevel)
-SKILL_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD)
+SKILL_MD_DIR=$(dirname "$(readlink -f /path/to/this/SKILL.md)")
+REPO_ROOT=$(cd "$SKILL_MD_DIR" && git rev-parse --show-toplevel)
+SKILL_COMMIT=$(cd "$REPO_ROOT" && git rev-parse HEAD)
 SKILL_SHORT_SHA=${SKILL_COMMIT:0:7}
-REMOTE_URL=$(git -C "$REPO_ROOT" remote get-url origin)
+REMOTE_URL=$(cd "$REPO_ROOT" && git remote get-url origin)
 ```
 
 Replace `/path/to/this/SKILL.md` with the absolute path used in the `Read` call. `readlink -f` resolves any symlinks before `git` sees the path, so `--show-toplevel` always returns the real repo root.
