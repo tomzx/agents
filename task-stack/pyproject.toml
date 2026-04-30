@@ -1,0 +1,27 @@
+[project]
+name = "task-stack"
+version = "0.1.0"
+description = "Persistent task stack tray app"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=12.2.0",
+    "pynput>=1.8.1",
+    "pystray>=0.19.5",
+]
+
+[project.scripts]
+task-stack = "task_stack.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/task_stack"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
