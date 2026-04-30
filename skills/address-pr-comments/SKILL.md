@@ -49,7 +49,7 @@ Commit/post     Skip
 
 1. Fetch all PR comments:
    ```
-   gh pr view $1 --comments
+   gh-cached pr view $1 --comments --refresh
    ```
 2. For each comment, display its content.
 3. Evaluate whether the comment is appropriate and actionable.
@@ -84,5 +84,5 @@ Three comments: one requesting a missing test (implement), one asking for a type
 
 | Command | Description |
 |---|---|
-| `gh pr view <pr-number> --comments` | Fetch PR details and all review comments |
+| `gh-cached pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
 | `gh pr comment <pr-number> --body "..."` | Post a reply comment on the PR |

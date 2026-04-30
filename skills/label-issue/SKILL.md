@@ -49,7 +49,7 @@ new labels
 
 1. Fetch the issue details:
    ```
-   gh issue view $1
+   gh-cached issue view $1
    ```
 2. Fetch all available labels:
    ```
@@ -85,6 +85,6 @@ Issue is a known duplicate. Applies `duplicate` label. Recommends closing with a
 
 | Command | Description |
 |---|---|
-| `gh issue view <issue-number>` | Fetch issue title, body, and current labels |
+| `gh-cached issue view <issue-number>` | Fetch issue title, body, and current labels (cached) |
 | `gh label list` | List all available labels in the repository |
 | `gh issue edit <issue-number> --add-label "<label>"` | Apply one or more labels to an issue |

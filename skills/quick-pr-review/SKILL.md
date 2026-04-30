@@ -54,7 +54,7 @@ Fetch PR metadata + latest commit SHA
 ### 1. Gather PR information
 
 ```bash
-gh pr view $2 --repo $1 --json number,title,body,headRefName,headRefOid,baseRefName,state,reviews,statusCheckRollup,url,author
+gh-cached pr view $2 --repo $1 --json --refresh
 gh pr diff $2 --repo $1
 ```
 
@@ -403,7 +403,7 @@ No trust profile found for the author. Defaults to `neutral`. After review, crea
 
 | Command | Description |
 |---|---|
-| `gh pr view <pr> --repo <owner/repo> --json headRefOid,statusCheckRollup,author,...` | Fetch PR metadata including latest commit, CI status, and author |
+| `gh-cached pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including latest commit, CI status, and author (fresh) |
 | `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
 | `gh pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |

@@ -45,7 +45,7 @@ Fetch PR metadata + comments ($1)
 
 Fetch PR information and write the raw output:
 ```
-gh pr view $1 --repo <owner>/<repository> --comments
+gh-cached pr view $1 --repo <owner>/<repository> --comments --refresh
 ```
 Write to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md`.
 
@@ -242,6 +242,6 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 
 | Command | Description |
 |---|---|
-| `gh pr view <pr-number> --repo <owner>/<repo> --comments` | Fetch PR details and review comments |
-| `gh issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details |
+| `gh-cached pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
+| `gh-cached issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
 | `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |

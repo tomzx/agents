@@ -21,7 +21,7 @@ Before posting any issue comment with `gh`, read [`github-post-attribution/SKILL
 
 1. Fetch the issue and all its comments:
    ```
-   gh issue view $1 --comments
+   gh-cached issue view $1 --comments --refresh
    ```
 2. Clone the repository to gather codebase context:
    ```
@@ -61,6 +61,6 @@ Action: Review the issue's acceptance criteria, reply stating whether the admin 
 
 | Command | Description |
 |---|---|
-| `gh issue view <issue-url> --comments` | Fetch issue details and all comments |
+| `gh-cached issue view <issue-url> --comments --refresh` | Fetch issue details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone repository for codebase context |
 | `gh issue comment <issue-url> --body "..."` | Post a reply comment on the issue |

@@ -45,7 +45,7 @@ Fetch issue + comments ($1)
 
 1. Fetch issue details and comments:
    ```
-   gh issue view $1 --comments
+   gh-cached issue view $1 --comments
    ```
    Write raw output to `{BASE_DIR}/{REPOSITORY}/{ISSUE_NUMBER}/issue.md`.
 
@@ -109,7 +109,7 @@ Issue references two related issues. Include them in the "Related Issues" sectio
 
 | Command | Description |
 |---|---|
-| `gh issue view <issue-url> --comments` | Fetch issue and all comments |
+| `gh-cached issue view <issue-url> --comments` | Fetch issue and all comments (cached) |
 | `gh repo clone <owner>/<repo> <directory>` | Clone repository into a local directory |
 | `gh issue comment <issue-url> --body "..."` | Post a clarification comment on the issue |
 | `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |
