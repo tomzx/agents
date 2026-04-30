@@ -99,7 +99,13 @@ gh-cached issue list --no-truncate       # full titles
 gh-cached issue view 42
 gh-cached issue view 42 --comments      # include all comments
 gh-cached issue view 42 --json
+gh-cached issue view 42 --refresh       # force fetch from GitHub and update cache
 ```
+
+Use `--refresh` when you need the current state of an issue and cannot rely on
+the cached copy (e.g. the issue may have been updated since the cache was
+populated).  The fetched data is written back to the cache so subsequent calls
+without `--refresh` will use the updated entry.
 
 ### 5. List pull requests
 
@@ -125,7 +131,12 @@ gh-cached pr list --no-truncate
 gh-cached pr view 10
 gh-cached pr view 10 --comments
 gh-cached pr view 10 --json
+gh-cached pr view 10 --refresh          # force fetch from GitHub and update cache
 ```
+
+Use `--refresh` when you need the current state of a PR (e.g. to check whether
+it has been merged or a review decision has changed).  The result is saved to
+the cache so future reads without `--refresh` stay fast.
 
 ---
 
@@ -135,7 +146,7 @@ gh-cached pr view 10 --json
 |---|---|
 | `cache` | Fetches all issues/PRs (all states, with comments); writes one JSON file each. Skips items whose file is younger than `--cache-duration`. |
 | `issue list` / `pr list` | Reads all cached files and filters in memory when the full cache is fresh; falls back to the GitHub API otherwise. |
-| `issue view` / `pr view` | Serves from the per-item file when it is < 60 min old; fetches from the API and updates the cache otherwise. When a full cache is fresh it is treated as authoritative (a missing item means it doesn't exist). |
+| `issue view` / `pr view` | Serves from the per-item file when it is < 60 min old; fetches from the API and updates the cache otherwise. When a full cache is fresh it is treated as authoritative (a missing item means it doesn't exist). `--refresh` bypasses all cache checks, always fetches from the API, and updates the cache. |
 
 ---
 
