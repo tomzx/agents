@@ -1,4 +1,4 @@
-//go:build darwin
+//go:build windows
 
 package main
 
@@ -8,7 +8,7 @@ import (
 	"golang.design/x/hotkey"
 )
 
-const hotkeyDefault = "cmd+shift+t"
+const hotkeyDefault = "ctrl+shift+t"
 
 func modFromString(s string) (hotkey.Modifier, error) {
 	switch s {
@@ -16,10 +16,10 @@ func modFromString(s string) (hotkey.Modifier, error) {
 		return hotkey.ModCtrl, nil
 	case "shift":
 		return hotkey.ModShift, nil
-	case "alt", "option":
-		return hotkey.ModOption, nil
-	case "cmd", "command":
-		return hotkey.ModCmd, nil
+	case "alt":
+		return hotkey.ModAlt, nil
+	case "cmd", "win", "super":
+		return hotkey.ModWin, nil
 	}
 	return 0, fmt.Errorf("unknown modifier %q — use ctrl, shift, alt, or cmd", s)
 }

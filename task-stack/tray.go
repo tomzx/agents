@@ -50,6 +50,10 @@ func updateTray(t []Task) {
 
 	items = append(items,
 		fyne.NewMenuItemSeparator(),
+		fyne.NewMenuItem("Settings", func() {
+			fyneWin.Show()
+			showSettings(fyneWin)
+		}),
 		fyne.NewMenuItem("Quit", func() { fyneApp.Quit() }),
 	)
 
