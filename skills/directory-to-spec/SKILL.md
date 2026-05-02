@@ -18,6 +18,7 @@ Analyzes code in the current directory and generates a `spec/` directory contain
 2. Create the `spec/` directory.
 3. For each major feature, create a descriptively named specification file (e.g., `authentication.md`).
 4. Each file must include a `requirements` section using RFC 2119 language (`MUST`, `SHOULD`, `MAY`).
+5. Specifications must remain technology-agnostic: no specific library, framework, or technology choices should appear in the requirements, unless used as illustrative examples (e.g., "the system MUST provide a key-value cache, such as Redis").
 
 **Naming rules:**
 - Use descriptive, lowercase names: `authentication.md`
