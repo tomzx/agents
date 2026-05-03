@@ -1,6 +1,7 @@
 # General
 * Be concise
 * Do not use em-dashes, use commas or parentheses instead
+* One sentence per line
 
 # Python
 * Use uv for package management
