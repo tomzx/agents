@@ -1,0 +1,89 @@
+---
+name: review-plan
+description: Review an implementation plan for completeness, feasibility, dependency coverage, and risk assessment.
+---
+
+# Review Plan
+
+Audits an implementation plan and reports findings across five categories: completeness, feasibility, dependencies, risk coverage, and timeline realism.
+
+## Prerequisites
+
+- An implementation plan provided in context or as a file path to read
+- Specification or requirements (optional, improves coverage analysis)
+
+## Steps
+
+1. Read the plan thoroughly.
+2. Cross-reference against the specification or requirements if provided.
+3. Identify issues in each category below.
+4. Report findings. Omit any category that has no findings.
+
+## Review Checklist
+
+### Completeness
+- Does the plan cover all requirements and spec deliverables?
+- Are all phases clearly defined with success criteria?
+- Are setup, deployment, and rollout steps included?
+
+### Feasibility
+- Are effort estimates realistic for the described work?
+- Does the plan account for ramp-up, reviews, and integration work?
+- Are milestones achievable within the stated constraints?
+
+### Dependencies
+- Are all internal and external dependencies identified?
+- Are critical-path dependencies clearly marked?
+- Is there a contingency for delayed or unavailable dependencies?
+
+### Risk Coverage
+- Are the most significant risks captured in the risk register?
+- Does each risk have a concrete mitigation strategy?
+- Are there single points of failure not mentioned as risks?
+
+### Timeline Realism
+- Is the timeline consistent with the effort estimates?
+- Are there parallel tracks that could reduce total duration?
+- Are buffer periods included for testing and review?
+
+## Output Format
+
+```markdown
+## Completeness
+
+<Findings or "No issues found.">
+
+## Feasibility
+
+<Findings or "No issues found.">
+
+## Dependencies
+
+<Findings or "No issues found.">
+
+## Risk Coverage
+
+<Findings or "No issues found.">
+
+## Timeline Realism
+
+<Findings or "No issues found.">
+```
+
+## Example Usage
+
+**Scenario 1: Missing rollout step**
+Plan ends at "integration testing complete" with no deployment or rollout phase.
+Report under Completeness.
+
+**Scenario 2: Underestimated effort**
+Phase 2 (API + auth) is estimated at 1 day for a spec that describes 8 endpoints with complex permission logic.
+Report under Feasibility.
+
+**Scenario 3: Unmitigated critical dependency**
+Plan depends on a third-party API but lists no spike or contingency if that API is unavailable.
+Report under Risk Coverage.
+
+## Useful Commands Reference
+
+No CLI commands required. This skill operates on document content provided in context.
