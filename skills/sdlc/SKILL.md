@@ -62,6 +62,12 @@ Implementation
   ├─ /review-implementation  Audit correctness, quality, security, spec alignment
   │
   ▼
+Pull Request
+  │
+  ├─ /create-pr              Open a PR: description, AC coverage, issue link, reviewers
+  ├─ /pr-review              Comprehensive code review of the PR
+  │
+  ▼
 Documentation
   │
   ├─ /create-documentation   Divio-structured docs (tutorial/how-to/reference/explanation)
@@ -86,7 +92,8 @@ Learnings
 | `tasks` | An approved plan ready to decompose |
 | `tests` | A task decomposition ready for test design |
 | `implementation` | Tests ready; time to write code |
-| `documentation` | Shipped code that needs docs |
+| `pr` | Implementation reviewed and ready to open a pull request |
+| `documentation` | PR merged; code needs docs |
 | `learnings` | A completed feature or sprint to reflect on |
 
 ## Steps
@@ -120,7 +127,9 @@ Each phase consumes output from the previous phase:
 | review-tests | Test plan | Findings (resolve before next phase) |
 | create-implementation | Task + spec + test plan | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
-| create-documentation | Implemented feature | Documentation |
+| create-pr | Reviewed code + issue | Pull request |
+| pr-review | Pull request | Code review findings (resolve before merge) |
+| create-documentation | Merged PR + implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-learnings | Completed feature/sprint | Learnings doc |
 | review-learnings | Learnings doc | Findings (resolve as action items) |
@@ -153,13 +162,20 @@ Issue already created. Run `review-issue` to audit completeness and AC quality, 
 Jump directly to `create-implementation`.
 Confirm that a task list, specification, and test plan are in context before starting.
 
-**Scenario 4: Issue backlog triage + prioritization only**
+**Scenario 4: Open a PR for finished work**
+```
+/sdlc pr
+```
+Run `create-pr` to open the pull request, then `pr-review` to review it.
+Confirm tests pass and implementation review findings are resolved before opening.
+
+**Scenario 5: Issue backlog triage + prioritization only**
 ```
 /sdlc issues
 ```
 Run `triage-issues` then `prioritize-issues`. Stop after the ranked backlog is produced.
 
-**Scenario 5: Post-sprint retrospective**
+**Scenario 6: Post-sprint retrospective**
 ```
 /sdlc learnings
 ```
