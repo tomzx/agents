@@ -7,7 +7,9 @@ argument-hint: "<owner/repo> <pr-number>"
 
 # Quick PR Review
 
-Rapidly reviews a GitHub pull request and approves it to unblock others. Creates or updates a single review comment per PR, keyed to the latest commit. Approves automatically unless there are significant risks or significant public interface changes (removals, breaking changes, or substantial new API surface).
+Rapidly reviews a GitHub pull request and approves it to unblock others.
+Creates or updates a single review comment per PR, keyed to the latest commit.
+Approves automatically unless there are significant risks or significant public interface changes (removals, breaking changes, or substantial new API surface).
 
 ## Prerequisites
 
@@ -64,7 +66,8 @@ Extract:
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 
-Also resolve dot-claude attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`. Use the **Reviewed with** line and optional `{BASE}/issues/new` sub-line from that skill.
+Also resolve dot-claude attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`.
+Use the **Reviewed with** line and optional `{BASE}/issues/new` sub-line from that skill.
 
 Extract:
 - `SKILL_COMMIT`: full commit SHA of the dot-claude repo
@@ -81,7 +84,9 @@ If the file exists, read it and extract:
 
 If the file does not exist, default to `TRUST_LEVEL=neutral` and `TRUST_REASON=` (no prior history).
 
-**If `TRUST_LEVEL == always_reject`**: stop immediately. Do not fetch the diff, post a comment, or approve. Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
+**If `TRUST_LEVEL == always_reject`**: stop immediately.
+Do not fetch the diff, post a comment, or approve.
+Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
 
 The trust level modifies behavior in steps 2, 4, and 8:
 - `trusted`: Standard checks. On borderline cases (e.g., a check that could go either way), lean toward passing.
@@ -103,9 +108,12 @@ If `COMMENT_COMMIT == HEAD_COMMIT`: output "Review already up to date for commit
 
 ### 4. Run review checks
 
-Evaluate each item below. Record each as passing (`[x]`) or failing (`[ ]`). Checks are ordered by impact/risk level (highest first).
+Evaluate each item below.
+Record each as passing (`[x]`) or failing (`[ ]`).
+Checks are ordered by impact/risk level (highest first).
 
-When `TRUST_LEVEL == cautious`: apply stricter interpretation. When a check is borderline (e.g., a change is arguably a public interface addition but minor), treat it as failing.
+When `TRUST_LEVEL == cautious`: apply stricter interpretation.
+When a check is borderline (e.g., a change is arguably a public interface addition but minor), treat it as failing.
 
 #### Public interface impact (approval gate)
 - Scan the diff for **significant changes to public interfaces**, both removals and additions:
@@ -148,9 +156,14 @@ When `TRUST_LEVEL == cautious`: apply stricter interpretation. When a check is b
 - Check CI status from `statusCheckRollup` in the PR JSON.
 - All required checks must be passing or skipped (not failing).
 
-#### Change is part of the spec
-- Read the PR title and description. Is there a linked issue or clear rationale?
-- The change should align with the PR's stated goal - no unexplained scope creep.
+#### Change is part of the spec (approval gate)
+- Read the PR title and description.
+- If no issue is referenced (e.g., `Fixes #N`, `Closes #N`, `Refs #N`, or a plain `#N` link): **do not approve** and ask the author to update the PR description with a reference to the issue that explains why this PR exists.
+- If an issue is referenced: fetch the issue with `gh issue view {N} --repo {REPO} --json title,body,labels` and extract its acceptance criteria (any checklist, "Acceptance Criteria" section, or equivalent).
+- If acceptance criteria are found: verify that the diff satisfies them.
+- If the PR is not aligned, **do not approve** and list the unmet criteria, asking the author to provide a justification or update the PR.
+- If the issue has no acceptance criteria: treat this sub-check as passing (no way to verify alignment).
+- The change should also have no unexplained scope creep beyond what the linked issue describes.
 
 #### Documentation updated
 - Does the diff include updates to README, docs/, or relevant user-facing documentation when the change adds or modifies user-visible behavior?
@@ -172,7 +185,8 @@ Reviewed commit: SHORT_SHA
 - [x/[ ]] No new dependencies
 - [x/[ ]] Change is reversible
 - [x/[ ]] Tests pass
-- [x/[ ]] Change is part of the spec
+- [x/[ ]] Issue referenced
+- [x/[ ]] Change aligns with acceptance criteria
 - [x/[ ]] Documentation updated
 
 <details>
@@ -193,7 +207,10 @@ Reviewed commit: SHORT_SHA
 ### Tests pass
 <Reasoning>
 
-### Change is part of the spec
+### Issue referenced
+<Reasoning>
+
+### Change aligns with acceptance criteria
 <Reasoning>
 
 ### Documentation updated
@@ -231,7 +248,8 @@ Reviewed commit: abc1234
 - [x] No new dependencies
 - [x] Change is reversible
 - [ ] Tests pass
-- [x] Change is part of the spec
+- [x] Issue referenced
+- [x] Change aligns with acceptance criteria
 - [x] Documentation updated
 
 # No significant public interface changes
@@ -258,8 +276,13 @@ No database migrations, data deletions, or infrastructure-level destructive oper
 ### Tests pass
 CI check `unit-tests` is failing with 3 test failures in `test_user.py`. All other checks (lint, build) are passing.
 
-### Change is part of the spec
-PR links issue #41 and the diff matches the stated goal of refactoring the user module. No unexplained scope creep.
+### Issue referenced
+PR description references issue #41 (`Fixes #41`).
+
+### Change aligns with acceptance criteria
+Fetched issue #41 — acceptance criteria: (1) user module split into separate files, (2) no public API changes.
+Both are satisfied by this diff.
+No unexplained scope creep.
 
 ### Documentation updated
 No user-facing behavior changes detected; documentation update not required.
@@ -323,7 +346,8 @@ gh pr review $2 --repo {REPO} --approve
 - Tests are failing
 - Change is not reversible and involves destructive operations
 
-In the do-not-approve case, only post/update the comment. Do not request changes automatically unless the issue is clearly blocking (e.g., tests failing, data loss risk).
+In the do-not-approve case, only post/update the comment.
+Do not request changes automatically unless the issue is clearly blocking (e.g., tests failing, data loss risk).
 
 ### 9. Update developer trust profile
 
@@ -351,9 +375,10 @@ If the PR was **not approved** or you otherwise need the user to personally revi
 say "{REPO} #{PR_NUMBER} needs your review"
 ```
 
-Use exactly that wording (substitute `REPO` and `PR_NUMBER` only). Run `say` **after** you have posted or updated the GitHub comment, in addition to the normal text report above.
+Use exactly that wording (substitute `REPO` and `PR_NUMBER` only).
+Run `say` **after** you have posted or updated the GitHub comment, in addition to the normal text report above.
 
-**Do not** run `say` when the PR was **skipped** because `TRUST_LEVEL == always_reject` (no review, no comment—only the text report to the user).
+**Do not** run `say` when the PR was **skipped** because `TRUST_LEVEL == always_reject` (no review, no comment, only the text report to the user).
 
 ## Example Usage
 
@@ -361,43 +386,57 @@ Use exactly that wording (substitute `REPO` and `PR_NUMBER` only). Run `say` **a
 ```
 /quick-pr-review owner/myrepo 42
 ```
-All checks pass, no public interface changes. Approve and post review comment.
+All checks pass, no public interface changes.
+Approve and post review comment.
 
 **Scenario 2: Failing CI**
 ```
 /quick-pr-review owner/myrepo 88
 ```
-CI is red. Post comment with `[ ] Tests pass` and the failing check name. Do not approve.
+CI is red.
+Post comment with `[ ] Tests pass` and the failing check name.
+Do not approve.
 
 **Scenario 3: Significant public interface change**
 ```
 /quick-pr-review owner/myrepo 55
 ```
-Diff removes a public API method or introduces substantial new API surface. Post comment with `[ ] No significant public interface changes`. Do not approve.
+Diff removes a public API method or introduces substantial new API surface.
+Post comment with `[ ] No significant public interface changes`.
+Do not approve.
 
 **Scenario 4: Re-run on same commit**
 ```
 /quick-pr-review owner/myrepo 42
 ```
-Review comment already exists for the current HEAD commit. Skip and report "already up to date".
+Review comment already exists for the current HEAD commit.
+Skip and report "already up to date".
 
 **Scenario 5: Author with cautious trust level**
 ```
 /quick-pr-review owner/myrepo 99
 ```
-Author profile exists with `cautious` level. Applies stricter check interpretation. A borderline new export that might normally pass is flagged as failing. Profile is updated with new review entry.
+Author profile exists with `cautious` level.
+Applies stricter check interpretation.
+A borderline new export that might normally pass is flagged as failing.
+Profile is updated with new review entry.
 
 **Scenario 6: Author with always_reject trust level**
 ```
 /quick-pr-review owner/myrepo 77
 ```
-Author profile has `always_reject` level. Skill stops immediately after loading the profile. No comment is posted, no approval issued. Reports: "Skipped PR #77 (owner/myrepo) — author is flagged for manual review only."
+Author profile has `always_reject` level.
+Skill stops immediately after loading the profile.
+No comment is posted, no approval issued.
+Reports: "Skipped PR #77 (owner/myrepo) — author is flagged for manual review only."
 
 **Scenario 7: First review for an unknown author**
 ```
 /quick-pr-review owner/myrepo 101
 ```
-No trust profile found for the author. Defaults to `neutral`. After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
+No trust profile found for the author.
+Defaults to `neutral`.
+After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
 
 ## Useful Commands Reference
 
