@@ -1,5 +1,5 @@
 ---
-name: pr-review
+name: review-pr
 description: Conduct a comprehensive code review of a GitHub pull request.
 allowed-tools: Bash(gh:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
@@ -215,26 +215,26 @@ Put 🔴/🟢 at the top of the document to indicate the overall status of the r
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
-When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/pr-review.md`.
+When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/review-pr.md`.
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
 
 ## Example Usage
 
 **Scenario 1: New feature PR**
 ```
-/pr-review 42
+/review-pr 42
 ```
 PR adds a payment processing endpoint. Review verifies implementation matches the linked issue's acceptance criteria, checks for missing test coverage, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit.
 
 **Scenario 2: Bug fix PR**
 ```
-/pr-review 88
+/review-pr 88
 ```
 PR fixes a null pointer. Review confirms the fix addresses the root cause (not just a symptom), verifies a regression test is included, and marks 🟢 ready to merge.
 
 **Scenario 3: Re-review after changes**
 ```
-/pr-review 55
+/review-pr 55
 ```
 `pr-review.md` already exists from a previous run. Update the file and summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
 
