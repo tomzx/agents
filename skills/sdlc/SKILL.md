@@ -1,6 +1,6 @@
 ---
 name: sdlc
-description: Run the full software development lifecycle pipeline, from issue triage through implementation, documentation, and learnings capture.
+description: Run the full software development lifecycle pipeline, from issue creation through implementation, documentation, and learnings capture.
 argument-hint: "[phase-name]"
 ---
 
@@ -13,6 +13,12 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ## Pipeline Overview
 
 ```
+Idea / Brief
+  │
+  ├─ /create-issue           Create a structured GitHub issue
+  ├─ /review-issue           Audit completeness, clarity, and AC quality
+  │
+  ▼
 Issues
   │
   ├─ /triage-issues          Classify and label incoming issues
@@ -72,8 +78,9 @@ Learnings
 
 | Phase | Start here when you have... |
 |---|---|
+| `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
-| `requirements` | A feature brief or issue to develop |
+| `requirements` | An issue that has been reviewed and is ready to develop |
 | `specifications` | Approved requirements ready for technical design |
 | `plan` | A specification ready for planning |
 | `tasks` | An approved plan ready to decompose |
@@ -97,9 +104,11 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
+| create-issue | Feature idea / bug description | Structured GitHub issue |
+| review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Feature brief / issue | Requirements doc |
+| create-requirements | Reviewed issue | Requirements doc |
 | review-requirements | Requirements doc | Findings (resolve before next phase) |
 | create-specifications | Requirements doc | Specification doc |
 | review-specifications | Specification doc | Findings (resolve before next phase) |
@@ -128,23 +137,29 @@ Never skip reviews for security-sensitive features or production-bound work.
 ```
 /sdlc
 ```
-No argument. Ask: "Where are you in the lifecycle?" User says "I have a feature brief."
-Start at `create-requirements`, run every phase to `review-learnings`.
+No argument. Ask: "Where are you in the lifecycle?" User says "I have a feature idea."
+Start at `create-issue`, run every phase to `review-learnings`.
 
-**Scenario 2: Enter mid-pipeline**
+**Scenario 2: Issue exists but needs review**
+```
+/sdlc issue
+```
+Issue already created. Run `review-issue` to audit completeness and AC quality, resolve findings, then continue from `create-requirements`.
+
+**Scenario 3: Enter mid-pipeline**
 ```
 /sdlc implementation
 ```
 Jump directly to `create-implementation`.
 Confirm that a task list, specification, and test plan are in context before starting.
 
-**Scenario 3: Issue backlog triage + prioritization only**
+**Scenario 4: Issue backlog triage + prioritization only**
 ```
 /sdlc issues
 ```
 Run `triage-issues` then `prioritize-issues`. Stop after the ranked backlog is produced.
 
-**Scenario 4: Post-sprint retrospective**
+**Scenario 5: Post-sprint retrospective**
 ```
 /sdlc learnings
 ```
