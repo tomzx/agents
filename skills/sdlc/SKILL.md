@@ -71,7 +71,7 @@ Documentation
 Pull Request
   │
   ├─ /create-pr              Open a PR: description, AC coverage, issue link, reviewers
-  ├─ /pr-review              Comprehensive code review of the PR
+  ├─ /review-pr              Comprehensive code review of the PR
   │
   ▼
 Learnings
@@ -130,7 +130,7 @@ Each phase consumes output from the previous phase:
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-pr | Reviewed code + docs + issue | Pull request |
-| pr-review | Pull request | Code review findings (resolve before merge) |
+| review-pr | Pull request | Code review findings (resolve before merge) |
 | create-learnings | Completed feature/sprint | Learnings doc |
 | review-learnings | Learnings doc | Findings (resolve as action items) |
 
@@ -166,7 +166,7 @@ Confirm that a task list, specification, and test plan are in context before sta
 ```
 /sdlc pr
 ```
-Run `create-pr` to open the pull request, then `pr-review` to review it.
+Run `create-pr` to open the pull request, then `review-pr` to review it.
 Confirm implementation and documentation are done before opening.
 
 **Scenario 5: Issue backlog triage + prioritization only**
