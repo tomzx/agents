@@ -60,6 +60,7 @@ Implementation
   │
   ├─ /create-implementation  Implement following spec + plan, run tests
   ├─ /review-implementation  Audit correctness, quality, security, spec alignment
+  ├─ /run-e2e-tests          Execute E2E + smoke tests against the target environment
   │
   ▼
 Documentation
@@ -92,7 +93,8 @@ Learnings
 | `tasks` | An approved plan ready to decompose |
 | `tests` | A task decomposition ready for test design |
 | `implementation` | Tests ready; time to write code |
-| `documentation` | Implementation reviewed; code needs docs |
+| `e2e` | Implementation reviewed; validate in target environment |
+| `documentation` | E2E tests pass; code needs docs |
 | `pr` | Documentation done and ready to open a pull request |
 | `learnings` | A completed feature or sprint to reflect on |
 
@@ -102,8 +104,9 @@ Learnings
 2. Confirm the artifacts available for the current phase (previous phase output, existing files, or context).
 3. Execute each sub-skill in order from the entry point to the end of the pipeline.
 4. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-5. When all review findings are resolved, move to the next phase.
-6. After learnings are captured and reviewed, the cycle is complete.
+5. After `review-implementation`, always run `run-e2e-tests` and block advancement until the verdict is PASS.
+6. When all review findings are resolved and E2E tests pass, move to the next phase.
+7. After learnings are captured and reviewed, the cycle is complete.
 
 ## Phase Contracts
 
@@ -127,6 +130,7 @@ Each phase consumes output from the previous phase:
 | review-tests | Test plan | Findings (resolve before next phase) |
 | create-implementation | Task + spec + test plan | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
+| run-e2e-tests | Reviewed implementation + target environment | E2E test run report (PASS to proceed, FAIL blocks) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-pr | Reviewed code + docs + issue | Pull request |
