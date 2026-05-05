@@ -42,6 +42,8 @@ Plan
   │
   ├─ /create-plan            Phases, milestones, dependencies, risk register
   ├─ /review-plan            Audit feasibility, coverage, timeline realism
+  ├─ /publish-plan           Commit plan to branch, open draft PR, comment on issue
+  │                          (gate: wait for author sign-off before continuing)
   │
   ▼
 Tasks
@@ -89,7 +91,8 @@ Learnings
 | `requirements` | An issue that has been reviewed and is ready to develop |
 | `specifications` | Approved requirements ready for technical design |
 | `plan` | A specification ready for planning |
-| `tasks` | An approved plan ready to decompose |
+| `publish-plan` | A reviewed plan ready to commit and share with the issue author |
+| `tasks` | An approved plan signed off by the issue author |
 | `tests` | A task decomposition ready for test design |
 | `implementation` | Tests ready; time to write code |
 | `documentation` | Implementation reviewed; code needs docs |
@@ -121,6 +124,7 @@ Each phase consumes output from the previous phase:
 | review-specifications | Specification doc | Findings (resolve before next phase) |
 | create-plan | Specification doc | Implementation plan |
 | review-plan | Implementation plan | Findings (resolve before next phase) |
+| publish-plan | Reviewed plan | Draft PR + issue comment (gate: author sign-off) |
 | create-tasks-decomposition | Implementation plan | Task list |
 | review-tasks-decomposition | Task list | Findings (resolve before next phase) |
 | create-tests | Requirements + spec | Test plan |
