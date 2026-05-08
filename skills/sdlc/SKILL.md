@@ -76,8 +76,10 @@ Pull Request
   ▼
 Learnings
   │
-  ├─ /create-learnings       Retrospective: what went well, root causes, actions
-  └─ /review-learnings       Audit actionability, specificity, completeness, balance
+  ├─ /create-learnings           Retrospective: what went well, root causes, actions
+  ├─ /review-learnings           Audit actionability, specificity, completeness, balance
+  │
+  └─ /sdlc-mistake-learning      Mine the commit history for mistakes, root causes, and durable rules
 ```
 
 ## Entry Points
@@ -95,6 +97,7 @@ Learnings
 | `documentation` | Implementation reviewed; code needs docs |
 | `pr` | Documentation done and ready to open a pull request |
 | `learnings` | A completed feature or sprint to reflect on |
+| `mistake-learning` | A merged or finished branch to mine for mistake patterns |
 
 ## Steps
 
@@ -133,6 +136,7 @@ Each phase consumes output from the previous phase:
 | review-pr | Pull request | Code review findings (resolve before merge) |
 | create-learnings | Completed feature/sprint | Learnings doc |
 | review-learnings | Learnings doc | Findings (resolve as action items) |
+| sdlc-mistake-learning | Branch / commit range / PR | Mistake log + AGENTS.md rules |
 
 ## Skipping Review Phases
 
@@ -180,3 +184,9 @@ Run `triage-issues` then `prioritize-issues`. Stop after the ranked backlog is p
 /sdlc learnings
 ```
 Run `create-learnings` then `review-learnings` for the sprint just completed.
+
+**Scenario 7: Mine a branch for mistakes**
+```
+/sdlc mistake-learning
+```
+Run `sdlc-mistake-learning` against the current or specified branch to extract mistakes, root causes, and durable rules for AGENTS.md.
