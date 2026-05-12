@@ -1,12 +1,12 @@
 ---
-name: address-pr-comments
-description: Pull and address review comments on a GitHub pull request, implementing appropriate changes or explaining why a change won't be made.
+name: handle-pr-feedback
+description: Review and respond to developer comments on a GitHub pull request, implementing valid feedback or explaining rejections, then push and re-request review.
 argument-hint: "<pr-number>"
 ---
 
-# Address PR Review Comments
+# Handle PR Feedback
 
-Reviews and responds to all comments on a GitHub pull request, implementing valid feedback or explaining rejections with clear justification.
+Reviews and responds to all developer comments on a GitHub pull request, implementing valid feedback or explaining rejections with clear justification, then pushes changes and re-requests review.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Reviews and responds to all comments on a GitHub pull request, implementing vali
 
 ### Skill attribution (GitHub)
 
-Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `address-pr-comments`.
+Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-pr-feedback`.
 
 ## Workflow
 
@@ -43,6 +43,9 @@ changes       explanation
     |             |
     v             v
 Commit/post     Skip
+    |
+    v
+Push branch + re-request review
 ```
 
 ## Steps
@@ -57,28 +60,36 @@ Commit/post     Skip
 5. If not actionable: draft a reply explaining why the change will not be made.
 6. Present the content, reasoning, and proposed action to the user for approval.
 7. On approval: commit code changes or post the reply as a PR comment. When posting a reply, include the **Skill attribution** footer on the comment body (omit the footer if you only push commits and do not post a comment).
+8. After all comments are addressed, push the branch:
+   ```
+   git push
+   ```
+9. Re-request review from the original reviewers:
+   ```
+   gh pr edit $1 --add-reviewer <handles>
+   ```
 
 ## Example Usage
 
 **Scenario 1: Bug fix requested**
 ```
-/address-pr-comments 42
+/handle-pr-feedback 42
 ```
 Comment on line 37: "This function doesn't handle `user` being null."
-Decision: Actionable. Add a null guard, commit, present for approval.
+Decision: Actionable. Add a null guard, commit, push, re-request review.
 
 **Scenario 2: Stylistic disagreement**
 ```
-/address-pr-comments 100
+/handle-pr-feedback 100
 ```
 Comment: "Rename `processBatch` to `run`."
-Decision: Not actionable - "run" is less descriptive. Draft reply: "Keeping `processBatch` as it communicates intent better than `run`."
+Decision: Not actionable - "run" is less descriptive. Draft reply: "Keeping `processBatch` as it communicates intent better than `run`." Push and re-request review.
 
 **Scenario 3: Multiple mixed comments**
 ```
-/address-pr-comments 77
+/handle-pr-feedback 77
 ```
-Three comments: one requesting a missing test (implement), one asking for a type annotation (implement), one requesting an out-of-scope design change (reject with explanation). Address each independently, then present all decisions together.
+Three comments: one requesting a missing test (implement), one asking for a type annotation (implement), one requesting an out-of-scope design change (reject with explanation). Address each independently, present all decisions together, then push and re-request review.
 
 ## Useful Commands Reference
 
@@ -86,3 +97,5 @@ Three comments: one requesting a missing test (implement), one asking for a type
 |---|---|
 | `gh-cached pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
 | `gh pr comment <pr-number> --body "..."` | Post a reply comment on the PR |
+| `git push` | Push committed changes to the remote branch |
+| `gh pr edit <pr-number> --add-reviewer <handle>` | Re-request review from a reviewer |

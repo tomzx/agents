@@ -74,6 +74,9 @@ Pull Request
   │
   ├─ /create-pr              Open a PR: description, AC coverage, issue link, reviewers
   ├─ /review-pr              Comprehensive code review of the PR
+  ├─ /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
+  ├─ /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
+  ├─ /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
   │
   ▼
 Learnings
@@ -97,6 +100,9 @@ Learnings
 | `implementation` | Tests ready; time to write code |
 | `documentation` | Implementation reviewed; code needs docs |
 | `pr` | Documentation done and ready to open a pull request |
+| `handle-pr-ci` | PR has failing CI checks to fix |
+| `handle-pr-feedback` | PR is open and has reviewer comments to address |
+| `merge-pr` | PR is approved and CI is green, ready to merge |
 | `learnings` | A completed feature or sprint to reflect on |
 
 ## Steps
@@ -135,6 +141,9 @@ Each phase consumes output from the previous phase:
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-pr | Reviewed code + docs + issue | Pull request |
 | review-pr | Pull request | Code review findings (resolve before merge) |
+| handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
+| handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
+| merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
 | create-learnings | Completed feature/sprint | Learnings doc |
 | review-learnings | Learnings doc | Findings (resolve as action items) |
 
@@ -173,13 +182,32 @@ Confirm that a task list, specification, and test plan are in context before sta
 Run `create-pr` to open the pull request, then `review-pr` to review it.
 Confirm implementation and documentation are done before opening.
 
-**Scenario 5: Issue backlog triage + prioritization only**
+**Scenario 5: Fix failing CI on an open PR**
+```
+/sdlc handle-pr-ci
+```
+Run `handle-pr-ci` to diagnose failing checks, implement fixes, push, and confirm CI is green.
+
+**Scenario 6: Address reviewer feedback on an open PR**
+```
+/sdlc handle-pr-feedback
+```
+Run `handle-pr-feedback` to address all reviewer comments, push, and re-request review.
+Repeat each time new feedback arrives until the PR is approved.
+
+**Scenario 7: Merge an approved PR**
+```
+/sdlc merge-pr
+```
+Run `merge-pr` to verify approvals and CI, then squash-merge, delete the branch, and confirm the linked issue is closed.
+
+**Scenario 7: Issue backlog triage + prioritization only**
 ```
 /sdlc issues
 ```
 Run `triage-issues` then `prioritize-issues`. Stop after the ranked backlog is produced.
 
-**Scenario 6: Post-sprint retrospective**
+**Scenario 8: Post-sprint retrospective**
 ```
 /sdlc learnings
 ```

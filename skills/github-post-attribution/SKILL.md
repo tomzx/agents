@@ -44,7 +44,7 @@ Call that `{BASE}`.
 
 The skill that **performs** the post is the one whose `SKILL.md` should be linked (not this file unless the workflow is only about attribution).
 
-- `SKILL_DIR` = directory name under `skills/` (e.g. `address-pr-comments`, `quick-pr-review`).
+- `SKILL_DIR` = directory name under `skills/` (e.g. `handle-pr-feedback`, `quick-pr-review`).
 - `SKILL_FILE_URL` = `{BASE}/blob/{SKILL_COMMIT}/skills/{SKILL_DIR}/SKILL.md`
 
 Optional feedback link (same repo as the skill): `{BASE}/issues/new`
@@ -66,7 +66,7 @@ Example:
 ```
 ---
 
-Posted with [address-pr-comments](https://github.com/owner/repo/blob/abc1234.../skills/address-pr-comments/SKILL.md) (`abc1234`)
+Posted with [handle-pr-feedback](https://github.com/owner/repo/blob/abc1234.../skills/handle-pr-feedback/SKILL.md) (`abc1234`)
 ```
 
 Link text in brackets must match the **invoking** skill’s `SKILL_DIR` (except quick-pr-review, which uses the fixed label `quick-pr-review`).
