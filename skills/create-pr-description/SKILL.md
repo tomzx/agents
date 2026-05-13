@@ -16,7 +16,7 @@ Generates a structured PR description from the current branch's diff against its
 
 ### Skill attribution (GitHub)
 
-Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `generate-pr-description` to the end of the description body. This footer travels with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
+Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `create-pr-description` to the end of the description body. This footer travels with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
 
 ## Workflow
 
@@ -53,7 +53,7 @@ Generate PR description markdown
    ```
    gt issue view $2 --repo $1
    ```
-3. Resolve dot-claude attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `generate-pr-description`.
+3. Resolve dot-claude attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `create-pr-description`.
 4. Generate the PR description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
 5. Return the result inside a markdown code block with each sentence on its own line.
 
@@ -81,7 +81,7 @@ Generate PR description markdown
 - https://github.com/$1/issues/$2
 
 ---
-Generated with [generate-pr-description](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
+Generated with [create-pr-description](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 ```
 
 Substitute `SKILL_FILE_URL` and `SKILL_SHORT_SHA` per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md).
@@ -90,19 +90,19 @@ Substitute `SKILL_FILE_URL` and `SKILL_SHORT_SHA` per [`github-post-attribution/
 
 **Scenario 1: PR without issue**
 ```
-/generate-pr-description
+/create-pr-description
 ```
 Diffs current branch vs parent, produces description with "To be filled by the user" in the References section.
 
 **Scenario 2: PR linked to an issue**
 ```
-/generate-pr-description owner/myrepo 42
+/create-pr-description owner/myrepo 42
 ```
 Fetches issue #42 from `owner/myrepo`, maps its acceptance criteria to the changes, and includes the issue link in References.
 
 **Scenario 3: Partial implementation**
 ```
-/generate-pr-description owner/api-service 100
+/create-pr-description owner/api-service 100
 ```
 Issue has 5 acceptance criteria; this PR covers 3. "Acceptance criteria covered" lists only the 3 addressed and notes the remaining 2 are out of scope.
 
