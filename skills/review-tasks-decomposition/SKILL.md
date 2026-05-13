@@ -9,14 +9,15 @@ Audits a task decomposition and reports findings across five categories: granula
 
 ## Prerequisites
 
-- A task decomposition document provided in context or as a file path to read
-- Implementation plan or specification (optional, improves completeness check)
+- `.sdlc/<feature>/tasks.md`, or a task decomposition document provided in context or as a file path
+- `.sdlc/<feature>/plan.md` (optional, improves completeness check)
 
 ## Steps
 
-1. Read the task decomposition.
+1. Read the task decomposition. If reading from `.sdlc/<feature>/tasks.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
+4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
 
 ## Review Checklist
 

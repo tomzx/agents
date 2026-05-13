@@ -97,6 +97,46 @@ Cross-cutting records (invoke at any phase)
   └─ /review-decision        Audit clarity, reasoning quality, consequence coverage
 ```
 
+## Directory Structure
+
+All SDLC artifacts live under `.sdlc/` in the repository root.
+
+```
+.sdlc/
+├── context/
+│   └── project-overview.md        # Optional project-level context; read by all skills
+├── <issue>-<slug>/                # One directory per feature (e.g., 42-notification-system)
+│   ├── requirements.md
+│   ├── specification.md
+│   ├── plan.md
+│   ├── tasks.md
+│   ├── tests.md
+│   └── learnings.md
+└── knowledge/
+    ├── assumptions/
+    │   └── NNNN-<slug>.md         # Created by /create-assumption; one file per assumption
+    └── decisions/
+        └── NNNN-<slug>.md         # Created by /create-decision; one file per decision
+```
+
+**Feature directory naming:** `<issue-number>-<slug>` when an issue exists (e.g., `42-notification-system`); `<slug>` alone when there is no issue.
+**Slug:** lowercase feature name, spaces replaced with hyphens, no special characters.
+
+Each artifact file carries YAML frontmatter tracking its state:
+
+```yaml
+---
+issue: "#42"
+title: "Notification System"
+status: draft        # draft → in-review → approved (learnings: → complete)
+---
+```
+
+`create-*` skills write artifacts with `status: draft`.
+`review-*` skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
+Open questions that cannot be resolved during a phase are logged via `/create-assumption` to `.sdlc/knowledge/assumptions/`.
+Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
+
 ## Entry Points
 
 | Phase | Start here when you have... |
@@ -122,11 +162,12 @@ Cross-cutting records (invoke at any phase)
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. Confirm the artifacts available for the current phase (previous phase output, existing files, or context).
-3. Execute each sub-skill in order from the entry point to the end of the pipeline.
-4. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-5. When all review findings are resolved, move to the next phase.
-6. After learnings are captured and reviewed, the cycle is complete.
+2. If `.sdlc/context/project-overview.md` exists, read it for project-level context before invoking any sub-skill.
+3. Confirm the artifacts available for the current phase (`previous phase output under `.sdlc/<feature>/`, existing files, or context).
+4. Execute each sub-skill in order from the entry point to the end of the pipeline.
+5. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+6. When all review findings are resolved, move to the next phase.
+7. After learnings are captured and reviewed, the cycle is complete.
 
 ## Backtracking and Failure Recovery
 
@@ -174,18 +215,18 @@ Each phase consumes output from the previous phase:
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Reviewed issue | Requirements doc |
-| review-requirements | Requirements doc | Findings (resolve before next phase) |
-| create-specifications | Requirements doc | Specification doc |
-| review-specifications | Specification doc | Findings (resolve before next phase) |
-| create-plan | Specification doc | Implementation plan |
-| review-plan | Implementation plan | Findings (resolve before next phase) |
-| publish-plan | Reviewed plan | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | Implementation plan | Task list |
-| review-tasks-decomposition | Task list | Findings (resolve before next phase) |
-| create-tests | Requirements + spec | Test plan |
-| review-tests | Test plan | Findings (resolve before next phase) |
-| create-implementation | Task + spec + test plan | Working code |
+| create-requirements | Reviewed issue | `.sdlc/<feature>/requirements.md` (`status: draft`) |
+| review-requirements | `.sdlc/<feature>/requirements.md` | Findings; sets `status: approved` when resolved |
+| create-specifications | `.sdlc/<feature>/requirements.md` | `.sdlc/<feature>/specification.md` (`status: draft`) |
+| review-specifications | `.sdlc/<feature>/specification.md` | Findings; sets `status: approved` when resolved |
+| create-plan | `.sdlc/<feature>/specification.md` | `.sdlc/<feature>/plan.md` (`status: draft`) |
+| review-plan | `.sdlc/<feature>/plan.md` | Findings; sets `status: approved` when resolved |
+| publish-plan | `.sdlc/<feature>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
+| create-tasks-decomposition | `.sdlc/<feature>/plan.md` | `.sdlc/<feature>/tasks.md` (`status: draft`) |
+| review-tasks-decomposition | `.sdlc/<feature>/tasks.md` | Findings; sets `status: approved` when resolved |
+| create-tests | `.sdlc/<feature>/requirements.md` + `specification.md` | `.sdlc/<feature>/tests.md` (`status: draft`) |
+| review-tests | `.sdlc/<feature>/tests.md` | Findings; sets `status: approved` when resolved |
+| create-implementation | `tasks.md` + `specification.md` + `tests.md` | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
@@ -194,12 +235,12 @@ Each phase consumes output from the previous phase:
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
-| create-learnings | Completed feature/sprint | Learnings doc |
-| review-learnings | Learnings doc | Findings (resolve as action items) |
-| create-assumption | Any phase context | Assumption record |
-| review-assumption | Assumption record | Findings (improve basis, risk, validation) |
-| create-decision | Any phase context | Decision record |
-| review-decision | Decision record | Findings (improve clarity, reasoning, consequences) |
+| create-learnings | Completed feature/sprint | `.sdlc/<feature>/learnings.md` (`status: draft`) |
+| review-learnings | `.sdlc/<feature>/learnings.md` | Findings; sets `status: complete` when resolved |
+| create-assumption | Any phase context | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` |
+| review-assumption | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` | Findings (improve basis, risk, validation) |
+| create-decision | Any phase context | `.sdlc/knowledge/decisions/NNNN-<slug>.md` |
+| review-decision | `.sdlc/knowledge/decisions/NNNN-<slug>.md` | Findings (improve clarity, reasoning, consequences) |
 
 ## Skipping Review Phases
 

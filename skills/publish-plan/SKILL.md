@@ -12,7 +12,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 ## Prerequisites
 
 - `gh` CLI authenticated with write access to the repository
-- A reviewed plan file in context or at `$2` (defaults to `plan.md` in the working directory)
+- A reviewed plan file in context or at `$2` (defaults to `.sdlc/<feature>/plan.md`; falls back to `plan.md` in the working directory)
 - Issue URL or number (`$1`)
 - Clean or committable working tree
 
@@ -49,7 +49,7 @@ Post comment on issue (links to PR)
    ```
    Extract the issue number and repository (`owner/repo`).
 
-2. Determine the plan file path: use `$2` if provided, otherwise look for `plan.md` in the current directory.
+2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/<feature>/plan.md` (where `<feature>` matches the issue number), then fall back to `plan.md` in the current directory.
    Stop and inform the user if no plan file is found.
 
 3. Create and switch to a plan branch:
@@ -57,9 +57,9 @@ Post comment on issue (links to PR)
    git checkout -b plan/<issue-number>
    ```
 
-4. Stage and commit the plan file:
+4. Stage and commit the `.sdlc/<feature>/` directory (which contains requirements, specification, and plan artifacts):
    ```
-   git add <plan-file>
+   git add .sdlc/<feature>/
    git commit -m "docs: add implementation plan for #<issue-number>"
    ```
 
@@ -128,11 +128,11 @@ Posted with [publish-plan]({SKILL_FILE_URL}) (`SKILL_SHORT_SHA`)
 
 ## Example Usage
 
-**Scenario 1: Plan file in current directory**
+**Scenario 1: Plan in .sdlc directory**
 ```
 /publish-plan https://github.com/owner/repo/issues/42
 ```
-Finds `plan.md`, creates branch `plan/42`, commits, pushes, opens draft PR, posts issue comment.
+Finds `.sdlc/42-<slug>/plan.md`, commits the full `.sdlc/42-<slug>/` directory, creates branch `plan/42`, pushes, opens draft PR, posts issue comment.
 
 **Scenario 2: Explicit plan file path**
 ```

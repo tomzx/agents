@@ -13,6 +13,7 @@ Produces a structured document covering what went well, what didn't, process imp
 
 - A completed feature, sprint, or project to reflect on
 - Context about what was built, how long it took, and any notable events
+- If `.sdlc/<feature>/assumptions.md` or `.sdlc/knowledge/assumptions.md` exists, review it to capture what assumptions were logged and how they resolved
 
 ## Steps
 
@@ -22,10 +23,17 @@ Produces a structured document covering what went well, what didn't, process imp
 4. Identify concrete process improvements with owners and dates.
 5. Capture technical insights: decisions that paid off and decisions to revisit.
 6. Distill actionable next steps.
+7. Write the output to `.sdlc/<feature>/learnings.md`.
 
 ## Output Format
 
 ```markdown
+---
+issue: "#<N>"
+title: "<Feature Name>"
+status: draft
+---
+
 # Learnings: <Feature / Sprint / Project Name>
 
 **Date:** <YYYY-MM-DD>

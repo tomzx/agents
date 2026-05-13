@@ -9,15 +9,16 @@ Audits a technical specification and reports findings across five categories: am
 
 ## Prerequisites
 
-- A technical specification document provided in context or as a file path to read
-- Requirements document (optional, improves coverage analysis)
+- `.sdlc/<feature>/specification.md`, or a specification document provided in context or as a file path
+- `.sdlc/<feature>/requirements.md` (optional, improves coverage analysis)
 
 ## Steps
 
-1. Read the specification thoroughly.
-2. Cross-reference against the requirements document if provided.
+1. Read the specification. If reading from `.sdlc/<feature>/specification.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+2. Cross-reference against the requirements document if available.
 3. Identify issues in each of the five categories below.
 4. Report findings. Omit any category that has no findings.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
 
 ## Review Checklist
 

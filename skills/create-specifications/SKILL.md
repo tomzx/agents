@@ -10,8 +10,9 @@ Produces a detailed technical specification from a requirements document, coveri
 
 ## Prerequisites
 
-- A requirements document provided in context or as a file path (`$1`)
+- `.sdlc/<feature>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - Existing architecture context (if applicable) provided in context
+- If `.sdlc/context/project-overview.md` exists, read it for project context before starting
 
 ## Steps
 
@@ -22,10 +23,17 @@ Produces a detailed technical specification from a requirements document, coveri
 5. Describe key sequences: user flows, system interactions, and async processes.
 6. Document technical decisions and their rationale.
 7. Identify risks, unknowns, and deferred decisions.
+8. Write the output to `.sdlc/<feature>/specification.md`.
 
 ## Output Format
 
 ```markdown
+---
+issue: "#<N>"
+title: "<Feature Name>"
+status: draft
+---
+
 # Specification: <Feature Name>
 
 ## Overview

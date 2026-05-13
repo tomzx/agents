@@ -12,6 +12,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
+- If `.sdlc/context/project-overview.md` exists, read it for project context before starting
 
 ## Steps
 
@@ -22,10 +23,18 @@ Drafts a structured requirements document from a feature brief, user story, or G
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.
 7. Flag any open questions where requirements are unclear or missing.
+8. Derive the feature directory name: `<issue-number>-<slug>` if an issue number is known (e.g., `42-notification-system`), otherwise `<slug>` alone. Slug is lowercase, hyphens for spaces.
+9. Write the output to `.sdlc/<feature>/requirements.md`, creating the directory if it does not exist.
 
 ## Output Format
 
 ```markdown
+---
+issue: "#<N>"
+title: "<Feature Name>"
+status: draft
+---
+
 # Requirements: <Feature Name>
 
 ## Overview

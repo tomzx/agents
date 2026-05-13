@@ -9,15 +9,16 @@ Audits a test suite or test plan and reports findings across five categories: co
 
 ## Prerequisites
 
-- A test suite (test files) or test plan provided in context or as a file path to read
-- Requirements or specification (optional, improves coverage analysis)
+- `.sdlc/<feature>/tests.md`, or a test suite/test plan provided in context or as a file path
+- `.sdlc/<feature>/requirements.md` (optional, improves coverage analysis)
 
 ## Steps
 
-1. Read the tests or test plan thoroughly.
+1. Read the tests or test plan. If reading from `.sdlc/<feature>/tests.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Map tests to requirements or acceptance criteria if a spec is available.
 3. Identify issues in each category below.
 4. Report findings. Omit categories with no findings.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
 
 ## Review Checklist
 
