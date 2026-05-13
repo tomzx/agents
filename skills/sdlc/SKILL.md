@@ -97,6 +97,15 @@ Cross-cutting records (invoke at any phase)
   └─ /review-decision        Audit clarity, reasoning quality, consequence coverage
 ```
 
+### Cross-cutting skills (use at any phase)
+
+| Skill | When to use |
+|---|---|
+| `/create-assumption` | When a phase proceeds on an unverified belief — log it with basis, risk, and validation plan |
+| `/review-assumption` | Audit an assumption record for specificity, basis quality, and validation adequacy |
+| `/create-decision` | When an architectural or implementation choice is made — record it as a lightweight ADR |
+| `/review-decision` | Audit a decision record for clarity, completeness, and consequence coverage |
+
 ## Directory Structure
 
 All SDLC artifacts live under `.sdlc/` in the repository root.

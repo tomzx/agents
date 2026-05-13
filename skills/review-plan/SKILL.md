@@ -18,7 +18,7 @@ Audits an implementation plan and reports findings across five categories: compl
 2. Cross-reference against the specification or requirements if available.
 3. Identify issues in each category below.
 4. Report findings. Omit any category that has no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Invoke `/create-assumption` for any open questions that could not be answered during this review.
 
 ## Review Checklist
 

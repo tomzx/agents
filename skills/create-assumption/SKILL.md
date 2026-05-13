@@ -22,11 +22,16 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 3. Assess confidence level and risk if the assumption is wrong.
 4. Describe the impact on the implementation if the assumption turns out to be false.
 5. Define a validation plan: how and when to confirm or refute the assumption.
-6. Save the document to `docs/assumptions/` using the filename pattern `NNNN-<slug>.md` where `NNNN` is the next available number.
+6. Save the document to `.sdlc/knowledge/assumptions/` using the filename pattern `NNNN-<slug>.md` where `NNNN` is the next available number (counting existing files in that directory).
 
 ## Output Format
 
 ```markdown
+---
+status: Active
+issue: "#<N>"
+---
+
 # Assumption: <Short title — what is assumed, as a statement>
 
 **Date:** <YYYY-MM-DD>

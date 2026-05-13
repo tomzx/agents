@@ -10,7 +10,7 @@ Audits a decision record and reports findings across four categories: clarity, c
 
 ## Prerequisites
 
-- A decision document provided in context or as a file path to read
+- `.sdlc/knowledge/decisions/NNNN-<slug>.md`, or a decision document provided in context or as a file path
 
 ## Steps
 

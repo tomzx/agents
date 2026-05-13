@@ -22,11 +22,16 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 4. State the decision clearly.
 5. Explain the trade-offs: what is gained and what is sacrificed.
 6. Describe the consequences: what changes as a result, what follow-up is expected.
-7. Save the document to `docs/decisions/` (or the project's existing ADR directory if one exists) using the filename pattern `NNNN-<slug>.md` where `NNNN` is the next available number.
+7. Save the document to `.sdlc/knowledge/decisions/` (or the project's existing ADR directory if one exists) using the filename pattern `NNNN-<slug>.md` where `NNNN` is the next available number (counting existing files in that directory).
 
 ## Output Format
 
 ```markdown
+---
+status: Proposed
+issue: "#<N>"
+---
+
 # Decision: <Short title — the decision as a noun phrase>
 
 **Date:** <YYYY-MM-DD>

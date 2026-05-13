@@ -17,7 +17,7 @@ Audits a task decomposition and reports findings across five categories: granula
 1. Read the task decomposition. If reading from `.sdlc/<feature>/tasks.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
+4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Invoke `/create-assumption` for any open questions that could not be answered during this review.
 
 ## Review Checklist
 

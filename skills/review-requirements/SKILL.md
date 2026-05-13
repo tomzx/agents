@@ -16,7 +16,7 @@ Audits a requirements document and reports findings across five categories: clar
 1. Read the requirements document. If reading from `.sdlc/<feature>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append any open questions that could not be answered to `.sdlc/knowledge/assumptions.md`.
+4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Invoke `/create-assumption` for any open questions that could not be answered during this review.
 
 ## Review Checklist
 

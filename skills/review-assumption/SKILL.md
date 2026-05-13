@@ -10,7 +10,7 @@ Audits an assumption record and reports findings across four categories: specifi
 
 ## Prerequisites
 
-- An assumption document provided in context or as a file path to read
+- `.sdlc/knowledge/assumptions/NNNN-<slug>.md`, or an assumption document provided in context or as a file path
 
 ## Steps
 
