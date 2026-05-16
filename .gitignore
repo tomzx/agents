@@ -4,6 +4,7 @@ debug
 file-history
 history.jsonl
 ide
+node_modules
 paste-cache
 plans
 projects
