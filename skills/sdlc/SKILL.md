@@ -83,6 +83,13 @@ Learnings
   │
   ├─ /create-learnings       Retrospective: what went well, root causes, actions
   └─ /review-learnings       Audit actionability, specificity, completeness, balance
+
+Cross-cutting records (invoke at any phase)
+  │
+  ├─ /create-assumption      Record an assumption with basis, risk, and validation plan
+  ├─ /review-assumption      Audit specificity, basis quality, risk, validation adequacy
+  ├─ /create-decision        Record an architectural/implementation decision with context
+  └─ /review-decision        Audit clarity, reasoning quality, consequence coverage
 ```
 
 ## Entry Points
@@ -104,6 +111,8 @@ Learnings
 | `handle-pr-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
 | `learnings` | A completed feature or sprint to reflect on |
+| `assumption` | An assumption to record (can be invoked at any phase) |
+| `decision` | A decision to record (can be invoked at any phase) |
 
 ## Steps
 
@@ -146,6 +155,10 @@ Each phase consumes output from the previous phase:
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
 | create-learnings | Completed feature/sprint | Learnings doc |
 | review-learnings | Learnings doc | Findings (resolve as action items) |
+| create-assumption | Any phase context | Assumption record |
+| review-assumption | Assumption record | Findings (improve basis, risk, validation) |
+| create-decision | Any phase context | Decision record |
+| review-decision | Decision record | Findings (improve clarity, reasoning, consequences) |
 
 ## Skipping Review Phases
 
@@ -212,3 +225,15 @@ Run `triage-issues` then `prioritize-issues`. Stop after the ranked backlog is p
 /sdlc learnings
 ```
 Run `create-learnings` then `review-learnings` for the sprint just completed.
+
+**Scenario 9: Record an assumption mid-pipeline**
+```
+/sdlc assumption
+```
+Run `create-assumption` to record an assumption discovered during any phase, then `review-assumption` to validate it.
+
+**Scenario 10: Record a decision mid-pipeline**
+```
+/sdlc decision
+```
+Run `create-decision` to capture an architectural or implementation choice, then `review-decision` to ensure quality.
