@@ -123,6 +123,42 @@ Cross-cutting records (invoke at any phase)
 5. When all review findings are resolved, move to the next phase.
 6. After learnings are captured and reviewed, the cycle is complete.
 
+## Backtracking and Failure Recovery
+
+Not every phase succeeds on the first attempt.
+A phase may fail because upstream artifacts are incomplete, incoherent, or missing dependencies.
+Use the rules below to decide whether to backtrack, retry, or stop.
+
+### Failure modes
+
+| Mode | Example | Response |
+|---|---|---|
+| **Blocked** | `create-implementation` discovers a missing dependency or unclear spec | Record the blocker as an assumption or decision, backtrack to the phase that owns the missing artifact, resolve it, and re-enter the pipeline at that point. |
+| **Incoherent input** | `create-specifications` reveals requirements that contradict each other | Stop the current phase, backtrack to `review-requirements`, resolve contradictions, and continue forward from there. |
+| **Scope change** | `create-plan` shows the feature is much larger than the issue suggested | Backtrack to `create-issue` to rewrite scope and ACs, then re-derive downstream artifacts. |
+| **External blocker** | Third-party API unavailable, infrastructure not provisioned | Record as an assumption with a validation plan. If the blocker is resolved within the session, continue. Otherwise, stop after the current phase and note the blocker in the issue. |
+| **Review escalation** | `review-implementation` finds a fundamental design flaw | Backtrack to the phase where the flawed decision was made (often `create-specifications` or `create-plan`), revise, and re-derive downstream artifacts. |
+
+### Backtracking rules
+
+1. **Backtrack to the nearest phase that owns the root cause.** If `create-implementation` fails because the spec is ambiguous, backtrack to `create-specifications`, not to `create-issue`.
+2. **Re-derive downstream artifacts after revising.** Any change to an upstream artifact invalidates everything below it. Re-run each `create-*` phase from the revision point forward.
+3. **Record why you backtracked.** Use `/create-decision` to capture the backtrack reason and the corrective action taken.
+4. **Limit backtrack depth.** If backtracking would return you more than two phases upstream (e.g., from `implementation` back to `issue`), stop and ask the user whether to continue or split the work.
+5. **Do not silently skip a failed phase.** If a phase cannot produce its output, explicitly state why and either backtrack or stop.
+
+### Stopping the pipeline
+
+Stop and report to the user when:
+- The root cause is outside the project's control (external blocker with no timeline).
+- Backtracking would exceed two phases and the user has not confirmed.
+- The work is no longer worth pursuing (invalidated by new information).
+
+When stopping, leave the pipeline in a resumable state:
+- Update the issue with current status and blockers.
+- Save any artifacts produced so far.
+- Note the re-entry point for the next session.
+
 ## Phase Contracts
 
 Each phase consumes output from the previous phase:
