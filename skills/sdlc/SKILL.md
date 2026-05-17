@@ -166,6 +166,43 @@ Review phases may be skipped in low-risk or exploratory contexts.
 State the skip explicitly: "Skipping review-requirements — prototype context."
 Never skip reviews for security-sensitive features or production-bound work.
 
+## Fast Paths for Small Work
+
+Not every change needs the full pipeline.
+Use the table below to determine the minimum viable path for common small-work scenarios.
+When in doubt, include more phases rather than fewer.
+
+| Scenario | Example | Path |
+|---|---|---|
+| **Bug fix** | Fix an off-by-one error, correct a typo in logic | `create-implementation` → `review-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` |
+| **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` |
+| **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
+
+### Rules for fast paths
+
+1. Create an issue when the change needs context, discussion, or prioritization. For self-explanatory changes (typo fix, config toggle, version bump), the PR description is sufficient traceability.
+2. Always open a PR, even for hotfixes, so CI runs and the change is reviewable after the fact.
+3. Skip requirements, specifications, plan, and tasks only when the change is well-understood and fits in a single commit.
+4. Include `review-implementation` when the fix is non-trivial or touches security-adjacent code.
+5. Include `create-tests` when the change affects behavior or could regress.
+6. Never skip CI verification before merging.
+
+### Using fast paths
+
+Enter the pipeline normally and state which fast path applies.
+The orchestrator will skip the intermediate phases.
+
+```
+/sdlc issue
+"This is a bug fix for an off-by-one error in the pagination logic."
+```
+
+The orchestrator recognizes the fast path and runs the abbreviated pipeline automatically.
+If the work turns out to be more complex than expected, escalate to the full pipeline.
+
 ## Example Usage
 
 **Scenario 1: Full pipeline from scratch**
@@ -237,3 +274,20 @@ Run `create-assumption` to record an assumption discovered during any phase, the
 /sdlc decision
 ```
 Run `create-decision` to capture an architectural or implementation choice, then `review-decision` to ensure quality.
+
+**Scenario 11: Bug fix (fast path)**
+```
+/sdlc
+```
+User says "Fix off-by-one error in pagination."
+Orchestrator recognizes bug fix fast path: `create-issue` → `create-implementation` → `review-implementation` → `create-pr` → `review-pr` → `merge-pr`.
+Skips requirements, specifications, plan, tasks, and documentation.
+
+**Scenario 12: Hotfix (fast path)**
+```
+/sdlc
+```
+User says "Production is 500ing on /api/users, need a hotfix."
+Orchestrator recognizes hotfix fast path: `create-issue` → `create-implementation` → `create-pr` → `merge-pr`.
+Skips reviews to minimize time-to-deploy.
+Post-merge retrospective is recommended but not blocking.
