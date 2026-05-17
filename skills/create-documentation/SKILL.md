@@ -8,30 +8,23 @@ argument-hint: "[feature or component]"
 
 Produces documentation for a feature or component organized according to the [Divio documentation framework](https://docs.divio.com/documentation-system/): tutorials, how-to guides, reference, and explanations.
 
+**For detailed Divio guidance** (DO/DON'T lists, decision trees, per-type structures), consult the `divio-documentation` skill. This skill focuses on the production workflow: deciding which types to write and producing the output.
+
 ## Prerequisites
 
 - Feature or component description provided in context or as `$1`
 - Access to the codebase, specification, or implementation (if available)
 
-## Divio Documentation Structure
-
-| Type | Answers | Oriented toward |
-|---|---|---|
-| Tutorial | "How do I get started?" | Learning by doing |
-| How-To Guide | "How do I do X?" | Solving a specific problem |
-| Reference | "What is X?" | Information lookup |
-| Explanation | "Why does X work this way?" | Understanding |
-
-Write only the sections relevant to the feature. Not every feature needs all four types.
-
 ## Steps
 
 1. Understand the feature: what it does, who uses it, and common use cases.
-2. Identify which documentation types are needed.
-3. Write a tutorial if users need onboarding guidance.
-4. Write how-to guides for the most common user tasks.
-5. Write reference documentation for all public APIs, config options, and interfaces.
-6. Write an explanation section if the design or behavior needs conceptual context.
+2. Identify which documentation types are needed (use the decision tree in `divio-documentation` if unsure).
+3. Follow the DO/DON'T rules and structure templates from `divio-documentation` for each type.
+4. Write a tutorial if users need onboarding guidance.
+5. Write how-to guides for the most common user tasks.
+6. Write reference documentation for all public APIs, config options, and interfaces.
+7. Write an explanation section if the design or behavior needs conceptual context.
+8. Cross-link between types but keep their boundaries clean.
 
 ## Output Format
 

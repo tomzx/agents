@@ -1,6 +1,6 @@
 ---
 name: divio-documentation
-description: Write or review documentation following the Divio/Diataxis system, which defines four types: tutorials, how-to guides, reference, and explanation.
+description: Write or review documentation following the Divio/Diataxis system, which defines four types: tutorials, how-to guides, reference, and explanation. This is the comprehensive reference skill; create-documentation delegates to this for detailed guidance.
 ---
 
 # Write Divio Documentation
