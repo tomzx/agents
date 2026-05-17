@@ -10,6 +10,11 @@ Orchestrates the full SDLC pipeline by invoking the appropriate sub-skills in se
 Each phase accepts the previous phase's output as input.
 Pass an optional phase name to enter the pipeline at a specific stage.
 
+## When to Use `/sdlc` vs Individual Skills
+
+- Use **`/sdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases in sequence, handle review cycles, and manage backtracking automatically.
+- Use **individual skills directly** (e.g., `/create-pr`, `/review-implementation`) when you need a single phase and want full control over inputs and outputs without the pipeline orchestration overhead.
+
 ## Pipeline Overview
 
 ```
