@@ -9,17 +9,17 @@ Audits an implementation plan and reports findings across five categories: compl
 
 ## Prerequisites
 
-- `.sdlc/features/<feature>/plan.md`, or an implementation plan provided in context or as a file path
-- `.sdlc/features/<feature>/specification.md` (optional, improves coverage analysis)
+- `.sdlc/features/FEAT-NNNN-<slug>/plan.md`, or an implementation plan provided in context or as a file path
+- `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (optional, improves coverage analysis)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 
-1. Read the plan. If reading from `.sdlc/features/<feature>/plan.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the plan. If reading from `.sdlc/features/FEAT-NNNN-<slug>/plan.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Cross-reference against the specification or requirements if available.
 3. Identify issues in each category below.
 4. Report findings. Omit any category that has no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 

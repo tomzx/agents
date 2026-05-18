@@ -10,7 +10,7 @@ Produces a detailed technical specification from a requirements document, coveri
 
 ## Prerequisites
 
-- `.sdlc/features/<feature>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
@@ -22,7 +22,7 @@ Produces a detailed technical specification from a requirements document, coveri
 5. Describe key sequences: user flows, system interactions, and async processes.
 6. Document technical decisions and their rationale.
 7. Identify risks, unknowns, and deferred decisions.
-8. Write the output to `.sdlc/features/<feature>/specification.md`.
+8. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/specification.md`.
 
 ## Output Format
 

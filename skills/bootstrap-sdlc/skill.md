@@ -63,7 +63,7 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
    Good signals: top-level CLI commands, API route groups, major UI sections, distinct background jobs, named services.
 
    For each identified feature:
-   a. Create a directory `.sdlc/features/NNNN-<slug>/` where `NNNN` is a zero-padded sequence number (0001, 0002, …) and `<slug>` is a kebab-case name derived from the feature name.
+   a. Create a directory `.sdlc/features/FEAT-NNNN-<slug>/` where `NNNN` is a zero-padded sequence number (0001, 0002, …) and `<slug>` is a kebab-case name derived from the feature name.
    b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Do not create any other files — plan.md, tests.md, questions.md, and tasks/ are created when there is real content to put in them.
    c. Populate `requirements.md` with:
       - A real overview paragraph describing the feature's purpose.
@@ -95,8 +95,8 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
 - .sdlc/context/conventions.md       — derived from file naming, git log, and CONTRIBUTING.md
 
 ### Features created
-- .sdlc/features/0001-<slug>/  — <Feature Name>: requirements.md and specification.md populated
-- .sdlc/features/0002-<slug>/  — <Feature Name>: requirements.md and specification.md populated
+- .sdlc/features/FEAT-0001-<slug>/  — <Feature Name>: requirements.md and specification.md populated
+- .sdlc/features/FEAT-0002-<slug>/  — <Feature Name>: requirements.md and specification.md populated
 ...
 
 ### Items requiring manual review

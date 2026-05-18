@@ -7,11 +7,11 @@ argument-hint: "[plan or specification]"
 # Create Tasks Decomposition
 
 Breaks down a feature, plan, or specification into discrete, actionable tasks.
-Each task gets its own file under `.sdlc/features/<feature>/tasks/` with a unique sequence number, frontmatter status, and explicit dependencies.
+Each task gets its own file under `.sdlc/features/FEAT-NNNN-<slug>/tasks/` with a unique sequence number, frontmatter status, and explicit dependencies.
 
 ## Prerequisites
 
-- `.sdlc/features/<feature>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
+- `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Task Sizing Guidelines
@@ -33,7 +33,7 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 3. For each task, define: description, acceptance criteria, effort size, and dependencies on other tasks.
 4. Order tasks and assign sequence numbers starting at `0001` within this feature.
 5. Identify the critical path through the dependency graph.
-6. Write one file per task to `.sdlc/features/<feature>/tasks/NNNN-<slug>.md`, where `NNNN` restarts at `0001` for each feature.
+6. Write one file per task to `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md`, where `NNNN` restarts at `0001` for each feature.
 
 ## Output Format (one file per task)
 

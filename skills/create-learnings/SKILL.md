@@ -13,7 +13,7 @@ Produces a structured document covering what went well, what didn't, process imp
 
 - A completed feature, sprint, or project to reflect on
 - Context about what was built, how long it took, and any notable events
-- If `.sdlc/features/NNNN-<slug>/questions.md` exists for the feature, review it to surface unresolved questions.
+- If `.sdlc/features/FEAT-NNNN-<slug>/questions.md` exists for the feature, review it to surface unresolved questions.
 - If any files exist under `.sdlc/knowledge/assumptions/` or `.sdlc/knowledge/decisions/` for this feature, review them for context.
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 

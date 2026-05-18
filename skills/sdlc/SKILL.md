@@ -123,7 +123,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │   ├── architecture.md            # Architecture decisions and patterns
 │   └── conventions.md             # Naming, structure, coding standards
 ├── features/
-│   └── NNNN-<slug>/               # One directory per feature (e.g., 0001-notification-system)
+│   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
 │       ├── requirements.md
 │       ├── specification.md
 │       ├── plan.md
@@ -152,7 +152,25 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
         └── NNNN-<slug>.md         # Created by /create-learnings; one file per retrospective
 ```
 
-**Feature directory naming:** `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (e.g., `0001-notification-system`, `0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
+**Feature directory naming:** `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (e.g., `FEAT-0001-notification-system`, `FEAT-0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
+
+## ID Formats and Cross-References
+
+Each artifact type uses a consistent ID format:
+
+| Artifact | Format | Scope | Example |
+|---|---|---|---|
+| Feature | `FEAT-NNNN` | Project-wide | `FEAT-0001` |
+| Functional requirement | `FR-NN` | Per-feature | `FR-01` |
+| Non-functional requirement | `NFR-NN` | Per-feature | `NFR-02` |
+| Task | `NNNN` | Per-feature | `0003` |
+| Test case | `TC-NN` | Per-feature | `TC-05` |
+| Assumption | `NNNN` | Project-wide | `0001` |
+| Decision | `NNNN` | Project-wide | `0002` |
+
+**Within a feature document**, use bare IDs (`FR-01`, `NFR-02`, `TC-05`) — the feature scope is implied by the file location.
+
+**Across features**, qualify with the feature prefix: `FEAT-0001-FR-01`, `FEAT-0002-NFR-03`. Use this form whenever a requirement, test case, or task is referenced from outside its own feature directory (e.g., in a plan dependency, a cross-cutting assumption, or a shared specification).
 
 Each pipeline artifact carries YAML frontmatter tracking its state:
 
@@ -167,7 +185,7 @@ status: draft        # draft → in-review → approved (learnings: → complete
 `create-*` pipeline skills write artifacts with `status: draft`.
 `review-*` pipeline skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
 Assumption and decision records use their own status vocabulary (`Active → Validated | Invalidated | Deferred`; `Proposed → Accepted | Deprecated | Superseded`) updated by `review-assumption` and `review-decision` respectively.
-Open questions from review phases are appended to `.sdlc/features/NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions from review phases are appended to `.sdlc/features/FEAT-NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -197,7 +215,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
 2. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-3. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/<feature>/`, existing files, or context).
+3. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
 4. Execute each sub-skill in order from the entry point to the end of the pipeline.
 5. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 6. When all review findings are resolved, move to the next phase.
@@ -252,18 +270,18 @@ Each phase consumes output from the previous phase:
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Reviewed issue | `.sdlc/features/<feature>/requirements.md` (`status: draft`) |
-| review-requirements | `.sdlc/features/<feature>/requirements.md` | Findings; sets `status: approved` when resolved |
-| create-specifications | `.sdlc/features/<feature>/requirements.md` | `.sdlc/features/<feature>/specification.md` (`status: draft`) |
-| review-specifications | `.sdlc/features/<feature>/specification.md` | Findings; sets `status: approved` when resolved |
-| create-plan | `.sdlc/features/<feature>/specification.md` | `.sdlc/features/<feature>/plan.md` (`status: draft`) |
-| review-plan | `.sdlc/features/<feature>/plan.md` | Findings; sets `status: approved` when resolved |
-| publish-plan | `.sdlc/features/<feature>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/features/<feature>/plan.md` | `.sdlc/features/<feature>/tasks/NNNN-<slug>.md` per task (`status: draft`) |
-| review-tasks-decomposition | `.sdlc/features/<feature>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved |
-| create-tests | `.sdlc/features/<feature>/requirements.md` + `specification.md` | `.sdlc/features/<feature>/tests.md` (`status: draft`) |
-| review-tests | `.sdlc/features/<feature>/tests.md` | Findings; sets `status: approved` when resolved |
-| create-implementation | `.sdlc/features/<feature>/tasks/` + `specification.md` + `tests.md` | Working code |
+| create-requirements | Reviewed issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
+| review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
+| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
+| review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
+| create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
+| review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
+| publish-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
+| create-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` per task (`status: draft`) |
+| review-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved |
+| create-tests | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` (`status: draft`) |
+| review-tests | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
+| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |

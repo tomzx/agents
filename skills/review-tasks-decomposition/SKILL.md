@@ -9,16 +9,16 @@ Audits a task decomposition and reports findings across five categories: granula
 
 ## Prerequisites
 
-- `.sdlc/features/<feature>/tasks/` directory containing individual task files, or task files provided in context
-- `.sdlc/features/<feature>/plan.md` (optional, improves completeness check)
+- `.sdlc/features/FEAT-NNNN-<slug>/tasks/` directory containing individual task files, or task files provided in context
+- `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (optional, improves completeness check)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 
-1. Read all `.md` files in `.sdlc/features/<feature>/tasks/`. Update each task file's `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read all `.md` files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/`. Update each task file's `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
