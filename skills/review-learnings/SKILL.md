@@ -9,11 +9,11 @@ Audits a learnings document and reports findings across four categories: actiona
 
 ## Prerequisites
 
-- `.sdlc/<feature>/learnings.md`, or a learnings document provided in context or as a file path
+- `.sdlc/knowledge/learnings/NNNN-<slug>.md`, or a learnings document provided in context or as a file path
 
 ## Steps
 
-1. Read the learnings document. If reading from `.sdlc/<feature>/learnings.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the learnings document. If reading from `.sdlc/knowledge/learnings/NNNN-<slug>.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
 4. After all findings are resolved: update `status: in-review` → `status: complete` in the frontmatter.

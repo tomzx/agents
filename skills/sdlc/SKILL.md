@@ -114,24 +114,25 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 .sdlc/
 ├── context/
 │   └── project-overview.md        # Optional project-level context; read by all skills
-├── <issue>-<slug>/                # One directory per feature (e.g., 42-notification-system)
+├── NNNN-<slug>/                   # One directory per feature (e.g., 0001-notification-system)
 │   ├── requirements.md
 │   ├── specification.md
 │   ├── plan.md
 │   ├── tasks.md
 │   ├── tests.md
-│   └── learnings.md
+│   └── questions.md               # Running log of open questions from all review phases
 └── knowledge/
     ├── assumptions/
     │   └── NNNN-<slug>.md         # Created by /create-assumption; one file per assumption
-    └── decisions/
-        └── NNNN-<slug>.md         # Created by /create-decision; one file per decision
+    ├── decisions/
+    │   └── NNNN-<slug>.md         # Created by /create-decision; one file per decision
+    └── learnings/
+        └── NNNN-<slug>.md         # Created by /create-learnings; one file per retrospective
 ```
 
-**Feature directory naming:** `<issue-number>-<slug>` when an issue exists (e.g., `42-notification-system`); `<slug>` alone when there is no issue.
-**Slug:** lowercase feature name, spaces replaced with hyphens, no special characters.
+**Feature directory naming:** `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/` (e.g., `0001-notification-system`, `0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
 
-Each artifact file carries YAML frontmatter tracking its state:
+Each pipeline artifact carries YAML frontmatter tracking its state:
 
 ```yaml
 ---
@@ -141,9 +142,9 @@ status: draft        # draft → in-review → approved (learnings: → complete
 ---
 ```
 
-`create-*` skills write artifacts with `status: draft`.
-`review-*` skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
-Open questions that cannot be resolved during a phase are logged via `/create-assumption` to `.sdlc/knowledge/assumptions/`.
+`create-*` pipeline skills write artifacts with `status: draft`.
+`review-*` pipeline skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
+Open questions from review phases are appended to `.sdlc/NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -244,8 +245,8 @@ Each phase consumes output from the previous phase:
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
-| create-learnings | Completed feature/sprint | `.sdlc/<feature>/learnings.md` (`status: draft`) |
-| review-learnings | `.sdlc/<feature>/learnings.md` | Findings; sets `status: complete` when resolved |
+| create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/NNNN-<slug>.md` (`status: draft`) |
+| review-learnings | `.sdlc/knowledge/learnings/NNNN-<slug>.md` | Findings; sets `status: complete` when resolved |
 | create-assumption | Any phase context | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` |
 | review-assumption | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` | Findings (improve basis, risk, validation) |
 | create-decision | Any phase context | `.sdlc/knowledge/decisions/NNNN-<slug>.md` |

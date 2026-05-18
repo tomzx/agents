@@ -28,7 +28,6 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 
 ```markdown
 ---
-status: Active
 issue: "#<N>"
 ---
 

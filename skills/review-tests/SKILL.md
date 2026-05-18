@@ -18,7 +18,7 @@ Audits a test suite or test plan and reports findings across five categories: co
 2. Map tests to requirements or acceptance criteria if a spec is available.
 3. Identify issues in each category below.
 4. Report findings. Omit categories with no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Invoke `/create-assumption` for any open questions that could not be answered during this review.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 

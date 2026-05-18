@@ -28,7 +28,6 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 
 ```markdown
 ---
-status: Proposed
 issue: "#<N>"
 ---
 
