@@ -17,15 +17,19 @@ status: draft
 
 ## Functional Requirements
 
+Order rows by priority: Must first, then Should, then May.
+
 | ID | Priority | Requirement |
 |---|---|---|
 | FR-01 | Must / Should / May | The system shall ... |
 
 ## Non-Functional Requirements
 
-| ID | Category | Requirement |
-|---|---|---|
-| NFR-01 | Performance / Security / Availability / ... | The system shall ... |
+Order rows by priority: Must first, then Should, then May.
+
+| ID | Priority | Category | Requirement |
+|---|---|---|---|
+| NFR-01 | Must / Should / May | Performance / Security / Availability / ... | The system shall ... |
 
 ## Constraints
 
