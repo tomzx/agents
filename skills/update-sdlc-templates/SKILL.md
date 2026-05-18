@@ -6,14 +6,14 @@ argument-hint: "[project-root]"
 
 # Update SDLC Templates
 
-Compares each file in `.sdlc/templates/` against the corresponding canonical template in `../templates/` (relative to this skill).
+Compares each file in `.sdlc/templates/` against the corresponding canonical template in `../sdlc/templates/` (relative to this skill).
 Templates that the user has not modified are updated automatically.
 Templates with user customizations are merged intelligently, preserving the user's additions while incorporating upstream structural improvements.
 
 ## Prerequisites
 
 - `.sdlc/templates/` directory exists (run `/initialize-sdlc-directory` first if not)
-- The canonical templates at `../templates/` relative to this skill file
+- The canonical templates at `../sdlc/templates/` relative to this skill file
 
 ## Steps
 
