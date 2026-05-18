@@ -17,6 +17,7 @@ Audits an assumption record and reports findings across four categories: specifi
 1. Read the assumption document.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
+4. After the review, update `status` in frontmatter to the appropriate terminal value: `Validated` (assumption confirmed), `Invalidated` (assumption disproved — flag affected work), or `Deferred` (cannot yet be verified).
 
 ## Review Checklist
 

@@ -9,15 +9,15 @@ Audits a task decomposition and reports findings across five categories: granula
 
 ## Prerequisites
 
-- `.sdlc/<feature>/tasks.md`, or a task decomposition document provided in context or as a file path
-- `.sdlc/<feature>/plan.md` (optional, improves completeness check)
+- `.sdlc/features/<feature>/tasks.md`, or a task decomposition document provided in context or as a file path
+- `.sdlc/features/<feature>/plan.md` (optional, improves completeness check)
 
 ## Steps
 
-1. Read the task decomposition. If reading from `.sdlc/<feature>/tasks.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the task decomposition. If reading from `.sdlc/features/<feature>/tasks.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 

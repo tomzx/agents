@@ -113,14 +113,17 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ```
 .sdlc/
 ├── context/
-│   └── project-overview.md        # Optional project-level context; read by all skills
-├── NNNN-<slug>/                   # One directory per feature (e.g., 0001-notification-system)
-│   ├── requirements.md
-│   ├── specification.md
-│   ├── plan.md
-│   ├── tasks.md
-│   ├── tests.md
-│   └── questions.md               # Running log of open questions from all review phases
+│   ├── project-overview.md        # Project goals, scope, key stakeholders
+│   ├── architecture.md            # Architecture decisions and patterns
+│   └── conventions.md             # Naming, structure, coding standards
+├── features/
+│   └── NNNN-<slug>/               # One directory per feature (e.g., 0001-notification-system)
+│       ├── requirements.md
+│       ├── specification.md
+│       ├── plan.md
+│       ├── tasks.md
+│       ├── tests.md
+│       └── questions.md           # Running log of open questions from all review phases
 └── knowledge/
     ├── assumptions/
     │   └── NNNN-<slug>.md         # Created by /create-assumption; one file per assumption
@@ -130,7 +133,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
         └── NNNN-<slug>.md         # Created by /create-learnings; one file per retrospective
 ```
 
-**Feature directory naming:** `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/` (e.g., `0001-notification-system`, `0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
+**Feature directory naming:** `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (e.g., `0001-notification-system`, `0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
 
 Each pipeline artifact carries YAML frontmatter tracking its state:
 
@@ -144,7 +147,8 @@ status: draft        # draft → in-review → approved (learnings: → complete
 
 `create-*` pipeline skills write artifacts with `status: draft`.
 `review-*` pipeline skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
-Open questions from review phases are appended to `.sdlc/NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Assumption and decision records use their own status vocabulary (`Active → Validated | Invalidated | Deferred`; `Proposed → Accepted | Deprecated | Superseded`) updated by `review-assumption` and `review-decision` respectively.
+Open questions from review phases are appended to `.sdlc/features/NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -172,8 +176,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. If `.sdlc/context/project-overview.md` exists, read it for project-level context before invoking any sub-skill.
-3. Confirm the artifacts available for the current phase (`previous phase output under `.sdlc/<feature>/`, existing files, or context).
+2. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill.
+3. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/<feature>/`, existing files, or context).
 4. Execute each sub-skill in order from the entry point to the end of the pipeline.
 5. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 6. When all review findings are resolved, move to the next phase.
@@ -225,17 +229,17 @@ Each phase consumes output from the previous phase:
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Reviewed issue | `.sdlc/<feature>/requirements.md` (`status: draft`) |
-| review-requirements | `.sdlc/<feature>/requirements.md` | Findings; sets `status: approved` when resolved |
-| create-specifications | `.sdlc/<feature>/requirements.md` | `.sdlc/<feature>/specification.md` (`status: draft`) |
-| review-specifications | `.sdlc/<feature>/specification.md` | Findings; sets `status: approved` when resolved |
-| create-plan | `.sdlc/<feature>/specification.md` | `.sdlc/<feature>/plan.md` (`status: draft`) |
-| review-plan | `.sdlc/<feature>/plan.md` | Findings; sets `status: approved` when resolved |
-| publish-plan | `.sdlc/<feature>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/<feature>/plan.md` | `.sdlc/<feature>/tasks.md` (`status: draft`) |
-| review-tasks-decomposition | `.sdlc/<feature>/tasks.md` | Findings; sets `status: approved` when resolved |
-| create-tests | `.sdlc/<feature>/requirements.md` + `specification.md` | `.sdlc/<feature>/tests.md` (`status: draft`) |
-| review-tests | `.sdlc/<feature>/tests.md` | Findings; sets `status: approved` when resolved |
+| create-requirements | Reviewed issue | `.sdlc/features/<feature>/requirements.md` (`status: draft`) |
+| review-requirements | `.sdlc/features/<feature>/requirements.md` | Findings; sets `status: approved` when resolved |
+| create-specifications | `.sdlc/features/<feature>/requirements.md` | `.sdlc/features/<feature>/specification.md` (`status: draft`) |
+| review-specifications | `.sdlc/features/<feature>/specification.md` | Findings; sets `status: approved` when resolved |
+| create-plan | `.sdlc/features/<feature>/specification.md` | `.sdlc/features/<feature>/plan.md` (`status: draft`) |
+| review-plan | `.sdlc/features/<feature>/plan.md` | Findings; sets `status: approved` when resolved |
+| publish-plan | `.sdlc/features/<feature>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
+| create-tasks-decomposition | `.sdlc/features/<feature>/plan.md` | `.sdlc/features/<feature>/tasks.md` (`status: draft`) |
+| review-tasks-decomposition | `.sdlc/features/<feature>/tasks.md` | Findings; sets `status: approved` when resolved |
+| create-tests | `.sdlc/features/<feature>/requirements.md` + `specification.md` | `.sdlc/features/<feature>/tests.md` (`status: draft`) |
+| review-tests | `.sdlc/features/<feature>/tests.md` | Findings; sets `status: approved` when resolved |
 | create-implementation | `tasks.md` + `specification.md` + `tests.md` | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |

@@ -29,6 +29,7 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 ```markdown
 ---
 issue: "#<N>"
+status: Proposed
 ---
 
 # Decision: <Short title — the decision as a noun phrase>

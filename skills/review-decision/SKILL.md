@@ -17,6 +17,7 @@ Audits a decision record and reports findings across four categories: clarity, c
 1. Read the decision document.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
+4. After the review, update `status` in frontmatter to the appropriate value: `Accepted`, `Deprecated`, or `Superseded by [NNNN]`.
 
 ## Review Checklist
 

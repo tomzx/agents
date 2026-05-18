@@ -9,14 +9,14 @@ Audits a requirements document and reports findings across five categories: clar
 
 ## Prerequisites
 
-- `.sdlc/<feature>/requirements.md`, or a requirements document provided in context or as a file path
+- `.sdlc/features/<feature>/requirements.md`, or a requirements document provided in context or as a file path
 
 ## Steps
 
-1. Read the requirements document. If reading from `.sdlc/<feature>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the requirements document. If reading from `.sdlc/features/<feature>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 

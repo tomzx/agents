@@ -11,7 +11,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 
 ## Prerequisites
 
-- `.sdlc/<feature>/requirements.md` and `.sdlc/<feature>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
+- `.sdlc/features/<feature>/requirements.md` and `.sdlc/features/<feature>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
 - Information about the testing stack (if available)
 
 ## Steps
@@ -22,7 +22,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 4. Add edge case and failure scenario tests beyond the acceptance criteria.
 5. Organize test cases by test level (unit, integration, end-to-end).
 6. Identify test infrastructure and fixtures needed.
-7. Write the output to `.sdlc/<feature>/tests.md`.
+7. Write the output to `.sdlc/features/<feature>/tests.md`.
 
 ## Test Case Format
 

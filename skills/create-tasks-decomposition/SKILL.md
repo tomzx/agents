@@ -11,7 +11,7 @@ Each task has a clear scope, effort estimate, acceptance criteria, and dependenc
 
 ## Prerequisites
 
-- `.sdlc/<feature>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
+- `.sdlc/features/<feature>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
 
 ## Task Sizing Guidelines
 
@@ -32,7 +32,7 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 3. For each task, define: description, acceptance criteria, effort, and dependencies.
 4. Group tasks by phase or component.
 5. Identify the critical path.
-6. Write the output to `.sdlc/<feature>/tasks.md`.
+6. Write the output to `.sdlc/features/<feature>/tasks.md`.
 
 ## Output Format
 

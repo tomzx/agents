@@ -10,7 +10,7 @@ Produces a structured implementation plan from a specification or requirements d
 
 ## Prerequisites
 
-- `.sdlc/<feature>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/<feature>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
 - Team size and velocity context (if available)
 
 ## Steps
@@ -22,7 +22,7 @@ Produces a structured implementation plan from a specification or requirements d
 5. Estimate effort for each phase (person-days or story points).
 6. Identify risks and mitigations.
 7. Propose a timeline if team capacity is known.
-8. Write the output to `.sdlc/<feature>/plan.md`.
+8. Write the output to `.sdlc/features/<feature>/plan.md`.
 
 ## Output Format
 

@@ -12,7 +12,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
-- If `.sdlc/context/project-overview.md` exists, read it for project context before starting
+- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) before starting
 
 ## Steps
 
@@ -23,8 +23,8 @@ Drafts a structured requirements document from a feature brief, user story, or G
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.
 7. Flag any open questions where requirements are unclear or missing.
-8. Derive the feature directory name: `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/` (count existing feature directories, zero-pad). Slug is lowercase, hyphens for spaces (e.g., `0001-notification-system`). Record the related issue number in the frontmatter `issue` field, not in the directory name.
-9. Write the output to `.sdlc/NNNN-<slug>/requirements.md`, creating the directory if it does not exist.
+8. Derive the feature directory name: `NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces (e.g., `0001-notification-system`). Record the related issue number in the frontmatter `issue` field, not in the directory name.
+9. Write the output to `.sdlc/features/NNNN-<slug>/requirements.md`, creating the directory if it does not exist.
 
 ## Output Format
 
