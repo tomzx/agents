@@ -131,10 +131,6 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       ├── tests.md
 │       └── questions.md           # Running log of open questions from all review phases
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
-│   ├── context/
-│   │   ├── project-overview.md
-│   │   ├── architecture.md
-│   │   └── conventions.md
 │   ├── features/
 │   │   ├── requirements.md
 │   │   ├── specification.md

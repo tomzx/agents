@@ -24,7 +24,6 @@ Already-existing files are never overwritten — this is safe to run on a projec
    .sdlc/context/
    .sdlc/features/
    .sdlc/templates/
-   .sdlc/templates/context/
    .sdlc/templates/features/
    .sdlc/templates/knowledge/
    .sdlc/knowledge/
@@ -37,9 +36,6 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
    | Canonical source | Destination |
    |---|---|
-   | `../sdlc/templates/context/project-overview.md` | `.sdlc/templates/context/project-overview.md` |
-   | `../sdlc/templates/context/architecture.md` | `.sdlc/templates/context/architecture.md` |
-   | `../sdlc/templates/context/conventions.md` | `.sdlc/templates/context/conventions.md` |
    | `../sdlc/templates/features/requirements.md` | `.sdlc/templates/features/requirements.md` |
    | `../sdlc/templates/features/specification.md` | `.sdlc/templates/features/specification.md` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
@@ -50,7 +46,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/knowledge/decision.md` | `.sdlc/templates/knowledge/decision.md` |
    | `../sdlc/templates/knowledge/learning.md` | `.sdlc/templates/knowledge/learning.md` |
 
-4. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding template as starting content:
+4. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
    - `project-overview.md`
    - `architecture.md`
    - `conventions.md`
@@ -75,7 +71,7 @@ Next steps:
 1. Fill in `.sdlc/context/project-overview.md` with your project's goals, stakeholders, and scope.
 2. Fill in `.sdlc/context/architecture.md` with the system topology.
 3. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
-4. Edit templates under `.sdlc/templates/` to match your project's preferred artifact formats.
+4. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
    Run `/update-sdlc-templates` later to pull in upstream improvements while preserving your edits.
 ```
 

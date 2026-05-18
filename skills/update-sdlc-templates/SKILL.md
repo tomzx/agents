@@ -53,7 +53,7 @@ Templates with user customizations are merged intelligently, preserving the user
 - features/tests.md  — added "Edge Cases" section
 
 ### Merged (customizations preserved)
-- context/conventions.md  — added "Branching" section; kept your "Code Review" section
+- features/specification.md  — added "Constraints" section; kept your "API Contracts" section
 
 ### Conflicts (manual resolution required)
 - features/plan.md  — upstream removed "Timeline" table; your version has content there. Resolve manually.
