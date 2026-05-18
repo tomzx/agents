@@ -17,15 +17,15 @@ status: draft
 
 ## Functional Requirements
 
-| ID | Requirement | Priority |
+| ID | Priority | Requirement |
 |---|---|---|
-| FR-01 | The system shall ... | Must / Should / May |
+| FR-01 | Must / Should / May | The system shall ... |
 
 ## Non-Functional Requirements
 
-| ID | Requirement | Category |
+| ID | Category | Requirement |
 |---|---|---|
-| NFR-01 | The system shall ... | Performance / Security / Availability / ... |
+| NFR-01 | Performance / Security / Availability / ... | The system shall ... |
 
 ## Constraints
 
