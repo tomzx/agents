@@ -121,7 +121,8 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       ├── requirements.md
 │       ├── specification.md
 │       ├── plan.md
-│       ├── tasks.md
+│       ├── tasks/                 # One file per task (e.g., 0001-setup-db-schema.md)
+│       │   └── NNNN-<slug>.md
 │       ├── tests.md
 │       └── questions.md           # Running log of open questions from all review phases
 └── knowledge/
@@ -236,11 +237,11 @@ Each phase consumes output from the previous phase:
 | create-plan | `.sdlc/features/<feature>/specification.md` | `.sdlc/features/<feature>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/<feature>/plan.md` | Findings; sets `status: approved` when resolved |
 | publish-plan | `.sdlc/features/<feature>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/features/<feature>/plan.md` | `.sdlc/features/<feature>/tasks.md` (`status: draft`) |
-| review-tasks-decomposition | `.sdlc/features/<feature>/tasks.md` | Findings; sets `status: approved` when resolved |
+| create-tasks-decomposition | `.sdlc/features/<feature>/plan.md` | `.sdlc/features/<feature>/tasks/NNNN-<slug>.md` per task (`status: draft`) |
+| review-tasks-decomposition | `.sdlc/features/<feature>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved |
 | create-tests | `.sdlc/features/<feature>/requirements.md` + `specification.md` | `.sdlc/features/<feature>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/<feature>/tests.md` | Findings; sets `status: approved` when resolved |
-| create-implementation | `tasks.md` + `specification.md` + `tests.md` | Working code |
+| create-implementation | `.sdlc/features/<feature>/tasks/` + `specification.md` + `tests.md` | Working code |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
