@@ -109,6 +109,11 @@ Spec defines the `password_reset_tokens` table, `POST /auth/reset-password` endp
 Requirements ask for async processing.
 Spec defines the job queue schema, worker interface, retry policy, and failure alerting sequence.
 
+## Next Step
+
+Run `/review-specifications` to audit for ambiguities, inconsistencies, and gaps before moving on.
+Once approved, continue with `/create-plan`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

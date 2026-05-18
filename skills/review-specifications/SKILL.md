@@ -86,6 +86,10 @@ Report under Missing Information.
 Spec requires a distributed lock for a feature that could use a simple DB transaction.
 Report under Implementability.
 
+## Next Step
+
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-plan`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

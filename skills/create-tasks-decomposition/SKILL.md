@@ -87,6 +87,11 @@ Critical path: 0001 → 0002 → 0003 → 0005 → 0006 → 0007.
 A task described as "implement the entire payment module" is XL.
 Break into: 0001 payment intent `[M]`, 0002 webhook handler `[M]`, 0003 refund endpoint `[S]`, 0004 idempotency `[S]`, 0005 integration tests `[M]`.
 
+## Next Step
+
+Run `/review-tasks-decomposition` to audit granularity, completeness, and dependencies before moving on.
+Once tasks are approved, continue with `/create-tests`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

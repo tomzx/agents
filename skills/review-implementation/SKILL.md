@@ -102,6 +102,10 @@ A loop fetches user data individually for each item in a list.
 Variable `d` used instead of `discount_rate`.
 🟢 MAY improve.
 
+## Next Step
+
+Once all 🔴 MUST findings are resolved, continue with `/create-documentation` then `/create-pr`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on code provided in context or via file reads.

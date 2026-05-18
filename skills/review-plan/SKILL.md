@@ -85,6 +85,10 @@ Report under Feasibility.
 Plan depends on a third-party API but lists no spike or contingency if that API is unavailable.
 Report under Risk Coverage.
 
+## Next Step
+
+Once all findings are resolved and `status` is set to `approved`, run `/publish-plan` to commit the plan and open a draft PR for author sign-off, then continue with `/create-tasks-decomposition`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

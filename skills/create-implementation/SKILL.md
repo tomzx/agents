@@ -118,6 +118,11 @@ Read spec for request/response schema, find existing endpoint patterns, create r
 Task describes a null pointer in the login flow.
 Locate the defect, implement the fix, write a regression test that would have caught the bug.
 
+## Next Step
+
+Run `/review-implementation` to audit correctness, quality, security, and spec alignment before moving on.
+Once findings are resolved, continue with `/create-documentation` then `/create-pr`.
+
 ## Useful Commands Reference
 
 Use the tools available in the current session to read files, run tests, and edit code.

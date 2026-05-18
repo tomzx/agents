@@ -86,6 +86,10 @@ This will break on any ORM upgrade without a behavior change. Report under Maint
 `assert response.status_code == 200` without checking the response body.
 Report under Correctness.
 
+## Next Step
+
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-implementation`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

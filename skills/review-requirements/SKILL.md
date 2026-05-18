@@ -84,6 +84,10 @@ Flag under Testability — rewrite as a measurable usability criterion.
 FR-01 is marked Must (offline support) while NFR-01 is Must (real-time sync).
 These conflict. Report under Conflicts.
 
+## Next Step
+
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-specifications`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

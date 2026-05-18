@@ -88,6 +88,11 @@ Plan: Phase 1 (DB schema + migrations), Phase 2 (API endpoints), Phase 3 (fronte
 **Scenario 2: High-risk external dependency**
 Plan includes a spike in Phase 1 to validate a third-party payment provider integration before committing to Phase 2 scope.
 
+## Next Step
+
+Run `/review-plan` to audit for completeness, feasibility, and risk coverage before moving on.
+Once approved, run `/publish-plan` to commit the plan and share it with the issue author, then continue with `/create-tasks-decomposition`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

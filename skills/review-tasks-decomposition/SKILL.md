@@ -85,6 +85,10 @@ Report under Dependencies.
 T-03 "Implement the payment module" is marked `[L]` but its description spans 6 distinct features.
 Report under Granularity.
 
+## Next Step
+
+Once all findings are resolved and tasks are set to `status: pending`, continue with `/create-tests`.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on document content provided in context.

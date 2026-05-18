@@ -93,6 +93,11 @@ Fetch the issue, extract the described behavior, and produce a requirements docu
 User gives a vague description.
 List open questions and draft requirements for the parts that are clear.
 
+## Next Step
+
+Run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.
+Once approved, continue with `/create-specifications`.
+
 ## Useful Commands Reference
 
 For document-only input, no CLI commands are required.

@@ -149,6 +149,11 @@ No issue provided. Creates PR with What/Why/How-to-test sections; omits AC cover
 ```
 One AC not yet met. Opens as a draft PR so it is not accidentally merged.
 
+## Next Step
+
+After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
+Close the loop with `/create-learnings` after the feature is merged.
+
 ## Useful Commands Reference
 
 | Command | Description |
