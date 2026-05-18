@@ -1,5 +1,4 @@
 ---
-issue: "#<N>"
 status: Proposed
 ---
 

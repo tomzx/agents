@@ -1,5 +1,4 @@
 ---
-issue: "#<N>"
 title: "<Feature Name>"
 status: draft
 ---
