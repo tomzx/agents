@@ -12,6 +12,7 @@ Reviews and responds to all developer comments on a GitHub pull request, impleme
 
 - `gh` CLI authenticated with write access to the target repository
 - PR number (`$1`) identifying an open pull request with at least one review comment
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
 

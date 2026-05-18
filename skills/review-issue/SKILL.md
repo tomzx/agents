@@ -14,6 +14,7 @@ If findings exist, either proposes an edited issue body in the conversation or p
 
 - `gh` CLI authenticated with access to the repository
 - Issue URL or number (`$1`)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

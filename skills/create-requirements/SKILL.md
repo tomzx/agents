@@ -12,7 +12,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
-- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) before starting
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

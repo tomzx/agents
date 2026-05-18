@@ -11,7 +11,7 @@ Produces a detailed technical specification from a requirements document, coveri
 ## Prerequisites
 
 - `.sdlc/features/<feature>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
-- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) before starting
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

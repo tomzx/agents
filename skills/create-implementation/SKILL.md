@@ -14,6 +14,7 @@ Produces working code that passes tests and meets all acceptance criteria.
 - A task description, specification, or plan provided in context or as `$1`
 - Access to the codebase for reading and editing
 - Test suite available (or created alongside the implementation)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

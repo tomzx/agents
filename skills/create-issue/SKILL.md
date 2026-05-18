@@ -12,6 +12,7 @@ Creates a structured GitHub issue in the specified repository with background, a
 
 - `gh` CLI authenticated with write access to the target repository
 - Repository name in `owner/repo` format (`$1`), or omitted to use the repository in the current working directory
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
 

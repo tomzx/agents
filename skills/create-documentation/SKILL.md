@@ -14,6 +14,7 @@ Produces documentation for a feature or component organized according to the [Di
 
 - Feature or component description provided in context or as `$1`
 - Access to the codebase, specification, or implementation (if available)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

@@ -12,6 +12,7 @@ Produces a structured implementation plan from a specification or requirements d
 
 - `.sdlc/features/<feature>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
 - Team size and velocity context (if available)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

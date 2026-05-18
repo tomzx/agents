@@ -11,6 +11,7 @@ Audits a test suite or test plan and reports findings across five categories: co
 
 - `.sdlc/features/<feature>/tests.md`, or a test suite/test plan provided in context or as a file path
 - `.sdlc/features/<feature>/requirements.md` (optional, improves coverage analysis)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

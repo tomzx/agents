@@ -13,6 +13,7 @@ Scores and ranks open GitHub issues using the RICE framework (Reach, Impact, Con
 
 - `gh` CLI authenticated with read access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to infer from the current working directory
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## RICE Scoring
 

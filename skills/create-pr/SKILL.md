@@ -15,6 +15,7 @@ Opens a GitHub pull request for the current branch with a structured description
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)
 - Tests passing locally before the PR is opened
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
 

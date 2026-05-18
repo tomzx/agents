@@ -12,6 +12,7 @@ Each task gets its own file under `.sdlc/features/<feature>/tasks/` with a uniqu
 ## Prerequisites
 
 - `.sdlc/features/<feature>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Task Sizing Guidelines
 

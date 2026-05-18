@@ -15,6 +15,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 - A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/<feature>/plan.md`; falls back to `plan.md` in the working directory)
 - Issue URL or number (`$1`)
 - Clean or committable working tree
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
 

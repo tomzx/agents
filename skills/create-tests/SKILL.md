@@ -13,6 +13,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 
 - `.sdlc/features/<feature>/requirements.md` and `.sdlc/features/<feature>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
 - Information about the testing stack (if available)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

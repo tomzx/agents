@@ -11,6 +11,7 @@ Audits an implementation plan and reports findings across five categories: compl
 
 - `.sdlc/features/<feature>/plan.md`, or an implementation plan provided in context or as a file path
 - `.sdlc/features/<feature>/specification.md` (optional, improves coverage analysis)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

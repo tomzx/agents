@@ -12,6 +12,7 @@ Fetches failing CI check logs for a pull request, diagnoses the root cause of ea
 
 - `gh` CLI authenticated with read/write access to the target repository
 - PR number (`$1`) identifying an open pull request with at least one failing CI check
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

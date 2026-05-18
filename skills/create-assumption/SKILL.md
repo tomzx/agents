@@ -14,6 +14,7 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 
 - An assumption that was made (implicitly or explicitly) during design or implementation
 - Enough context to assess its basis and risk
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

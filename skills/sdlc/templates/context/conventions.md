@@ -24,3 +24,17 @@
 ## Branching
 
 <Branch naming strategy, e.g. `feature/`, `fix/`, `chore/` prefixes.>
+
+## SDLC Documentation Style
+
+<!--
+Rules for how SDLC artifacts (requirements, specs, plans, etc.) should be written.
+Agents read this file before producing any artifact and apply these rules to their output.
+
+Example rules:
+- One sentence per line in markdown files for easier diff/review.
+- Use sentence case for headings, not title case.
+- Prefer bullet lists over prose paragraphs.
+-->
+
+<Describe artifact writing conventions here, or remove this section if none apply.>

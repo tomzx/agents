@@ -12,6 +12,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 
 - Code to review provided in context, as file paths to read, or as a diff
 - Specification or acceptance criteria (optional, improves alignment check)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

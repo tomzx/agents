@@ -20,6 +20,7 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ```
 Setup (run once per project)
   │
+  ├─ /bootstrap-sdlc              Bootstrap .sdlc/ structure and populate it with an existing project's content
   ├─ /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
   ├─ /update-sdlc-templates       Pull upstream template improvements, merge with user edits
   │
@@ -173,7 +174,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 | Phase | Start here when you have... |
 |---|---|
-| `setup` | A new project that needs the `.sdlc/` structure bootstrapped |
+| `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `bootstrap-sdlc`) |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `requirements` | An issue that has been reviewed and is ready to develop |
@@ -195,7 +196,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill.
+2. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
 3. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/<feature>/`, existing files, or context).
 4. Execute each sub-skill in order from the entry point to the end of the pipeline.
 5. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
@@ -244,6 +245,7 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
+| bootstrap-sdlc | Existing project root | `.sdlc/` directory tree + context files populated with real project content |
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | create-issue | Feature idea / bug description | Structured GitHub issue |

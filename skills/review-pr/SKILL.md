@@ -17,6 +17,7 @@ Conducts a comprehensive code review of a GitHub pull request, covering pre-revi
 - `ISSUES_DIR` environment variable set (resolved via `scripts/get-env ISSUES_DIR`)
 - PR number (`$1`) identifying an open pull request
 - `scripts/get-env` utility available
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

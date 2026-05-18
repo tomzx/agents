@@ -13,6 +13,7 @@ Evaluates a comment on a GitHub pull request and responds appropriately - either
 - `gh` CLI authenticated with write access to the target repository
 - PR URL (`$1`) pointing to an open pull request
 - Git push access to the PR branch
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
 

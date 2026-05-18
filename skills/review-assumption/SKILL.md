@@ -11,6 +11,7 @@ Audits an assumption record and reports findings across four categories: specifi
 ## Prerequisites
 
 - `.sdlc/knowledge/assumptions/NNNN-<slug>.md`, or an assumption document provided in context or as a file path
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

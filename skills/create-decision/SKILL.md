@@ -13,6 +13,7 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 
 - A concrete decision that was made (or needs to be made) during implementation
 - Enough context to explain the forces that shaped the decision
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

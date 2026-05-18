@@ -11,6 +11,7 @@ Audits a task decomposition and reports findings across five categories: granula
 
 - `.sdlc/features/<feature>/tasks/` directory containing individual task files, or task files provided in context
 - `.sdlc/features/<feature>/plan.md` (optional, improves completeness check)
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 
