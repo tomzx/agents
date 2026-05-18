@@ -18,6 +18,11 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ## Pipeline Overview
 
 ```
+Setup (run once per project)
+  │
+  ├─ /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
+  ├─ /update-sdlc-templates       Pull upstream template improvements, merge with user edits
+  │
 Idea / Brief
   │
   ├─ /create-issue           Create a structured GitHub issue
@@ -125,6 +130,22 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       │   └── NNNN-<slug>.md
 │       ├── tests.md
 │       └── questions.md           # Running log of open questions from all review phases
+├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
+│   ├── context/
+│   │   ├── project-overview.md
+│   │   ├── architecture.md
+│   │   └── conventions.md
+│   ├── features/
+│   │   ├── requirements.md
+│   │   ├── specification.md
+│   │   ├── plan.md
+│   │   ├── task.md                # Template for a single task file
+│   │   ├── tests.md
+│   │   └── questions.md
+│   └── knowledge/
+│       ├── assumption.md
+│       ├── decision.md
+│       └── learning.md
 └── knowledge/
     ├── assumptions/
     │   └── NNNN-<slug>.md         # Created by /create-assumption; one file per assumption
@@ -156,6 +177,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 | Phase | Start here when you have... |
 |---|---|
+| `setup` | A new project that needs the `.sdlc/` structure bootstrapped |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `requirements` | An issue that has been reviewed and is ready to develop |
@@ -226,6 +248,8 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
+| initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated |
+| update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | create-issue | Feature idea / bug description | Structured GitHub issue |
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | triage-issues | Open issues | Labeled, classified issues |
