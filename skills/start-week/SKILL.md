@@ -4,9 +4,9 @@ description: Opens the calendar week with themes, outcomes, and carryover from l
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-WEEK=`date +%V`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+WEEK=!`date +%V`
 
 # Start Week
 

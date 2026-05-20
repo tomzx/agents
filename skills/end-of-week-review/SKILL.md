@@ -4,10 +4,10 @@ description: Reflective end-of-week review covering goal progress, time and atte
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-WEEK=`date +%V`
-NEXT_WEEK=`date -d "next Monday" +%V`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+WEEK=!`date +%V`
+NEXT_WEEK=!`date -d "next Monday" +%V`
 
 # End-of-Week Review
 

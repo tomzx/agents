@@ -4,12 +4,12 @@ description: Opens the calendar month with a theme, monthly outcomes, and carryo
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-MONTH_NAME=`date +%B`
-PREV_MONTH=`date -d "last month" +%m`
-PREV_YEAR=`date -d "last month" +%Y`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+MONTH_NAME=!`date +%B`
+PREV_MONTH=!`date -d "last month" +%m`
+PREV_YEAR=!`date -d "last month" +%Y`
 
 # Start Month
 

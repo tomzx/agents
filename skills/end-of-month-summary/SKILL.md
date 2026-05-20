@@ -4,13 +4,13 @@ description: Summarize monthly GitHub activity, Slack activity, colleague activi
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-MONTH_NAME=`date +%B`
-MONTH_START=`date -d "$(date +%Y-%m-01)" +%Y-%m-%d`
-MONTH_START_MINUS_ONE=`date -d "$MONTH_START - 1 day" +%Y-%m-%d`
-NEXT_MONTH_START=`date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+MONTH_NAME=!`date +%B`
+MONTH_START=!`date -d "$(date +%Y-%m-01)" +%Y-%m-%d`
+MONTH_START_MINUS_ONE=!`date -d "$MONTH_START - 1 day" +%Y-%m-%d`
+NEXT_MONTH_START=!`date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d`
 
 # Generate End-of-Month Summary
 

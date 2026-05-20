@@ -4,10 +4,10 @@ description: Review notes from the past two weeks to determine what could be dem
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-DAY=`date +%d`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+DAY=!`date +%d`
 
 # Identify What to Demo
 

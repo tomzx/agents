@@ -4,10 +4,10 @@ description: Reflective end-of-day review that forces alignment between your wor
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-DAY=`date +%d`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+DAY=!`date +%d`
 
 # End-of-Day Review
 

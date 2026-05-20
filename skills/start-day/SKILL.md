@@ -4,10 +4,10 @@ description: Opens the workday by grounding priorities in yesterday's plan and g
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-DAY=`date +%d`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+DAY=!`date +%d`
 
 # Start Day
 

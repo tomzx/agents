@@ -4,12 +4,12 @@ description: Summarize weekly Slack activity, colleague activity, action items, 
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-WEEK=`date +%V`
-WEEK_START=`date -d "$(date +%Y-%m-%d) -$(( $(date +%u) - 1 )) days" +%Y-%m-%d`
-WEEK_START_MINUS_ONE=`date -d "$WEEK_START - 1 day" +%Y-%m-%d`
-TOMORROW=`date -d "tomorrow" +%Y-%m-%d`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+WEEK=!`date +%V`
+WEEK_START=!`date -d "$(date +%Y-%m-%d) -$(( $(date +%u) - 1 )) days" +%Y-%m-%d`
+WEEK_START_MINUS_ONE=!`date -d "$WEEK_START - 1 day" +%Y-%m-%d`
+TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
 
 # Generate End-of-Week Summary
 

@@ -4,13 +4,13 @@ description: Summarize GitHub activity, Slack activity, and overall activity for
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YESTERDAY=`date -d "yesterday" +%Y-%m-%d`
-TOMORROW=`date -d "tomorrow" +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-DAY=`date +%d`
-NEXT_WORKDAY=`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "tomorrow")" +%Y-%m-%d`
+TODAY=!`date +%Y-%m-%d`
+YESTERDAY=!`date -d "yesterday" +%Y-%m-%d`
+TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+DAY=!`date +%d`
+NEXT_WORKDAY=!`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "tomorrow")" +%Y-%m-%d`
 
 # Generate End-of-Day Summary
 

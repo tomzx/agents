@@ -4,12 +4,12 @@ description: Reflective end-of-month review covering OKR/goal progress, time all
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=`date +%Y-%m-%d`
-YEAR=`date +%Y`
-MONTH=`date +%m`
-MONTH_NAME=`date +%B`
-PREV_MONTH=`date -d "last month" +%m`
-PREV_MONTH_NAME=`date -d "last month" +%B`
+TODAY=!`date +%Y-%m-%d`
+YEAR=!`date +%Y`
+MONTH=!`date +%m`
+MONTH_NAME=!`date +%B`
+PREV_MONTH=!`date -d "last month" +%m`
+PREV_MONTH_NAME=!`date -d "last month" +%B`
 
 # End-of-Month Review
 
