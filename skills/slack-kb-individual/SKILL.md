@@ -1,3 +1,11 @@
+---
+name: slack-kb-individual
+description: >-
+  Collect all Slack conversations a specific person participated in during a
+  date range. Useful for performance reviews, 1:1 prep, or building a picture
+  of someone's contributions. Outputs JSONL via the Slack API.
+---
+
 # Individual Slack activity collector
 
 Use when collecting all Slack conversations a specific person participated in during a date range — useful for performance reviews, 1:1 prep, or building a picture of someone's contributions.

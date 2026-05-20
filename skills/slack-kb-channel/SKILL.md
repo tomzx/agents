@@ -1,3 +1,11 @@
+---
+name: slack-kb-channel
+description: >-
+  Build or update a Slack channel knowledge base for a given month. Works for
+  any accessible channel given its Slack channel id. Ingests threads via the
+  Slack API and produces temporal monthly memory files.
+---
+
 # Slack channel knowledge base
 
 Use when building or updating a **Slack channel** knowledge base for a given month. Works for any channel you have access to; you need its **Slack channel id** (starts with `C` for public channels).
@@ -22,7 +30,7 @@ Do **not** add a separate `-threads.md` or other companion KB files for the same
 - Thread identity in memory is **`thread_ts`** (and **channel id** when the slug alone is ambiguous). People re-open discussions in Slack using those ids.
 - When merging new facts from Slack, update the single monthly file under `memory/temporal/` only; do not add “see file X in folder Y” for raw captures.
 
-**Theme-organized views** (merged across months, grouped by topic) are maintained separately — see the [`kb-organized-memory`](../slack-kb-organized-memory/SKILL.md) skill.
+**Theme-organized views** (merged across months, grouped by topic) are maintained separately — see the [`kb-organized-memory`](../kb-organized-memory/SKILL.md) skill.
 
 ---
 
@@ -57,4 +65,4 @@ uv run skills/slack-kb-channel/build_thread_kb.py --channel <CHANNEL_ID> \
 2. Treat reply permalinks as **non-parent** timestamps when scraping; the script uses channel roots only.
 3. Optional: commit or ignore `memory/temporal/thread-fetch-*.jsonl` and `memory/temporal/extracted-thread-ts-*-valid.txt` per your hygiene.
 4. Refresh **`memory/temporal/<channel-slug>-YYYY-MM.md`**: themes and **Thread-derived findings** (with `thread_ts` where useful). Do **not** add a full thread index table to the memory file.
-5. When themes should span months, refresh the organized output per [`kb-organized-memory`](../slack-kb-organized-memory/SKILL.md).
+5. When themes should span months, refresh the organized output per [`kb-organized-memory`](../kb-organized-memory/SKILL.md).
