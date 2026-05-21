@@ -38,7 +38,7 @@ Before creating an issue with `gh issue create`, read [`github-post-attribution/
 
    # Version
 
-   <version reported by user for bug reports, or current default-branch version for feature requests> (omit for issues that are neither)
+   <version reported by user for bug reports, or current default-branch version for feature requests — do NOT wrap in backticks; write it as plain text so GitHub renders it as a commit link> (omit for issues that are neither)
 
    # Acceptance Criteria
 
