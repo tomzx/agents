@@ -38,17 +38,19 @@ Using the information gathered, write the article according to the structure bel
 - Under current needs, be specific: name the blocker, the person whose input is needed, or the resource required
 - Avoid vague language ("working on various things", "need more support") -- name the thing
 - Omit the needs section entirely if the user has none
+- Use the same formatting style for both sections. If one section uses bold lead paragraphs, the other should too. Do not mix lists and paragraphs.
+- When mentioning named tools, skills, or projects that have a public URL, link to them on first mention.
 
 ### 4. Confirm and Deliver
 
 Present the draft to the user. Ask if anything should be added, removed, or reworded before finalizing.
 
-Output the final article as clean markdown, ready to paste into a blog or document.
+Save the final article to a file in the blog repository. Create a directory named after the slugified title containing an `index.md` file. Follow the naming and frontmatter conventions of recent articles in the repository (check the most recent directories for title, created date, type, status, tags, and readability fields).
 
 ## Article Structure
 
 ```markdown
-# [Title: personal, specific -- e.g. "Where I am: late May 2026"]
+# [Title: personal, specific -- e.g. "What I've built and what I need: May 2026"]
 
 [Lead: 1-2 sentences framing the period and its defining theme. Skip if nothing stands out.]
 
