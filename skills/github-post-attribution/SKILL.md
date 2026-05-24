@@ -71,6 +71,10 @@ Posted with [handle-pr-feedback](https://github.com/owner/repo/blob/abc1234.../s
 
 Link text in brackets must match the **invoking** skill’s `SKILL_DIR` (except quick-pr-review, which uses the fixed label `quick-pr-review`).
 
+## Shell escaping: do NOT backslash-escape backticks
+
+Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` — write `(`abc1234`)` with plain backticks. Resolve `SKILL_SHORT_SHA` to the actual 7-char SHA before constructing the command.
+
 ## Notes
 
 - **No package manager**: skills do not declare dependencies in YAML; consuming skills must **read** this file (or follow a one-line pointer in their own `SKILL.md`) so the agent loads the procedure.
