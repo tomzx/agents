@@ -1,5 +1,5 @@
 ---
-name: article-writer
+name: write-article
 description: Write a high-quality article given a target audience and relevant sources. Produces a structured, well-researched article tailored to the audience's knowledge level and interests.
 ---
 
