@@ -1,5 +1,5 @@
 ---
-name: recent-work-and-needs
+name: write-recent-work-and-needs-article
 description: Write a personal status article covering what you have been working on recently and what you currently need. Draws from notes, goals, and action items, then uses write-article to produce a polished piece.
 ---
 
