@@ -1,80 +1,54 @@
 ---
 name: write-recent-work-and-needs-article
-description: Write a personal status article covering what you have been working on recently and what you currently need. Draws from notes, goals, and action items, then uses write-article to produce a polished piece.
+description: Write a personal status article covering what you have been working on recently and what you currently need. Gathers information from the user through conversation, then produces a polished blog-ready piece.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-DAY=!`date +%d`
-WEEK=!`date +%V`
+# Write Recent Work and Needs Article
 
-# Recent Work and Needs
-
-Produces a personal status article with two sections: what you have been working on recently, and what you see as your current needs. Useful for standup context, manager syncs, personal reflection, or sharing with collaborators.
-
-## Prerequisites
-
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `scripts/get-env` utility available
-- Optional: `{BASE_DIR}/goals.md` with current personal goals
-- Optional: `{BASE_DIR}/team-goals.md` with current team goals
-- Optional: daily note files from the past two weeks in `{BASE_DIR}/{YEAR}/{MONTH}/`
-- Optional: `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`
+Produces a personal status article with two sections: what you have been working on recently, and what you see as your current needs. Useful for blog posts, manager syncs, team updates, or personal reflection.
 
 ## Steps
 
 ### 1. Gather Recent Work
 
-Read daily note files from the past two weeks in `{BASE_DIR}/{YEAR}/{MONTH}/` (and the prior month's folder if the two-week window crosses a month boundary). Look for:
+Ask the user:
 
-- Features completed or shipped
-- Problems investigated or resolved
-- Significant decisions made
-- Code or systems changed
-- Collaborations and meetings with material outcomes
+> "What have you been working on recently? List anything significant from the past few weeks: features shipped, problems solved, decisions made, investigations, collaborations."
 
-Discard routine administrative activity (recurring standups, calendar management) unless it produced a notable outcome.
+Prompt for specifics if the response is vague:
+- What was the outcome, not just the activity?
+- What changed or was delivered?
+- Anything that surprised you or turned out harder than expected?
 
 ### 2. Gather Current Needs
 
-Read if they exist:
-- `{BASE_DIR}/goals.md`
-- `{BASE_DIR}/team-goals.md`
-- `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`
+Ask the user:
 
-From this context, identify:
+> "What do you currently need? Think about: blockers waiting on someone else, decisions that haven't been made, resources or access you're missing, areas where the goal or approach is still unclear."
 
-- Blockers: things that cannot move forward without external input, a decision, or a dependency resolving
-- Resources: tools, access, people, or time that would meaningfully accelerate current work
-- Clarity gaps: areas where the goal, scope, or approach is still ambiguous
-- Support: collaboration or review that is needed from specific people
-
-Ask the user: "Are there any current needs I should include that aren't in your notes?"
+Prompt for specifics if the response is vague:
+- Who needs to act for the blocker to clear?
+- What exactly is ambiguous, and what would clarity enable?
 
 ### 3. Produce the Article
 
-Use the `write-article` skill with the following inputs:
-
-- **Target audience**: The user's intended reader (ask if not obvious from context; default to "a direct collaborator or manager")
-- **Topic**: Personal work status covering recent activity and current needs
-- **Sources**: The synthesized notes from steps 1 and 2, plus any additional input from the user
-
-Apply `write-article`'s quality criteria. In particular:
+Using the information gathered, write the article according to the structure below.
 
 - Open with the most significant or interesting recent work, not a chronological list
 - Under current needs, be specific: name the blocker, the person whose input is needed, or the resource required
 - Avoid vague language ("working on various things", "need more support") -- name the thing
+- Omit the needs section entirely if the user has none
 
-### 4. Write Output
+### 4. Confirm and Deliver
 
-Write the finished article to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.recent-work-and-needs.md`.
+Present the draft to the user. Ask if anything should be added, removed, or reworded before finalizing.
+
+Output the final article as clean markdown, ready to paste into a blog or document.
 
 ## Article Structure
 
 ```markdown
-# [Title: personal, specific, not generic -- e.g. "Where I am: week of 2026-05-24"]
+# [Title: personal, specific -- e.g. "Where I am: late May 2026"]
 
 [Lead: 1-2 sentences framing the period and its defining theme. Skip if nothing stands out.]
 
@@ -94,28 +68,21 @@ Omit this section entirely if there are no real needs right now.]
 
 ## Quality Criteria
 
-Apply `write-article` quality criteria plus:
-
 - Every need should be specific enough that someone reading it knows what to do
 - Recent work should show outputs and decisions, not just effort
 - The article should be useful to someone who has not spoken to you in two weeks
+- Open with the most interesting or important thing, not background
+- Use concrete examples, numbers, or comparisons to anchor abstract points
+- Avoid padding: no "In today's fast-paced world..." or "It's important to note that..."
+- Avoid em-dash sentence structures; use commas or parentheses instead
 
 ## Example Usage
 
 **Scenario 1: Manager sync**
-Two weeks of notes, goals file present, one open blocker. Output: a three-paragraph article naming the shipped feature, the investigation underway, and a specific request for a decision on scope.
+User describes shipping a feature and one open blocker waiting on a team decision. Output: a focused article naming what shipped, what is in progress, and a specific ask for the decision.
 
 **Scenario 2: Quiet period**
-Light notes, no blockers. Output: honest brief summary of maintenance work done, no needs section.
+User reports mostly maintenance and no blockers. Output: honest brief summary of maintenance work done, no needs section.
 
 **Scenario 3: Many open threads**
-Five parallel workstreams. Output: groups related items into two or three themes rather than listing all five separately, with needs section calling out the one critical blocker.
-
-## Useful Commands Reference
-
-| Command | Description |
-|---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
-| `date +%Y-%m-%d` | Get today's date |
-| `date +%V` | Get the ISO week number |
-| `date +%m` | Get current month |
+User lists five workstreams. Output: groups related items into two or three themes rather than listing all five separately.
