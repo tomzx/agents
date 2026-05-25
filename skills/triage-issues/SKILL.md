@@ -233,8 +233,8 @@ When duplicates are detected:
 Comment format for duplicate detection (when `has_triage` is true):
 ```
 Potential duplicates:
-1. #<original1> - <title1>
-2. #<original2> - <title2>
+1. #<original1>
+2. #<original2>
 
 This issue will be automatically closed as a duplicate in 3 days.
 
@@ -245,8 +245,8 @@ To prevent auto-closure, add a comment or 👎 this comment
 Comment format for duplicate suggestions (when `has_triage` is false):
 ```
 Potential duplicates:
-1. #<original1> - <title1>
-2. #<original2> - <title2>
+1. #<original1>
+2. #<original2>
 
 This issue appears to be a duplicate of the above.
 If this is a duplicate, consider closing this issue and 👍 the existing issue instead.
