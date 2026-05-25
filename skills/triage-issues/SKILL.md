@@ -215,7 +215,9 @@ Apply `needs-info` alongside posting a clarification comment. Remove `needs-info
 
 ### Duplicate Detection
 
-Compare each untriaged issue against all other issues (open and closed) to identify potential duplicates. This check runs regardless of write permissions, as posting duplicate-suggestion comments requires only comment access (which is typically available even without triage perms on public repos).
+Before running duplicate detection on an issue, check its existing comments for a prior duplicate comment from the current authenticated user or any bot account. If one already exists, skip duplicate detection entirely for that issue.
+
+Compare each remaining untriaged issue against all other issues (open and closed) to identify potential duplicates. This check runs regardless of write permissions, as posting duplicate-suggestion comments requires only comment access (which is typically available even without triage perms on public repos).
 
 Detection signals (weigh multiple signals together; require at least 2 to flag):
 - Very similar titles (high word overlap after removing stop words)
@@ -367,7 +369,8 @@ Use the closest match from the repo's label set.
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
      - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
 12. Duplicate detection (runs regardless of `has_triage`):
-    - Compare each untriaged issue against all other issues (open and closed):
+    - For each issue, before running detection, check its existing comments for a prior duplicate comment from the current authenticated user or any bot account. If found, skip duplicate detection entirely for that issue.
+    - Compare each remaining untriaged issue against all other issues (open and closed):
       ```
       gh-cached issue list [--repo $1] --state all --json
       ```
