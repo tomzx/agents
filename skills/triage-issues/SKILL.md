@@ -1,13 +1,13 @@
 ---
 name: triage-issues
-description: Classify and label incoming GitHub issues by type, urgency, and importance.
+description: Classify and label incoming GitHub issues by type, component, platform, provider, urgency, and importance.
 allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
 argument-hint: "[repository]"
 ---
 
 # Triage Issues
 
-Reviews open, unlabeled issues in a GitHub repository and classifies each by type, urgency, and importance.
+Reviews open, unlabeled issues in a GitHub repository and classifies each across multiple dimensions: type, area, platform, provider, severity qualifiers, urgency, and importance.
 Applies labels and posts a clarification comment when an issue lacks enough information to classify.
 
 ## Prerequisites
@@ -22,11 +22,15 @@ Applies labels and posts a clarification comment when an issue lacks enough info
 List open issues (unlabeled/untriaged)
             |
             v
+Fetch repo metadata (labels, issue types, fields)
+            |
+            v
   For each issue:
     Read title + description + comments
             |
             v
-  Classify: type / urgency / importance
+  Classify: type / area / platform / provider
+            / severity / repro / urgency / importance
             |
             v
   Sufficient info?
@@ -34,12 +38,32 @@ List open issues (unlabeled/untriaged)
    Yes            No
     |              |
     v              v
-Apply labels   Request clarification
-               via comment
+Apply labels   Apply needs-info / needs-repro
+               + post clarification comment
             |
             v
   Output triage summary
 ```
+
+## Label Discovery
+
+All dimensional labels (area, platform, provider, perf) are repo-specific and must be discovered from the repository's existing labels before classification begins.
+
+Fetch the repository's labels once during setup:
+```
+gh label list [--repo <repo>] --limit 100 --json name,description
+```
+
+Build a label catalog by recognizing prefixed namespaces and descriptive labels:
+
+| Dimension | Detection Heuristics | Examples |
+|---|---|---|
+| Area | `area:*` or `component:*` prefix, or description containing `component` | `area:core`, `area:ui`, `component: server` |
+| Platform | `platform:*` prefix | `platform:windows`, `platform:macos`, `platform:linux` |
+| Provider | `api:*` prefix | `api:bedrock`, `api:vertex`, `api:anthropic` |
+| Performance | `perf:*` prefix | `perf:memory`, `perf:cpu`, `perf:reliability` |
+
+Also detect these functional labels if they exist in the repo: `needs-info`, `needs-repro`, `has-repro`, `regression`, `data-loss`, `stale`, `duplicate`, `invalid`.
 
 ## Classification
 
@@ -79,6 +103,82 @@ Set the issue type via REST API (accepts the type name as a string):
 echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
 ```
 
+### Area Labels
+
+For large or monolithic repositories, the area an issue relates to is the most actionable classification.
+Areas are discovered from the repo's `area:*` or `component:*` prefixed labels during setup.
+
+Map the issue's content to the best-matching area label(s):
+- File paths in stack traces or reproduction steps (e.g., `src/server/` -> `area:api`, `extensions/vscode/` -> `area:vscode`)
+- Explicit mentions of a subsystem or product surface
+- Keywords like "dialog", "menu", "panel", "button" -> `area:ui`
+- Keywords like "endpoint", "response", "request", "API" -> `area:api`
+- Keywords like "extension", "plugin", "add-on" -> `area:plugins` or `area:vscode`
+- Keywords like "install", "setup", "getting started" -> `area:installation`
+- Keywords like "login", "auth", "token", "credential" -> `area:auth`
+- Keywords like "permission", "access", "sandbox" -> `area:permissions`
+
+Apply **at most 2 area labels** per issue. If no area can be determined with reasonable confidence, skip area labeling rather than guessing.
+
+### Platform Labels
+
+Detect the operating system or runtime environment from the issue content.
+Only apply if the repo has matching `platform:*` labels.
+
+Detection signals:
+- OS mentions: "Windows", "macOS", "Linux", "Ubuntu", "Fedora", "WSL"
+- IDE mentions: "VS Code", "IntelliJ", "JetBrains", "Neovim", "Vim"
+- Environment mentions: "Docker", "CI", "GitHub Actions"
+- Mobile mentions: "iOS", "Android"
+- Browser mentions: "Chrome", "Firefox", "Safari", "web"
+- Error messages containing OS-specific paths (e.g., `C:\Users\` -> Windows, `/Users/` -> macOS, `/home/` -> Linux)
+
+Apply **at most 2 platform labels** per issue. Only apply when there is clear evidence, not speculation.
+
+### Provider Labels
+
+For multi-provider/multi-backend projects, detect which API provider or backend the issue involves.
+Only apply if the repo has matching `api:*` labels.
+
+Detection signals:
+- Explicit provider names: "Bedrock", "Vertex", "OpenAI", "Anthropic", "Azure", "GCP", "AWS"
+- Configuration snippets referencing a provider (e.g., `--provider bedrock`, `ANTHROPIC_API_KEY`)
+- Error messages containing provider-specific identifiers or endpoints
+
+### Severity Qualifier Labels
+
+Optional labels that escalate a bug beyond its base classification.
+Only apply if they exist in the repo's label set.
+
+| Label | Criteria | Detection Signals |
+|---|---|---|
+| `regression` | Functionality that used to work but broke | "used to work", "was fine before", "broke after update", "after upgrading", "previous version", bisect mentions |
+| `data-loss` | User data is lost or corrupted | "lost my", "data gone", "file deleted", "corrupted", "overwritten", "wiped" |
+
+### Reproduction Labels
+
+Track whether a bug has actionable reproduction information.
+Only apply if they exist in the repo's label set.
+
+| Label | Criteria |
+|---|---|
+| `has-repro` | Bug report includes clear, detailed reproduction steps |
+| `needs-repro` | Bug report lacks reproduction steps needed to investigate |
+
+Apply `has-repro` when the issue contains numbered steps, code snippets, or commands that reliably reproduce the problem.
+Apply `needs-repro` when a bug is reported but lacks sufficient reproduction information.
+
+### Triage State Labels
+
+Track issues that need follow-up from reporters.
+Only apply if they exist in the repo's label set.
+
+| Label | Criteria |
+|---|---|
+| `needs-info` | Issue is too vague to classify or act on |
+
+Apply `needs-info` alongside posting a clarification comment. Remove `needs-info` once the reporter provides sufficient detail (on re-triage).
+
 ### Urgency Labels
 
 | Label | Criteria |
@@ -104,6 +204,13 @@ Derive a priority from the urgency and importance classification.
 | `not-urgent` | `important` | High |
 | `not-urgent` | `not-important` | Medium |
 
+Priority can be set via two mechanisms (try in order):
+
+1. **Org-level Priority field** (preferred): Discover via GraphQL and set with `setIssueFieldValue` mutation.
+2. **Priority labels** (fallback): If the repo has `high-priority`, `medium-priority`, `low-priority` labels, apply the matching label.
+
+#### Org-level Priority Field
+
 Priority is an organization-level issue field (not a project field).
 Discover available fields and their option IDs via GraphQL:
 
@@ -117,7 +224,20 @@ If a field named "Priority" exists, set it using the `setIssueFieldValue` GraphQ
 gh api graphql -f query='mutation($issueId: ID!, $fieldId: ID!, $optionId: ID!) { setIssueFieldValue(input: { issueId: $issueId, issueFields: [{ fieldId: $fieldId, singleSelectOptionId: $optionId }] }) { issue { issueFieldValues(first: 10) { nodes { ... on IssueFieldValueSingleSelect { name field { ... on IssueFieldSingleSelect { name } } } } } } } }' -f issueId=<ISSUE_NODE_ID> -f fieldId=<PRIORITY_FIELD_ID> -f optionId=<OPTION_ID>
 ```
 
-If no Priority field exists on the repository, skip this step.
+If no Priority field exists on the repository, fall back to priority labels.
+
+#### Priority Labels
+
+Map the derived priority to the repo's priority labels:
+
+| Derived Priority | Label (preferred) | Alternatives |
+|---|---|---|
+| Urgent | `high-priority` | `priority:high`, `P0` |
+| High | `high-priority` | `priority:high`, `P1` |
+| Medium | `med-priority` | `priority:medium`, `P2` |
+| Low | `low-priority` | `priority:low`, `P3` |
+
+Use the closest match from the repo's label set.
 
 ## Steps
 
@@ -126,38 +246,48 @@ If no Priority field exists on the repository, skip this step.
    gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'
    ```
    Store the issue type name-to-ID map and the Priority field ID with its option ID-to-name map.
-2. List open issues that need triage:
+2. Fetch the repository's labels to build the label catalog (once, before processing issues):
+   ```
+   gh label list [--repo $1] --limit 100 --json name,description
+   ```
+   Parse labels into the dimension catalogs described in the Label Discovery section.
+3. List open issues that need triage:
    ```
    gh-cached issue list [--repo $1] --state open --limit 50
    ```
-3. For each issue, read its full description and comments.
-4. Classify the issue using the tables above (type, urgency, importance, priority).
-5. If the issue is too vague to classify, post a comment asking for: steps to reproduce (bugs), use case details (features), or more context.
-6. Apply the appropriate labels:
+4. For each issue, read its full description and comments.
+5. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, urgency, importance, priority.
+6. If the issue is too vague to classify:
+   - Apply `needs-info` label (if available)
+   - For bugs without repro steps, apply `needs-repro` label (if available)
+   - Post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
+7. Apply the appropriate labels:
    ```
-   gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<urgency>" --add-label "<importance>"
+   gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
-7. Set the GitHub Issue Type via REST API (if a matching type is available):
+   Only include labels for dimensions where a match was found.
+8. Set the GitHub Issue Type via REST API (if a matching type is available):
    ```
    echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
    ```
-8. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 1):
+9. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 1), or fall back to priority labels:
    - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
    - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
    - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
-9. Output a triage summary table.
+10. Output a triage summary table.
 
 ## Output Format
 
 ```markdown
 ## Triage Summary
 
-| Issue | Title | Type | Issue Type | Urgency | Importance | Priority | Action |
-|---|---|---|---|---|---|---|---|
-| #42 | Login crash on mobile | bug | Bug | urgent | important | Urgent | Labeled, type set, priority set |
-| #43 | Add dark mode | feature | Feature | not-urgent | not-important | Medium | Labeled, type set, priority set |
-| #44 | How do I reset password? | question | Task | not-urgent | not-important | Medium | Labeled, type set |
-| #45 | Something broke | bug | - | - | - | - | Comment posted |
+| Issue | Title | Type | Area | Platform | Provider | Severity | Repro | Priority | Action |
+|---|---|---|---|---|---|---|---|---|---|
+| #42 | Login crash on mobile | bug | area:ui | platform:ios | - | - | has-repro | Urgent | Labeled, type set, priority set |
+| #43 | Files deleted after update | bug | area:core | platform:macos | - | data-loss, regression | has-repro | Urgent | Labeled, type set, priority set |
+| #44 | Add dark mode | feature | area:ui | - | - | - | - | Medium | Labeled, type set, priority set |
+| #45 | Bedrock request timeout | bug | area:api | - | api:bedrock | - | has-repro | High | Labeled, type set, priority set |
+| #46 | Something broke | bug | - | platform:windows | - | - | needs-repro | - | needs-info, needs-repro applied, comment posted |
 ```
 
 ## Example Usage
@@ -166,19 +296,26 @@ If no Priority field exists on the repository, skip this step.
 ```
 /triage-issues owner/myrepo
 ```
-Lists all open issues, classifies each, and applies type + urgency + importance labels.
+Lists all open issues, classifies each, and applies type + area + platform + provider + urgency + importance labels.
 
 **Scenario 2: Vague bug report**
 ```
 /triage-issues
 ```
-Issue #10 says "it doesn't work." Post comment: "Could you describe the expected behavior, what you observed instead, and the steps to reproduce?"
+Issue #10 says "it doesn't work." Apply `needs-info` and `needs-repro` labels, then post comment: "Could you describe the expected behavior, what you observed instead, and the steps to reproduce?"
+
+**Scenario 3: Regression with data loss**
+```
+/triage-issues
+```
+Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bug, apply `regression`, `data-loss`, and `has-repro` labels. Assign Urgent priority.
 
 ## Useful Commands Reference
 
 | Command | Description |
 |---|---|
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
+| `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
 | `gh-cached issue list [--repo <repo>] --state open --limit 50` | List open issues (cached) |
 | `gh-cached issue view <number> [--repo <repo>] --comments` | Read issue details and comments (cached) |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get issue node ID for GraphQL mutations |
