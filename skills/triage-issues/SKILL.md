@@ -181,12 +181,16 @@ Apply `needs-info` alongside posting a clarification comment. Remove `needs-info
 
 ### Urgency Labels
 
+Only apply urgency labels to issues in **private repositories**. Skip urgency classification for public repositories.
+
 | Label | Criteria |
 |---|---|
 | `urgent` | Blocking production or multiple users right now |
 | `not-urgent` | Can be scheduled without immediate impact |
 
 ### Importance Labels
+
+Only apply importance labels to issues in **private repositories**. Skip importance classification for public repositories.
 
 | Label | Criteria |
 |---|---|
@@ -195,7 +199,7 @@ Apply `needs-info` alongside posting a clarification comment. Remove `needs-info
 
 ### Priority Mapping
 
-Derive a priority from the urgency and importance classification.
+Derive a priority from the urgency and importance classification. For public repositories (where urgency and importance are not set), classify priority directly from the issue content.
 
 | Urgency | Importance | Priority |
 |---|---|---|
@@ -241,40 +245,45 @@ Use the closest match from the repo's label set.
 
 ## Steps
 
-1. Fetch the repository's available issue types and issue fields (once, before processing issues):
+1. Determine the repository's visibility (private or public):
+   ```
+   gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'
+   ```
+   Store the result as `is_private`. Urgency and importance classification are only performed for private repositories. Priority is classified for all repositories.
+2. Fetch the repository's available issue types and issue fields (once, before processing issues):
    ```
    gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'
    ```
    Store the issue type name-to-ID map and the Priority field ID with its option ID-to-name map.
-2. Fetch the repository's labels to build the label catalog (once, before processing issues):
+3. Fetch the repository's labels to build the label catalog (once, before processing issues):
    ```
    gh label list [--repo $1] --limit 100 --json name,description
    ```
    Parse labels into the dimension catalogs described in the Label Discovery section.
-3. List open issues that need triage:
+4. List open issues that need triage:
    ```
    gh-cached issue list [--repo $1] --state open --limit 50
    ```
-4. For each issue, read its full description and comments.
-5. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, urgency, importance, priority.
-6. If the issue is too vague to classify:
+5. For each issue, read its full description and comments.
+6. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
+7. If the issue is too vague to classify:
    - Apply `needs-info` label (if available)
    - For bugs without repro steps, apply `needs-repro` label (if available)
    - Post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
-7. Apply the appropriate labels:
+8. Apply the appropriate labels:
    ```
    gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
-   Only include labels for dimensions where a match was found.
-8. Set the GitHub Issue Type via REST API (if a matching type is available):
+   Only include labels for dimensions where a match was found. Omit urgency and importance labels for public repositories.
+9. Set the GitHub Issue Type via REST API (if a matching type is available):
    ```
    echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
    ```
-9. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 1), or fall back to priority labels:
-   - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
-   - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
-   - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
-10. Output a triage summary table.
+10. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
+    - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
+    - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
+    - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
+11. Output a triage summary table.
 
 ## Output Format
 
@@ -314,6 +323,7 @@ Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bu
 
 | Command | Description |
 |---|---|
+| `gh repo view [--repo <repo>] --json isPrivate --jq '.isPrivate'` | Check if repository is private |
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
 | `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
 | `gh-cached issue list [--repo <repo>] --state open --limit 50` | List open issues (cached) |
