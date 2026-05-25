@@ -37,7 +37,7 @@ Fetch repo metadata (labels, issue types, fields)
             / severity / repro / urgency / importance
             |
             v
-  Sufficient info?
+   Sufficient info?
      /          \
    Yes            No
     |              |
@@ -46,6 +46,19 @@ Apply labels   Apply needs-info / needs-repro
                + post clarification comment
             |
             v
+   Check for duplicates
+            |
+            v
+   Duplicates found?
+      /          \
+    Yes            No
+     |              |
+     v              |
+Apply duplicate    |
+label (if perms)   |
++ post comment     |
+     |              |
+     v              v
   Output triage summary
 ```
 
@@ -200,6 +213,45 @@ Only apply if they exist in the repo's label set.
 
 Apply `needs-info` alongside posting a clarification comment. Remove `needs-info` once the reporter provides sufficient detail (on re-triage).
 
+### Duplicate Detection
+
+Compare each untriaged issue against all other issues (open and closed) to identify potential duplicates. This check runs regardless of write permissions, as posting duplicate-suggestion comments requires only comment access (which is typically available even without triage perms on public repos).
+
+Detection signals (weigh multiple signals together; require at least 2 to flag):
+- Very similar titles (high word overlap after removing stop words)
+- Same stack trace or error message
+- Same reproduction steps or code snippets
+- Same file paths or function names in error context
+- Reporter explicitly mentions "same issue as #NNN"
+
+Report at most 5 potential duplicates per issue (sorted by similarity, strongest match first).
+
+When duplicates are detected:
+1. If `has_triage` is true: apply the `duplicate` label (if available) to the newer issue, and post a duplicate comment with auto-closure notice.
+2. If `has_triage` is false: post a suggestion comment listing the potential duplicates, framed as a suggestion rather than authoritative classification.
+
+Comment format for duplicate detection (when `has_triage` is true):
+```
+Potential duplicates:
+1. #<original1> - <title1>
+2. #<original2> - <title2>
+
+This issue will be automatically closed as a duplicate in 3 days.
+
+If your issue is a duplicate, please close it and 👍 the existing issue instead
+To prevent auto-closure, add a comment or 👎 this comment
+```
+
+Comment format for duplicate suggestions (when `has_triage` is false):
+```
+Potential duplicates:
+1. #<original1> - <title1>
+2. #<original2> - <title2>
+
+This issue appears to be a duplicate of the above.
+If this is a duplicate, consider closing this issue and 👍 the existing issue instead.
+```
+
 ### Urgency Labels
 
 Only apply urgency labels to issues in **private repositories**. Skip urgency classification for public repositories.
@@ -271,10 +323,11 @@ Use the closest match from the repo's label set.
    gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'
    gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'
    ```
-   Store `is_private` (urgency and importance are only classified for private repos). Compute two access flags:
+   Store `is_private` (urgency and importance are only classified for private repos). Compute three access flags:
    - `has_push` = `push` or `admin` or `maintain` is true. Gates label creation.
-   - `has_triage` = any of `push`, `triage`, `admin`, or `maintain` is true. Gates label application, comment posting, issue type setting, and priority setting.
-   If `has_triage` is false, output a read-only triage summary and skip all write operations.
+   - `has_triage` = any of `push`, `triage`, `admin`, or `maintain` is true. Gates label application, issue type setting, and priority setting.
+   - `can_comment` = `has_triage` is true, OR the repository is public (anyone can comment on public repos). Gates comment posting and duplicate-suggestion comments.
+   If `has_triage` is false and `can_comment` is false, output a read-only triage summary and skip all write operations including comments. If `has_triage` is false but `can_comment` is true, skip label/type/priority operations but still post duplicate-suggestion comments and needs-info clarification comments.
 2. Fetch the repository's available issue types and issue fields (once, before processing issues):
    ```
    gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'
@@ -297,11 +350,10 @@ Use the closest match from the repo's label set.
    gh label create "area:<name>" [--repo $1] --description "<short description>" --color "<hex>"
    ```
     Add the new label to the label catalog for reuse. Only create when confident in the area classification. If `has_push` is false, skip creation and note the missing label in the triage summary instead.
- 8. If the issue is too vague to classify and `has_triage` is true:
-   - Apply `needs-info` label (if available)
-   - For bugs without repro steps, apply `needs-repro` label (if available)
-   - Post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
-9. If `has_triage` is true, apply the appropriate labels:
+ 8. If the issue is too vague to classify:
+    - If `has_triage` is true: apply `needs-info` label (if available), and for bugs without repro steps apply `needs-repro` label (if available)
+    - If `can_comment` is true: post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
+ 9. If `has_triage` is true, apply the appropriate labels:
    ```
    gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
@@ -313,21 +365,33 @@ Use the closest match from the repo's label set.
 11. If `has_triage` is true, set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
     - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
-    - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
-12. Output a triage summary table.
+     - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
+12. Duplicate detection (runs regardless of `has_triage`):
+    - Compare each untriaged issue against all other issues (open and closed):
+      ```
+      gh-cached issue list [--repo $1] --state all --json
+      ```
+    - Use the detection signals from the Duplicate Detection section (require at least 2 signals to flag)
+    - For each potential duplicate pair (newer issue -> older/original issue):
+      - If `has_triage` is true: apply `duplicate` label to the newer issue (if the label exists in the repo) and post a comment linking to the original
+      - If `has_triage` is false but `can_comment` is true: post a suggestion comment on the newer issue (framed as a suggestion, not authoritative)
+      - If `can_comment` is false: note the potential duplicate in the triage summary only
+    - Skip issues that already have a `duplicate` label or where a maintainer has already linked them
+13. Output a triage summary table.
 
 ## Output Format
 
 ```markdown
 ## Triage Summary
 
-| Issue | Title | Type | Area | Platform | Provider | Severity | Repro | Priority | Action |
-|---|---|---|---|---|---|---|---|---|---|
-| #42 | Login crash on mobile | bug | area:ui | platform:ios | - | - | has-repro | Urgent | Labeled, type set, priority set |
-| #43 | Files deleted after update | bug | area:core | platform:macos | - | data-loss, regression | has-repro | Urgent | Labeled, type set, priority set |
-| #44 | Add dark mode | feature | area:ui | - | - | - | - | Medium | Labeled, type set, priority set |
-| #45 | Bedrock request timeout | bug | area:api | - | api:bedrock | - | has-repro | High | Labeled, type set, priority set |
-| #46 | Something broke | bug | - | platform:windows | - | - | needs-repro | - | needs-info, needs-repro applied, comment posted |
+| Issue | Title | Type | Area | Platform | Provider | Severity | Repro | Priority | Duplicate | Action |
+|---|---|---|---|---|---|---|---|---|---|---|
+| #42 | Login crash on mobile | bug | area:ui | platform:ios | - | - | has-repro | Urgent | - | Labeled, type set, priority set |
+| #43 | Files deleted after update | bug | area:core | platform:macos | - | data-loss, regression | has-repro | Urgent | - | Labeled, type set, priority set |
+| #44 | Add dark mode | feature | area:ui | - | - | - | - | Medium | - | Labeled, type set, priority set |
+| #45 | Bedrock request timeout | bug | area:api | - | api:bedrock | - | has-repro | High | - | Labeled, type set, priority set |
+| #46 | Something broke | bug | - | platform:windows | - | - | needs-repro | - | - | needs-info, needs-repro applied, comment posted |
+| #47 | Login crash on iOS | bug | area:ui | platform:ios | - | - | has-repro | Urgent | #42 | Duplicate label applied, comment posted |
 ```
 
 ## Example Usage
@@ -350,12 +414,18 @@ Issue #10 says "it doesn't work." Apply `needs-info` and `needs-repro` labels, t
 ```
 Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bug, apply `regression`, `data-loss`, and `has-repro` labels. Assign Urgent priority.
 
+**Scenario 4: Read-only mode with duplicate detection (no triage permissions)**
+```
+/triage-issues owner/publicrepo
+```
+User lacks triage permissions on a public repo. Two issues report the same crash. Since `can_comment` is true (public repo), post a suggestion comment on the newer issue: "This issue appears similar to #12 (both report a crash on startup with the same error message). If this is a duplicate, consider closing this issue in favor of the existing one." Labels and issue types are skipped.
+
 ## Useful Commands Reference
 
 | Command | Description |
 |---|---|
 | `gh repo view [--repo <repo>] --json isPrivate --jq '.isPrivate'` | Check if repository is private |
-| `gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'` | Check write access (has_push = push/admin/maintain, has_triage = any of push/triage/admin/maintain) |
+| `gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'` | Check write access (has_push = push/admin/maintain, has_triage = any of push/triage/admin/maintain, can_comment = has_triage OR repo is public) |
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
 | `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
 | `gh label create "area:<name>" [--repo <repo>] --description "<desc>" --color "<hex>"` | Create a new area label |
