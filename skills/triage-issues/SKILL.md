@@ -259,18 +259,22 @@ Map the derived priority to the repo's priority labels:
 |---|---|---|
 | Urgent | `high-priority` | `priority:high`, `P0` |
 | High | `high-priority` | `priority:high`, `P1` |
-| Medium | `med-priority` | `priority:medium`, `P2` |
+| Medium | `medium-priority` | `priority:medium`, `P2` |
 | Low | `low-priority` | `priority:low`, `P3` |
 
 Use the closest match from the repo's label set.
 
 ## Steps
 
-1. Determine the repository's visibility (private or public):
+1. Determine the repository's visibility and your write access:
    ```
    gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'
+   gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'
    ```
-   Store the result as `is_private`. Urgency and importance classification are only performed for private repositories. Priority is classified for all repositories.
+   Store `is_private` (urgency and importance are only classified for private repos). Compute two access flags:
+   - `has_push` = `push` or `admin` or `maintain` is true. Gates label creation.
+   - `has_triage` = any of `push`, `triage`, `admin`, or `maintain` is true. Gates label application, comment posting, issue type setting, and priority setting.
+   If `has_triage` is false, output a read-only triage summary and skip all write operations.
 2. Fetch the repository's available issue types and issue fields (once, before processing issues):
    ```
    gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'
@@ -283,30 +287,30 @@ Use the closest match from the repo's label set.
    Parse labels into the dimension catalogs described in the Label Discovery section.
 4. List open issues that need triage (those without an `area:` label are considered untriaged):
    ```
-   gh-cached issue list [--repo $1] --json | jq '[.[] | select([.labels[] | startswith("area:")] | any | not)]'
+   gh-cached issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))]'
    ```
    This filters out issues that already have at least one `area:` label, as those are considered triaged.
 5. For each issue, read its full description and comments.
 6. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
-7. If a clear area is identified but no matching `area:*` label exists in the repo, create it:
+7. If a clear area is identified but no matching `area:*` label exists in the repo and `has_push` is true, create it:
    ```
    gh label create "area:<name>" [--repo $1] --description "<short description>" --color "<hex>"
    ```
-   Add the new label to the label catalog for reuse. Only create when confident in the area classification.
-8. If the issue is too vague to classify:
+    Add the new label to the label catalog for reuse. Only create when confident in the area classification. If `has_push` is false, skip creation and note the missing label in the triage summary instead.
+ 8. If the issue is too vague to classify and `has_triage` is true:
    - Apply `needs-info` label (if available)
    - For bugs without repro steps, apply `needs-repro` label (if available)
    - Post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
-9. Apply the appropriate labels:
+9. If `has_triage` is true, apply the appropriate labels:
    ```
    gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
    Only include labels for dimensions where a match was found. Omit urgency and importance labels for public repositories.
-10. Set the GitHub Issue Type via REST API (if a matching type is available):
+10. If `has_triage` is true, set the GitHub Issue Type via REST API (if a matching type is available):
     ```
     echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
     ```
-11. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
+11. If `has_triage` is true, set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
     - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
     - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
@@ -351,10 +355,11 @@ Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bu
 | Command | Description |
 |---|---|
 | `gh repo view [--repo <repo>] --json isPrivate --jq '.isPrivate'` | Check if repository is private |
+| `gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'` | Check write access (has_push = push/admin/maintain, has_triage = any of push/triage/admin/maintain) |
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
 | `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
 | `gh label create "area:<name>" [--repo <repo>] --description "<desc>" --color "<hex>"` | Create a new area label |
-| `gh-cached issue list [--repo <repo>] --json \| jq '[.[] \| select([.labels[] \| startswith("area:")] \| any \| not)]'` | List untriaged open issues (no area label) |
+| `gh-cached issue list [--repo <repo>] --json \| jq '[.[] \| select(([.labels // [] \| .[] \| .name // "" \| startswith("area:")] \| any \| not))]'` | List untriaged open issues (no area label) |
 | `gh-cached issue view <number> [--repo <repo>] --comments` | Read issue details and comments (cached) |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get issue node ID for GraphQL mutations |
 | `echo '{"type": "<name>"}' \| gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -` | Set issue type by name |
