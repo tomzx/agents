@@ -235,23 +235,26 @@ When duplicates are detected:
 Comment format for duplicate detection (when `has_triage` is true):
 ```
 Potential duplicates:
-1. #<original1>
-2. #<original2>
+1. #<original1> - <1-sentence explanation of similarity>
+2. #<original2> - <1-sentence explanation of similarity>
+
+<1-2 sentence explanation of why this issue appears to be a duplicate of the above.>
 
 This issue will be automatically closed as a duplicate in 3 days.
 
-If your issue is a duplicate, please close it and 👍 the existing issue instead
-To prevent auto-closure, add a comment or 👎 this comment
+If this issue is a duplicate, please close it and 👍 the existing issue instead.
+To prevent auto-closure, add a comment or 👎 this comment.
 ```
 
 Comment format for duplicate suggestions (when `has_triage` is false):
 ```
 Potential duplicates:
-1. #<original1>
-2. #<original2>
+1. #<original1> - <1-sentence explanation of similarity>
+2. #<original2> - <1-sentence explanation of similarity>
 
-This issue appears to be a duplicate of the above.
-If this is a duplicate, consider closing this issue and 👍 the existing issue instead.
+<1-2 sentence explanation of why this issue appears to be a duplicate of the above.>
+
+If this issue is a duplicate, please close it and 👍 the existing issue instead.
 ```
 
 ### Urgency Labels
