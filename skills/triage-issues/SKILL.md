@@ -19,11 +19,15 @@ Applies labels and posts a clarification comment when an issue lacks enough info
 ## Workflow
 
 ```
-List open issues (unlabeled/untriaged)
-            |
-            v
+List open issues via gh-cached --json
+             |
+             v
+Filter: exclude issues with area:* labels
+(untriaged = no area label applied)
+             |
+             v
 Fetch repo metadata (labels, issue types, fields)
-            |
+             |
             v
   For each issue:
     Read title + description + comments
@@ -47,7 +51,7 @@ Apply labels   Apply needs-info / needs-repro
 
 ## Label Discovery
 
-All dimensional labels (area, platform, provider, perf) are repo-specific and must be discovered from the repository's existing labels before classification begins.
+All dimensional labels (area, platform, provider, perf) are repo-specific and must be discovered from the repository's existing labels before classification begins. Area labels can also be created when a clear new area is identified (see Area Label Creation below).
 
 Fetch the repository's labels once during setup:
 ```
@@ -118,7 +122,24 @@ Map the issue's content to the best-matching area label(s):
 - Keywords like "login", "auth", "token", "credential" -> `area:auth`
 - Keywords like "permission", "access", "sandbox" -> `area:permissions`
 
-Apply **at most 2 area labels** per issue. If no area can be determined with reasonable confidence, skip area labeling rather than guessing.
+Apply **at most 2 area labels** per issue. If no existing area label matches but a clear area can be identified from the issue content, create one (see Area Label Creation below). If no area can be determined with reasonable confidence, skip area labeling rather than guessing.
+
+#### Area Label Creation
+
+When classification identifies a clear area that has no matching label in the repo, create it before applying. This keeps the triage process self-contained and avoids deferring work.
+
+Create a new area label:
+```
+gh label create "area:<name>" [--repo <repo>] --description "<short description>" --color "<hex>"
+```
+
+Guidelines:
+- Use the `area:` prefix for all newly created area labels
+- Derive a short, descriptive name from the issue content (e.g., `area:networking`, `area:storage`, `area:cli`)
+- Write a one-line description explaining what the area covers
+- Assign a color. Use a consistent color for all `area:*` labels (e.g., `0075ca` or pick from the repo's existing area label colors)
+- Only create labels you are confident about. If the area is ambiguous, skip creation and apply no area label
+- After creating a label, add it to the label catalog so subsequent issues in the same run can reuse it
 
 ### Platform Labels
 
@@ -260,30 +281,36 @@ Use the closest match from the repo's label set.
    gh label list [--repo $1] --limit 100 --json name,description
    ```
    Parse labels into the dimension catalogs described in the Label Discovery section.
-4. List open issues that need triage:
+4. List open issues that need triage (those without an `area:` label are considered untriaged):
    ```
-   gh-cached issue list [--repo $1] --state open --limit 50
+   gh-cached issue list [--repo $1] --json | jq '[.[] | select([.labels[] | startswith("area:")] | any | not)]'
    ```
+   This filters out issues that already have at least one `area:` label, as those are considered triaged.
 5. For each issue, read its full description and comments.
 6. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
-7. If the issue is too vague to classify:
+7. If a clear area is identified but no matching `area:*` label exists in the repo, create it:
+   ```
+   gh label create "area:<name>" [--repo $1] --description "<short description>" --color "<hex>"
+   ```
+   Add the new label to the label catalog for reuse. Only create when confident in the area classification.
+8. If the issue is too vague to classify:
    - Apply `needs-info` label (if available)
    - For bugs without repro steps, apply `needs-repro` label (if available)
    - Post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
-8. Apply the appropriate labels:
+9. Apply the appropriate labels:
    ```
    gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
    Only include labels for dimensions where a match was found. Omit urgency and importance labels for public repositories.
-9. Set the GitHub Issue Type via REST API (if a matching type is available):
-   ```
-   echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
-   ```
-10. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
+10. Set the GitHub Issue Type via REST API (if a matching type is available):
+    ```
+    echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -
+    ```
+11. Set the Priority field via GraphQL `setIssueFieldValue` mutation (if a Priority field was found in step 2), or fall back to priority labels:
     - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
     - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
-11. Output a triage summary table.
+12. Output a triage summary table.
 
 ## Output Format
 
@@ -326,7 +353,8 @@ Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bu
 | `gh repo view [--repo <repo>] --json isPrivate --jq '.isPrivate'` | Check if repository is private |
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
 | `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
-| `gh-cached issue list [--repo <repo>] --state open --limit 50` | List open issues (cached) |
+| `gh label create "area:<name>" [--repo <repo>] --description "<desc>" --color "<hex>"` | Create a new area label |
+| `gh-cached issue list [--repo <repo>] --json \| jq '[.[] \| select([.labels[] \| startswith("area:")] \| any \| not)]'` | List untriaged open issues (no area label) |
 | `gh-cached issue view <number> [--repo <repo>] --comments` | Read issue details and comments (cached) |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get issue node ID for GraphQL mutations |
 | `echo '{"type": "<name>"}' \| gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -` | Set issue type by name |
