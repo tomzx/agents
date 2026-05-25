@@ -19,7 +19,8 @@ Produces a high-quality article from a target audience definition and a set of r
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
 4. Draft the article using the structure below.
-5. Revise for clarity, flow, and conciseness.
+5. Verify that all links included in the article are valid (return HTTP 200). Remove or replace any links that return errors (404, 5xx, etc.).
+6. Revise for clarity, flow, and conciseness.
 
 ## Audience Calibration
 
