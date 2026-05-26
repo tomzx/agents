@@ -343,12 +343,12 @@ Use the closest match from the repo's label set.
    gh label list [--repo $1] --limit 100 --json name,description
    ```
    Parse labels into the dimension catalogs described in the Label Discovery section.
-4. List open issues that need triage (those without an `area:` label are considered untriaged):
+4. List open issues that need triage (those without an `area:` label are considered untriaged), sorted by creation date descending (newest first):
    ```
-   gh-cached issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))]'
+   gh-cached issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))] | sort_by(.createdAt) | reverse'
    ```
-   This filters out issues that already have at least one `area:` label, as those are considered triaged.
-5. For each issue, read its full description and comments.
+   This filters out issues that already have at least one `area:` label, as those are considered triaged. Process issues from newest to oldest so that recent issues get triaged first, reflecting current state and receiving timely maintainer attention.
+5. For each issue (processing in creation-date order, newest first), read its full description and comments.
 6. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
 7. If a clear area is identified but no matching `area:*` label exists in the repo and `has_push` is true, create it:
    ```
