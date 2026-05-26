@@ -15,6 +15,7 @@ Applies labels and posts a clarification comment when an issue lacks enough info
 - `gh` CLI authenticated with write access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to use the repository in the current working directory
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
+- Follow `skills/github-post-attribution/SKILL.md` to resolve commit SHA and append attribution footers to every comment posted to GitHub
 
 ## Workflow
 
@@ -244,6 +245,10 @@ This issue will be automatically closed as a duplicate in 3 days.
 
 If this issue is a duplicate, please close it and 👍 the existing issue instead.
 To prevent auto-closure, add a comment or 👎 this comment.
+
+---
+
+Triaged with [triage-issues](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 ```
 
 Comment format for duplicate suggestions (when `has_triage` is false):
@@ -255,6 +260,10 @@ Potential duplicates:
 <1-2 sentence explanation of why this issue appears to be a duplicate of the above.>
 
 If this issue is a duplicate, please close it and 👍 the existing issue instead.
+
+---
+
+Triaged with [triage-issues](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 ```
 
 ### Urgency Labels
@@ -356,8 +365,8 @@ Use the closest match from the repo's label set.
    ```
     Add the new label to the label catalog for reuse. Only create when confident in the area classification. If `has_push` is false, skip creation and note the missing label in the triage summary instead.
  8. If the issue is too vague to classify:
-    - If `has_triage` is true: apply `needs-info` label (if available), and for bugs without repro steps apply `needs-repro` label (if available)
-    - If `can_comment` is true: post a comment asking for: steps to reproduce (bugs), use case details (features), or more context
+     - If `has_triage` is true: apply `needs-info` label (if available), and for bugs without repro steps apply `needs-repro` label (if available)
+     - If `can_comment` is true: post a comment asking for: steps to reproduce (bugs), use case details (features), or more context. Append attribution footer per `github-post-attribution`.
  9. If `has_triage` is true, apply the appropriate labels:
    ```
    gh issue edit <number> [--repo $1] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
@@ -371,18 +380,18 @@ Use the closest match from the repo's label set.
     - Look up the Priority option ID for the derived priority level (Urgent/High/Medium)
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'`
      - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
-12. Duplicate detection (runs regardless of `has_triage`):
-    - For each issue, before running detection, check its existing comments for a prior duplicate comment from the current authenticated user or any bot account. If found, skip duplicate detection entirely for that issue.
-    - Compare each remaining untriaged issue against all other issues (open and closed):
-      ```
-      gh-cached issue list [--repo $1] --state all --json
-      ```
-    - Use the detection signals from the Duplicate Detection section (require at least 2 signals to flag)
-    - For each potential duplicate pair (newer issue -> older/original issue):
-      - If `has_triage` is true: apply `duplicate` label to the newer issue (if the label exists in the repo) and post a comment linking to the original
-      - If `has_triage` is false but `can_comment` is true: post a suggestion comment on the newer issue (framed as a suggestion, not authoritative)
-      - If `can_comment` is false: note the potential duplicate in the triage summary only
-    - Skip issues that already have a `duplicate` label or where a maintainer has already linked them
+ 12. Duplicate detection (runs regardless of `has_triage`):
+     - For each issue, before running detection, check its existing comments for a prior duplicate comment from the current authenticated user or any bot account. If found, skip duplicate detection entirely for that issue.
+     - Compare each remaining untriaged issue against all other issues (open and closed):
+       ```
+       gh-cached issue list [--repo $1] --state all --json
+       ```
+     - Use the detection signals from the Duplicate Detection section (require at least 2 signals to flag)
+     - For each potential duplicate pair (newer issue -> older/original issue):
+       - If `has_triage` is true: apply `duplicate` label to the newer issue (if the label exists in the repo) and post a comment linking to the original with attribution footer
+       - If `has_triage` is false but `can_comment` is true: post a suggestion comment on the newer issue (framed as a suggestion, not authoritative) with attribution footer
+       - If `can_comment` is false: note the potential duplicate in the triage summary only
+     - Skip issues that already have a `duplicate` label or where a maintainer has already linked them
 13. Output a triage summary table.
 
 ## Output Format
@@ -441,4 +450,4 @@ User lacks triage permissions on a public repo. Two issues report the same crash
 | `echo '{"type": "<name>"}' \| gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -` | Set issue type by name |
 | `gh api graphql -f query='mutation($issueId: ID!, $fieldId: ID!, $optionId: ID!) { setIssueFieldValue(input: { issueId: $issueId, issueFields: [{ fieldId: $fieldId, singleSelectOptionId: $optionId }] }) { issue { issueFieldValues(first: 10) { nodes { ... on IssueFieldValueSingleSelect { name field { ... on IssueFieldSingleSelect { name } } } } } } } }' -f issueId=<ID> -f fieldId=<FIELD_ID> -f optionId=<OPTION_ID>` | Set org-level issue field (e.g. Priority) |
 | `gh issue edit <number> [--repo <repo>] --add-label "<label>"` | Apply a label to an issue |
-| `gh issue comment <number> [--repo <repo>] --body "..."` | Post a clarification comment |
+| `gh issue comment <number> [--repo <repo>] --body "..."` | Post a clarification comment (append attribution footer per `github-post-attribution`) |
