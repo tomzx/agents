@@ -17,10 +17,10 @@ echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
 
 ## State file
 
-`~/.arxiv-catchup/state.json`
+`~/.arxiv-catchup/state.yaml`
 
-```json
-{"last_date": "YYYY-MM-DD"}
+```yaml
+last_date: "YYYY-MM-DD"
 ```
 
 - If the file does not exist, ask the user what start date to use before proceeding.
@@ -33,7 +33,7 @@ echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
 
 ```bash
 mkdir -p ~/.arxiv-catchup
-cat ~/.arxiv-catchup/state.json 2>/dev/null
+cat ~/.arxiv-catchup/state.yaml 2>/dev/null
 ```
 
 If the file does not exist or is empty, ask the user:
@@ -99,7 +99,7 @@ rm -f /tmp/arxiv_catchup.html
 After all subagents complete, write today's date:
 
 ```bash
-echo "{\"last_date\": \"$(date +%Y-%m-%d)\"}" > ~/.arxiv-catchup/state.json
+echo "last_date: \"$(date +%Y-%m-%d)\"" > ~/.arxiv-catchup/state.yaml
 ```
 
 ### 8. Final report
