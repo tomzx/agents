@@ -87,7 +87,7 @@ These conflict. Report under Conflicts.
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-specifications`.
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-existing-solutions` to survey prior art before designing.
 
 ## Useful Commands Reference
 

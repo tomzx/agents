@@ -11,11 +11,12 @@ Produces a detailed technical specification from a requirements document, coveri
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 
-1. Read and understand the requirements document.
+1. Read and understand the requirements document, and the existing solutions survey if present.
 2. Identify the major components and their responsibilities.
 3. Define data models: entities, attributes, and relationships.
 4. Specify API contracts: endpoints, request/response schemas, and error codes.

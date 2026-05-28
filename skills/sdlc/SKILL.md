@@ -32,6 +32,10 @@ Main flow (entry: issue → learnings)
   /review-requirements    Audit for clarity, completeness, testability
           │
           ▼
+  /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
+  /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
+          │
+          ▼
   /create-specifications  Define architecture, data models, API contracts
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
@@ -142,6 +146,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
 │       ├── requirements.md
+│       ├── existing-solutions.md
 │       ├── specification.md
 │       ├── plan.md
 │       ├── tasks/                 # One file per task (e.g., 0001-setup-db-schema.md)
@@ -151,6 +156,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
 │   │   ├── requirements.md
+│   │   ├── existing-solutions.md
 │   │   ├── specification.md
 │   │   ├── plan.md
 │   │   ├── task.md                # Template for a single task file
@@ -213,7 +219,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `requirements` | An issue that has been reviewed and is ready to develop |
-| `specifications` | Approved requirements ready for technical design |
+| `existing-solutions` | Approved requirements ready to survey for prior art before designing |
+| `specifications` | Approved requirements (and solutions survey) ready for technical design |
 | `plan` | A specification ready for planning |
 | `publish-plan` | A reviewed plan ready to commit and share with the issue author |
 | `tasks` | An approved plan signed off by the issue author |
@@ -293,7 +300,9 @@ Each phase consumes output from the previous phase:
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
 | create-requirements | Reviewed issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
-| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
+| create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
+| review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
+| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
 | create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
