@@ -18,99 +18,116 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ## Pipeline Overview
 
 ```
-Setup (run once per project)
-  │
-  ├─ /bootstrap-sdlc              Bootstrap .sdlc/ structure and populate it with an existing project's content
-  ├─ /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
-  ├─ /update-sdlc-templates       Pull upstream template improvements, merge with user edits
-  │
-Idea / Brief
-  │
-  ├─ /create-issue           Create a structured GitHub issue
-  ├─ /review-issue           Audit completeness, clarity, and AC quality
-  │
-  ▼
-Issues
-  │
-  ├─ /triage-issues          Classify and label incoming issues
-  │
-  ├─ /prioritize-issues      Rank the backlog by RICE score
-  │
-  ▼
-Requirements
-  │
-  ├─ /create-requirements    Draft functional + non-functional requirements
-  ├─ /review-requirements    Audit for clarity, completeness, testability
-  │
-  ▼
-Specifications
-  │
-  ├─ /create-specifications  Define architecture, data models, API contracts
-  ├─ /review-specifications  Audit for ambiguities, inconsistencies, gaps
-  │
-  ▼
-Plan
-  │
-  ├─ /create-plan            Phases, milestones, dependencies, risk register
-  ├─ /review-plan            Audit feasibility, coverage, timeline realism
-  ├─ /publish-plan           Commit plan to branch, open draft PR, comment on issue
-  │                          (gate: wait for author sign-off before continuing)
-  │
-  ▼
-Tasks
-  │
-  ├─ /create-tasks-decomposition   Break plan into XS–L tasks with critical path
-  ├─ /review-tasks-decomposition   Audit granularity, completeness, dependencies
-  │
-  ▼
-Tests
-  │
-  ├─ /create-tests           Test plan covering acceptance criteria + edge cases
-  ├─ /review-tests           Audit coverage, correctness, maintainability
-  │
-  ▼
-Implementation
-  │
-  ├─ /create-implementation  Implement following spec + plan, run tests
-  ├─ /review-implementation  Audit correctness, quality, security, spec alignment
-  │
-  ▼
-Documentation
-  │
-  ├─ /create-documentation   Divio-structured docs (tutorial/how-to/reference/explanation)
-  ├─ /review-documentation   Audit completeness, accuracy, clarity, structure
-  │
-  ▼
-Pull Request
-  │
-  ├─ /create-pr              Open a PR: description, AC coverage, issue link, reviewers
-  ├─ /review-pr              Comprehensive code review of the PR
-  ├─ /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
-  ├─ /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
-  ├─ /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
-  │
-  ▼
-Learnings
-  │
-  ├─ /create-learnings       Retrospective: what went well, root causes, actions
-  └─ /review-learnings       Audit actionability, specificity, completeness, balance
+Main flow (entry: issue → learnings)
 
-Cross-cutting records (invoke at any phase)
-  │
-  ├─ /create-assumption      Record an assumption with basis, risk, and validation plan
-  ├─ /review-assumption      Audit specificity, basis quality, risk, validation adequacy
-  ├─ /create-decision        Record an architectural/implementation decision with context
-  └─ /review-decision        Audit clarity, reasoning quality, consequence coverage
+  /create-issue           Create a structured GitHub issue
+  /review-issue           Audit completeness, clarity, and AC quality
+          │
+          ▼
+  /triage-issues          Classify and label incoming issues
+  /prioritize-issues      Rank the backlog by RICE score
+          │
+          ▼
+  /create-requirements    Draft functional + non-functional requirements
+  /review-requirements    Audit for clarity, completeness, testability
+          │
+          ▼
+  /create-specifications  Define architecture, data models, API contracts
+  /review-specifications  Audit for ambiguities, inconsistencies, gaps
+          │
+          ▼
+  /create-plan            Phases, milestones, dependencies, risk register
+  /review-plan            Audit feasibility, coverage, timeline realism
+  /publish-plan           Commit plan to branch, open draft PR, comment on issue
+                          (gate: wait for author sign-off before continuing)
+          │
+          ▼
+  /create-tasks-decomposition   Break plan into XS–L tasks with critical path
+  /review-tasks-decomposition   Audit granularity, completeness, dependencies
+          │
+          ▼
+  /create-tests           Test plan covering acceptance criteria + edge cases
+  /review-tests           Audit coverage, correctness, maintainability
+          │
+          ▼
+  /create-implementation  Implement following spec + plan, run tests
+  /review-implementation  Audit correctness, quality, security, spec alignment
+          │
+          ▼
+  /create-documentation   Divio-structured docs (tutorial/how-to/reference/explanation)
+  /review-documentation   Audit completeness, accuracy, clarity, structure
+          │
+          ▼
+  /create-pr              Open a PR: description, AC coverage, issue link, reviewers
+  /review-pr              Comprehensive code review of the PR
+  /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
+  /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
+  /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
+          │
+          ▼
+  /create-learnings       Retrospective: what went well, root causes, actions
+  /review-learnings       Audit actionability, specificity, completeness, balance
+
+Setup (run once per project, no dependencies on other flows)
+
+  /bootstrap-sdlc              Bootstrap .sdlc/ structure and populate it with an existing project's content
+  /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
+  /update-sdlc-templates       Pull upstream template improvements, merge with user edits
+
+Bug fix fast path (entry: bugfix)
+
+  /check-duplicates        Search for duplicate issues and existing fix PRs
+  /reproduce-issue         Bug report: create worktree, reproduce, post results
+  /fix-issue               Orchestrator: check-duplicates → reproduce-issue → create-implementation → create-pr
+                          (escalates to main flow at requirements if the fix is non-trivial)
+
+Cross-cutting records (invoke at any point in any flow)
+
+  /create-assumption      Record an assumption with basis, risk, and validation plan
+  /review-assumption      Audit specificity, basis quality, risk, validation adequacy
+  /create-decision        Record an architectural/implementation decision with context
+  /review-decision        Audit clarity, reasoning quality, consequence coverage
+
+Fast paths               Abbreviated sequences from the main flow for small,
+                          well-understood changes (see "Fast Paths for Small Work")
 ```
 
-### Cross-cutting skills (use at any phase)
+## Fast Paths for Small Work
 
-| Skill | When to use |
-|---|---|
-| `/create-assumption` | When a phase proceeds on an unverified belief — log it with basis, risk, and validation plan |
-| `/review-assumption` | Audit an assumption record for specificity, basis quality, and validation adequacy |
-| `/create-decision` | When an architectural or implementation choice is made — record it as a lightweight ADR |
-| `/review-decision` | Audit a decision record for clarity, completeness, and consequence coverage |
+Not every change needs the full pipeline.
+Use the table below to determine the minimum viable path for common small-work scenarios.
+When in doubt, include more phases rather than fewer.
+
+| Scenario | Example | Path |
+|---|---|---|
+| **Bug fix** | Fix an off-by-one error, correct a typo in logic | `fix-issue` (dedicated fast path with worktree + reproduction) |
+| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` |
+| **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` |
+| **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
+
+### Rules for fast paths
+
+1. Create an issue when the change needs context, discussion, or prioritization. For self-explanatory changes (typo fix, config toggle, version bump), the PR description is sufficient traceability.
+2. Always open a PR, even for hotfixes, so CI runs and the change is reviewable after the fact.
+3. Skip requirements, specifications, plan, and tasks only when the change is well-understood and fits in a single commit.
+4. Include `review-implementation` when the fix is non-trivial or touches security-adjacent code.
+5. Include `create-tests` when the change affects behavior or could regress.
+6. Never skip CI verification before merging.
+
+### Using fast paths
+
+Enter the pipeline normally and state which fast path applies.
+The orchestrator will skip the intermediate phases.
+
+```
+/sdlc issue
+"This is a bug fix for an off-by-one error in the pagination logic."
+```
+
+The orchestrator recognizes the fast path and runs the abbreviated pipeline automatically.
+If the work turns out to be more complex than expected, escalate to the full pipeline.
 
 ## Directory Structure
 
@@ -207,6 +224,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `handle-pr-ci` | PR has failing CI checks to fix |
 | `handle-pr-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
+| `bugfix` | A bug report issue to reproduce, fix, and submit as a PR (runs `fix-issue`) |
+| `reproduce` | A bug report issue to reproduce only, without implementing a fix (runs `reproduce-issue`) |
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
@@ -214,12 +233,14 @@ Architectural choices made during any phase are logged via `/create-decision` to
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-3. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
-4. Execute each sub-skill in order from the entry point to the end of the pipeline.
-5. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-6. When all review findings are resolved, move to the next phase.
-7. After learnings are captured and reviewed, the cycle is complete.
+2. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+3. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
+4. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+5. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+6. Execute each sub-skill in order from the entry point to the end of the pipeline.
+7. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+8. When all review findings are resolved, move to the next phase.
+9. After learnings are captured and reviewed, the cycle is complete.
 
 ## Backtracking and Failure Recovery
 
@@ -290,6 +311,9 @@ Each phase consumes output from the previous phase:
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
+| fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction, implementation, PR |
+| check-duplicates | GitHub issue | Duplicate issues and existing fix PRs checked, results posted |
+| reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, results posted |
 | create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/NNNN-<slug>.md` (`status: draft`) |
 | review-learnings | `.sdlc/knowledge/learnings/NNNN-<slug>.md` | Findings; sets `status: complete` when resolved |
 | create-assumption | Any phase context | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` |
@@ -302,40 +326,3 @@ Each phase consumes output from the previous phase:
 Review phases may be skipped in low-risk or exploratory contexts.
 State the skip explicitly: "Skipping review-requirements — prototype context."
 Never skip reviews for security-sensitive features or production-bound work.
-
-## Fast Paths for Small Work
-
-Not every change needs the full pipeline.
-Use the table below to determine the minimum viable path for common small-work scenarios.
-When in doubt, include more phases rather than fewer.
-
-| Scenario | Example | Path |
-|---|---|---|
-| **Bug fix** | Fix an off-by-one error, correct a typo in logic | `create-implementation` → `review-implementation` → `create-pr` → `review-pr` → `merge-pr` |
-| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` |
-| **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` |
-| **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
-| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
-| **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
-
-### Rules for fast paths
-
-1. Create an issue when the change needs context, discussion, or prioritization. For self-explanatory changes (typo fix, config toggle, version bump), the PR description is sufficient traceability.
-2. Always open a PR, even for hotfixes, so CI runs and the change is reviewable after the fact.
-3. Skip requirements, specifications, plan, and tasks only when the change is well-understood and fits in a single commit.
-4. Include `review-implementation` when the fix is non-trivial or touches security-adjacent code.
-5. Include `create-tests` when the change affects behavior or could regress.
-6. Never skip CI verification before merging.
-
-### Using fast paths
-
-Enter the pipeline normally and state which fast path applies.
-The orchestrator will skip the intermediate phases.
-
-```
-/sdlc issue
-"This is a bug fix for an off-by-one error in the pagination logic."
-```
-
-The orchestrator recognizes the fast path and runs the abbreviated pipeline automatically.
-If the work turns out to be more complex than expected, escalate to the full pipeline.
