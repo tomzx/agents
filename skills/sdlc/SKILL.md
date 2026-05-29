@@ -96,14 +96,17 @@ Maintenance (entry: maintenance — run periodically, independent of any feature
 
   Diagnose — surface what is risky or actively unstable
   /audit-dependencies         Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
+  /audit-security             Scan code for hardcoded secrets, injection risks, missing auth checks, and insecure patterns
   /analyze-git-churn          Identify high-churn files and generate improvement suggestions
 
   Harden — reduce structural risk before changing code
   /find-complexity-hotspots   Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
+  /find-type-gaps             Identify missing type annotations in Python, TypeScript, and JavaScript
   /find-coverage-gaps         Identify files with missing or insufficient test coverage, ranked by churn and complexity
 
   Clean — remove what no longer belongs
   /find-dead-code             Find unused functions, classes, variables, exports, feature flags, and config keys
+  /find-code-duplication      Identify copy-pasted blocks and near-duplicate logic to extract into shared helpers
 
   Document — record what remains
   /find-documentation-gaps    Find public APIs, CLI commands, and config keys that lack documentation
@@ -252,7 +255,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
-| `maintenance` | Run one or more maintenance skills (`/analyze-git-churn`, `/find-complexity-hotspots`, `/find-dead-code`, `/audit-dependencies`, `/find-coverage-gaps`, `/find-documentation-gaps`) to surface technical debt; findings feed into issue creation and backlog prioritization |
+| `maintenance` | Run one or more maintenance skills (see Maintenance section in Pipeline Overview) to surface technical debt; findings feed into issue creation and backlog prioritization |
 
 ## Steps
 
