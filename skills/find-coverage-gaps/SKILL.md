@@ -1,5 +1,5 @@
 ---
-name: coverage-gaps
+name: find-coverage-gaps
 description: Identify files and modules with missing or insufficient test coverage, ranked by churn and complexity, and suggest what to test first.
 allowed-tools: Bash, Read, Glob, Grep
 argument-hint: "[path]"

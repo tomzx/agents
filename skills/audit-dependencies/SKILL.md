@@ -1,5 +1,5 @@
 ---
-name: dependency-audit
+name: audit-dependencies
 description: Audit project dependencies for outdated versions, known vulnerabilities, unmaintained packages, and license issues, then produce a prioritized upgrade and replacement plan.
 allowed-tools: Bash, Read, Glob, Grep
 ---

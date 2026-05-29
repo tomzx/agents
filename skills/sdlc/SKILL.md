@@ -94,12 +94,12 @@ Cross-cutting records (invoke at any point in any flow)
 
 Maintenance (entry: maintenance — run periodically, independent of any feature)
 
-  /git-churn-analysis     Identify high-churn files and generate improvement suggestions
-  /complexity-hotspots    Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
-  /dead-code-scan         Find unused functions, classes, variables, exports, feature flags, and config keys
-  /dependency-audit       Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
-  /coverage-gaps          Identify files with missing or insufficient test coverage, ranked by churn and complexity
-  /doc-gaps               Find public APIs, CLI commands, and config keys that lack documentation
+  /analyze-git-churn     Identify high-churn files and generate improvement suggestions
+  /find-complexity-hotspots    Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
+  /find-dead-code         Find unused functions, classes, variables, exports, feature flags, and config keys
+  /audit-dependencies       Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
+  /find-coverage-gaps          Identify files with missing or insufficient test coverage, ranked by churn and complexity
+  /find-doc-gaps               Find public APIs, CLI commands, and config keys that lack documentation
 
 Fast paths               Abbreviated sequences from the main flow for small,
                           well-understood changes (see "Fast Paths for Small Work")
@@ -245,7 +245,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
-| `maintenance` | Run one or more maintenance skills (`/git-churn-analysis`, `/complexity-hotspots`, `/dead-code-scan`, `/dependency-audit`, `/coverage-gaps`, `/doc-gaps`) to surface technical debt; findings feed into issue creation and backlog prioritization |
+| `maintenance` | Run one or more maintenance skills (`/analyze-git-churn`, `/find-complexity-hotspots`, `/find-dead-code`, `/audit-dependencies`, `/find-coverage-gaps`, `/find-doc-gaps`) to surface technical debt; findings feed into issue creation and backlog prioritization |
 
 ## Steps
 
