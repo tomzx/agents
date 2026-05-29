@@ -1,7 +1,7 @@
 ---
 name: quick-pr-review
 description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
-allowed-tools: Bash(gh:*, git:*, say), Read
+allowed-tools: Bash(gh:*, ghx:*, git:*, say), Read
 argument-hint: "<owner/repo> <pr-number>"
 ---
 
@@ -317,7 +317,7 @@ git -C ~/.quick-pr-review commit -m "Review {REPO}: PR #$2 @ {SHORT_SHA}"
 
 **If no existing comment:**
 ```bash
-gh pr comment $2 --repo {REPO} --body "{COMMENT_BODY}"
+ghx pr comment $2 --repo {REPO} --body "{COMMENT_BODY}"
 ```
 
 **If existing comment (different commit):**
@@ -444,7 +444,7 @@ After review, creates a new profile at `~/.developer-trust/{author}.md` with the
 |---|---|
 | `gh-cached pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including latest commit, CI status, and author (fresh) |
 | `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
-| `gh pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
+| `ghx pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |
 | `gh api repos/{owner}/{repo}/issues/<pr>/comments` | List all comments on a PR |
 | `gh pr review <pr> --repo <owner/repo> --approve` | Approve the PR |

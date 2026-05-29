@@ -65,7 +65,7 @@ Fetch PR metadata + comment history
 7. Present reasoning to the user for approval.
 8. On approval:
    - For code changes: commit and push to the PR branch.
-   - For rejections: post the reply comment via `gh` with the **Skill attribution** footer on the comment body.
+   - For rejections: post the reply comment via `ghx` with the **Skill attribution** footer on the comment body.
 
 ## Example Usage
 
@@ -96,6 +96,6 @@ Action: Draft rejection with technical reasoning; present to user before posting
 |---|---|
 | `gh-cached pr view <pr-url> --comments --refresh` | Fetch PR details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone the repository locally |
-| `gh pr comment <pr-number> --body "..."` | Post a reply to the PR |
+| `ghx pr comment <pr-number> --body "..."` | Post a reply to the PR |
 | `git commit -m "..."` | Commit code changes |
 | `git push` | Push changes to the PR branch |

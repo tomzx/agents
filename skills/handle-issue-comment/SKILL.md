@@ -31,7 +31,7 @@ Before posting any issue comment with `gh`, read [`github-post-attribution/SKILL
 4. Draft a reply that directly addresses the latest comment, grounded in codebase evidence and prior discussion.
 5. Post the reply (body = main reply plus **Skill attribution** footer):
    ```
-   gh issue comment $1 --body "..."
+   ghx issue comment $1 --body "..."
    ```
 
 ## Example Usage
@@ -63,4 +63,4 @@ Action: Review the issue's acceptance criteria, reply stating whether the admin 
 |---|---|
 | `gh-cached issue view <issue-url> --comments --refresh` | Fetch issue details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone repository for codebase context |
-| `gh issue comment <issue-url> --body "..."` | Post a reply comment on the issue |
+| `ghx issue comment <issue-url> --body "..."` | Post a reply comment on the issue |

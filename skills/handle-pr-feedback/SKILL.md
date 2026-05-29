@@ -60,7 +60,7 @@ Push branch + re-request review
 4. If actionable: implement the requested changes in the codebase.
 5. If not actionable: draft a reply explaining why the change will not be made.
 6. Present the content, reasoning, and proposed action to the user for approval.
-7. On approval: commit code changes or post the reply as a PR comment. When posting a reply, include the **Skill attribution** footer on the comment body (omit the footer if you only push commits and do not post a comment).
+7. On approval: commit code changes or post the reply as a PR comment using `ghx`. When posting a reply, include the **Skill attribution** footer on the comment body (omit the footer if you only push commits and do not post a comment).
 8. After all comments are addressed, push the branch:
    ```
    git push
@@ -97,6 +97,6 @@ Three comments: one requesting a missing test (implement), one asking for a type
 | Command | Description |
 |---|---|
 | `gh-cached pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
-| `gh pr comment <pr-number> --body "..."` | Post a reply comment on the PR |
+| `ghx pr comment <pr-number> --body "..."` | Post a reply comment on the PR |
 | `git push` | Push committed changes to the remote branch |
 | `gh pr edit <pr-number> --add-reviewer <handle>` | Re-request review from a reviewer |
