@@ -94,12 +94,12 @@ Cross-cutting records (invoke at any point in any flow)
 
 Maintenance (entry: maintenance — run periodically, independent of any feature)
 
-  /analyze-git-churn     Identify high-churn files and generate improvement suggestions
-  /find-complexity-hotspots    Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
-  /find-dead-code         Find unused functions, classes, variables, exports, feature flags, and config keys
-  /audit-dependencies       Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
-  /find-coverage-gaps          Identify files with missing or insufficient test coverage, ranked by churn and complexity
-  /find-documentation-gaps               Find public APIs, CLI commands, and config keys that lack documentation
+  /audit-dependencies         Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
+  /analyze-git-churn          Identify high-churn files and generate improvement suggestions
+  /find-complexity-hotspots   Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
+  /find-coverage-gaps         Identify files with missing or insufficient test coverage, ranked by churn and complexity
+  /find-dead-code             Find unused functions, classes, variables, exports, feature flags, and config keys
+  /find-documentation-gaps    Find public APIs, CLI commands, and config keys that lack documentation
 
 Fast paths               Abbreviated sequences from the main flow for small,
                           well-understood changes (see "Fast Paths for Small Work")
