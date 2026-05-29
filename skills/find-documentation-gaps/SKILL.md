@@ -1,5 +1,5 @@
 ---
-name: find-doc-gaps
+name: find-documentation-gaps
 description: Find public APIs, modules, CLI entry points, and configuration options that lack documentation, ranked by usage and visibility, and suggest what to document first.
 allowed-tools: Bash, Read, Glob, Grep
 argument-hint: "[path]"
