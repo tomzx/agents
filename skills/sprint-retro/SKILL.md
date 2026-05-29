@@ -32,11 +32,6 @@ Produces a structured sprint retrospective by reviewing the past two weeks of da
 2. Read all daily note files from the past two weeks within `{BASE_DIR}` (`.github.md`, `.slack.md`, `.overall.md`, `.timeline.md`, weekly summaries).
 3. Fetch recent GitHub activity (PRs opened, reviewed, merged; issues closed) for the past two weeks using `gh`.
 4. Fetch recent Slack activity via the Slack MCP server for context on collaboration, blockers, and thanks.
-5. Run churn analysis to surface technical debt accumulated during the sprint:
-   ```
-   /git-churn-analysis month
-   ```
-   Note the top 3 high-churn files and the highest-priority suggestions from the report.
 
 ### 2. Analyze and Categorize
 
@@ -65,13 +60,8 @@ Things that did not go as smoothly as hoped.
 Blockers, missing context, tooling gaps, or process friction that slowed progress.
 - [Item with specific suggestion if possible]
 
-## Technical Debt Hotspots
-Files with the highest churn this sprint and the top improvement suggestion for each.
-- **[file]**: [suggestion — e.g., add tests, extract helper, replace library]
-
 ## Action Items
 Concrete next steps to improve the next sprint, derived from the sections above.
-Include at least one item from Technical Debt Hotspots if any 🔴 High-priority suggestions exist.
 - [ ] [Actionable item with owner if applicable]
 ```
 
@@ -109,4 +99,3 @@ Many blockers and slow reviews surface in the data. "Could Have Gone Better" and
 | `date +%Y-%m-%d` | Get today's date for output filename |
 | `gh pr list --author @me --state merged --search "merged:>={TWO_WEEKS_AGO}"` | List merged PRs from the sprint |
 | `gh pr list --reviewed-by @me --search "updated:>={TWO_WEEKS_AGO}"` | List PRs reviewed during the sprint |
-| `/git-churn-analysis month` | Identify high-churn files and improvement suggestions for the sprint period |

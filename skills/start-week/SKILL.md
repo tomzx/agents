@@ -33,18 +33,7 @@ Read if they exist:
 - `{BASE_DIR}/goals.md` and `{BASE_DIR}/team-goals.md`
 - This week's `action-items.md` if it already exists
 
-### 3. Identify code hotspots (optional)
-
-If the project has a git repository in the working directory, run:
-
-```
-/git-churn-analysis week
-```
-
-Include a brief **Code Hotspots** note in the synthesis if any files show 3+ commits in the past week.
-This surfaces technical debt to factor into the week's priorities before committing to outcomes.
-
-### 4. Synthesize (in chat unless the user asks for a file)
+### 3. Synthesize (in chat unless the user asks for a file)
 
 Deliver:
 
@@ -54,7 +43,7 @@ Deliver:
 - **Collaboration** (who to sync with, what decisions are waiting)
 - **Risks** (capacity, dependencies, recurring meetings to trim)
 
-### 5. Optional file output
+### 4. Optional file output
 
 If the user wants it persisted, write `{BASE_DIR}/{YEAR}/weekly/{WEEK}/plan.md`:
 
