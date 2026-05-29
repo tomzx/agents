@@ -71,6 +71,30 @@ Posted with [handle-pr-feedback](https://github.com/owner/repo/blob/abc1234.../s
 
 Link text in brackets must match the **invoking** skill’s `SKILL_DIR` (except quick-pr-review, which uses the fixed label `quick-pr-review`).
 
+## SDLC phase footer (when posting during an `sdlc` pipeline run)
+
+When the post is produced while running the SDLC pipeline (the `sdlc` skill or any of its `create-*` / `review-*` / `publish-*` sub-skills operating on a feature), prepend an **SDLC phase line** above the `Posted with` / `Created with` line, under the same horizontal rule. Use exactly this two-line footer:
+
+```
+---
+SDLC phase: <phase> (<FEAT-id> #<issue>)
+Posted with [SKILL_DIR](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
+```
+
+- `<phase>` is the current pipeline phase (e.g. `issue`, `requirements`, `specifications`, `plan`, `implementation`).
+- `<FEAT-id>` is the feature directory ID (e.g. `FEAT-0001`), or the epic ID (e.g. `EPIC-745`) for epic-level posts.
+- `#<issue>` is the GitHub issue the post concerns.
+- Keep the second line verb consistent with the post type (`Created with` for issue bodies, `Posted with` for comments and reviews, `Reviewed with [quick-pr-review]` for quick PR reviews).
+- Outside an SDLC pipeline run, omit the `SDLC phase:` line entirely and use only the single `Posted with` / `Created with` line as described above.
+
+Example (comment posted during the requirements phase):
+
+```
+---
+SDLC phase: requirements (FEAT-0001 #969)
+Posted with [review-requirements](https://github.com/owner/repo/blob/abc1234.../skills/review-requirements/SKILL.md) (`abc1234`)
+```
+
 ## Shell escaping: do NOT backslash-escape backticks
 
 Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` — write `(`abc1234`)` with plain backticks. Resolve `SKILL_SHORT_SHA` to the actual 7-char SHA before constructing the command.
