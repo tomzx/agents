@@ -22,6 +22,7 @@ Main flow (entry: issue → learnings)
 
   /create-issue           Create a structured GitHub issue
   /review-issue           Audit completeness, clarity, and AC quality
+  /qualify-issue          Drive Q&A loop with reporter until issue is fully understood
           │
           ▼
   /triage-issues          Classify and label incoming issues
@@ -237,7 +238,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `bootstrap-sdlc`) |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
-| `requirements` | An issue that has been reviewed and is ready to develop |
+| `qualify` | An externally submitted issue that needs iterative Q&A before requirements |
+| `requirements` | An issue that has been reviewed and qualified and is ready to develop |
 | `existing-solutions` | Approved requirements ready to survey for prior art before designing |
 | `specifications` | Approved requirements (and solutions survey) ready for technical design |
 | `plan` | A specification ready for planning |
@@ -260,15 +262,16 @@ Architectural choices made during any phase are logged via `/create-decision` to
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
-3. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
-4. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
-5. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-6. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
-7. Execute each sub-skill in order from the entry point to the end of the pipeline.
-8. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-9. When all review findings are resolved, move to the next phase.
-10. After learnings are captured and reviewed, the cycle is complete.
+2. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
+3. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+4. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
+5. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
+6. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+7. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+8. Execute each sub-skill in order from the entry point to the end of the pipeline.
+9. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+10. When all review findings are resolved, move to the next phase.
+11. After learnings are captured and reviewed, the cycle is complete.
 
 ## Backtracking and Failure Recovery
 
@@ -317,6 +320,7 @@ Each phase consumes output from the previous phase:
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | create-issue | Feature idea / bug description | Structured GitHub issue |
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
+| qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
 | create-requirements | Reviewed issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
