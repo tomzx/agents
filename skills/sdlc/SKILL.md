@@ -91,6 +91,7 @@ Cross-cutting records (invoke at any point in any flow)
   /review-assumption      Audit specificity, basis quality, risk, validation adequacy
   /create-decision        Record an architectural/implementation decision with context
   /review-decision        Audit clarity, reasoning quality, consequence coverage
+  /git-churn-analysis     Identify high-churn files and generate improvement suggestions (feeds create-issue + prioritize-issues)
 
 Fast paths               Abbreviated sequences from the main flow for small,
                           well-understood changes (see "Fast Paths for Small Work")
@@ -236,6 +237,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
+| `churn` | Run `/git-churn-analysis` to identify hotspots; output feeds directly into issue creation and backlog prioritization |
 
 ## Steps
 
