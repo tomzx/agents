@@ -1,5 +1,5 @@
 ---
-name: complexity-hotspots
+name: find-complexity-hotspots
 description: Scan the codebase for functions and modules with high cyclomatic complexity, excessive length, or deep nesting, then produce prioritized refactoring suggestions.
 allowed-tools: Bash, Read, Glob, Grep
 argument-hint: "[path]"

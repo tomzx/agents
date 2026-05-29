@@ -1,5 +1,5 @@
 ---
-name: dead-code-scan
+name: find-dead-code
 description: Find unused functions, classes, variables, exports, feature flags, and config keys across the codebase and produce a prioritized removal list.
 allowed-tools: Bash, Read, Glob, Grep
 argument-hint: "[path]"

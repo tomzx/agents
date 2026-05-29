@@ -1,5 +1,5 @@
 ---
-name: git-churn-analysis
+name: analyze-git-churn
 description: Analyze git history to identify high-churn files and suggest targeted improvements such as refactoring, test coverage, dead code removal, or library replacements.
 allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[day|week|month]"
