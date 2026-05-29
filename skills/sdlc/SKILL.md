@@ -91,6 +91,9 @@ Cross-cutting records (invoke at any point in any flow)
   /review-assumption      Audit specificity, basis quality, risk, validation adequacy
   /create-decision        Record an architectural/implementation decision with context
   /review-decision        Audit clarity, reasoning quality, consequence coverage
+
+Maintenance (entry: maintenance — run periodically, independent of any feature)
+
   /git-churn-analysis     Identify high-churn files and generate improvement suggestions (feeds create-issue + prioritize-issues)
 
 Fast paths               Abbreviated sequences from the main flow for small,
@@ -237,19 +240,20 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
-| `churn` | Run `/git-churn-analysis` to identify hotspots; output feeds directly into issue creation and backlog prioritization |
+| `maintenance` | Run maintenance skills (e.g., `/git-churn-analysis`) to surface technical debt; findings feed into issue creation and backlog prioritization |
 
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
 2. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
 3. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
-4. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-5. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
-6. Execute each sub-skill in order from the entry point to the end of the pipeline.
-7. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-8. When all review findings are resolved, move to the next phase.
-9. After learnings are captured and reviewed, the cycle is complete.
+4. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
+5. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+6. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+7. Execute each sub-skill in order from the entry point to the end of the pipeline.
+8. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+9. When all review findings are resolved, move to the next phase.
+10. After learnings are captured and reviewed, the cycle is complete.
 
 ## Backtracking and Failure Recovery
 
