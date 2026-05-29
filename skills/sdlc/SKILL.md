@@ -18,8 +18,9 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ## Pipeline Overview
 
 ```
-Main flow (entry: issue → learnings)
+Main flow — 7 SDLC stages (entry: issue → learnings)
 
+  Stage 1 — Planning & Feasibility
   /create-issue           Create a structured GitHub issue
   /review-issue           Audit completeness, clarity, and AC quality
   /qualify-issue          Drive Q&A loop with reporter until issue is fully understood
@@ -29,14 +30,19 @@ Main flow (entry: issue → learnings)
   /prioritize-issues      Rank the backlog by RICE score
           │
           ▼
+  /create-feasibility     Assess technical, financial, and operational viability
+  /review-feasibility     Audit completeness, risk coverage, go/no-go soundness
+                          (gate: stop if not feasible, update issue with findings)
+
+  Stage 2 — Requirements
   /create-requirements    Draft functional + non-functional requirements
   /review-requirements    Audit for clarity, completeness, testability
           │
           ▼
   /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
   /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
-          │
-          ▼
+
+  Stage 3 — Design
   /create-specifications  Define architecture, data models, API contracts
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
@@ -49,8 +55,8 @@ Main flow (entry: issue → learnings)
           ▼
   /create-tasks-decomposition   Break plan into XS–L tasks with critical path
   /review-tasks-decomposition   Audit granularity, completeness, dependencies
-          │
-          ▼
+
+  Stage 4 & 5 — Development & Testing
   /create-tests           Test plan covering acceptance criteria + edge cases
   /review-tests           Audit coverage, correctness, maintainability
           │
@@ -68,10 +74,15 @@ Main flow (entry: issue → learnings)
   /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
   /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
   /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
+
+  Stage 6 — Deployment
+  /deploy-pr              Deploy merged changes to target environment, run smoke tests, verify rollback plan
           │
           ▼
   /create-learnings       Retrospective: what went well, root causes, actions
   /review-learnings       Audit actionability, specificity, completeness, balance
+
+  Other flows
 
 Setup (run once per project, no dependencies on other flows)
 
@@ -112,6 +123,10 @@ Maintenance (entry: maintenance — run periodically, independent of any feature
   Document — record what remains
   /find-documentation-gaps    Find public APIs, CLI commands, and config keys that lack documentation
 
+  Observe — monitor production health and surface runtime issues
+  /observe-production         Check SLOs/SLIs, review error rates, latency, and throughput for deployed features
+  /audit-observability        Identify missing logging, metrics, tracing, and alerting for production services
+
 Fast paths               Abbreviated sequences from the main flow for small,
                           well-understood changes (see "Fast Paths for Small Work")
 ```
@@ -125,8 +140,8 @@ When in doubt, include more phases rather than fewer.
 | Scenario | Example | Path |
 |---|---|---|
 | **Bug fix** | Fix an off-by-one error, correct a typo in logic | `fix-issue` (dedicated fast path with worktree + reproduction) |
-| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` |
-| **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` |
+| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
+| **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
 | **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
 | **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
 | **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
@@ -165,6 +180,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │   └── conventions.md             # Naming, structure, coding standards
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
+│       ├── feasibility.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
 │       ├── specification.md
@@ -175,6 +191,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       └── questions.md           # Running log of open questions from all review phases
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
+│   │   ├── feasibility.md
 │   │   ├── requirements.md
 │   │   ├── existing-solutions.md
 │   │   ├── specification.md
@@ -239,7 +256,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `qualify` | An externally submitted issue that needs iterative Q&A before requirements |
-| `requirements` | An issue that has been reviewed and qualified and is ready to develop |
+| `feasibility` | A prioritized issue ready for viability assessment before committing to requirements |
+| `requirements` | A feasibility-approved issue that is ready to develop |
 | `existing-solutions` | Approved requirements ready to survey for prior art before designing |
 | `specifications` | Approved requirements (and solutions survey) ready for technical design |
 | `plan` | A specification ready for planning |
@@ -252,6 +270,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `handle-pr-ci` | PR has failing CI checks to fix |
 | `handle-pr-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
+| `deploy` | PR is merged and ready to deploy to the target environment |
 | `bugfix` | A bug report issue to reproduce, fix, and submit as a PR (runs `fix-issue`) |
 | `reproduce` | A bug report issue to reproduce only, without implementing a fix (runs `reproduce-issue`) |
 | `learnings` | A completed feature or sprint to reflect on |
@@ -287,6 +306,7 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 | **Incoherent input** | `create-specifications` reveals requirements that contradict each other | Stop the current phase, backtrack to `review-requirements`, resolve contradictions, and continue forward from there. |
 | **Scope change** | `create-plan` shows the feature is much larger than the issue suggested | Backtrack to `create-issue` to rewrite scope and ACs, then re-derive downstream artifacts. |
 | **External blocker** | Third-party API unavailable, infrastructure not provisioned | Record as an assumption with a validation plan. If the blocker is resolved within the session, continue. Otherwise, stop after the current phase and note the blocker in the issue. |
+| **Feasibility rejected** | `review-feasibility` concludes the feature is not viable | Update the issue with findings and the rejection rationale. Stop the pipeline. The issue may be revisited if conditions change. |
 | **Review escalation** | `review-implementation` finds a fundamental design flaw | Backtrack to the phase where the flawed decision was made (often `create-specifications` or `create-plan`), revise, and re-derive downstream artifacts. |
 
 ### Backtracking rules
@@ -323,7 +343,9 @@ Each phase consumes output from the previous phase:
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Reviewed issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
+| create-feasibility | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
+| review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
+| create-requirements | Feasibility-approved issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
 | create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
 | review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
@@ -345,6 +367,7 @@ Each phase consumes output from the previous phase:
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
+| deploy-pr | Merged PR | Deployed changes, smoke tests passed, rollback plan verified |
 | fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction, implementation, PR |
 | check-duplicates | GitHub issue | Duplicate issues and existing fix PRs checked, results posted |
 | reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, results posted |
@@ -354,6 +377,8 @@ Each phase consumes output from the previous phase:
 | review-assumption | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` | Findings (improve basis, risk, validation) |
 | create-decision | Any phase context | `.sdlc/knowledge/decisions/NNNN-<slug>.md` |
 | review-decision | `.sdlc/knowledge/decisions/NNNN-<slug>.md` | Findings (improve clarity, reasoning, consequences) |
+| observe-production | Deployed service + observability tools | Health report: SLO status, error rates, latency, throughput, alerts triggered |
+| audit-observability | Codebase + running service | Gaps report: missing logs, metrics, traces, alerts for production services |
 
 ## Skipping Review Phases
 
