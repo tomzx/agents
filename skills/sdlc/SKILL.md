@@ -94,11 +94,18 @@ Cross-cutting records (invoke at any point in any flow)
 
 Maintenance (entry: maintenance — run periodically, independent of any feature)
 
+  Diagnose — surface what is risky or actively unstable
   /audit-dependencies         Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
   /analyze-git-churn          Identify high-churn files and generate improvement suggestions
+
+  Harden — reduce structural risk before changing code
   /find-complexity-hotspots   Find functions and modules with high cyclomatic complexity, excessive length, or deep nesting
   /find-coverage-gaps         Identify files with missing or insufficient test coverage, ranked by churn and complexity
+
+  Clean — remove what no longer belongs
   /find-dead-code             Find unused functions, classes, variables, exports, feature flags, and config keys
+
+  Document — record what remains
   /find-documentation-gaps    Find public APIs, CLI commands, and config keys that lack documentation
 
 Fast paths               Abbreviated sequences from the main flow for small,
