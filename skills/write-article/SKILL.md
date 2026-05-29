@@ -18,9 +18,20 @@ Produces a high-quality article from a target audience definition and a set of r
 1. Read all provided sources thoroughly.
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
-4. Draft the article using the structure below.
-5. Verify that all links included in the article are valid (return HTTP 200). Remove or replace any links that return errors (404, 5xx, etc.).
+4. Draft the article using the structure below, following the formatting rules.
+5. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
 6. Revise for clarity, flow, and conciseness.
+
+## Formatting Rules
+
+- **One sentence per line**: Each sentence occupies its own line in the markdown source.
+  This produces cleaner git diffs since changes to one sentence don't affect adjacent lines.
+  Paragraphs are separated by a blank line, with sentences within a paragraph on consecutive lines
+  (not separated by blank lines).
+- **Link all sources**: Every source referenced in the article body must include a verified hyperlink,
+  not just a textual citation (e.g., `[Author, "Title"](https://...)` not just `Author, "Title"`).
+- **Verify links**: After drafting, curl every hyperlink and replace any that return 4xx or connection
+  errors before finalizing the article.
 
 ## Audience Calibration
 
@@ -36,15 +47,21 @@ Produces a high-quality article from a target audience definition and a set of r
 ```markdown
 # [Title: specific and descriptive, not clickbait]
 
-[Lead: 1-3 sentences that state the core insight or frame the problem. No throat-clearing.]
+[Lead: 1-3 sentences that state the core insight or frame the problem.]
+[No throat-clearing.]
+[Each sentence on its own line.]
 
 ## [Section 1: Context or Background]
 
-[What the reader needs to understand before the main argument. Only include what is necessary.]
+[What the reader needs to understand before the main argument.]
+[Only include what is necessary.]
+[Each sentence on its own line, separated by newlines within a paragraph.]
 
 ## [Section 2: Main Argument or Explanation]
 
-[The substance of the article. Can be split into multiple sections if needed.]
+[The substance of the article.]
+[Can be split into multiple sections if needed.]
+[All source references include hyperlinks, e.g. [Author, "Title"](https://...).]
 
 ## [Section 3: Implications, Applications, or Next Steps]
 
@@ -52,7 +69,8 @@ Produces a high-quality article from a target audience definition and a set of r
 
 ## Conclusion (optional)
 
-[Only include if it adds something beyond a summary. A strong final line beats a weak conclusion section.]
+[Only include if it adds something beyond a summary.]
+[A strong final line beats a weak conclusion section.]
 ```
 
 Adjust section count and naming to fit the content. Not every article needs all four sections.
@@ -63,8 +81,9 @@ Adjust section count and naming to fit the content. Not every article needs all 
 - Open with the most interesting or important thing, not background
 - Make a specific claim or argument, not a survey of possibilities
 - Use concrete examples, numbers, or comparisons to anchor abstract points
-- Attribute claims to sources; don't state opinions as facts
+- Attribute claims to sources with hyperlinks; don't state opinions as facts
 - End with something the reader can take away or act on
+- Each sentence sits on its own line in the markdown source
 
 **Avoid:**
 - Padding: filler phrases like "In today's fast-paced world..." or "It's important to note that..."
@@ -79,7 +98,9 @@ Produce the article as clean markdown. After the article, include a brief sectio
 
 ```markdown
 ---
-**Sources used:** [list the sources drawn from, with a one-line note on what each contributed]
+**Sources used:**
+- [Source Title](https://...) -- [one-line note on what it contributed]
+- [Source Title](https://...) -- [one-line note on what it contributed]
 **Audience notes:** [one line on any assumptions made about the audience's prior knowledge]
 ```
 
