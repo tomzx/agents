@@ -44,11 +44,11 @@ Fetch PR metadata + comments ($1)
 
 ## Setup
 
-Fetch PR information and write the raw output:
+Fetch PR information by piping the raw `gh-cached` output directly to a file (do not generate or summarize the content):
+```bash
+mkdir -p "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}"
+gh-cached pr view $1 --repo <owner>/<repository> --comments --refresh > "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md"
 ```
-gh-cached pr view $1 --repo <owner>/<repository> --comments --refresh
-```
-Write to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md`.
 
 ## Pre-Review Checklist
 
