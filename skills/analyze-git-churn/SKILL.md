@@ -180,19 +180,19 @@ Suggest a concrete order of operations for addressing the findings.
 
 **Scenario 1: Default (week)**
 ```
-/git-churn-analysis
+/analyze-git-churn
 ```
 Analyzes the past week. Finds `src/api/routes.py` (12 commits) and `src/db/queries.py` (9 commits) as top churners. Suggests splitting the 800-line routes file and replacing a hand-rolled connection-retry loop with `tenacity`.
 
 **Scenario 2: Monthly view**
 ```
-/git-churn-analysis month
+/analyze-git-churn month
 ```
 Identifies a test helper that has been patched 20 times over the month, recommends extracting it into a proper fixture module and adding property-based tests with `hypothesis`.
 
 **Scenario 3: Daily hotspot**
 ```
-/git-churn-analysis day
+/analyze-git-churn day
 ```
 Three files changed today. One config file was touched 4 times — suggests consolidating environment-specific overrides into a single `settings.py` with `pydantic-settings`.
 

@@ -154,7 +154,7 @@ An issue is qualified when it meets all of the following:
 | **Reporter does not reply after one round** | Inform the user; they decide whether to close, wait, or proceed with assumptions |
 | **Reporter's answers introduce new ambiguities** | Incorporate resolved answers, post a follow-up comment with remaining questions |
 | **Issue is a duplicate** | Stop, point to the existing issue, suggest running `/check-duplicates` |
-| **Issue is out of scope for the project** | Stop, suggest running `/decline-issue` |
+| **Issue is out of scope for the project** | Stop, inform the user so they can decide whether to close the issue |
 
 ## Example Usage
 

@@ -17,6 +17,8 @@ Opens a GitHub pull request for the current branch with a structured description
 - Tests passing locally before the PR is opened
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
+> **Note:** This skill uses `gh` (GitHub CLI) directly. For a Graphite-based workflow that diffs against the Graphite parent branch, use `/create-pr-description` instead.
+
 ### Skill attribution (GitHub)
 
 Before creating the PR with `gh pr create`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Created with** footer for `SKILL_DIR` = `create-pr` to the PR body.

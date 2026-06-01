@@ -178,13 +178,13 @@ For the top 20 findings, read the defining file and the call sites to confirm th
 
 **Scenario 1: Full project scan**
 ```
-/dead-code-scan
+/find-dead-code
 ```
 Finds 12 unused Python functions, 3 always-true feature flags, and 7 orphaned config keys. Recommends removing the flags first as they also simplify surrounding logic.
 
 **Scenario 2: Targeted scan before a refactor**
 ```
-/dead-code-scan src/payments
+/find-dead-code src/payments
 ```
 Confirms that two helper functions in the payments module are no longer called after a recent refactor; safe to delete.
 

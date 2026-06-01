@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Complexity Hotspots
 
-Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions. Pairs naturally with `/git-churn-analysis`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
+Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions. Pairs naturally with `/analyze-git-churn`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
 
 ## Prerequisites
 
@@ -179,13 +179,13 @@ Suggested order of operations, including whether to write tests before refactori
 
 **Scenario 1: Full scan**
 ```
-/complexity-hotspots
+/find-complexity-hotspots
 ```
 Finds a 900-line router file with average cyclomatic complexity of F(31). Suggests splitting into sub-routers and replacing a 15-branch `if/elif` chain with a dispatch table.
 
 **Scenario 2: Targeted scan**
 ```
-/complexity-hotspots src/api
+/find-complexity-hotspots src/api
 ```
 Scans only the `src/api` directory. Surfaces two handler functions each over 80 lines; recommends extracting validation and serialization into separate helpers.
 

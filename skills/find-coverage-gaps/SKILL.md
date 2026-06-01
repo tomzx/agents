@@ -188,13 +188,13 @@ For each recommendation, name the specific functions to cover and the edge cases
 
 **Scenario 1: Baseline audit**
 ```
-/coverage-gaps
+/find-coverage-gaps
 ```
 Overall coverage is 61%. Finds `src/billing/invoice.py` (8%, 12 churn commits) as the top risk. Recommends unit tests for the three calculation functions and an integration test for the PDF export path.
 
 **Scenario 2: Pre-refactor safety check**
 ```
-/coverage-gaps src/legacy
+/find-coverage-gaps src/legacy
 ```
 The legacy module has 3% coverage. Recommends writing characterization tests for all public functions before any refactoring begins, to lock in current behavior.
 

@@ -245,19 +245,19 @@ def foo(bar: str, baz: int = 0) -> dict:
 
 **Scenario 1: API surface audit**
 ```
-/doc-gaps src/api
+/find-documentation-gaps src/api
 ```
 Finds 14 undocumented FastAPI endpoints and 3 config keys missing from README. Generates draft docstrings for the 5 highest-traffic routes based on their implementation.
 
 **Scenario 2: Full project scan**
 ```
-/doc-gaps
+/find-documentation-gaps
 ```
 Docstring coverage is 34%. Identifies the public-facing `Client` class and its 8 methods as the top priority since it is the primary entry point for library consumers. Generates draft docstrings for all 8 methods.
 
 **Scenario 3: Pre-release documentation gate**
 ```
-/doc-gaps
+/find-documentation-gaps
 ```
 All API endpoints are documented but 4 new CLI flags added last sprint have no help text. Generates the missing `help=` strings for each flag.
 

@@ -14,6 +14,8 @@ Generates a structured PR description from the current branch's diff against its
 - `gh` CLI authenticated (required only when `$1` and `$2` are provided)
 - Current branch must have commits relative to its parent
 
+> **Note:** This skill uses the Graphite CLI (`gt`) and diffs against the Graphite parent branch. For a `gh`-based workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
+
 ### Skill attribution (GitHub)
 
 Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `create-pr-description` to the end of the description body. This footer travels with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
