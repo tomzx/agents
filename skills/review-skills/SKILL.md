@@ -7,7 +7,7 @@ argument-hint: "[skills-directory]"
 
 # Review Skills
 
-Audits a directory of skills for structural and semantic issues across six categories: duplicates, broken references, circular dependencies, orphaned skills, composability, and skill gaps.
+Audits a directory of skills for structural and semantic issues across seven categories: duplicates, broken references, circular dependencies, orphaned skills, composability, re-run safety, and skill gaps.
 Produces a prioritized report with concrete remediation steps.
 
 ## Prerequisites
@@ -24,6 +24,7 @@ Produces a prioritized report with concrete remediation steps.
 | Circular dependencies | Chains of skill invocations that form a cycle |
 | Orphaned skills | Skills never referenced or invoked by any other skill |
 | Composability | Skills that cannot be composed because of conflicting interfaces, missing prerequisites, or incompatible tool constraints |
+| Re-run safety | Skills that may behave incorrectly or destructively when invoked multiple times on the same inputs |
 | Skill gaps | Common agent workflows that lack a corresponding skill |
 
 ## Steps
@@ -147,7 +148,29 @@ For each pair of skills that reference each other (A calls B), verify:
 
 Flag any pair where composability is broken or uncertain.
 
-### 8. Check for skill gaps
+### 8. Check re-run safety
+
+For each skill, determine whether it is safe to invoke multiple times with the same arguments. A skill is re-run safe if repeating it produces the same result without data loss, duplication, or corruption.
+
+Check for these signals in the skill's steps and output format:
+
+1. **Idempotent writes**: Does the skill overwrite its output file unconditionally, or does it append? Overwrite is safe; append on re-run produces duplicates.
+2. **State mutation**: Does the skill create git branches, push commits, open PRs, or create issues? If so, does it check whether the resource already exists before creating it? (e.g., `git rev-parse --verify <branch>` before `git checkout -b`)
+3. **External side effects**: Does the skill post comments, send messages, or make API calls? Does it check for existing comments/messages before posting?
+4. **Cleanup on failure**: If the skill fails partway through, does it leave behind partial state (branches, temp files, draft PRs)? Does it document rollback or cleanup steps?
+5. **Convergence**: If the skill is run again after a previous successful run, does it converge to the same end state, or does it produce new artifacts each time?
+
+Classify each skill:
+
+| Rating | Condition |
+|--------|-----------|
+| **Safe** | Overwrites output, checks before mutating external state, or has no side effects |
+| **Caution** | May duplicate output or create redundant artifacts on re-run, but no data loss |
+| **Unsafe** | Will create duplicate PRs, duplicate comments, or corrupt state on re-run |
+
+For skills rated Caution or Unsafe, suggest a specific fix (e.g., "check for existing branch before creating", "use overwrite instead of append", "add existence check before `gh issue create`").
+
+### 9. Check for skill gaps
 
 Analyze the skill library holistically:
 
@@ -161,7 +184,7 @@ Analyze the skill library holistically:
 4. **Missing documentation**: Skills without an Example Usage section or without an output format template
 5. **Missing prerequisites**: Skills that reference tools, scripts, or environment variables without listing them in Prerequisites
 
-### 9. Prioritize findings
+### 10. Prioritize findings
 
 Rank each finding using this priority scheme:
 
@@ -169,10 +192,10 @@ Rank each finding using this priority scheme:
 |----------|----------|
 | **Critical** | Broken reference that will cause a skill to fail at runtime; circular dependency that causes infinite loops |
 | **High** | Duplicate that confuses the agent; composability issue between frequently composed skills; missing prerequisites |
-| **Medium** | Orphaned skill; near-duplicate that adds maintenance burden; missing review pair; skill gap in a common workflow |
-| **Low** | Missing documentation; stylistic inconsistency; long chain that could be simplified |
+| **Medium** | Orphaned skill; near-duplicate that adds maintenance burden; missing review pair; skill gap in a common workflow; re-run safety concern without data loss |
+| **Low** | Missing documentation; stylistic inconsistency; long chain that could be simplified; re-run creates minor duplicates |
 
-### 10. Print the report
+### 11. Print the report
 
 ```
 ## Skill Library Review — {SKILLS_DIR}
@@ -225,6 +248,14 @@ Rank each finding using this priority scheme:
 
 <Or "No composability issues found.">
 
+### Re-run Safety
+
+| Skill | Rating | Risk | Suggested Fix | Priority |
+|-------|--------|------|---------------|----------|
+| `<name>` | safe / caution / unsafe | <what happens on re-run> | <specific fix> | critical/high/medium/low |
+
+<Or "All skills are re-run safe.">
+
 ### Skill Gaps
 
 | Gap | Description | Suggested Name | Priority |
@@ -249,6 +280,7 @@ Rank each finding using this priority scheme:
 | Skills referencing others | N |
 | Max dependency depth | N |
 | Skills with review pairs | N / N create skills |
+| Skills re-run safe | N safe, N caution, N unsafe |
 
 ### Adoption Checklist
 
