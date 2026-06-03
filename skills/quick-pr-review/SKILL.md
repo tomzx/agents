@@ -159,6 +159,12 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 #### Change is part of the spec (approval gate)
 - Read the PR title and description.
 - If no issue is referenced (e.g., `Fixes #N`, `Closes #N`, `Refs #N`, or a plain `#N` link): **do not approve** and ask the author to update the PR description with a reference to the issue that explains why this PR exists.
+  - Try to find potentially matching open issues for this PR by searching the repository (e.g., `gh issue list --repo {REPO} --state open --search "<keywords from PR title/description>"`).
+  - Suggest at most 3 candidates as a bullet list, listing only the issue number (no title), e.g.:
+    - `#41`
+    - `#58`
+    - `#72`
+  - If no plausible matches are found, omit the list.
 - If an issue is referenced: fetch the issue with `gh issue view {N} --repo {REPO} --json title,body,labels` and extract its acceptance criteria (any checklist, "Acceptance Criteria" section, or equivalent).
 - If acceptance criteria are found: verify that the diff satisfies them.
 - If the PR is not aligned, **do not approve** and list the unmet criteria, asking the author to provide a justification or update the PR.
