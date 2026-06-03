@@ -38,8 +38,12 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     - Feature requests → `Feature`
     - Everything else → `Task`
     If the query returns `null` or an empty list, the repository does not support issue types; skip type assignment.
-5. Choose labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
-6. Create the issue with the structured body (no label preflight). For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 2. Omit `--repo` if no repository was provided (gh will infer it from the cwd):
+5. **Choose labels and verify they exist**. Determine the desired labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead. Then query the repository for existing labels:
+    ```
+    gh label list [--repo $1] --json name --jq '.[].name'
+    ```
+    Filter the desired labels to only those that exist in the repository. If none of the desired labels exist, create the issue without labels and note which labels were skipped. Do not attempt to create labels.
+6. Create the issue with the structured body. For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 2. Omit `--repo` if no repository was provided (gh will infer it from the cwd). Only include `--label` flags for labels confirmed to exist in step 5:
     ```
     gh issue create [--repo $1] --title "<title>" --body "$(cat <<'EOF'
     # Background
@@ -64,16 +68,15 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
     Created with [create-issue]({SKILL_FILE_URL}) (`SKILL_SHORT_SHA`)
     EOF
-    )" --label "not-urgent" --label "not-important"
+    )" --label "<label1>" --label "<label2>"
     ```
-    Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command.
+    Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command. Omit all `--label` flags if no desired labels exist in the repository.
 7. **Assign the issue type** (if the repository supports issue types from step 4). After the issue is created, get its `node_id` and set the type:
     ```
     NODE_ID=$(gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id')
     gh api graphql -f query='mutation($id:ID!, $typeId:ID!) { updateIssue(input:{id:$id, issueTypeId:$typeId}) { issue { url issueType { name } } } }' -f id="$NODE_ID" -f typeId="<issue_type_node_id>"
     ```
     Use the `id` of the matching issue type from step 4 (e.g., the Bug type's node ID for bug reports).
-8. If `gh issue create` fails because a label is missing: only if you are a contributor who can manage labels, run `gh label create "<label-name>" --repo $1` and retry `gh issue create` (repeat as needed). If you are not a contributor, or `gh label create` fails with permission errors, create the issue again **without** `--label` and note that labels were skipped.
 
 ## Example Usage
 
@@ -103,7 +106,7 @@ User provides a list of requirements. Convert each into a checklist item under A
 | `gh api repos/<owner>/<repo> --jq '.default_branch'` | Get the default branch name |
 | `gh api repos/<owner>/<repo>/commits/<branch> --jq '.sha[0:7]'` | Get the short SHA of the default branch (version for feature requests) |
 | `gh api graphql -f query='{ repository(owner:"...", name:"...") { issueTypes(first:20) { nodes { name id } } } }'` | Check available issue types for the repository |
+| `gh label list [--repo <repo>] --json name --jq '.[].name'` | List existing label names in the repository |
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get the issue's node ID for type assignment |
 | `gh api graphql -f query='mutation($id:ID!,$typeId:ID!){updateIssue(input:{id:$id,issueTypeId:$typeId}){issue{issueType{name}}}}' -f id=... -f typeId=...` | Set the issue type after creation |
-| `gh label create <name> --repo <repo>` | Add a missing label before retrying (only if you have permission) |
