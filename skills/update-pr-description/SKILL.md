@@ -86,7 +86,7 @@ Produce updated PR description markdown
 
 7. Produce the updated description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
 
-8. Return the result inside a markdown code block with each sentence on its own line.
+8. Return the result inside a markdown code block with each sentence on its own line. Do not line wrap the description; each paragraph/bullet should be a single long line.
 
 ## Output Format
 

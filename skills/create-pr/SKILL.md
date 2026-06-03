@@ -75,7 +75,7 @@ Assign reviewers (if known)
    Map each acceptance criterion to the changes in the diff.
    Note any ACs not yet addressed (to call out in the description).
 
-5. Draft the PR description following the output format below.
+5. Draft the PR description following the output format below. Do not line wrap the description; each paragraph/bullet should be a single long line.
 
 6. Create the PR. Use `--draft` if any acceptance criteria are unmet:
    ```
