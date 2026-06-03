@@ -36,7 +36,7 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
 
   Stage 2 — Requirements
   /create-requirements    Draft functional + non-functional requirements
-  /review-requirements    Audit for clarity, completeness, testability
+  /review-requirements    Audit for clarity, completeness, testability, conflicts
           │
           ▼
   /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build

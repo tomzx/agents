@@ -49,9 +49,9 @@ status: draft
 
 ## Functional Requirements
 
-| ID | Requirement | Priority |
+| ID | Priority | Requirement |
 |---|---|---|
-| FR-01 | The system shall ... | Must / Should / May |
+| FR-01 | Must / Should / May | The system shall ... |
 | FR-02 | ... | ... |
 
 ## Non-Functional Requirements
@@ -69,6 +69,12 @@ status: draft
 
 - [ ] FR-01: <Testable condition>
 - [ ] FR-02: <Testable condition>
+
+## Conflicts
+
+<!-- Populated by /review-requirements. Leave as "None identified yet." when drafting. -->
+
+None identified yet.
 
 ## Open Questions
 

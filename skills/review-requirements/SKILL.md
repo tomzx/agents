@@ -17,7 +17,8 @@ Audits a requirements document and reports findings across five categories: clar
 1. Read the requirements document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, append it to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` as an open question and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -43,9 +44,17 @@ Audits a requirements document and reports findings across five categories: clar
 - Do dependencies on external systems introduce unaddressed risk?
 
 ### Conflicts
-- Do any requirements contradict each other?
-- Are there priority conflicts between Must/Should requirements?
-- Do non-functional requirements conflict with functional ones?
+
+Identify pairs (or groups) of requirements that cannot all be satisfied at once, or that pull the design in incompatible directions. Check for these conflict types:
+
+- **Direct contradiction:** two requirements assert opposite behaviors (e.g., FR-02 "data is stored locally only" vs FR-07 "data syncs to the cloud").
+- **Mutual exclusivity:** both are individually valid but cannot hold simultaneously (e.g., offline-first vs real-time sync).
+- **Priority conflict:** two requirements compete for the same resource or attention and are both marked Must, with no stated tie-breaker.
+- **Functional vs non-functional tension:** a behavior conflicts with a quality attribute (e.g., FR "log full request payloads" vs NFR "store no PII").
+- **Constraint violation:** a requirement cannot coexist with a stated constraint (e.g., a requirement implying a library the constraints forbid).
+- **Acceptance-criteria contradiction:** acceptance criteria for two requirements assert incompatible outcomes.
+
+For each conflict found, report: the requirement IDs involved, the nature of the conflict, and a suggested resolution (relax one, re-prioritize, split, or escalate as an open question).
 
 ## Output Format
 
@@ -68,7 +77,11 @@ Audits a requirements document and reports findings across five categories: clar
 
 ## Conflicts
 
-<Findings or "No issues found.">
+<For each conflict, or "No issues found.":>
+
+| Requirements | Type | Description | Suggested Resolution |
+|---|---|---|---|
+| FR-01, NFR-01 | Mutual exclusivity | Offline support cannot coexist with real-time sync as both Must. | Re-prioritize one to Should, or define an offline-then-sync model. |
 ```
 
 ## Example Usage
