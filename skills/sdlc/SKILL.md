@@ -89,6 +89,7 @@ Setup (run once per project, no dependencies on other flows)
   /bootstrap-sdlc              Bootstrap .sdlc/ structure and populate it with an existing project's content
   /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
   /update-sdlc-templates       Pull upstream template improvements, merge with user edits
+  /configure-labels            Configure the standard label taxonomy in the GitHub repository
 
 Bug fix fast path (entry: bugfix)
 
@@ -253,6 +254,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | Phase | Start here when you have... |
 |---|---|
 | `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `bootstrap-sdlc`) |
+| `configure-labels` | A repository that needs the standard label taxonomy created or updated |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `qualify` | An externally submitted issue that needs iterative Q&A before requirements |
@@ -338,6 +340,7 @@ Each phase consumes output from the previous phase:
 | bootstrap-sdlc | Existing project root | `.sdlc/` directory tree + context files populated with real project content |
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
+| configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |
 | create-issue | Feature idea / bug description | Structured GitHub issue |
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |

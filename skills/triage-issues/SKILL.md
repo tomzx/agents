@@ -323,10 +323,10 @@ Map the derived priority to the repo's priority labels:
 
 | Derived Priority | Label (preferred) | Alternatives |
 |---|---|---|
-| Urgent | `high-priority` | `priority:high`, `P0` |
-| High | `high-priority` | `priority:high`, `P1` |
-| Medium | `medium-priority` | `priority:medium`, `P2` |
-| Low | `low-priority` | `priority:low`, `P3` |
+| Urgent | `priority:high` | `high-priority`, `P0` |
+| High | `priority:high` | `high-priority`, `P1` |
+| Medium | `priority:medium` | `medium-priority`, `P2` |
+| Low | `priority:low` | `low-priority`, `P3` |
 
 Use the closest match from the repo's label set.
 
