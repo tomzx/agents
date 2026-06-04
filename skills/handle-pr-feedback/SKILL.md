@@ -11,7 +11,9 @@ Reviews and responds to all developer comments on a GitHub pull request, impleme
 ## Prerequisites
 
 - `gh` CLI authenticated with write access to the target repository
-- PR number (`$1`) identifying an open pull request with at least one review comment
+- PR number identifying an open pull request with at least one review comment
+  - If `$1` is provided, use it directly
+  - If `$1` is not provided, resolve the PR number with: `gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'`
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ### Skill attribution (GitHub)
