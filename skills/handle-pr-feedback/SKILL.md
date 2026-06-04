@@ -29,45 +29,47 @@ Fetch PR comments ($1)
   For each comment
         |
         v
-  Is it actionable?
-     /         \
-   Yes           No
-    |             |
-    v             v
-Implement     Draft rejection
-changes       explanation
-    |             |
-    +------+------+
-           |
-           v
-  Present to user for approval
+  Evaluate: actionable or not?
+        |
+        v
+  Present outcome to user for approval
      /         \
  Approved     Rejected
     |             |
     v             v
-Commit/post     Skip
+Implement       Skip
+changes
     |
     v
-Push branch + re-request review
+Commit + push
+    |
+    v
+Reply to each comment thread with outcome (ghx)
+    |
+    v
+Re-request review
 ```
 
 ## Steps
 
-1. Fetch all PR comments:
+1. Fetch all PR review threads:
    ```
-   gh-cached pr view $1 --comments --refresh
+   ghx pr threads $1 --ids
    ```
-2. For each comment, display its content.
-3. Evaluate whether the comment is appropriate and actionable.
-4. If actionable: implement the requested changes in the codebase.
-5. If not actionable: draft a reply explaining why the change will not be made.
-6. Present the content, reasoning, and proposed action to the user for approval.
-7. On approval: commit code changes or post the reply as a PR comment using `ghx`. When posting a reply, include the **Skill attribution** footer on the comment body (omit the footer if you only push commits and do not post a comment).
-8. After all comments are addressed, push the branch:
+2. For each comment, evaluate whether it is appropriate and actionable.
+3. Present the evaluation and proposed action (implement or reject with explanation) to the user for approval.
+4. For actionable comments that the user approved: implement the requested changes in the codebase.
+5. Commit and push the changes:
    ```
+   git add -A && git commit -m "<message>"
    git push
    ```
-9. Re-request review from the original reviewers:
+6. Reply to each comment thread with the outcome using `ghx`. For actionable comments where changes were implemented: reply with a brief summary and a link to the commit (e.g., "Done: added null guard for `user` in abc1234."). For non-actionable comments: reply with the rejection explanation. Use the thread IDs from step 1:
+   ```
+   ghx pr comment $1 --reply-thread <thread-id> --body "<outcome summary>"
+   ```
+   Append the **Skill attribution** footer to each reply.
+7. Re-request review from the original reviewers:
    ```
    gh pr edit $1 --add-reviewer <handles>
    ```
@@ -99,6 +101,8 @@ Three comments: one requesting a missing test (implement), one asking for a type
 | Command | Description |
 |---|---|
 | `gh-cached pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
-| `ghx pr comment <pr-number> --body "..."` | Post a reply comment on the PR |
+| `ghx pr threads <pr-number> --ids` | List review threads with IDs for replying |
+| `ghx pr comment <pr-number> --reply-thread <thread-id> --body "..."` | Reply to a specific review thread |
+| `ghx pr comment <pr-number> --body "..."` | Post a top-level reply comment on the PR |
 | `git push` | Push committed changes to the remote branch |
 | `gh pr edit <pr-number> --add-reviewer <handle>` | Re-request review from a reviewer |
