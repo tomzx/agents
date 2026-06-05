@@ -37,7 +37,27 @@ Order rows by priority: Must first, then Should, then May.
 
 ## Acceptance Criteria
 
-- [ ] FR-01: <Testable condition>
+Acceptance criteria verify how a requirement is proven done, they do not restate it.
+Write concrete, scenario-based criteria (happy path, edge cases and error states where applicable).
+
+- [ ] **FR-01**
+    - **Given** <precondition>
+    - **When** <action>
+    - **Then** <observable result>
+- [ ] **FR-01** (edge case)
+    - **Given** <edge case>
+    - **When** <action>
+    - **Then** <expected handling>
+- [ ] **FR-01** (error)
+    - **Given** <error condition>
+    - **When** <action>
+    - **Then** <error is surfaced as ...>
+
+## Conflicts
+
+<!-- Identified and populated by /review-requirements: pairs or groups of requirements that cannot all be satisfied at once. Reconcile before approval, or promote to an open question. -->
+
+None identified yet.
 
 ## Open Questions
 

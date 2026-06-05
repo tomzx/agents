@@ -67,8 +67,18 @@ status: draft
 
 ## Acceptance Criteria
 
-- [ ] FR-01: <Testable condition>
-- [ ] FR-02: <Testable condition>
+- [ ] **FR-01**
+    - **Given** <precondition>
+    - **When** <action>
+    - **Then** <observable result>
+- [ ] **FR-01** (edge case)
+    - **Given** <edge case>
+    - **When** <action>
+    - **Then** <expected handling>
+- [ ] **FR-01** (error)
+    - **Given** <error condition>
+    - **When** <action>
+    - **Then** <error is surfaced as ...>
 
 ## Conflicts
 
@@ -82,6 +92,10 @@ None identified yet.
 ```
 
 Use MoSCoW priority for functional requirements: **Must** (essential), **Should** (important), **May** (nice-to-have).
+
+Functional requirements state *what* the system shall do; acceptance criteria state *how you verify* it is done.
+Do not restate an FR as its acceptance criterion.
+Write concrete, scenario-based criteria (happy path, edge cases, error states), usually several per requirement, each independently checkable and translatable into a test case.
 
 ## Example Usage
 
