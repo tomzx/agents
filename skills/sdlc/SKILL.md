@@ -329,6 +329,16 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 When the user enters at `status`, produce a progress dashboard without modifying any artifacts.
 
+**Preferred: use the bundled script.** `scripts/sdlc-status.py` renders a self-contained HTML dashboard (one tabbed panel per feature, with pipeline status, task progress, blockers, and session log) directly from the `.sdlc/` directory. Prefer it over hand-building a report, especially when the user asks for HTML.
+
+```bash
+# The script carries PEP 723 inline metadata, so uv provisions PyYAML on the fly.
+uv run <skill_dir>/scripts/sdlc-status.py <path-to-.sdlc> -o status-report.html
+# Omit -o (or pass "-") to write the HTML to stdout instead of a file.
+```
+
+The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the richest dashboard ensure `progress.md` exists (see Progress Tracking). If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
+
 1. If `$1` specifies a feature directory, use that one. Otherwise, scan `.sdlc/features/` for all feature directories.
 2. For each feature, read `progress.md` if it exists, otherwise scan the directory for artifacts and task files.
 3. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
