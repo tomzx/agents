@@ -181,6 +181,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │   └── conventions.md             # Naming, structure, coding standards
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
+│       ├── progress.md            # Feature-level progress tracking and session log
 │       ├── feasibility.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
@@ -197,6 +198,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │   │   ├── existing-solutions.md
 │   │   ├── specification.md
 │   │   ├── plan.md
+│   │   ├── progress.md            # Template for feature-level progress tracking
 │   │   ├── task.md                # Template for a single task file
 │   │   ├── tests.md
 │   │   └── questions.md
@@ -246,6 +248,31 @@ status: draft        # draft → in-review → approved (learnings: → complete
 `create-*` pipeline skills write artifacts with `status: draft`.
 `review-*` pipeline skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
 Assumption and decision records use their own status vocabulary (`Active → Validated | Invalidated | Deferred`; `Proposed → Accepted | Deprecated | Superseded`) updated by `review-assumption` and `review-decision` respectively.
+
+### Task Status Lifecycle
+
+Tasks use an expanded status vocabulary to track progress across sessions:
+
+```
+draft → pending → in-progress → done
+                   |                 ↑
+                   → blocked ────────┘
+                   |
+                   → cancelled
+```
+
+| Status | Meaning | Set by |
+|---|---|---|
+| `draft` | Initial state, created by decomposition | `create-tasks-decomposition` |
+| `pending` | Reviewed and approved, ready to start | `review-tasks-decomposition` |
+| `in-progress` | Actively being worked on | `create-implementation` or manually |
+| `blocked` | Cannot proceed, waiting on external dependency | `create-implementation` or manually |
+| `done` | All acceptance criteria met, tests passing | `create-implementation` after checklist |
+| `cancelled` | No longer needed (superseded or descoped) | Manually |
+
+When a task reaches `done`, set `completed_date` to the current date (ISO format).
+When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
+
 Open questions from review phases are appended to `.sdlc/features/FEAT-NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
@@ -253,6 +280,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 | Phase | Start here when you have... |
 |---|---|
+| `status` | Want to see current progress on a feature or pick up where you left off (runs progress report, no side effects) |
 | `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `bootstrap-sdlc`) |
 | `configure-labels` | A repository that needs the standard label taxonomy created or updated |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
@@ -282,17 +310,104 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 ## Steps
 
-1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle.
-2. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
-3. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
-4. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
-5. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
-6. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-7. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
-8. Execute each sub-skill in order from the entry point to the end of the pipeline.
-9. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-10. When all review findings are resolved, move to the next phase.
-11. After learnings are captured and reviewed, the cycle is complete.
+1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle. If no entry point is given and `.sdlc/features/` contains feature directories with `progress.md` files, check for features that are not yet complete and offer to resume them (see Automatic Resume below).
+2. If the entry point is `status`, run the Status Report (see below). Do not advance the pipeline or modify any artifacts.
+3. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
+4. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+5. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
+6. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
+7. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+8. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+9. Execute each sub-skill in order from the entry point to the end of the pipeline.
+10. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+11. When all review findings are resolved, move to the next phase.
+12. After each phase completes, update `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below).
+13. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
+14. After learnings are captured and reviewed, the cycle is complete.
+
+### Status Report (entry: `status`)
+
+When the user enters at `status`, produce a progress dashboard without modifying any artifacts.
+
+1. If `$1` specifies a feature directory, use that one. Otherwise, scan `.sdlc/features/` for all feature directories.
+2. For each feature, read `progress.md` if it exists, otherwise scan the directory for artifacts and task files.
+3. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
+4. Output the following for each feature:
+
+```markdown
+## <Feature Name> — <current_phase>
+
+**Pipeline:** <furthest completed phase> → <current phase> (<status>)
+**Tasks:** <done> / <total> (<percentage>%)
+**Blockers:** <current blocker, or "None">
+**Last session:** <date> — <summary>
+**Re-enter at:** <phase name>
+
+### Task Status
+
+| ID | Title | Size | Status | Blocker |
+|---|---|---|---|---|
+| 0001 | ... | S | done | — |
+| 0002 | ... | M | in-progress | — |
+| 0003 | ... | S | blocked | Waiting on API access |
+
+**Critical path progress:** 0001 ✓ → 0002 ◐ → 0005 ○ → 0008 ○
+(✓ = done, ◐ = in-progress/blocked, ○ = pending)
+```
+
+5. If multiple features are found, show a brief summary table first:
+
+```markdown
+| Feature | Phase | Tasks | Last Updated |
+|---|---|---|---|
+| FEAT-0001 | implementation | 3/7 | 2025-06-03 |
+| FEAT-0002 | requirements | 0/3 | 2025-06-01 |
+```
+
+6. After the report, ask the user which feature to work on and at which phase to resume.
+
+### Automatic Resume
+
+When `/sdlc` is invoked without an explicit entry point and feature directories exist:
+
+1. Scan `.sdlc/features/*/progress.md` for features where `current_phase` is not `complete` and `re_entry_point` is set.
+2. If exactly one in-progress feature is found, present its status report and ask: "Resume at `<re_entry_point>` for `<feature>`?"
+3. If multiple in-progress features are found, show the summary table and ask which one to resume.
+4. If no in-progress features are found, ask the user for an entry point as usual.
+5. The user can always override by specifying an explicit entry point.
+
+### Progress Tracking
+
+The `progress.md` file in each feature directory is the single source of truth for feature status.
+It is updated automatically by the orchestrator after each phase completes.
+
+**When to update `progress.md`:**
+- After any `create-*` or `review-*` phase completes (update the Pipeline Status table).
+- When a task status changes (update the Task Progress table and completion count).
+- When a blocker is encountered or resolved (update Current Blocker).
+- At session start and end (add entry to Session Log).
+
+**Updating task status during implementation:**
+When `create-implementation` starts work on a task, set its frontmatter `status: in-progress`.
+When the task checklist passes, set `status: done` and `completed_date`.
+If blocked, set `status: blocked` and fill in `blocker`.
+After each task status change, update the Task Progress table in `progress.md`.
+
+### Session Boundary Markers
+
+At the start and end of every session working on a feature, write a brief entry to the Session Log in `progress.md`.
+
+**Session start** (when resuming work on a feature):
+- Read the last Session Log entry to determine where you left off.
+- Add a new row: `| <today> | Resumed. <what you plan to work on> | <expected next step> |`
+
+**Session end** (when stopping, pausing, or completing the session):
+- Add a new row: `| <today> | <what was accomplished> | <where to pick up next, with phase name> |`
+- Update `re_entry_point` in frontmatter to the phase where the next session should start.
+- Update `last_updated` in frontmatter to today's date.
+- If blocked, update `current_phase` and the Current Blocker section.
+
+These markers ensure the next session (which may be days or weeks later) can quickly determine where to resume without re-reading all artifacts.
 
 ## Backtracking and Failure Recovery
 
@@ -329,7 +444,8 @@ Stop and report to the user when:
 When stopping, leave the pipeline in a resumable state:
 - Update the issue with current status and blockers.
 - Save any artifacts produced so far.
-- Note the re-entry point for the next session.
+- Write a session end marker to `progress.md` with the re-entry point for the next session.
+- Update `progress.md` frontmatter: `re_entry_point`, `current_phase`, and `last_updated`.
 
 ## Phase Contracts
 
@@ -357,11 +473,11 @@ Each phase consumes output from the previous phase:
 | create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
 | publish-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` per task (`status: draft`) |
-| review-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved |
+| create-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
+| review-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved; populates Task Progress table in `progress.md` |
 | create-tests | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
-| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` | Working code |
+| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
 | review-implementation | Code + spec | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |

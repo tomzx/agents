@@ -44,6 +44,8 @@ title: "<Task title>"
 status: draft
 size: <XS|S|M|L>
 depends_on: []    # list of task IDs this task cannot start until complete, e.g. ["0001", "0003"]
+completed_date: null
+blocker: null
 ---
 
 # Task NNNN: <Task title>
@@ -61,6 +63,33 @@ depends_on: []    # list of task IDs this task cannot start until complete, e.g.
 
 <Optional: implementation hints, risks, or constraints specific to this task.>
 ```
+
+### Task Status Lifecycle
+
+Tasks follow a strict status progression:
+
+```
+draft → pending → in-progress → done
+                   |                 ↑
+                   → blocked ────────┘
+                   |                 |
+                   → cancelled       |
+                                     ↓
+                              (restart if needed)
+```
+
+| Status | Meaning | Who sets it |
+|---|---|---|
+| `draft` | Initial state, created by decomposition | `create-tasks-decomposition` |
+| `pending` | Reviewed and approved, ready to start | `review-tasks-decomposition` |
+| `in-progress` | Actively being worked on | `create-implementation` (or manually) |
+| `blocked` | Cannot proceed due to external dependency or issue | `create-implementation` (or manually) |
+| `done` | All acceptance criteria met, tests passing | `create-implementation` after checklist passes |
+| `cancelled` | No longer needed (superseded or descoped) | Manually |
+
+When setting a task to `done`, also set `completed_date` to the current date (ISO format, e.g. `2025-06-05`).
+When setting a task to `blocked`, also set `blocker` to a brief description of what is blocking (e.g. `"Waiting on API access from infra team"`).
+When a blocked task resumes, set status back to `in-progress` and clear `blocker` to `null`.
 
 After writing all task files, output a summary to the conversation:
 

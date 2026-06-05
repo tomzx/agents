@@ -19,6 +19,7 @@ Audits a task decomposition and reports findings across five categories: granula
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
 4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. Populate the Task Progress table in `.sdlc/features/FEAT-NNNN-<slug>/progress.md` with all tasks, their sizes, and `pending` status. Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
 
 ## Review Checklist
 

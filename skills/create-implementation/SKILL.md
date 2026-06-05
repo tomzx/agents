@@ -46,13 +46,15 @@ All acceptance criteria met?
 ## Steps
 
 1. Read the task, specification, and acceptance criteria.
-2. Set up a feature branch (see Branching Strategy below).
-3. Explore the codebase to understand existing patterns, naming conventions, and architecture.
-4. Identify which files need to be created or modified.
-5. Implement the changes in small increments, verifying each step with tests.
-6. Ensure all acceptance criteria are met.
-7. Check for code quality issues (naming, duplication, dead code).
-8. Run the full test suite and confirm it passes.
+2. Set the task frontmatter `status: in-progress` in the corresponding `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` file.
+3. Update the Task Progress table in `progress.md` to reflect the in-progress status.
+4. Set up a feature branch (see Branching Strategy below).
+5. Explore the codebase to understand existing patterns, naming conventions, and architecture.
+6. Identify which files need to be created or modified.
+7. Implement the changes in small increments, verifying each step with tests.
+8. Ensure all acceptance criteria are met.
+9. Check for code quality issues (naming, duplication, dead code).
+10. Run the full test suite and confirm it passes.
 
 ## Branching Strategy
 
@@ -108,6 +110,23 @@ git rebase origin/main
 - [ ] No dead code or commented-out code introduced
 - [ ] Existing tests still pass (no regressions)
 - [ ] Branch rebased on latest `main`
+- [ ] Task frontmatter updated: `status: done`, `completed_date: <today>`
+- [ ] `progress.md` Task Progress table updated
+
+## Handling Blockers
+
+If a task cannot be completed due to an external dependency, missing information, or infrastructure issue:
+
+1. Set the task frontmatter `status: blocked` and fill in `blocker` with a brief description.
+2. Update the Task Progress table in `progress.md` and the Current Blocker section.
+3. Record the blocker as an assumption via `/create-assumption` if it carries meaningful risk.
+4. Move to the next task if it has no dependency on the blocked task.
+5. If all remaining tasks depend on the blocked task, stop and write a session end marker to `progress.md`.
+
+When a blocker is resolved:
+1. Set the task frontmatter `status: in-progress` and `blocker: null`.
+2. Update `progress.md` accordingly.
+3. Continue implementation.
 
 ## Example Usage
 
