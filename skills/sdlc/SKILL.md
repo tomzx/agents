@@ -311,7 +311,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 ## Steps
 
 1. Determine the entry point: use `$1` if provided, otherwise ask the user where they are in the lifecycle. If no entry point is given and `.sdlc/features/` contains feature directories with `progress.md` files, check for features that are not yet complete and offer to resume them (see Automatic Resume below).
-2. If the entry point is `status`, run the Status Report (see below). Do not advance the pipeline or modify any artifacts.
+2. If the entry point is `status`, invoke the `sdlc-status` skill. Do not advance the pipeline or modify any artifacts.
 3. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
 4. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
 5. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
@@ -327,54 +327,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 ### Status Report (entry: `status`)
 
-When the user enters at `status`, produce a progress dashboard without modifying any artifacts.
-
-**Preferred: use the bundled script.** `scripts/sdlc-status.py` renders a self-contained HTML dashboard (one tabbed panel per feature, with pipeline status, task progress, blockers, and session log) directly from the `.sdlc/` directory. Prefer it over hand-building a report, especially when the user asks for HTML.
-
-```bash
-# The script carries PEP 723 inline metadata, so uv provisions PyYAML on the fly.
-uv run <skill_dir>/scripts/sdlc-status.py <path-to-.sdlc> -o status-report.html
-# Omit -o (or pass "-") to write the HTML to stdout instead of a file.
-```
-
-The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the richest dashboard ensure `progress.md` exists (see Progress Tracking). If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
-
-1. If `$1` specifies a feature directory, use that one. Otherwise, scan `.sdlc/features/` for all feature directories.
-2. For each feature, read `progress.md` if it exists, otherwise scan the directory for artifacts and task files.
-3. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
-4. Output the following for each feature:
-
-```markdown
-## <Feature Name> — <current_phase>
-
-**Pipeline:** <furthest completed phase> → <current phase> (<status>)
-**Tasks:** <done> / <total> (<percentage>%)
-**Blockers:** <current blocker, or "None">
-**Last session:** <date> — <summary>
-**Re-enter at:** <phase name>
-
-### Task Status
-
-| ID | Title | Size | Status | Blocker |
-|---|---|---|---|---|
-| 0001 | ... | S | done | — |
-| 0002 | ... | M | in-progress | — |
-| 0003 | ... | S | blocked | Waiting on API access |
-
-**Critical path progress:** 0001 ✓ → 0002 ◐ → 0005 ○ → 0008 ○
-(✓ = done, ◐ = in-progress/blocked, ○ = pending)
-```
-
-5. If multiple features are found, show a brief summary table first:
-
-```markdown
-| Feature | Phase | Tasks | Last Updated |
-|---|---|---|---|
-| FEAT-0001 | implementation | 3/7 | 2025-06-03 |
-| FEAT-0002 | requirements | 0/3 | 2025-06-01 |
-```
-
-6. After the report, ask the user which feature to work on and at which phase to resume.
+Delegate to the `sdlc-status` skill, which handles all reporting logic including the HTML dashboard script and text-based fallback. See `sdlc-status/SKILL.md` for details.
 
 ### Automatic Resume
 
