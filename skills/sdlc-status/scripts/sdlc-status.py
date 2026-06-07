@@ -218,6 +218,13 @@ def read_feature(feature_dir: Path) -> dict | None:
     if req_content:
         refs.update(parse_refs(req_content))
 
+    # Collect open questions from phase files
+    open_questions: dict[str, str] = {}
+    for phase, content in file_contents.items():
+        qs = parse_open_questions(content)
+        if qs:
+            open_questions[phase] = qs
+
     tasks_dir = feature_dir / "tasks"
     task_files: list[dict] = []
     if tasks_dir.exists():
@@ -267,6 +274,7 @@ def read_feature(feature_dir: Path) -> dict | None:
         "sessions": sessions,
         "file_contents": file_contents,
         "refs": refs,
+        "open_questions": open_questions,
     }
 
 
@@ -382,6 +390,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .chip-in-progress { background: var(--yellow-dim); color: var(--yellow); }
   .chip-blocked { background: var(--red-dim); color: var(--red); }
   .chip-skipped { background: var(--gray-dim); color: var(--gray); text-decoration: line-through; }
+  .chip-open-questions { background: var(--blue-dim); color: var(--blue); }
   .chip-not-started { background: var(--surface-alt); color: var(--text-muted); }
   .chip-draft { background: var(--blue-dim); color: var(--blue); }
   .chip-in-review { background: var(--yellow-dim); color: var(--yellow); }
@@ -489,7 +498,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .cpn-in-progress { background: var(--blue-dim); color: var(--blue); }
   .cpn-blocked { background: var(--red-dim); color: var(--red); }
   .cpn-pending { background: var(--surface-alt); color: var(--text-muted); }
-  .cp-arrow { color: var(--border); font-size: 0.75rem; }
+  .cp-arrow { color: var(--text-muted); font-size: 0.8rem; margin: 0 0.5rem; }
 
   .phase-detail {
     margin-top: 0.75rem;
@@ -539,6 +548,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   .hidden { display: none; }
   .empty { color: var(--text-muted); font-style: italic; font-size: 0.85rem; padding: 0.5rem 0; }
+  .oq-row { flex-basis: 100%; margin-top: 0.5rem; }
+  .pipeline-stages-row { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0; }
+  .pipeline-stages > .chip-open-questions { margin-left: auto; }
+  .oq-row .chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; font-weight: 500; }
+  .oq-group:last-child { margin-bottom: 0; }
+  .oq-group h4 { margin: 0 0 0.25rem; font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
+  .oq-group ol { margin: 0.25rem 0; padding-left: 1.25rem; }
+  .oq-group li { margin: 0.35rem 0; font-size: 0.85rem; line-height: 1.4; }
+  .oq-list { margin: 0; padding: 0; list-style: none; }
+  .oq-list li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+  .oq-list li:last-child { border-bottom: none; }
+  .oq-list li::before { content: "?"; color: var(--accent); font-weight: 700; margin-right: 0.5rem; }
   .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.72rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
   .footer a { color: var(--accent); }
   .footer .commit { font-family: monospace; }
@@ -724,6 +745,13 @@ def badge_priorities_in_tables(content: str) -> str:
     return "\n".join(result)
 
 
+def parse_open_questions(content: str) -> str:
+    m = re.search(r"## Open Questions\s*\n(.+?)(?=\n## |\Z)", content, re.DOTALL)
+    if not m:
+        return ""
+    return m.group(1).strip()
+
+
 FEATURE_PANEL = """
 <div class="fpanel {{first_class}}">
   <p class="c-muted" style="margin-bottom:1.25rem;font-size:0.88rem">{{summary}}</p>
@@ -797,6 +825,7 @@ STATUS_ICONS = {
     "blocked": "\u26d4",
     "skipped": "\u23ed\ufe0f",
     "not-started": "\u26aa",
+    "open-questions": "\u2753",
 }
 
 STATUS_DESCRIPTIONS: dict[str, str] = {
@@ -808,6 +837,7 @@ STATUS_DESCRIPTIONS: dict[str, str] = {
     "done": "completed",
     "approved": "completed",
     "skipped": "not applicable",
+    "open-questions": "open questions",
 }
 
 PHASE_FILE: dict[str, str | None] = {
@@ -834,7 +864,7 @@ def chip(phase: str, status: str, has_content: bool, feat_idx: int = 0) -> str:
     return f'<span class="chip chip-{cls}">{inner}</span>'
 
 
-def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], feat_idx: int = 0) -> str:
+def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], open_questions: dict[str, str], feat_idx: int = 0) -> str:
     stages: dict[str, list[dict]] = {}
     for row in pipeline_rows:
         stages.setdefault(row["stage"], []).append(row)
@@ -849,7 +879,14 @@ def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], fe
             f'<div class="pipeline-phases">{chips}</div>'
             f'</div>'
         )
-    return '<span class="cp-arrow">&rsaquo;</span>'.join(parts)
+    # Append Open Questions chip below stages
+    oq_chip = ""
+    if open_questions:
+        cls = "chip-open-questions chip-link"
+        icon = STATUS_ICONS.get("open-questions", "")
+        oq_chip = f'<span class="chip {cls}" onclick="showPhase({feat_idx},\'open-questions\')">{icon} Open Questions</span>'
+    stages_html = '<span class="pipeline-stages-row">' + '<span class="cp-arrow">&rsaquo;</span>'.join(parts) + '</span>'
+    return stages_html + oq_chip
 
 
 def render_tasks(tasks: list[dict]) -> str:
@@ -875,6 +912,16 @@ def render_tasks(tasks: list[dict]) -> str:
         '<table><thead><tr><th>ID</th><th>Title</th><th>Size</th><th>Status</th><th>Completed</th><th>Blocker</th></tr></thead>'
         f"<tbody>{rows}</tbody></table></div>"
     )
+
+
+def render_questions(questions: dict[str, str]) -> str:
+    if not questions:
+        return ""
+    items = ""
+    for phase, section in questions.items():
+        rendered = render_markdown(section)
+        items += f'<div class="oq-group"><h4>{phase}</h4>{rendered}</div>'
+    return items
 
 
 def render_sessions(sessions: list[dict]) -> str:
@@ -942,6 +989,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
 
     fc = feature.get("file_contents", {})
     refs = feature.get("refs", {})
+    open_questions = feature.get("open_questions", {})
 
     # Find first phase with status != "not-started" to auto-expand
     first_active = None
@@ -955,6 +1003,10 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
         rendered = annotate_refs(render_markdown(badge_priorities_in_tables(content)), refs)
         cls = "" if phase == first_active else "hidden"
         phase_details += f'<div id="pd-{feat_idx}-{phase}" class="phase-detail {cls}">{rendered}</div>'
+
+    # Generate open questions detail
+    oq_rendered = render_questions(open_questions) if open_questions else ""
+    phase_details += f'<div id="pd-{feat_idx}-open-questions" class="phase-detail hidden">{oq_rendered}</div>'
 
     return (
         FEATURE_PANEL
@@ -971,7 +1023,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
         .replace("{{task_color}}", "c-green" if pct == 100 else "c-blue")
         .replace("{{pct_color}}", "c-green" if pct == 100 else "c-yellow" if pct < 50 else "c-blue")
         .replace("{{bar_color}}", bar_color)
-        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", []), fc, feat_idx))
+        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", []), fc, open_questions, feat_idx))
         .replace("{{phase_details}}", phase_details)
         .replace("{{task_section}}", render_tasks(feature.get("tasks", [])))
         .replace("{{session_section}}", render_sessions(feature.get("sessions", [])))
