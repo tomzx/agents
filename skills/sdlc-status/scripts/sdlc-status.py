@@ -387,6 +387,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .chip-in-review { background: var(--yellow-dim); color: var(--yellow); }
   .chip-link { cursor: pointer; text-decoration: none; }
   .chip-link:hover { filter: brightness(1.3); }
+  .chip-icon-wrap { position: relative; cursor: help; }
+  .chip-icon-tip {
+    visibility: hidden; opacity: 0; pointer-events: none;
+    position: absolute; z-index: 100; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #1e1e2e; color: #cdd6f4;
+    border: 1px solid #45475a; border-radius: 6px;
+    padding: 0.35rem 0.6rem; min-width: max-content;
+    font-size: 0.72rem; font-weight: 400; line-height: 1.3;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: opacity 0.12s ease;
+  }
+  .chip-icon-tip::after {
+    content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: #45475a;
+  }
+  .chip-icon-wrap:hover .chip-icon-tip { visibility: visible; opacity: 1; }
 
   .progress-bar-track { background: var(--surface-alt); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 0.25rem; }
   .progress-bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
@@ -557,23 +573,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position: relative;
   }
   .help-icon:hover .help-tip {
-    display: block;
+    visibility: visible; opacity: 1;
   }
   .help-tip {
-    display: none;
+    visibility: hidden; opacity: 0; pointer-events: none;
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: #1e1e2e; color: #cdd6f4;
+    border: 1px solid #45475a;
     border-radius: 6px;
     padding: 0.6rem 0.75rem;
     white-space: nowrap;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: opacity 0.12s ease;
   }
-  .help-tip .legend-item { font-size: 0.75rem; gap: 0.45rem; }
+  .help-tip::after {
+    content: ""; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-bottom-color: #45475a;
+  }
+  .help-tip .legend-item { font-size: 0.75rem; gap: 0.45rem; display: flex; align-items: center; padding: 0.15rem 0; }
+  .help-tip .legend-chip { font-size: 0.7rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 500; }
 
   @media (max-width: 768px) {
     body { padding: 1rem; }
@@ -716,7 +738,7 @@ FEATURE_PANEL = """
   <div class="progress-meta"><span>{{tasks_done}} completed</span><span>{{tasks_remaining}} remaining</span></div>
 
   <div class="section">
-    <h3>Pipeline Progress <span class="help-icon">?<span class="help-tip"><div class="legend-item"><span class="legend-chip chip-not-started">not started</span> not yet begun</div><div class="legend-item"><span class="legend-chip chip-draft">✏️ draft</span> initial version</div><div class="legend-item"><span class="legend-chip chip-in-review">🔍 in review</span> under review</div><div class="legend-item"><span class="legend-chip chip-in-progress">🚧 in progress</span> actively worked on</div><div class="legend-item"><span class="legend-chip chip-blocked">⛔ blocked</span> waiting on dependency</div><div class="legend-item"><span class="legend-chip chip-done">✅ done</span> completed</div><div class="legend-item"><span class="legend-chip chip-skipped">⏭️ skipped</span> not applicable</div></span></span></h3>
+    <h3>Pipeline Progress <span class="help-icon">?<span class="help-tip"><div class="legend-item"><span class="legend-chip chip-not-started">⚪ not started</span> not yet begun</div><div class="legend-item"><span class="legend-chip chip-draft">✏️ draft</span> initial version</div><div class="legend-item"><span class="legend-chip chip-in-review">🔍 in review</span> under review</div><div class="legend-item"><span class="legend-chip chip-in-progress">🚧 in progress</span> actively worked on</div><div class="legend-item"><span class="legend-chip chip-blocked">⛔ blocked</span> waiting on dependency</div><div class="legend-item"><span class="legend-chip chip-done">✅ done</span> completed</div><div class="legend-item"><span class="legend-chip chip-skipped">⏭️ skipped</span> not applicable</div></span></span></h3>
     <div class="pipeline-stages">{{pipeline_html}}</div>
     {{phase_details}}
   </div>
@@ -774,7 +796,18 @@ STATUS_ICONS = {
     "draft": "\u270f\ufe0f",
     "blocked": "\u26d4",
     "skipped": "\u23ed\ufe0f",
-    "not-started": "",
+    "not-started": "\u26aa",
+}
+
+STATUS_DESCRIPTIONS: dict[str, str] = {
+    "not-started": "not yet begun",
+    "draft": "initial version",
+    "in-review": "under review",
+    "in-progress": "actively worked on",
+    "blocked": "waiting on dependency",
+    "done": "completed",
+    "approved": "completed",
+    "skipped": "not applicable",
 }
 
 PHASE_FILE: dict[str, str | None] = {
@@ -792,7 +825,10 @@ PHASE_FILE: dict[str, str | None] = {
 def chip(phase: str, status: str, has_content: bool, feat_idx: int = 0) -> str:
     cls = status.replace(" ", "-")
     icon = STATUS_ICONS.get(status, "")
-    inner = f"{icon} {phase}" if icon else phase
+    desc = STATUS_DESCRIPTIONS.get(status, "")
+    label = status.replace("-", " ").title()
+    icon_wrapper = f'<span class="chip-icon-wrap">{icon}<span class="chip-icon-tip">{label}: {desc}</span></span>' if icon else ""
+    inner = f"{icon_wrapper} {phase}" if icon else phase
     if has_content:
         return f'<span class="chip chip-{cls} chip-link" onclick="showPhase({feat_idx},\'{phase}\')">{inner}</span>'
     return f'<span class="chip chip-{cls}">{inner}</span>'
