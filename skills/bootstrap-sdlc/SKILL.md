@@ -29,6 +29,7 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
    - How does data flow through the system?
    - What infrastructure is in use (CI, hosting, observability)?
    - What naming, directory, coding, commit, and branching conventions are followed?
+   - What domain terms, technical terms, and acronyms are used in the codebase?
    - What are the distinct features or subsystems present in the codebase?
 
    Useful signals to look at (read what exists; skip what does not):
@@ -57,7 +58,13 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
    Derive branching conventions from visible branch names or documented workflow.
    Replace every placeholder with real content.
 
-7. Identify the major features or subsystems of the project.
+7. Write `.sdlc/context/vocabulary.md` using the vocabulary template as the structure.
+   Extract domain-specific terms, technical terms, and acronyms from the codebase.
+   Look at class names, function names, variable names, config keys, API routes, comments, and documentation for term candidates.
+   Replace every placeholder with real content.
+   If you cannot determine enough terms, add a note that the vocabulary needs manual completion.
+
+8. Identify the major features or subsystems of the project.
    A feature is a coherent unit of functionality visible to users or operators — not an internal module or utility.
    Aim for 3–10 features; fewer for small projects, more for large ones.
    Good signals: top-level CLI commands, API route groups, major UI sections, distinct background jobs, named services.
@@ -79,7 +86,7 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
       - Technical decisions already made (libraries chosen, patterns used).
       - Known risks or open unknowns.
 
-8. Report what was created and what was populated.
+9. Report what was created and what was populated.
 
 ## Output Format
 
@@ -93,6 +100,7 @@ Runs `/initialize-sdlc-directory` to create the `.sdlc/` structure, then reads t
 - .sdlc/context/project-overview.md  — derived from README and pyproject.toml
 - .sdlc/context/architecture.md      — derived from src/ layout and CI config
 - .sdlc/context/conventions.md       — derived from file naming, git log, and CONTRIBUTING.md
+- .sdlc/context/vocabulary.md        — derived from codebase terms, names, and documentation
 
 ### Features created
 - .sdlc/features/FEAT-0001-<slug>/  — <Feature Name>: requirements.md and specification.md populated

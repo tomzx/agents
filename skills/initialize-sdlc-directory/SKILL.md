@@ -50,6 +50,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    - `project-overview.md`
    - `architecture.md`
    - `conventions.md`
+   - `vocabulary.md`
 
 5. Report what was created and what was skipped (already existed).
 
@@ -71,7 +72,8 @@ Next steps:
 1. Fill in `.sdlc/context/project-overview.md` with your project's goals, stakeholders, and scope.
 2. Fill in `.sdlc/context/architecture.md` with the system topology.
 3. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
-4. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
+4. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
+5. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
    Run `/update-sdlc-templates` later to pull in upstream improvements while preserving your edits.
 ```
 

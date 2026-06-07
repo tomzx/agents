@@ -24,6 +24,4 @@
 
 ## Glossary
 
-| Term | Definition |
-|---|---|
-| <term> | <definition> |
+See [vocabulary.md](vocabulary.md) for domain terms, technical terms, and abbreviations used across the project.
