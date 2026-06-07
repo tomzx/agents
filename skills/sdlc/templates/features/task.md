@@ -16,6 +16,8 @@ blocker: null
 
 ## Acceptance Criteria
 
+Every requirement referenced by this task shall have at least one acceptance criterion.
+
 - [ ] <Testable condition>
 
 ## Notes

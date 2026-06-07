@@ -37,6 +37,10 @@ Order rows by priority: Must first, then Should, then May.
 
 ## Acceptance Criteria
 
+Every FR and NFR shall have at least one acceptance criterion.
+
+Order criteria by FRs first (sorted by ID), then NFRs (sorted by ID).
+
 Acceptance criteria verify how a requirement is proven done, they do not restate it.
 Write concrete, scenario-based criteria (happy path, edge cases and error states where applicable).
 
@@ -44,14 +48,10 @@ Write concrete, scenario-based criteria (happy path, edge cases and error states
     - **Given** <precondition>
     - **When** <action>
     - **Then** <observable result>
-- [ ] **FR-01** (edge case)
-    - **Given** <edge case>
+- [ ] **NFR-01**
+    - **Given** <precondition>
     - **When** <action>
-    - **Then** <expected handling>
-- [ ] **FR-01** (error)
-    - **Given** <error condition>
-    - **When** <action>
-    - **Then** <error is surfaced as ...>
+    - **Then** <observable result>
 
 ## Conflicts
 
