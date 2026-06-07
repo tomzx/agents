@@ -3,6 +3,8 @@
 # requires-python = ">=3.10"
 # dependencies = [
 #     "pyyaml",
+#     "markdown",
+#     "pymdown-extensions",
 # ]
 # ///
 """Render an SDLC status dashboard HTML page from .sdlc/ directory data."""
@@ -25,8 +27,8 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
 
 PHASE_ORDER: list[tuple[str, str, str | None]] = [
     ("Foundation", "feasibility", "feasibility.md"),
-    ("Foundation", "requirements", "requirements.md"),
     ("Foundation", "existing-solutions", "existing-solutions.md"),
+    ("Foundation", "requirements", "requirements.md"),
     ("Foundation", "specification", "specification.md"),
     ("Foundation", "plan", "plan.md"),
     ("Build", "implementation", None),
@@ -77,6 +79,7 @@ def read_feature(feature_dir: Path) -> dict | None:
     pipeline_rows: list[dict] = []
     task_rows: list[dict] = []
     sessions: list[dict] = []
+    file_contents: dict[str, str] = {}
 
     if progress_path.exists():
         body = progress_path.read_text()
@@ -163,6 +166,14 @@ def read_feature(feature_dir: Path) -> dict | None:
                     title = t
                     break
 
+    # Read phase file contents for inline display
+    for _, phase, fname in PHASE_ORDER:
+        if fname:
+            fpath = feature_dir / fname
+            if fpath.exists():
+                _, content = parse_frontmatter(fpath.read_text())
+                file_contents[phase] = content.strip()
+
     tasks_dir = feature_dir / "tasks"
     task_files: list[dict] = []
     if tasks_dir.exists():
@@ -193,6 +204,7 @@ def read_feature(feature_dir: Path) -> dict | None:
     return {
         "id": feature_dir.name.split("-")[0] + "-" + feature_dir.name.split("-")[1],
         "dir_name": feature_dir.name,
+        "dir_path": str(feature_dir.resolve()),
         "title": title,
         "issue": issue,
         "current_phase": current_phase,
@@ -203,6 +215,7 @@ def read_feature(feature_dir: Path) -> dict | None:
         "pipeline": pipeline_rows,
         "tasks": task_rows,
         "sessions": sessions,
+        "file_contents": file_contents,
     }
 
 
@@ -254,19 +267,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     line-height: 1.6;
     padding: 2rem;
   }
-  h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+  h1 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0; }
   h3 { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 
   .header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);
   }
   .header h1 { color: var(--accent); }
-  .header .date { color: var(--text-muted); font-size: 0.85rem; }
+  .header .date { color: var(--text-muted); font-size: 0.75rem; }
 
   .summary-cards {
     display: grid;
@@ -321,6 +334,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .chip-not-started { background: var(--surface-alt); color: var(--text-muted); }
   .chip-draft { background: var(--blue-dim); color: var(--blue); }
   .chip-in-review { background: var(--yellow-dim); color: var(--yellow); }
+  .chip-link { cursor: pointer; text-decoration: none; }
+  .chip-link:hover { filter: brightness(1.3); }
 
   .progress-bar-track { background: var(--surface-alt); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 0.25rem; }
   .progress-bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s ease; }
@@ -409,6 +424,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .cpn-pending { background: var(--surface-alt); color: var(--text-muted); }
   .cp-arrow { color: var(--border); font-size: 0.75rem; }
 
+  .phase-detail {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .phase-detail h2 { font-size: 1.1rem; margin: 0.75rem 0 0.5rem; color: var(--accent); }
+  .phase-detail h3 { font-size: 0.95rem; margin: 0.5rem 0 0.25rem; }
+  .phase-detail p { margin: 0.25rem 0; }
+  .phase-detail ul { margin: 0.25rem 0; padding-left: 1.25rem; }
+  .phase-detail li { margin: 0.15rem 0; }
+  .phase-detail code { background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
+  .phase-detail pre { background: var(--bg); padding: 0.6rem; border-radius: 4px; overflow-x: auto; margin: 0.5rem 0; }
+  .phase-detail pre code { background: none; padding: 0; }
+  .phase-detail a { color: var(--accent); }
+  .phase-detail table { border-collapse: collapse; margin: 0.5rem 0; font-size: 0.82rem; }
+  .phase-detail th, .phase-detail td { border: 1px solid var(--border); padding: 0.35rem 0.65rem; text-align: left; }
+  .phase-detail th { background: var(--surface); color: var(--text-muted); font-weight: 600; }
+  .phase-detail input[type="checkbox"] { margin: 0 0.35rem 0 0; pointer-events: none; }
+
   .hidden { display: none; }
   .empty { color: var(--text-muted); font-style: italic; font-size: 0.85rem; padding: 0.5rem 0; }
 
@@ -486,9 +524,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <script>
 function selectFeature(idx) {
-  document.querySelectorAll('.ftab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.fpanel').forEach((p, i) => p.classList.toggle('hidden', i !== idx));
+  document.querySelectorAll('.ftab').forEach(function(t, i) { t.classList.toggle('active', i === idx); });
+  document.querySelectorAll('.fpanel').forEach(function(p, i) { p.classList.toggle('hidden', i !== idx); });
+  // Show first non-hidden phase detail for this feature
+  var shown = false;
+  document.querySelectorAll('.fpanel:not(.hidden) .phase-detail').forEach(function(d) {
+    if (!shown) { d.classList.remove('hidden'); shown = true; }
+    else { d.classList.add('hidden'); }
+  });
+  localStorage.setItem('sdlc_feature', idx);
 }
+function showPhase(featIdx, phase) {
+  var el = document.getElementById('pd-' + featIdx + '-' + phase);
+  if (!el) return;
+  var isHidden = el.classList.contains('hidden');
+  document.querySelectorAll('.fpanel:not(.hidden) .phase-detail').forEach(function(d) { d.classList.add('hidden'); });
+  if (isHidden) {
+    el.classList.remove('hidden');
+    localStorage.setItem('sdlc_phase', featIdx + ':' + phase);
+  } else {
+    localStorage.removeItem('sdlc_phase');
+  }
+}
+function restoreState() {
+  var feat = localStorage.getItem('sdlc_feature');
+  if (feat !== null) {
+    document.querySelectorAll('.ftab').forEach(function(t, i) { t.classList.toggle('active', i === parseInt(feat, 10)); });
+    document.querySelectorAll('.fpanel').forEach(function(p, i) { p.classList.toggle('hidden', i !== parseInt(feat, 10)); });
+  }
+  var phase = localStorage.getItem('sdlc_phase');
+  if (phase !== null) {
+    var parts = phase.split(':');
+    if (parts.length === 2 && parts[0] === (feat || '0')) {
+      document.querySelectorAll('.phase-detail').forEach(function(d) { d.classList.add('hidden'); });
+      var el = document.getElementById('pd-' + parts[0] + '-' + parts[1]);
+      if (el) { el.classList.remove('hidden'); }
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', restoreState);
 </script>
 </body>
 </html>"""
@@ -509,6 +583,7 @@ FEATURE_PANEL = """
   <div class="section">
     <h3>Pipeline Progress <span class="help-icon">?<span class="help-tip"><div class="legend-item"><span class="legend-chip chip-not-started">not started</span> not yet begun</div><div class="legend-item"><span class="legend-chip chip-draft">✏️ draft</span> initial version</div><div class="legend-item"><span class="legend-chip chip-in-review">🔍 in review</span> under review</div><div class="legend-item"><span class="legend-chip chip-in-progress">🚧 in progress</span> actively worked on</div><div class="legend-item"><span class="legend-chip chip-blocked">⛔ blocked</span> waiting on dependency</div><div class="legend-item"><span class="legend-chip chip-done">✅ done</span> completed</div><div class="legend-item"><span class="legend-chip chip-skipped">⏭️ skipped</span> not applicable</div></span></span></h3>
     <div class="pipeline-stages">{{pipeline_html}}</div>
+    {{phase_details}}
   </div>
 
   {{task_section}}
@@ -524,6 +599,13 @@ def badge(status: str) -> str:
     return f'<span class="badge badge-{cls}">{status}</span>'
 
 
+def render_markdown(text: str) -> str:
+    if not text:
+        return ""
+    import markdown as md
+    return md.markdown(text, extensions=["extra", "pymdownx.tasklist"])
+
+
 STATUS_ICONS = {
     "done": "\u2705",
     "approved": "\u2705",
@@ -535,14 +617,28 @@ STATUS_ICONS = {
     "not-started": "",
 }
 
+PHASE_FILE: dict[str, str | None] = {
+    "feasibility": "feasibility.md",
+    "requirements": "requirements.md",
+    "existing-solutions": "existing-solutions.md",
+    "specification": "specification.md",
+    "plan": "plan.md",
+    "implementation": None,
+    "testing": "tests.md",
+    "documentation": None,
+}
 
-def chip(phase: str, status: str) -> str:
+
+def chip(phase: str, status: str, has_content: bool, feat_idx: int = 0) -> str:
     cls = status.replace(" ", "-")
     icon = STATUS_ICONS.get(status, "")
-    return f'<span class="chip chip-{cls}">{icon} {phase}</span>'
+    inner = f"{icon} {phase}" if icon else phase
+    if has_content:
+        return f'<span class="chip chip-{cls} chip-link" onclick="showPhase({feat_idx},\'{phase}\')">{inner}</span>'
+    return f'<span class="chip chip-{cls}">{inner}</span>'
 
 
-def render_pipeline(pipeline_rows: list[dict]) -> str:
+def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], feat_idx: int = 0) -> str:
     stages: dict[str, list[dict]] = {}
     for row in pipeline_rows:
         stages.setdefault(row["stage"], []).append(row)
@@ -550,7 +646,7 @@ def render_pipeline(pipeline_rows: list[dict]) -> str:
         return '<span class="empty">No pipeline data</span>'
     parts = []
     for stage_name, phases in stages.items():
-        chips = "".join(chip(p["phase"], p["status"]) for p in phases)
+        chips = "".join(chip(p["phase"], p["status"], p["phase"] in file_contents, feat_idx) for p in phases)
         parts.append(
             f'<div class="pipeline-stage">'
             f'<div class="stage-label">{stage_name}</div>'
@@ -624,7 +720,7 @@ def render_blockers(feature: dict) -> str:
     return parts
 
 
-def render_feature(feature: dict, is_first: bool) -> str:
+def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
     done = sum(1 for t in feature["tasks"] if t["status"] == "done")
     total = len(feature["tasks"])
     pct = round((done / total) * 100) if total > 0 else 0
@@ -636,6 +732,21 @@ def render_feature(feature: dict, is_first: bool) -> str:
         bar_color = "var(--green)"
     else:
         bar_color = "var(--accent)"
+
+    fc = feature.get("file_contents", {})
+
+    # Find first phase with status != "not-started" to auto-expand
+    first_active = None
+    for row in feature.get("pipeline", []):
+        if row["status"] != "not-started" and row["phase"] in fc:
+            first_active = row["phase"]
+            break
+
+    phase_details = ""
+    for phase, content in fc.items():
+        rendered = render_markdown(content)
+        cls = "" if phase == first_active else "hidden"
+        phase_details += f'<div id="pd-{feat_idx}-{phase}" class="phase-detail {cls}">{rendered}</div>'
 
     return (
         FEATURE_PANEL
@@ -651,7 +762,8 @@ def render_feature(feature: dict, is_first: bool) -> str:
         .replace("{{task_color}}", "c-green" if pct == 100 else "c-blue")
         .replace("{{pct_color}}", "c-green" if pct == 100 else "c-yellow" if pct < 50 else "c-blue")
         .replace("{{bar_color}}", bar_color)
-        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", [])))
+        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", []), fc, feat_idx))
+        .replace("{{phase_details}}", phase_details)
         .replace("{{task_section}}", render_tasks(feature.get("tasks", [])))
         .replace("{{session_section}}", render_sessions(feature.get("sessions", [])))
     )
@@ -688,17 +800,21 @@ def main() -> None:
         print(f"No features found in {sdlc_path}/features/", file=sys.stderr)
         sys.exit(1)
 
-    from datetime import date
+    from datetime import datetime
+
+    now = datetime.now().astimezone()
+    tz = now.strftime("%z")
+    generated = now.strftime("%Y-%m-%d %H:%M:%S ") + tz[:3] + ":" + tz[3:]
 
     tabs_html = ""
     panels_html = ""
     for i, feat in enumerate(features):
         tabs_html += render_tab(feat, i == 0, i) + "\n"
-        panels_html += render_feature(feat, i == 0) + "\n"
+        panels_html += render_feature(feat, i == 0, i) + "\n"
 
     html = (
         HTML_TEMPLATE
-        .replace("{{generated_date}}", date.today().isoformat())
+        .replace("{{generated_date}}", generated)
         .replace("{{feature_tabs}}", tabs_html)
         .replace("{{feature_panels}}", panels_html)
     )
