@@ -174,6 +174,12 @@ def read_feature(feature_dir: Path) -> dict | None:
                 _, content = parse_frontmatter(fpath.read_text())
                 file_contents[phase] = content.strip()
 
+    # Collect FR/NFR references from requirements for tooltips
+    refs: dict[str, dict] = {}
+    req_content = file_contents.get("requirements", "")
+    if req_content:
+        refs.update(parse_refs(req_content))
+
     tasks_dir = feature_dir / "tasks"
     task_files: list[dict] = []
     if tasks_dir.exists():
@@ -222,6 +228,7 @@ def read_feature(feature_dir: Path) -> dict | None:
         "tasks": task_rows,
         "sessions": sessions,
         "file_contents": file_contents,
+        "refs": refs,
     }
 
 
@@ -442,7 +449,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .phase-detail h2 { font-size: 1.1rem; margin: 0.75rem 0 0.5rem; color: var(--accent); }
   .phase-detail h3 { font-size: 0.95rem; margin: 0.5rem 0 0.25rem; }
   .phase-detail p { margin: 0.25rem 0; }
-  .phase-detail ul { margin: 0.25rem 0; padding-left: 1.25rem; }
+  .phase-detail ul, .phase-detail ol { margin: 0.25rem 0; padding-left: 1.25rem; }
   .phase-detail li { margin: 0.15rem 0; }
   .phase-detail code { background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
   .phase-detail pre { background: var(--bg); padding: 0.6rem; border-radius: 4px; overflow-x: auto; margin: 0.5rem 0; }
@@ -452,6 +459,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .phase-detail th, .phase-detail td { border: 1px solid var(--border); padding: 0.35rem 0.65rem; text-align: left; }
   .phase-detail th { background: var(--surface); color: var(--text-muted); font-weight: 600; }
   .phase-detail input[type="checkbox"] { margin: 0 0.35rem 0 0; pointer-events: none; }
+  .ref { color: var(--accent); cursor: help; border-bottom: 1px dotted var(--accent); position: relative; display: inline; }
+  .ref .ref-tip {
+    visibility: hidden; opacity: 0; pointer-events: none;
+    position: absolute; z-index: 100; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #1e1e2e; color: #cdd6f4;
+    border: 1px solid #45475a; border-radius: 6px;
+    padding: 0.5rem 0.75rem; min-width: 220px; max-width: 360px;
+    font-size: 0.78rem; font-weight: 400; line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: opacity 0.12s ease;
+    white-space: normal;
+  }
+  .ref .ref-tip::after {
+    content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: #45475a;
+  }
+  .ref:hover .ref-tip { visibility: visible; opacity: 1; }
+  .ref-prio { display: inline-block; background: var(--accent); color: var(--bg); padding: 0.05rem 0.4rem; border-radius: 3px; font-size: 0.7rem; font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; }
+  .ref-prio-must { background: #e64553; }
+  .ref-prio-should { background: #f9c74f; color: #1e1e2e; }
+  .ref-prio-may { background: #4c9aff; }
+  .ref .ref-prio { margin-bottom: 0; }
+  .ref-desc { display: block; }
 
   .hidden { display: none; }
   .empty { color: var(--text-muted); font-style: italic; font-size: 0.85rem; padding: 0.5rem 0; }
@@ -573,6 +603,63 @@ document.addEventListener('DOMContentLoaded', restoreState);
 </body>
 </html>"""
 
+
+def parse_refs(content: str) -> dict[str, dict]:
+    refs: dict[str, dict] = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if not line.startswith("|") or not line.endswith("|"):
+            continue
+        if not re.search(r"(FR|NFR)-\d+", line):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        ref_id = cells[0]
+        if not re.match(r"(FR|NFR)-\d+$", ref_id):
+            continue
+        if ref_id in refs:
+            continue
+        priority = cells[1]
+        requirement = cells[3] if len(cells) >= 4 else cells[2]
+        refs[ref_id] = {"priority": priority, "requirement": requirement}
+    return refs
+
+
+def badge_priorities_in_tables(content: str) -> str:
+    lines = content.splitlines()
+    result: list[str] = []
+    in_ref_table = False
+    for line in lines:
+        stripped = line.strip()
+        is_table_row = stripped.startswith("|") and stripped.endswith("|")
+        has_ref_id = bool(re.search(r"(FR|NFR)-\d+", stripped))
+
+        if has_ref_id and is_table_row:
+            in_ref_table = True
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if len(cells) >= 3:
+                priority = cells[1]
+                prio_lower = priority.lower()
+                if prio_lower in ("must", "should", "may"):
+                    cells[1] = f'<span class="ref-prio ref-prio-{prio_lower}">{priority}</span>'
+                    line = "| " + " | ".join(cells) + " |"
+            result.append(line)
+        elif in_ref_table and is_table_row:
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if len(cells) >= 3:
+                priority = cells[1]
+                prio_lower = priority.lower()
+                if prio_lower in ("must", "should", "may"):
+                    cells[1] = f'<span class="ref-prio ref-prio-{prio_lower}">{priority}</span>'
+                    line = "| " + " | ".join(cells) + " |"
+            result.append(line)
+        else:
+            in_ref_table = False
+            result.append(line)
+    return "\n".join(result)
+
+
 FEATURE_PANEL = """
 <div class="fpanel {{first_class}}">
   <p class="c-muted" style="margin-bottom:1.25rem;font-size:0.88rem">{{summary}}</p>
@@ -610,6 +697,31 @@ def render_markdown(text: str) -> str:
         return ""
     import markdown as md
     return md.markdown(text, extensions=["extra", "pymdownx.tasklist"])
+
+
+def annotate_refs(html: str, refs: dict[str, dict]) -> str:
+    if not refs:
+        return html
+
+    def repl(m: re.Match) -> str:
+        ref_id = m.group(0)
+        info = refs.get(ref_id)
+        if info:
+            prio = info["priority"]
+            req = info["requirement"].replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+            prio_class = f"ref-prio-{prio.lower()}"
+            return (
+                f'<span class="ref">'
+                f'<span class="ref-label">{ref_id}</span>'
+                f'<span class="ref-tip">'
+                f'<span class="ref-prio {prio_class}">{prio}</span>'
+                f'<span class="ref-desc">{req}</span>'
+                f'</span>'
+                f'</span>'
+            )
+        return ref_id
+
+    return re.sub(r"(FR|NFR)-\d+", repl, html)
 
 
 STATUS_ICONS = {
@@ -751,6 +863,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
         bar_color = "var(--accent)"
 
     fc = feature.get("file_contents", {})
+    refs = feature.get("refs", {})
 
     # Find first phase with status != "not-started" to auto-expand
     first_active = None
@@ -761,7 +874,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
 
     phase_details = ""
     for phase, content in fc.items():
-        rendered = render_markdown(content)
+        rendered = annotate_refs(render_markdown(badge_priorities_in_tables(content)), refs)
         cls = "" if phase == first_active else "hidden"
         phase_details += f'<div id="pd-{feat_idx}-{phase}" class="phase-detail {cls}">{rendered}</div>'
 
