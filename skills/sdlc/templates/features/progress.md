@@ -15,16 +15,16 @@ last_updated: "<YYYY-MM-DD>"
 ## Pipeline Status
 
 | Stage | Phase | Status |
-|---|---|---|
+|---|---|---|---|
 | Planning & Feasibility | create-issue | — |
 | Planning & Feasibility | review-issue | — |
 | Planning & Feasibility | qualify-issue | — |
+| Planning & Feasibility | create-requirements | — |
+| Planning & Feasibility | review-requirements | — |
+| Planning & Feasibility | create-existing-solutions | — |
+| Planning & Feasibility | review-existing-solutions | — |
 | Planning & Feasibility | create-feasibility | — |
 | Planning & Feasibility | review-feasibility | — |
-| Requirements | create-requirements | — |
-| Requirements | review-requirements | — |
-| Requirements | create-existing-solutions | — |
-| Requirements | review-existing-solutions | — |
 | Design | create-specifications | — |
 | Design | review-specifications | — |
 | Design | create-plan | — |

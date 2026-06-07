@@ -20,7 +20,7 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ```
 Main flow — 7 SDLC stages (entry: issue → learnings)
 
-  Stage 1 — Planning & Feasibility
+  Stage 1 — Issue
   /create-issue           Create a structured GitHub issue
   /review-issue           Audit completeness, clarity, and AC quality
   /qualify-issue          Drive Q&A loop with reporter until issue is fully understood
@@ -30,17 +30,18 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /prioritize-issues      Rank the backlog by RICE score
           │
           ▼
-  /create-feasibility     Assess technical, financial, and operational viability
-  /review-feasibility     Audit completeness, risk coverage, go/no-go soundness
-                          (gate: stop if not feasible, update issue with findings)
-
-  Stage 2 — Requirements
+  Stage 2 — Requirements & Research
   /create-requirements    Draft functional + non-functional requirements
   /review-requirements    Audit for clarity, completeness, testability, conflicts
           │
           ▼
   /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
   /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
+          │
+          ▼
+  /create-feasibility     Assess technical, financial, and operational viability
+  /review-feasibility     Audit completeness, risk coverage, go/no-go soundness
+                          (gate: stop if not feasible, update issue with findings)
 
   Stage 3 — Design
   /create-specifications  Define architecture, data models, API contracts
@@ -182,9 +183,9 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
 │       ├── progress.md            # Feature-level progress tracking and session log
-│       ├── feasibility.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
+│       ├── feasibility.md
 │       ├── specification.md
 │       ├── plan.md
 │       ├── tasks/                 # One file per task (e.g., 0001-setup-db-schema.md)
@@ -193,9 +194,9 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       └── questions.md           # Running log of open questions from all review phases
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
-│   │   ├── feasibility.md
 │   │   ├── requirements.md
 │   │   ├── existing-solutions.md
+│   │   ├── feasibility.md
 │   │   ├── specification.md
 │   │   ├── plan.md
 │   │   ├── progress.md            # Template for feature-level progress tracking
@@ -286,10 +287,10 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `qualify` | An externally submitted issue that needs iterative Q&A before requirements |
-| `feasibility` | A prioritized issue ready for viability assessment before committing to requirements |
-| `requirements` | A feasibility-approved issue that is ready to develop |
-| `existing-solutions` | Approved requirements ready to survey for prior art before designing |
-| `specifications` | Approved requirements (and solutions survey) ready for technical design |
+| `requirements` | An issue ready to develop requirements |
+| `existing-solutions` | Approved requirements ready to survey for prior art |
+| `feasibility` | Requirements and existing solutions ready for viability assessment |
+| `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
 | `plan` | A specification ready for planning |
 | `publish-plan` | A reviewed plan ready to commit and share with the issue author |
 | `tasks` | An approved plan signed off by the issue author |
@@ -425,13 +426,13 @@ Each phase consumes output from the previous phase:
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-feasibility | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
-| review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
-| create-requirements | Feasibility-approved issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
+| create-requirements | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
 | create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
 | review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
-| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
+| create-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
+| review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
+| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `feasibility.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
 | create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |

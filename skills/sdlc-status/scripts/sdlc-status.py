@@ -26,9 +26,9 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
 
 
 PHASE_ORDER: list[tuple[str, str, str | None]] = [
-    ("Foundation", "feasibility", "feasibility.md"),
-    ("Foundation", "existing-solutions", "existing-solutions.md"),
     ("Foundation", "requirements", "requirements.md"),
+    ("Foundation", "existing-solutions", "existing-solutions.md"),
+    ("Foundation", "feasibility", "feasibility.md"),
     ("Foundation", "specification", "specification.md"),
     ("Foundation", "plan", "plan.md"),
     ("Build", "implementation", None),
@@ -200,6 +200,12 @@ def read_feature(feature_dir: Path) -> dict | None:
                 tr["status"] = tf["status"]
                 tr["completed"] = tf.get("completed_date", "") or tr.get("completed", "")
                 tr["blocker"] = tf.get("blocker", "") or tr.get("blocker", "")
+
+    if not re_entry_point and pipeline_rows:
+        for row in pipeline_rows:
+            if row["status"] not in ("done", "approved", "skipped"):
+                re_entry_point = row["phase"]
+                break
 
     return {
         "id": feature_dir.name.split("-")[0] + "-" + feature_dir.name.split("-")[1],
@@ -573,7 +579,7 @@ FEATURE_PANEL = """
   {{blockers}}
   <div class="summary-cards">
     <div class="card"><div class="label">Current Phase</div><div class="value c-accent">{{current_phase}}</div></div>
-    <div class="card"><div class="label">Tasks Done</div><div class="value {{task_color}}">{{tasks_done}} / {{tasks_total}}</div></div>
+    <div class="card"><div class="label">{{tasks_label}}</div><div class="value {{task_color}}">{{tasks_done}} / {{tasks_total}}</div></div>
     <div class="card"><div class="label">Completion</div><div class="value {{pct_color}}">{{pct}}%</div></div>
     <div class="card"><div class="label">Re-enter At</div><div class="value c-accent">{{re_entry_point}}</div></div>
   </div>
@@ -721,10 +727,21 @@ def render_blockers(feature: dict) -> str:
 
 
 def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
-    done = sum(1 for t in feature["tasks"] if t["status"] == "done")
-    total = len(feature["tasks"])
+    tasks = feature.get("tasks", [])
+    pipeline = feature.get("pipeline", [])
+
+    if tasks:
+        done = sum(1 for t in tasks if t["status"] == "done")
+        total = len(tasks)
+        has_blocked = any(t.get("status") == "blocked" for t in tasks)
+        label = "Tasks Done"
+    else:
+        done = sum(1 for p in pipeline if p["status"] in ("done", "approved"))
+        total = len(pipeline)
+        has_blocked = any(p["status"] == "blocked" for p in pipeline)
+        label = "Phases Done"
+
     pct = round((done / total) * 100) if total > 0 else 0
-    has_blocked = any(t.get("status") == "blocked" for t in feature["tasks"])
 
     if has_blocked:
         bar_color = "var(--red)"
@@ -737,7 +754,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
 
     # Find first phase with status != "not-started" to auto-expand
     first_active = None
-    for row in feature.get("pipeline", []):
+    for row in pipeline:
         if row["status"] != "not-started" and row["phase"] in fc:
             first_active = row["phase"]
             break
@@ -755,6 +772,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
         .replace("{{blockers}}", render_blockers(feature))
         .replace("{{current_phase}}", feature.get("current_phase", "\u2014"))
         .replace("{{re_entry_point}}", feature.get("re_entry_point", "\u2014"))
+        .replace("{{tasks_label}}", label)
         .replace("{{tasks_done}}", str(done))
         .replace("{{tasks_total}}", str(total))
         .replace("{{tasks_remaining}}", str(total - done))
