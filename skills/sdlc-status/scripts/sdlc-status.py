@@ -23,6 +23,41 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
     return yaml.safe_load(m.group(1)) or {}, m.group(2)
 
 
+PHASE_ORDER: list[tuple[str, str, str | None]] = [
+    ("Foundation", "feasibility", "feasibility.md"),
+    ("Foundation", "requirements", "requirements.md"),
+    ("Foundation", "existing-solutions", "existing-solutions.md"),
+    ("Foundation", "specification", "specification.md"),
+    ("Foundation", "plan", "plan.md"),
+    ("Build", "implementation", None),
+    ("Build", "testing", "tests.md"),
+    ("Ship", "documentation", None),
+]
+
+
+def infer_pipeline_from_files(feature_dir: Path) -> list[dict]:
+    rows: list[dict] = []
+    for stage, phase, fname in PHASE_ORDER:
+        if fname:
+            fpath = feature_dir / fname
+            if fpath.exists():
+                art_fm, _ = parse_frontmatter(fpath.read_text())
+                status = art_fm.get("status", "done")
+            else:
+                status = "not-started"
+        else:
+            if phase == "implementation":
+                tasks_dir = feature_dir / "tasks"
+                if tasks_dir.exists() and any(tasks_dir.iterdir()):
+                    status = "done"
+                else:
+                    status = "not-started"
+            else:
+                status = "not-started"
+        rows.append({"stage": stage, "phase": phase, "status": status})
+    return rows
+
+
 def read_feature(feature_dir: Path) -> dict | None:
     fm, _ = parse_frontmatter(feature_dir.name)
     progress_path = feature_dir / "progress.md"
@@ -69,7 +104,7 @@ def read_feature(feature_dir: Path) -> dict | None:
                         pipeline_rows.append({
                             "stage": parts[0],
                             "phase": parts[1],
-                            "status": parts[2] if parts[2] != "—" else "not-started",
+                            "status": parts[2] if parts[2] not in ("—", "--") else "not-started",
                         })
 
         task_m = re.search(r"## Task Progress\s*\n(.+?)(?:\n##|\Z)", content, re.DOTALL)
@@ -104,6 +139,29 @@ def read_feature(feature_dir: Path) -> dict | None:
                             "summary": parts[1] if len(parts) > 1 else "",
                             "next": parts[2] if len(parts) > 2 else "",
                         })
+    else:
+        pipeline_rows = infer_pipeline_from_files(feature_dir)
+        last_active = -1
+        for i, row in enumerate(pipeline_rows):
+            if row["status"] != "not-started":
+                last_active = i
+        if last_active >= 0:
+            last_status = pipeline_rows[last_active]["status"]
+            if last_status in ("done", "approved", "skipped"):
+                if last_active + 1 < len(pipeline_rows):
+                    current_phase = pipeline_rows[last_active + 1]["phase"]
+                else:
+                    current_phase = "complete"
+            else:
+                current_phase = pipeline_rows[last_active]["phase"]
+        # Extract title from the most advanced artifact file with a title
+        for _, _, fname in reversed(PHASE_ORDER):
+            if fname and (feature_dir / fname).exists():
+                art_fm, _ = parse_frontmatter((feature_dir / fname).read_text())
+                t = art_fm.get("title") or ""
+                if t:
+                    title = t
+                    break
 
     tasks_dir = feature_dir / "tasks"
     task_files: list[dict] = []
@@ -195,8 +253,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     color: var(--text);
     line-height: 1.6;
     padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
   }
   h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
   h3 { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
@@ -251,19 +307,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   .pipeline-phases { display: flex; gap: 0.25rem; flex-wrap: wrap; }
   .chip {
-    font-size: 0.65rem;
-    padding: 0.15rem 0.45rem;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.5rem;
     border-radius: 4px;
     white-space: nowrap;
     font-weight: 500;
   }
   .chip-done { background: var(--green-dim); color: var(--green); }
+  .chip-approved { background: var(--green-dim); color: var(--green); }
   .chip-in-progress { background: var(--yellow-dim); color: var(--yellow); }
   .chip-blocked { background: var(--red-dim); color: var(--red); }
   .chip-skipped { background: var(--gray-dim); color: var(--gray); text-decoration: line-through; }
   .chip-not-started { background: var(--surface-alt); color: var(--text-muted); }
-  .chip-approved { background: var(--green-dim); color: var(--green); }
-  .chip-draft { background: var(--surface-alt); color: var(--text-muted); }
+  .chip-draft { background: var(--blue-dim); color: var(--blue); }
   .chip-in-review { background: var(--yellow-dim); color: var(--yellow); }
 
   .progress-bar-track { background: var(--surface-alt); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 0.25rem; }
@@ -308,19 +364,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .blocker-banner .btitle { font-weight: 600; color: var(--red); font-size: 0.8rem; }
   .blocker-banner .bdesc { color: var(--text); font-size: 0.8rem; margin-top: 0.1rem; }
 
-  .feature-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  .ftab {
-    padding: 0.35rem 0.85rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
+  .layout { display: flex; gap: 1.5rem; align-items: flex-start; }
+  .sidebar {
+    flex: 0 0 220px;
+    position: sticky;
+    top: 2rem;
     background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .sidebar h3 { margin-bottom: 0.5rem; }
+  .feature-list { display: flex; flex-direction: column; gap: 0.25rem; }
+  .main { flex: 1; min-width: 0; }
+  .ftab {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
     color: var(--text-muted);
     font-size: 0.82rem;
     cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    width: 100%;
   }
-  .ftab:hover { border-color: var(--accent); color: var(--text); }
+  .ftab:hover { border-color: var(--accent-dim); background: var(--surface-alt); color: var(--text); }
   .ftab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-  .ftab .fid { font-weight: 600; }
+  .ftab .fid { font-weight: 600; flex-shrink: 0; }
+  .ftab .ftitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .session-log { max-height: 220px; overflow-y: auto; }
   .session-date { white-space: nowrap; color: var(--text-muted); font-size: 0.78rem; }
@@ -337,6 +412,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .hidden { display: none; }
   .empty { color: var(--text-muted); font-style: italic; font-size: 0.85rem; padding: 0.5rem 0; }
 
+  .legend { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--text-muted); padding: 0.15rem 0; }
+  .legend-chip {
+    display: inline-block;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 3.5em;
+    text-align: center;
+  }
+
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: help;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+    position: relative;
+  }
+  .help-icon:hover .help-tip {
+    display: block;
+  }
+  .help-tip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .help-tip .legend-item { font-size: 0.75rem; gap: 0.45rem; }
+
   @media (max-width: 768px) {
     body { padding: 1rem; }
     .summary-cards { grid-template-columns: repeat(2, 1fr); }
@@ -349,11 +472,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <span class="date">{{generated_date}}</span>
 </div>
 
-<div class="feature-tabs">
-{{feature_tabs}}
+<div class="layout">
+  <div class="sidebar">
+    <h3>Features</h3>
+    <div class="feature-list">
+      {{feature_tabs}}
+    </div>
+  </div>
+  <div class="main">
+    {{feature_panels}}
+  </div>
 </div>
-
-{{feature_panels}}
 
 <script>
 function selectFeature(idx) {
@@ -378,7 +507,7 @@ FEATURE_PANEL = """
   <div class="progress-meta"><span>{{tasks_done}} completed</span><span>{{tasks_remaining}} remaining</span></div>
 
   <div class="section">
-    <h3>Pipeline Progress</h3>
+    <h3>Pipeline Progress <span class="help-icon">?<span class="help-tip"><div class="legend-item"><span class="legend-chip chip-not-started">not started</span> not yet begun</div><div class="legend-item"><span class="legend-chip chip-draft">✏️ draft</span> initial version</div><div class="legend-item"><span class="legend-chip chip-in-review">🔍 in review</span> under review</div><div class="legend-item"><span class="legend-chip chip-in-progress">🚧 in progress</span> actively worked on</div><div class="legend-item"><span class="legend-chip chip-blocked">⛔ blocked</span> waiting on dependency</div><div class="legend-item"><span class="legend-chip chip-done">✅ done</span> completed</div><div class="legend-item"><span class="legend-chip chip-skipped">⏭️ skipped</span> not applicable</div></span></span></h3>
     <div class="pipeline-stages">{{pipeline_html}}</div>
   </div>
 
@@ -388,15 +517,29 @@ FEATURE_PANEL = """
 </div>"""
 
 
-def chip(status: str) -> str:
-    cls = status.replace(" ", "-")
-    label = status if status != "not-started" else "\u2014"
-    return f'<span class="chip chip-{cls}">{label}</span>'
 
 
 def badge(status: str) -> str:
     cls = status.replace(" ", "-")
     return f'<span class="badge badge-{cls}">{status}</span>'
+
+
+STATUS_ICONS = {
+    "done": "\u2705",
+    "approved": "\u2705",
+    "in-progress": "\U0001f6a7",
+    "in-review": "\U0001f50d",
+    "draft": "\u270f\ufe0f",
+    "blocked": "\u26d4",
+    "skipped": "\u23ed\ufe0f",
+    "not-started": "",
+}
+
+
+def chip(phase: str, status: str) -> str:
+    cls = status.replace(" ", "-")
+    icon = STATUS_ICONS.get(status, "")
+    return f'<span class="chip chip-{cls}">{icon} {phase}</span>'
 
 
 def render_pipeline(pipeline_rows: list[dict]) -> str:
@@ -407,7 +550,7 @@ def render_pipeline(pipeline_rows: list[dict]) -> str:
         return '<span class="empty">No pipeline data</span>'
     parts = []
     for stage_name, phases in stages.items():
-        chips = "".join(chip(p["status"]) for p in phases)
+        chips = "".join(chip(p["phase"], p["status"]) for p in phases)
         parts.append(
             f'<div class="pipeline-stage">'
             f'<div class="stage-label">{stage_name}</div>'
@@ -523,7 +666,8 @@ def render_tab(feature: dict, is_first: bool, idx: int) -> str:
     return (
         f'<div class="ftab{active_cls}" onclick="selectFeature({idx})">'
         f'<span class="{dot}">&bull;</span> '
-        f'<span class="fid">{feature["id"]}</span> {feature["title"]}'
+        f'<span class="fid">{feature["id"]}</span>'
+        f'<span class="ftitle">{feature["title"]}</span>'
         f"</div>"
     )
 
