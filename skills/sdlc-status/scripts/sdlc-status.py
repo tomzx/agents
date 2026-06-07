@@ -5,16 +5,20 @@
 #     "pyyaml",
 #     "markdown",
 #     "pymdown-extensions",
+#     "structlog",
 # ]
 # ///
 """Render an SDLC status dashboard HTML page from .sdlc/ directory data."""
 
 import argparse
 import json
+import logging
 import re
 import sys
 from pathlib import Path
 from typing import Optional
+
+import structlog
 
 import yaml
 
@@ -99,6 +103,8 @@ def infer_pipeline_from_files(feature_dir: Path) -> list[dict]:
 
 
 def read_feature(feature_dir: Path) -> dict | None:
+    log = structlog.get_logger()
+    log.info("reading_feature", dir=feature_dir.name)
     fm, _ = parse_frontmatter(feature_dir.name)
     progress_path = feature_dir / "progress.md"
     if progress_path.exists():
@@ -258,7 +264,7 @@ def read_feature(feature_dir: Path) -> dict | None:
                 re_entry_point = row["phase"]
                 break
 
-    return {
+    feature_dict = {
         "id": feature_dir.name.split("-")[0] + "-" + feature_dir.name.split("-")[1],
         "dir_name": feature_dir.name,
         "dir_path": str(feature_dir.resolve()),
@@ -277,10 +283,23 @@ def read_feature(feature_dir: Path) -> dict | None:
         "open_questions": open_questions,
     }
 
+    log.info(
+        "feature_parsed",
+        title=title,
+        pipeline_phases=len(pipeline_rows),
+        tasks=len(task_rows),
+        sessions=len(sessions),
+        files=len(file_contents),
+        open_questions=len(open_questions),
+    )
+    return feature_dict
+
 
 def collect_features(sdlc_dir: Path) -> list[dict]:
+    log = structlog.get_logger()
     features_dir = sdlc_dir / "features"
     if not features_dir.exists():
+        log.warning("features_dir_not_found", path=str(features_dir))
         return []
     features = []
     for d in sorted(features_dir.iterdir()):
@@ -288,6 +307,8 @@ def collect_features(sdlc_dir: Path) -> list[dict]:
             feat = read_feature(d)
             if feat:
                 features.append(feat)
+                log.info("feature_loaded", id=feat["id"], title=feat["title"])
+    log.info("features_collected", count=len(features))
     return features
 
 
@@ -391,6 +412,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .chip-blocked { background: var(--red-dim); color: var(--red); }
   .chip-skipped { background: var(--gray-dim); color: var(--gray); text-decoration: line-through; }
   .chip-open-questions { background: var(--blue-dim); color: var(--blue); }
+  .chip-vocabulary { background: var(--green-dim); color: var(--green); }
   .chip-not-started { background: var(--surface-alt); color: var(--text-muted); }
   .chip-draft { background: var(--blue-dim); color: var(--blue); }
   .chip-in-review { background: var(--yellow-dim); color: var(--yellow); }
@@ -752,6 +774,26 @@ def parse_open_questions(content: str) -> str:
     return m.group(1).strip()
 
 
+def parse_vocabulary(filepath: Path) -> tuple[str, dict[str, str]]:
+    if not filepath.exists():
+        return "", {}
+    _, content = parse_frontmatter(filepath.read_text())
+    refs: dict[str, str] = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if not line.startswith("|") or not line.endswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        term = cells[0]
+        if term in ("Term", "Abbreviation", "---"):
+            continue
+        definition = cells[1]
+        refs[term] = definition
+    return content.strip(), refs
+
+
 FEATURE_PANEL = """
 <div class="fpanel {{first_class}}">
   <p class="c-muted" style="margin-bottom:1.25rem;font-size:0.88rem">{{summary}}</p>
@@ -816,6 +858,21 @@ def annotate_refs(html: str, refs: dict[str, dict]) -> str:
     return re.sub(r"(FR|NFR)-\d+", repl, html)
 
 
+def annotate_vocab_refs(html: str, vocab_refs: dict[str, str]) -> str:
+    if not vocab_refs:
+        return html
+    terms = sorted(vocab_refs, key=len, reverse=True)
+    escaped = [re.escape(t) for t in terms]
+    pattern = r"\b(" + "|".join(escaped) + r")\b"
+
+    def repl(m: re.Match) -> str:
+        term = m.group(0)
+        definition = vocab_refs[term].replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+        return f'<span class="ref"><span class="ref-label">{term}</span><span class="ref-tip">{definition}</span></span>'
+
+    return re.sub(pattern, repl, html)
+
+
 STATUS_ICONS = {
     "done": "\u2705",
     "approved": "\u2705",
@@ -826,6 +883,7 @@ STATUS_ICONS = {
     "skipped": "\u23ed\ufe0f",
     "not-started": "\u26aa",
     "open-questions": "\u2753",
+    "vocabulary": "\U0001f4d6",
 }
 
 STATUS_DESCRIPTIONS: dict[str, str] = {
@@ -864,7 +922,7 @@ def chip(phase: str, status: str, has_content: bool, feat_idx: int = 0) -> str:
     return f'<span class="chip chip-{cls}">{inner}</span>'
 
 
-def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], open_questions: dict[str, str], feat_idx: int = 0) -> str:
+def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], open_questions: dict[str, str], has_vocab: bool = False, feat_idx: int = 0) -> str:
     stages: dict[str, list[dict]] = {}
     for row in pipeline_rows:
         stages.setdefault(row["stage"], []).append(row)
@@ -879,14 +937,18 @@ def render_pipeline(pipeline_rows: list[dict], file_contents: dict[str, str], op
             f'<div class="pipeline-phases">{chips}</div>'
             f'</div>'
         )
-    # Append Open Questions chip below stages
-    oq_chip = ""
+    # Append Open Questions and Vocabulary chips
+    extra_chips = ""
     if open_questions:
         cls = "chip-open-questions chip-link"
         icon = STATUS_ICONS.get("open-questions", "")
-        oq_chip = f'<span class="chip {cls}" onclick="showPhase({feat_idx},\'open-questions\')">{icon} Open Questions</span>'
+        extra_chips += f'<span class="chip {cls}" onclick="showPhase({feat_idx},\'open-questions\')">{icon} Open Questions</span>'
+    if has_vocab:
+        cls = "chip-vocabulary chip-link"
+        icon = STATUS_ICONS.get("vocabulary", "")
+        extra_chips += f'<span class="chip {cls}" onclick="showPhase({feat_idx},\'vocabulary\')">{icon} Vocabulary</span>'
     stages_html = '<span class="pipeline-stages-row">' + '<span class="cp-arrow">&rsaquo;</span>'.join(parts) + '</span>'
-    return stages_html + oq_chip
+    return stages_html + extra_chips
 
 
 def render_tasks(tasks: list[dict]) -> str:
@@ -990,6 +1052,8 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
     fc = feature.get("file_contents", {})
     refs = feature.get("refs", {})
     open_questions = feature.get("open_questions", {})
+    vocab_content = feature.get("vocab_content", "")
+    vocab_refs = feature.get("vocab_refs", {})
 
     # Find first phase with status != "not-started" to auto-expand
     first_active = None
@@ -1000,13 +1064,18 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
 
     phase_details = ""
     for phase, content in fc.items():
-        rendered = annotate_refs(render_markdown(badge_priorities_in_tables(content)), refs)
+        rendered = annotate_vocab_refs(annotate_refs(render_markdown(badge_priorities_in_tables(content)), refs), vocab_refs)
         cls = "" if phase == first_active else "hidden"
         phase_details += f'<div id="pd-{feat_idx}-{phase}" class="phase-detail {cls}">{rendered}</div>'
 
     # Generate open questions detail
     oq_rendered = render_questions(open_questions) if open_questions else ""
     phase_details += f'<div id="pd-{feat_idx}-open-questions" class="phase-detail hidden">{oq_rendered}</div>'
+
+    # Generate vocabulary detail
+    if vocab_content:
+        vocab_rendered = annotate_vocab_refs(render_markdown(vocab_content), vocab_refs)
+        phase_details += f'<div id="pd-{feat_idx}-vocabulary" class="phase-detail hidden">{vocab_rendered}</div>'
 
     return (
         FEATURE_PANEL
@@ -1023,7 +1092,7 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
         .replace("{{task_color}}", "c-green" if pct == 100 else "c-blue")
         .replace("{{pct_color}}", "c-green" if pct == 100 else "c-yellow" if pct < 50 else "c-blue")
         .replace("{{bar_color}}", bar_color)
-        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", []), fc, open_questions, feat_idx))
+        .replace("{{pipeline_html}}", render_pipeline(feature.get("pipeline", []), fc, open_questions, bool(vocab_content), feat_idx))
         .replace("{{phase_details}}", phase_details)
         .replace("{{task_section}}", render_tasks(feature.get("tasks", [])))
         .replace("{{session_section}}", render_sessions(feature.get("sessions", [])))
@@ -1059,23 +1128,60 @@ def build_footer() -> str:
 
 
 def main() -> None:
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_log_level,
+            structlog.dev.ConsoleRenderer(),
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+    logging.basicConfig(format="%(message)s", level=logging.INFO, stream=sys.stderr)
+    log = structlog.get_logger()
+
     parser = argparse.ArgumentParser(description="Render SDLC status dashboard from .sdlc/ directory")
     parser.add_argument("sdlc_dir", nargs="?", default=".sdlc", help="Path to .sdlc directory (default: .sdlc)")
     parser.add_argument("-o", "--output", default="-", help="Output HTML file path (default: stdout)")
+    parser.add_argument("-q", "--quiet", action="store_true", help="Suppress logging")
     args = parser.parse_args()
+
+    if args.quiet:
+        logging.getLogger().setLevel(logging.WARNING)
 
     sdlc_path = Path(args.sdlc_dir)
     if not sdlc_path.exists():
+        log.error("sdlc_dir_not_found", path=str(sdlc_path))
         print(f"Error: {sdlc_path} does not exist", file=sys.stderr)
         sys.exit(1)
+    log.info("reading_sdlc_dir", path=str(sdlc_path))
 
     features = collect_features(sdlc_path)
     if not features:
+        log.warning("no_features_found", path=str(sdlc_path / "features"))
         print(f"No features found in {sdlc_path}/features/", file=sys.stderr)
         sys.exit(1)
+    log.info("features_found", count=len(features), names=[f["id"] for f in features])
+
+    # Read project-level vocabulary
+    vocab_path = sdlc_path / "context" / "vocabulary.md"
+    vocab_content, vocab_refs = parse_vocabulary(vocab_path)
+    if vocab_content:
+        log.info("vocabulary_loaded", path=str(vocab_path), terms=len(vocab_refs))
+    else:
+        log.info("no_vocabulary_found", path=str(vocab_path))
+
+    tabs_html = ""
+    panels_html = ""
+    for i, feat in enumerate(features):
+        feat["vocab_content"] = vocab_content
+        feat["vocab_refs"] = vocab_refs
+        tabs_html += render_tab(feat, i == 0, i) + "\n"
+        panels_html += render_feature(feat, i == 0, i) + "\n"
 
     from datetime import datetime
-
     now = datetime.now().astimezone()
     tz = now.strftime("%z")
     generated = now.strftime("%Y-%m-%d %H:%M:%S ") + tz[:3] + ":" + tz[3:]
