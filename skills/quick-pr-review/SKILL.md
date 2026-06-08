@@ -35,10 +35,14 @@ Fetch PR metadata + latest commit SHA
       to user)               |
                        Same commit?
                         /         \
-                      Yes           No (new or updated)
+                       Yes           No (new or updated)
                        |                    |
                      No-op            Run checks
                                      (cautious = stricter)
+                                          |
+                               Checks pending? --Yes--> wait + re-check
+                                          |              (up to 10x)
+                                          No
                                           |
                               Any blocking failures?
                                  /           \
@@ -154,7 +158,11 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 
 #### Tests pass
 - Check CI status from `statusCheckRollup` in the PR JSON.
-- All required checks must be passing or skipped (not failing).
+- If any required checks are still **pending** or **in progress** (not yet concluded): wait and re-check rather than treating the PR as ready.
+  - Wait ~60 seconds, then re-fetch the PR JSON with `gh-cached pr view $2 --repo $1 --json --refresh` and re-evaluate `statusCheckRollup`.
+  - Repeat until all required checks have concluded (passing, failing, or skipped), up to a maximum of 10 attempts (~10 minutes).
+  - If checks are still pending after the maximum attempts: do not approve. Post/update the comment with `[ ] Tests pass` noting that checks did not conclude in time, and report to the user that the review should be re-run once CI completes.
+- Once all required checks have concluded: all required checks must be passing or skipped (not failing).
 
 #### Change is part of the spec (approval gate)
 - Read the PR title and description.
@@ -443,6 +451,15 @@ Reports: "Skipped PR #77 (owner/myrepo) — author is flagged for manual review 
 No trust profile found for the author.
 Defaults to `neutral`.
 After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
+
+**Scenario 8: Checks still pending**
+```
+/quick-pr-review owner/myrepo 120
+```
+CI checks are still running.
+Wait ~60 seconds and re-fetch the PR JSON, repeating until checks conclude (up to 10 attempts).
+Once checks pass, proceed to approve.
+If checks never conclude, post comment with `[ ] Tests pass` and do not approve.
 
 ## Useful Commands Reference
 
