@@ -316,15 +316,16 @@ The orchestrator maintains `.sdlc/state.yml` in the repository root to track the
 Read it at the start of every invocation to resume context; write it after every phase transition.
 
 ```yaml
-current_phase: null       # e.g. requirements, specifications, implementation
+current_phase: null       # the next phase to run (entry point name)
 github_ref: null          # GitHub issue or PR number, e.g. "#42"
 feature: null             # FEAT-NNNN-slug if one has been created, null otherwise
 ```
 
-- **On first entry**: create `.sdlc/state.yml` from the template at `skills/sdlc/templates/state.yml`, populating `current_phase` and `github_ref`.
-- **After each phase transition**: update `current_phase`.
+- **On first entry**: create `.sdlc/state.yml`, populating `current_phase` with the entry point and `github_ref` if known.
+- **After each phase completes**: update `current_phase` to the name of the next phase to run. This is the single rule: `current_phase` always holds what comes next.
 - **When a FEAT-NNNN directory is created**: populate `feature`.
-- **On pipeline completion or stop**: set `current_phase` to `complete` or the stopping phase.
+- **When `github_ref` changes** (issue created, PR opened): update `github_ref`.
+- **On pipeline completion**: set `current_phase` to `complete`.
 
 ## Steps
 
@@ -340,7 +341,7 @@ feature: null             # FEAT-NNNN-slug if one has been created, null otherwi
 10. Execute each sub-skill in order from the entry point to the end of the pipeline.
 11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 12. When all review findings are resolved, move to the next phase.
-13. After each phase completes, update `.sdlc/state.yml` (`current_phase`, and `feature` if newly created) and `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below).
+13. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
 14. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
 15. After learnings are captured and reviewed, the cycle is complete.
 
