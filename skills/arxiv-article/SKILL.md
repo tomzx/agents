@@ -1,6 +1,6 @@
 ---
 name: arxiv-article
-description: Downloads an arXiv HTML article, converts it to markdown with pandoc, archives it, and returns a structured summary. Use when processing a single arXiv paper given its HTML URL (e.g., https://arxiv.org/html/2504.12345). Called by the arxiv-catchup skill but can also be invoked directly.
+description: "Downloads an arXiv HTML article, converts it to markdown with pandoc, archives it, and returns a structured summary. Use when processing a single arXiv paper given its HTML URL (e.g., https://arxiv.org/html/2504.12345). Called by the arxiv-catchup skill but can also be invoked directly."
 ---
 
 # arXiv Article Processor
