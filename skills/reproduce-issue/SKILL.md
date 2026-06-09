@@ -87,6 +87,14 @@ Where `<slug>` is a short hyphenated description derived from the issue title (e
 
 All subsequent work happens inside the worktree directory.
 
+After creating the worktree, write `.sdlc/state.yml` inside it:
+
+```yaml
+current_phase: reproduce
+github_ref: "#<issue-number>"
+feature: null
+```
+
 If worktree creation fails (e.g., branch already exists, directory conflict), fall back to a regular branch:
 
 ```bash

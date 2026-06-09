@@ -89,6 +89,8 @@ This skill handles:
 If the bug cannot be reproduced, `reproduce-issue` posts a comment and stops.
 Do not proceed to step 3.
 
+After `reproduce-issue` creates the worktree, `.sdlc/state.yml` is initialized with `current_phase: reproduce`. Update it to `current_phase: implementation` before invoking `create-implementation`, and to `current_phase: pr` before invoking `create-pr`.
+
 ### 3. Implement the fix
 
 Invoke `create-implementation` in the worktree directory:

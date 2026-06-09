@@ -310,22 +310,39 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `continue` | Resume an in-progress feature by scanning `.sdlc/features/` for unfinished work (runs Automatic Resume) |
 | `maintenance` | Run one or more maintenance skills (see Maintenance section in Pipeline Overview) to surface technical debt; findings feed into issue creation and backlog prioritization |
 
+## State File
+
+The orchestrator maintains `.sdlc/state.yml` in the repository root to track the current run.
+Read it at the start of every invocation to resume context; write it after every phase transition.
+
+```yaml
+current_phase: null       # e.g. requirements, specifications, implementation
+github_ref: null          # GitHub issue or PR number, e.g. "#42"
+feature: null             # FEAT-NNNN-slug if one has been created, null otherwise
+```
+
+- **On first entry**: create `.sdlc/state.yml` from the template at `skills/sdlc/templates/state.yml`, populating `current_phase` and `github_ref`.
+- **After each phase transition**: update `current_phase`.
+- **When a FEAT-NNNN directory is created**: populate `feature`.
+- **On pipeline completion or stop**: set `current_phase` to `complete` or the stopping phase.
+
 ## Steps
 
-1. Determine the entry point: normalize `$1` to lowercase and check against the supported entry points. If a match is found, use it. If `$1` does not match any supported entry point (case-insensitive), do not attempt to infer the phase from the text. Instead, inform the user that the phase is not recognized and ask them to pick a valid entry point. If the entry point is `continue`, run the Automatic Resume flow instead of advancing through the pipeline.
-2. If the entry point is `status`, invoke the `sdlc-status` skill. Do not advance the pipeline or modify any artifacts.
-3. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
-4. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
-5. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
-6. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
-7. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
-8. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
-9. Execute each sub-skill in order from the entry point to the end of the pipeline.
-10. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-11. When all review findings are resolved, move to the next phase.
-12. After each phase completes, update `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below).
-13. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
-14. After learnings are captured and reviewed, the cycle is complete.
+1. Read `.sdlc/state.yml` if it exists. Use its values as defaults for `current_phase`, `github_ref`, and `feature` unless the user provides explicit arguments.
+2. Determine the entry point: normalize `$1` to lowercase and check against the supported entry points. If a match is found, use it. If `$1` does not match any supported entry point (case-insensitive), do not attempt to infer the phase from the text. Instead, inform the user that the phase is not recognized and ask them to pick a valid entry point. If the entry point is `continue`, run the Automatic Resume flow instead of advancing through the pipeline.
+3. If the entry point is `status`, invoke the `sdlc-status` skill. Do not advance the pipeline or modify any artifacts.
+4. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
+5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
+7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
+8. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+10. Execute each sub-skill in order from the entry point to the end of the pipeline.
+11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+12. When all review findings are resolved, move to the next phase.
+13. After each phase completes, update `.sdlc/state.yml` (`current_phase`, and `feature` if newly created) and `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below).
+14. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
+15. After learnings are captured and reviewed, the cycle is complete.
 
 ### Status Report (entry: `status`)
 

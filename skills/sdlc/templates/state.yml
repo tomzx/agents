@@ -1,0 +1,3 @@
+current_phase: null       # e.g. requirements, specifications, implementation
+github_ref: null          # GitHub issue or PR number, e.g. "#42"
+feature: null             # FEAT-NNNN-slug if one has been created, empty otherwise

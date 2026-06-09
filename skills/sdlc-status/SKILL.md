@@ -32,11 +32,12 @@ A formatted status report displayed to the user, containing:
 ## Steps
 
 1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root.
-2. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
-3. If `$1` specifies a feature ID (e.g., `FEAT-0001`), filter to that feature only.
-4. For each feature, read `progress.md` if it exists. Otherwise scan the directory for artifacts and task files.
-5. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
-6. Render the status report.
+2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see at a glance what the pipeline was last doing.
+3. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
+4. If `$1` specifies a feature ID (e.g., `FEAT-0001`), filter to that feature only.
+5. For each feature, read `progress.md` if it exists. Otherwise scan the directory for artifacts and task files.
+6. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
+7. Render the status report.
 
 ### Preferred: Use the bundled script
 
