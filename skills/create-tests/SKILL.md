@@ -12,18 +12,22 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` and `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
+- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
+- `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
 - Information about the testing stack (if available)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 
-1. Read the requirements and specification.
+1. Read the requirements, specification, telemetry plan, and observability plan (if present).
 2. List all acceptance criteria that need to be verified.
 3. For each acceptance criterion, write at least one test case.
-4. Add edge case and failure scenario tests beyond the acceptance criteria.
-5. Organize test cases by test level (unit, integration, end-to-end).
-6. Identify test infrastructure and fixtures needed.
-7. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/tests.md`.
+4. For each analytics event in the telemetry plan, write a test case verifying the event is emitted with correct properties.
+5. For each metric, log entry, and trace span in the observability plan, write a test case verifying it is emitted correctly.
+6. Add edge case and failure scenario tests beyond the acceptance criteria.
+7. Organize test cases by test level (unit, integration, end-to-end).
+8. Identify test infrastructure and fixtures needed.
+9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/tests.md`.
 
 ## Test Case Format
 

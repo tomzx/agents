@@ -12,6 +12,8 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 
 - Code to review provided in context, as file paths to read, or as a diff
 - Specification or acceptance criteria (optional, improves alignment check)
+- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): verify analytics events are implemented correctly
+- `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): verify logging, metrics, tracing, and health checks are implemented correctly
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
@@ -56,6 +58,8 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Does the implementation match the API contract (field names, types, status codes)?
 - Are all specified behaviors implemented?
 - Are there behaviors implemented that are not in the spec (scope creep)?
+- If a telemetry plan exists, are all analytics events emitted at the right locations with correct properties?
+- If an observability plan exists, are all metrics, logs, traces, and health checks implemented per the plan?
 
 ## Output Format
 

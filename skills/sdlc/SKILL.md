@@ -48,6 +48,14 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
           ▼
+  /create-telemetry       Define analytics events, success metrics, funnel, telemetry
+  /review-telemetry       Audit completeness, measurability, actionability, consistency
+          │
+          ▼
+  /create-observability   Define logging, metrics, tracing, alerts, SLOs
+  /review-observability   Audit completeness, actionability, coverage, overlap
+          │
+          ▼
   /create-plan            Phases, milestones, dependencies, risk register
   /review-plan            Audit feasibility, coverage, timeline realism
   /publish-plan           Commit plan to branch, open draft PR, comment on issue
@@ -187,6 +195,8 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       ├── existing-solutions.md
 │       ├── feasibility.md
 │       ├── specification.md
+│       ├── telemetry.md
+│       ├── observability.md
 │       ├── plan.md
 │       ├── tasks/                 # One file per task (e.g., 0001-setup-db-schema.md)
 │       │   └── NNNN-<slug>.md
@@ -198,6 +208,8 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │   │   ├── existing-solutions.md
 │   │   ├── feasibility.md
 │   │   ├── specification.md
+│   │   ├── telemetry.md
+│   │   ├── observability.md
 │   │   ├── plan.md
 │   │   ├── progress.md            # Template for feature-level progress tracking
 │   │   ├── task.md                # Template for a single task file
@@ -291,7 +303,9 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `existing-solutions` | Approved requirements ready to survey for prior art |
 | `feasibility` | Requirements and existing solutions ready for viability assessment |
 | `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
-| `plan` | A specification ready for planning |
+| `telemetry` | A specification ready to define how feature usage will be measured |
+| `observability` | A specification ready to define how feature health will be monitored |
+| `plan` | A specification (and telemetry/observability plans) ready for planning |
 | `publish-plan` | A reviewed plan ready to commit and share with the issue author |
 | `tasks` | An approved plan signed off by the issue author |
 | `tests` | A task decomposition ready for test design |
@@ -453,15 +467,19 @@ Each phase consumes output from the previous phase:
 | review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
 | create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `feasibility.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
-| create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
+| create-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (`status: draft`) |
+| review-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |
+| create-observability | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (`status: draft`) |
+| review-observability | `.sdlc/features/FEAT-NNNN-<slug>/observability.md` | Findings; sets `status: approved` when resolved |
+| create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
 | publish-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
 | create-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
 | review-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved; populates Task Progress table in `progress.md` |
-| create-tests | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` (`status: draft`) |
+| create-tests | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
-| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
-| review-implementation | Code + spec | Findings (resolve before next phase) |
+| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
+| review-implementation | Code + spec + telemetry + observability | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-pr | Reviewed code + docs + issue | Pull request |
@@ -487,3 +505,15 @@ Each phase consumes output from the previous phase:
 Review phases may be skipped in low-risk or exploratory contexts.
 State the skip explicitly: "Skipping review-requirements — prototype context."
 Never skip reviews for security-sensitive features or production-bound work.
+
+## Commit / Push / PR Gate (mandatory)
+
+Never commit, push, or open a PR without an explicit request from the user, even when the pipeline flow reaches a phase that includes these actions (e.g. `publish-plan`, `create-pr`, `merge-pr`, `deploy-pr`, `fix-issue`).
+
+When the pipeline reaches a phase that would commit, push, or open a PR:
+
+1. Complete all non-destructive work for that phase (write code, update artifacts, run tests, run type-check and lint).
+2. Stop and report what was done and what the next action would be.
+3. Wait for the user to explicitly say to commit, push, or create the PR.
+
+This applies to all entry points and fast paths, including `bugfix`.
