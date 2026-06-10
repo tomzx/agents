@@ -10,12 +10,12 @@ description: >-
 
 # GitHub post attribution (shared)
 
-Skills that post content to GitHub should append a small footer: link to the **invoking** skill’s `SKILL.md` at the **current** dot-claude commit (the revision in use when the post was made).
+Skills that post content to GitHub should append a small footer: link to the **invoking** skill's `SKILL.md` at the **current** dot-claude commit (the revision in use when the post was made), plus the model name that executed the skill.
 
 ## When to use
 
 - Any `gh` command that creates or updates issue/PR text visible on GitHub.
-- Invoked **by name** from other skills (e.g. “follow `skills/github-post-attribution/SKILL.md` before posting”).
+- Invoked **by name** from other skills (e.g. "follow `skills/github-post-attribution/SKILL.md` before posting").
 
 ## Resolve repository root, commit, and GitHub base URL
 
@@ -40,7 +40,15 @@ From `REMOTE_URL`, normalize to `https://github.com/{owner}/{repo}`:
 
 Call that `{BASE}`.
 
-## Link to the invoking skill’s file
+## Resolve model name
+
+The model that executed the skill is identified by its short name (e.g. `glm-5.1`, `claude-sonnet-4-20250514`). The agent knows its own model at runtime from its environment. Set `MODEL_NAME` to the model's human-facing label:
+
+```bash
+MODEL_NAME="glm-5.1"  # replace with the actual model name at runtime
+```
+
+## Link to the invoking skill's file
 
 The skill that **performs** the post is the one whose `SKILL.md` should be linked (not this file unless the workflow is only about attribution).
 
@@ -51,14 +59,14 @@ Optional feedback link (same repo as the skill): `{BASE}/issues/new`
 
 ## Footer lines (after main content)
 
-Add a horizontal rule, then append one footer line. Patterns (use the real `SKILL_FILE_URL` and 7-char SHA from above):
+Add a horizontal rule, then append one footer line. Patterns (use the real `SKILL_FILE_URL`, 7-char SHA, and `MODEL_NAME` from above):
 
 - **Comment / line review:** end with
-  `Posted with [SKILL_DIR](SKILL_FILE_URL) (` + short SHA + `)`
+  `Posted with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
 - **Issue create:** end with
-  `Created with [SKILL_DIR](SKILL_FILE_URL) (` + short SHA + `)`
+  `Created with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
 - **Quick PR review:** end with
-  `Reviewed with [quick-pr-review](SKILL_FILE_URL) (` + short SHA + `)`
+  `Reviewed with [quick-pr-review](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
   Optional sub-line: feedback at `{BASE}/issues/new`.
 
 Example:
@@ -66,10 +74,10 @@ Example:
 ```
 ---
 
-Posted with [handle-pr-feedback](https://github.com/owner/repo/blob/abc1234.../skills/handle-pr-feedback/SKILL.md) (`abc1234`)
+Posted with [handle-pr-feedback](https://github.com/owner/repo/blob/abc1234.../skills/handle-pr-feedback/SKILL.md) via glm-5.1 (`abc1234`)
 ```
 
-Link text in brackets must match the **invoking** skill’s `SKILL_DIR` (except quick-pr-review, which uses the fixed label `quick-pr-review`).
+Link text in brackets must match the **invoking** skill's `SKILL_DIR` (except quick-pr-review, which uses the fixed label `quick-pr-review`).
 
 ## SDLC phase footer (when posting during an `sdlc` pipeline run)
 
@@ -78,7 +86,7 @@ When the post is produced while running the SDLC pipeline (the `sdlc` skill or a
 ```
 ---
 SDLC phase: <phase> (<FEAT-id> #<issue>)
-Posted with [SKILL_DIR](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
+Posted with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (`SKILL_SHORT_SHA`)
 ```
 
 - `<phase>` is the current pipeline phase (e.g. `issue`, `requirements`, `specifications`, `plan`, `implementation`).
@@ -92,12 +100,12 @@ Example (comment posted during the requirements phase):
 ```
 ---
 SDLC phase: requirements (FEAT-0001 #969)
-Posted with [review-requirements](https://github.com/owner/repo/blob/abc1234.../skills/review-requirements/SKILL.md) (`abc1234`)
+Posted with [review-requirements](https://github.com/owner/repo/blob/abc1234.../skills/review-requirements/SKILL.md) via glm-5.1 (`abc1234`)
 ```
 
 ## Shell escaping: do NOT backslash-escape backticks
 
-Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` — write `(`abc1234`)` with plain backticks. Resolve `SKILL_SHORT_SHA` to the actual 7-char SHA before constructing the command.
+Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` -- write `(`abc1234`)` with plain backticks. Resolve `SKILL_SHORT_SHA` to the actual 7-char SHA before constructing the command.
 
 ## Notes
 
