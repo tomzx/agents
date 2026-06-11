@@ -44,15 +44,21 @@ Fetch PR metadata + latest commit SHA
                                           |              (up to 10x)
                                           No
                                           |
-                              Any blocking failures?
-                                 /           \
-                               Yes             No
-                                |               |
-                          Post/update        Approve +
-                          comment only      post/update
-                                              comment
-                                                 |
-                                       Update trust profile
+                               Any blocking failures?
+                                  /           \
+                                Yes             No
+                                 |               |
+                           Post/update    Manual-approval org
+                           comment only   (Shopify/shop)?
+                                            /         \
+                                          Yes          No
+                                           |            |
+                                    Post/update      Approve +
+                                    comment only,    post/update
+                                    alert user       comment
+                                           \            /
+                                            \          /
+                                        Update trust profile
 ```
 
 ## Steps
@@ -66,9 +72,13 @@ gh pr diff $2 --repo $1
 
 Extract:
 - `REPO`: `$1` (`owner/repo`)
+- `OWNER`: the organization/owner portion of `$1` (before the `/`)
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of HEAD_COMMIT
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
+
+**Manual-approval organizations**: if `OWNER` (case-insensitive) is `Shopify` or `shop`, set `MANUAL_APPROVAL_ORG=true`.
+When `MANUAL_APPROVAL_ORG=true`, run all checks and post/update the review comment as normal, but **never run `gh pr review --approve` automatically** (see step 8).
 
 Also resolve dot-claude attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`.
 Use the **Reviewed with** line and optional `{BASE}/issues/new` sub-line from that skill.
@@ -343,7 +353,11 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 
 ### 8. Approve or not
 
-**Approve** when all of the following are true:
+**If `MANUAL_APPROVAL_ORG == true`** (owner is `Shopify` or `shop`): **never approve automatically**, regardless of check results.
+Post/update the comment as normal, then leave the approval to the user.
+Speak the audible alert (see **Output**) so the user knows their manual review is needed.
+
+**Approve** when all of the following are true (and `MANUAL_APPROVAL_ORG != true`):
 - No significant public interface changes (removals, breaking changes, or substantial new API surface)
 - No security-sensitive changes
 - No new dependencies added
@@ -354,6 +368,7 @@ gh pr review $2 --repo {REPO} --approve
 ```
 
 **Do not approve** when:
+- The owner is a manual-approval organization (`Shopify` or `shop`)
 - Significant public interface changes are detected (removals, breaking changes, or substantial new API surface including specs/ADRs that define new public contracts)
 - Security-sensitive changes are detected (auth, crypto, secrets, security config, input validation)
 - New dependencies are introduced
@@ -383,7 +398,7 @@ Report to the user:
 
 ### Notify the user when their review is needed
 
-If the PR was **not approved** or you otherwise need the user to personally review the PR (e.g., ambiguous risk, policy judgment), speak a short audible alert on macOS so they notice even if the chat is in the background:
+If the PR was **not approved** (including when it was withheld because the owner is a manual-approval organization such as `Shopify` or `shop`) or you otherwise need the user to personally review the PR (e.g., ambiguous risk, policy judgment), speak a short audible alert on macOS so they notice even if the chat is in the background:
 
 ```bash
 say "{REPO} #{PR_NUMBER} needs your review"
@@ -452,7 +467,15 @@ No trust profile found for the author.
 Defaults to `neutral`.
 After review, creates a new profile at `~/.developer-trust/{author}.md` with the first review history entry and initial observations.
 
-**Scenario 8: Checks still pending**
+**Scenario 8: Manual-approval organization**
+```
+/quick-pr-review Shopify/myrepo 200
+```
+The owner is `Shopify` (a manual-approval organization).
+All checks are run and the review comment is posted/updated as normal, but the PR is **never approved automatically**.
+The user is alerted via `say` that their manual review is needed.
+
+**Scenario 9: Checks still pending**
 ```
 /quick-pr-review owner/myrepo 120
 ```
