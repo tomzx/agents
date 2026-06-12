@@ -21,7 +21,3 @@
 ## Key Constraints
 
 - <Technical, business, or regulatory constraint>
-
-## Glossary
-
-See [vocabulary.md](vocabulary.md) for domain terms, technical terms, and abbreviations used across the project.
