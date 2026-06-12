@@ -78,8 +78,10 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /review-documentation   Audit completeness, accuracy, clarity, structure
           │
           ▼
-  /create-pr              Open a PR: description, AC coverage, issue link, reviewers
-  /review-pr              Comprehensive code review of the PR
+   /create-pr              Open a PR: description, AC coverage, issue link, reviewers
+   /validate-pr            Runtime validation: build, run, prove claims, record CLI demos
+   /verify-pr              Static verification: claim-to-code traceability, code quality inspection
+   /review-pr              Comprehensive code review of the PR
   /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
   /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
   /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
@@ -318,6 +320,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `implementation` | Tests ready; time to write code |
 | `documentation` | Implementation reviewed; code needs docs |
 | `pr` | Documentation done and ready to open a pull request |
+| `validate-pr` | PR is open and claims need runtime validation (build, run, record demos) |
+| `verify-pr` | PR claims validated at runtime, ready for static code inspection |
 | `handle-pr-ci` | PR has failing CI checks to fix |
 | `handle-pr-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
@@ -491,6 +495,8 @@ Each phase consumes output from the previous phase:
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
 | create-pr | Reviewed code + docs + issue | Pull request |
+| validate-pr | Pull request | Validation report: runtime proof of each claim, asciinema recordings for CLI changes |
+| verify-pr | Pull request + validation report | Verification report: claim-to-code traceability, code quality findings |
 | review-pr | Pull request | Code review findings (resolve before merge) |
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
