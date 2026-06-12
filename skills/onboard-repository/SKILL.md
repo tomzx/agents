@@ -24,7 +24,7 @@ Runs a one-time onboarding sequence that brings a repository up to the standard 
 
 ```
 Phase 1: SDLC Bootstrap
-  /bootstrap-sdlc              Create .sdlc/ with populated context files
+  /sync-sdlc                   Create or update .sdlc/ with populated context files
           |
           v
 Phase 2: Automated Triage Workflow
@@ -74,9 +74,9 @@ Report the limitation and continue with the remaining phases.
 
 ### 2. Phase 1 — SDLC Bootstrap
 
-Run `/bootstrap-sdlc` (passing `$1` if provided).
+Run `/sync-sdlc` (passing `$1` if provided).
 
-This creates the `.sdlc/` directory tree and populates context files with real content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, and feature directories with `requirements.md` and `specification.md`.
+This creates the `.sdlc/` directory tree (if absent) and populates context files with real content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, and feature directories with `requirements.md` and `specification.md`.
 
 If `.sdlc/` already exists, report what is already present and skip to verifying completeness.
 If any context file still contains `<…>` placeholders, fill them in from the codebase.

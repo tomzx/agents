@@ -95,8 +95,8 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
 
 Setup (run once per project, no dependencies on other flows)
 
-  /bootstrap-sdlc              Bootstrap .sdlc/ structure and populate it with an existing project's content
-  /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates
+  /sync-sdlc                   Create or update .sdlc/ by reconciling codebase with existing artifacts
+  /initialize-sdlc-directory   Bootstrap .sdlc/ structure and populate templates (called automatically by sync-sdlc)
   /update-sdlc-templates       Pull upstream template improvements, merge with user edits
   /configure-labels            Configure the standard label taxonomy in the GitHub repository
 
@@ -115,6 +115,11 @@ Cross-cutting records (invoke at any point in any flow)
   /review-decision        Audit clarity, reasoning quality, consequence coverage
 
 Maintenance (entry: maintenance — run periodically, independent of any feature)
+
+  Coordinated audit
+  /audit-sdlc                Run multiple audit skills and produce a unified findings report
+
+  Individual audit skills (also available via /audit-sdlc)
 
   Diagnose — surface what is risky or actively unstable
   /audit-dependencies         Audit dependencies for CVEs, outdated versions, unmaintained packages, and license issues
@@ -294,7 +299,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | Phase | Start here when you have... |
 |---|---|
 | `status` | Want to see current progress on a feature or pick up where you left off (runs progress report, no side effects) |
-| `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `bootstrap-sdlc`) |
+| `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `sync-sdlc`, which creates `.sdlc/` if absent) |
+| `sync` | An existing `.sdlc/` that needs reconciling with the current codebase (runs `sync-sdlc`) |
 | `configure-labels` | A repository that needs the standard label taxonomy created or updated |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
@@ -323,6 +329,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `decision` | A decision to record (can be invoked at any phase) |
 | `continue` | Resume an in-progress feature by scanning `.sdlc/features/` for unfinished work (runs Automatic Resume) |
 | `maintenance` | Run one or more maintenance skills (see Maintenance section in Pipeline Overview) to surface technical debt; findings feed into issue creation and backlog prioritization |
+| `audit` | Run `/audit-sdlc` to coordinate multiple audit skills and produce a unified findings report |
 
 ## State File
 
@@ -350,7 +357,8 @@ feature: null             # FEAT-NNNN-slug if one has been created, null otherwi
 5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
 6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
-8. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
+9. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
 9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
 10. Execute each sub-skill in order from the entry point to the end of the pipeline.
 11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
@@ -450,7 +458,7 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
-| bootstrap-sdlc | Existing project root | `.sdlc/` directory tree + context files populated with real project content |
+| sync-sdlc | Existing project root (`.sdlc/` created if absent) | Updated `.sdlc/` with context files, new feature directories, drift report for existing features |
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |
