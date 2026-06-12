@@ -40,6 +40,7 @@ This skill runs every check in the right order so nothing falls through the crac
 | Copy-paste duplication across modules | Copy-paste across modules | Clean |
 | Public APIs undocumented | New exports with no docstrings | Document |
 | Missing logging, metrics, tracing | New code paths without observability | Observe |
+| No docs site infrastructure | Project has no MkDocs/GitHub Pages setup | Document (auto-detect) |
 
 ## Pipeline Overview
 
@@ -65,7 +66,8 @@ Phase 3: Clean ───────── /find-dead-code
     |                     /find-code-duplication
     |
     v
-Phase 4: Document ────── /find-documentation-gaps
+Phase 4: Document ────── /setup-docs-site (if no mkdocs.yml exists)
+    |                     /find-documentation-gaps
     |
     v
 Phase 5: Observe ─────── /audit-observability
@@ -94,7 +96,7 @@ The `$1` argument controls which phases run. Defaults to `all` if not specified.
 | `diagnose` | Phase 1 only |
 | `harden` | Phase 2 only |
 | `clean` | Phase 3 only |
-| `document` | Phase 4 only |
+| `document` | Phase 4 only (`/setup-docs-site` if needed + `/find-documentation-gaps`) |
 | `observe` | Phase 5 only |
 | `quality` | Phases 2 + 3 (harden + clean) |
 | `security` | Phase 1 only (alias for diagnose) |
@@ -167,7 +169,15 @@ Skip `/find-code-duplication` if fewer than 10 source files.
 
 ### 6. Phase 4 — Document
 
-Run this skill, collecting findings:
+First, check if a documentation site infrastructure exists:
+
+```bash
+ls mkdocs.yml 2>/dev/null
+```
+
+If `mkdocs.yml` does not exist, run `/setup-docs-site` to scaffold MkDocs with Material theme and the GHA Pages workflow. This is a one-time bootstrap that creates the docs infrastructure so `find-documentation-gaps` has a target to check against.
+
+Then run `/find-documentation-gaps`, collecting findings:
 
 | Skill | What it finds |
 |---|---|
@@ -279,6 +289,7 @@ status: complete
 | Code | Tests | in sync / gaps | <details> |
 | Code | Documentation | in sync / gaps | <details> |
 | SDLC | Documentation | in sync / gaps | <details> |
+| Docs site | Docs content | exists / missing infrastructure | <details> |
 
 ## Phase Details
 
@@ -384,6 +395,7 @@ Runs SDLC sync first, then checks documentation gaps. Finds that 2 new features 
 | `onboard-repository` | One-time bootstrap that includes SDLC setup, health assessment, README, triage workflow, and issue creation. Use for first-time setup; use `sync-repository` for ongoing maintenance. |
 | `session-review` | Per-session end-of-work checklist. Use after each coding session. Use `sync-repository` for periodic full-repo sync (daily, weekly, or pre-release). |
 | `sdlc-status` | Read-only dashboard showing SDLC pipeline progress. Does not detect drift or run checks. |
+| `setup-docs-site` | Scaffolds MkDocs + Material + GHA Pages workflow. Sync-repository calls this in Phase 4 when no docs infrastructure exists. |
 
 ## Useful Commands Reference
 
