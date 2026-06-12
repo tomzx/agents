@@ -18,7 +18,7 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 ## Pipeline Overview
 
 ```
-Main flow — 7 SDLC stages (entry: issue → learnings)
+Main flow — 8 SDLC stages (entry: issue → learnings)
 
   Stage 1 — Issue
   /create-issue           Create a structured GitHub issue
@@ -30,20 +30,26 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /prioritize-issues      Rank the backlog by RICE score
           │
           ▼
-  Stage 2 — Requirements & Research
+  Stage 2 — Needs Validation
+  /assess-needs           Evaluate whether the feature addresses a genuine need
+  /review-needs-assessment Audit evidence rigor, stakeholder coverage, alternative paths, verdict soundness
+                          (gate: stop if not needed, update issue with findings)
+           │
+           ▼
+  Stage 3 — Requirements & Research
   /create-requirements    Draft functional + non-functional requirements
   /review-requirements    Audit for clarity, completeness, testability, conflicts
-          │
-          ▼
+           │
+           ▼
   /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
   /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
-          │
-          ▼
+           │
+           ▼
   /create-feasibility     Assess technical, financial, and operational viability
   /review-feasibility     Audit completeness, risk coverage, go/no-go soundness
                           (gate: stop if not feasible, update issue with findings)
 
-  Stage 3 — Design
+  Stage 4 — Design
   /create-specifications  Define architecture, data models, API contracts
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
@@ -65,7 +71,7 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /create-tasks-decomposition   Break plan into XS–L tasks with critical path
   /review-tasks-decomposition   Audit granularity, completeness, dependencies
 
-  Stage 4 & 5 — Development & Testing
+  Stage 5 & 6 — Development & Testing
   /create-tests           Test plan covering acceptance criteria + edge cases
   /review-tests           Audit coverage, correctness, maintainability
           │
@@ -86,7 +92,7 @@ Main flow — 7 SDLC stages (entry: issue → learnings)
   /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
   /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
 
-  Stage 6 — Deployment
+  Stage 7 — Deployment
   /deploy-pr              Deploy merged changes to target environment, run smoke tests, verify rollback plan
           │
           ▼
@@ -198,6 +204,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
 │       ├── progress.md            # Feature-level progress tracking and session log
+│       ├── needs-assessment.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
 │       ├── feasibility.md
@@ -211,6 +218,7 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 │       └── questions.md           # Running log of open questions from all review phases
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
+│   │   ├── needs-assessment.md
 │   │   ├── requirements.md
 │   │   ├── existing-solutions.md
 │   │   ├── feasibility.md
@@ -307,6 +315,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `issue` | A feature idea or bug to capture as a GitHub issue |
 | `issues` | A backlog of unlabeled/unranked issues |
 | `qualify` | An externally submitted issue that needs iterative Q&A before requirements |
+| `needs` | An issue ready to assess whether it addresses a genuine need before investing in requirements |
 | `requirements` | An issue ready to develop requirements |
 | `existing-solutions` | Approved requirements ready to survey for prior art |
 | `feasibility` | Requirements and existing solutions ready for viability assessment |
@@ -432,6 +441,7 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 | **Incoherent input** | `create-specifications` reveals requirements that contradict each other | Stop the current phase, backtrack to `review-requirements`, resolve contradictions, and continue forward from there. |
 | **Scope change** | `create-plan` shows the feature is much larger than the issue suggested | Backtrack to `create-issue` to rewrite scope and ACs, then re-derive downstream artifacts. |
 | **External blocker** | Third-party API unavailable, infrastructure not provisioned | Record as an assumption with a validation plan. If the blocker is resolved within the session, continue. Otherwise, stop after the current phase and note the blocker in the issue. |
+| **Needs rejected** | `review-needs-assessment` concludes the feature does not address a genuine need | Update the issue with findings and the rejection rationale. Stop the pipeline. The issue may be revisited if new evidence emerges. |
 | **Feasibility rejected** | `review-feasibility` concludes the feature is not viable | Update the issue with findings and the rejection rationale. Stop the pipeline. The issue may be revisited if conditions change. |
 | **Review escalation** | `review-implementation` finds a fundamental design flaw | Backtrack to the phase where the flawed decision was made (often `create-specifications` or `create-plan`), revise, and re-derive downstream artifacts. |
 
@@ -471,7 +481,9 @@ Each phase consumes output from the previous phase:
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-requirements | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
+| assess-needs | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (`status: draft`) |
+| review-needs-assessment | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` | Findings; sets `status: approved` or `rejected` |
+| create-requirements | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (approved) | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
 | create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
 | review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
