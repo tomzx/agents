@@ -47,7 +47,7 @@ The library is organized into thematic groups covering the full software develop
 ## Requirements
 
 - [opencode](https://opencode.ai) (or Claude Code) to discover and run the skills.
-- [gh CLI](https://cli.github.com) and [ghx](https://github.com) for the GitHub issue and PR skills.
+- [gh CLI](https://cli.github.com) and [ghx](https://github.com/TomzxCode/ghx) for the GitHub issue and PR skills.
 - A Unix-like shell (Linux or macOS) for the shell-based skills; Windows works via WSL.
 - Optional API credentials for Slack, Google Workspace, and arXiv skills (see `.env.example`).
 
