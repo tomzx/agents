@@ -20,7 +20,8 @@ Produces a high-quality article from a target audience definition and a set of r
 3. Calibrate tone and depth to the target audience.
 4. Draft the article using the structure below, following the formatting rules.
 5. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
-6. Revise for clarity, flow, and conciseness.
+6. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
+7. Revise for clarity, flow, and conciseness.
 
 ## Formatting Rules
 
@@ -71,9 +72,27 @@ Produces a high-quality article from a target audience definition and a set of r
 
 [Only include if it adds something beyond a summary.]
 [A strong final line beats a weak conclusion section.]
+
+## See also
+
+- [Title of related article](relative/path/to/article.md) -- [one-line note on the connection]
+- [Title of related article](relative/path/to/article.md) -- [one-line note on the connection]
 ```
 
 Adjust section count and naming to fit the content. Not every article needs all four sections.
+
+## Finding Related Articles
+
+The "See also" section links readers to other articles in the same repository that provide useful context, background, or contrasting perspective. A good "See also" section saves the reader a search and surfaces adjacent reading.
+
+**Discovery steps:**
+1. Determine the output location of the new article (ask the user if not specified).
+2. Search the repository for other article files near that location. Common patterns: `*.md` under `articles/`, `posts/`, `blog/`, `docs/`, or a content directory indicated by the user.
+3. Match candidates by topic overlap: shared keywords, referenced technologies, same problem domain, or citations to the same primary sources.
+4. Prefer linking to 2-5 high-relevance articles over listing many loosely related ones. Quality over quantity.
+5. Use repository-relative paths (e.g. `../foo/bar.md` or `articles/xyz.md`) so links work in any clone or rendered preview of the repo.
+
+If no related articles exist in the repository, omit the "See also" section entirely rather than padding it.
 
 ## Quality Criteria
 
