@@ -5,7 +5,7 @@ description: Review a technical specification for ambiguities, inconsistencies, 
 
 # Review Specifications
 
-Audits a technical specification and reports findings across five categories: ambiguities, inconsistencies, incoherences, missing information, and implementability.
+Audits a technical specification and reports findings across six categories: ambiguities, inconsistencies, incoherences, missing information, implementability, and reversibility.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ Audits a technical specification and reports findings across five categories: am
 
 1. Read the specification. If reading from `.sdlc/features/FEAT-NNNN-<slug>/specification.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Cross-reference against the requirements document if available.
-3. Identify issues in each of the five categories below.
+3. Identify issues in each of the six categories below.
 4. Report findings. Omit any category that has no findings.
 5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
@@ -49,6 +49,11 @@ Audits a technical specification and reports findings across five categories: am
 - Are there circular dependencies or unresolvable constraints?
 - Are external dependencies clearly defined with their interfaces?
 
+### Reversibility
+- Can we undo this cleanly, or does the spec commit to one-way-door decisions?
+- Are destructive data model changes, breaking API changes, and irreversible transformations called out explicitly?
+- Do migrations and state transitions include a backward path or deprecation window?
+
 ## Output Format
 
 ```markdown
@@ -69,6 +74,10 @@ Audits a technical specification and reports findings across five categories: am
 <Findings or "No issues found.">
 
 ## Implementability
+
+<Findings or "No issues found.">
+
+## Reversibility
 
 <Findings or "No issues found.">
 ```

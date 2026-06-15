@@ -5,7 +5,7 @@ description: Review an implementation plan for completeness, feasibility, depend
 
 # Review Plan
 
-Audits an implementation plan and reports findings across five categories: completeness, feasibility, dependencies, risk coverage, and timeline realism.
+Audits an implementation plan and reports findings across six categories: completeness, feasibility, dependencies, risk coverage, timeline realism, and reversibility.
 
 ## Prerequisites
 
@@ -48,6 +48,11 @@ Audits an implementation plan and reports findings across five categories: compl
 - Are there parallel tracks that could reduce total duration?
 - Are buffer periods included for testing and review?
 
+### Reversibility
+- Can we undo this cleanly once implemented, or does the plan create one-way-door commitments?
+- Does the plan include a rollback path for each phase (migrations, deployments, config)?
+- Are irreversible steps (destructive migrations, deletions, public API removals) flagged and sequenced safely?
+
 ## Output Format
 
 ```markdown
@@ -68,6 +73,10 @@ Audits an implementation plan and reports findings across five categories: compl
 <Findings or "No issues found.">
 
 ## Timeline Realism
+
+<Findings or "No issues found.">
+
+## Reversibility
 
 <Findings or "No issues found.">
 ```

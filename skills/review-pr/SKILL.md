@@ -119,7 +119,9 @@ Before diving into the code, verify:
 		* Discuss whether this is necessary
 		* Backward incompatible changes should be documented
 * Reversibility
+	* Can we undo this cleanly if the change needs to be rolled back?
 	* Are any of the design decisions taken single way doors or reversible?
+	* Are schema/data migrations, API changes, and config changes reversible, and is there a documented rollback path?
 
 ### Operational Concerns
 

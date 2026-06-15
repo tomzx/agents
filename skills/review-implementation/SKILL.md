@@ -5,7 +5,7 @@ description: Review a code implementation for correctness, quality, test coverag
 
 # Review Implementation
 
-Audits a code implementation and reports findings across six categories: correctness, code quality, test coverage, security, performance, and spec alignment.
+Audits a code implementation and reports findings across seven categories: correctness, code quality, test coverage, security, performance, spec alignment, and reversibility.
 Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix.
 
 ## Prerequisites
@@ -61,6 +61,11 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - If a telemetry plan exists, are all analytics events emitted at the right locations with correct properties?
 - If an observability plan exists, are all metrics, logs, traces, and health checks implemented per the plan?
 
+### Reversibility
+- Can we undo this cleanly if the change needs to be reverted?
+- Are there irreversible side effects (destructive migrations, permanent data loss, one-way API transformations)?
+- Are one-way-door design decisions called out explicitly?
+
 ## Output Format
 
 ```markdown
@@ -89,6 +94,10 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 <Findings or "No issues found.">
 
 ## Spec Alignment
+
+<Findings or "No issues found.">
+
+## Reversibility
 
 <Findings or "No issues found.">
 ```

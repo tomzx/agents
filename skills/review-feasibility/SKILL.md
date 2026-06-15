@@ -5,7 +5,7 @@ description: Review a feasibility assessment for completeness, risk coverage, an
 
 # Review Feasibility Assessment
 
-Audits a feasibility assessment and reports findings across four categories: completeness, risk coverage, decision soundness, and consistency.
+Audits a feasibility assessment and reports findings across five categories: completeness, risk coverage, decision soundness, consistency, and reversibility.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Audits a feasibility assessment and reports findings across four categories: com
 ## Steps
 
 1. Read the feasibility document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
-2. Identify issues in each of the four categories below.
+2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
 4. After all findings are resolved:
    - If the overall verdict is **Go** or **Go with conditions**: update `status: in-review` → `status: approved` in the frontmatter. The pipeline may proceed to `/create-requirements`.
@@ -46,6 +46,11 @@ Audits a feasibility assessment and reports findings across four categories: com
 - Is the feature scope consistent with the original issue?
 - Are there contradictions between dimensions (e.g., "high integration complexity" but verdict "Feasible" without conditions)?
 
+### Reversibility
+- If we proceed and it fails, can we undo this cleanly and back out?
+- Does the assessment identify one-way-door commitments (sunk costs, irreversible integrations, data migrations)?
+- For "Go with conditions", do the conditions include an exit or rollback strategy?
+
 ## Output Format
 
 ```markdown
@@ -62,6 +67,10 @@ Audits a feasibility assessment and reports findings across four categories: com
 <Findings or "No issues found.">
 
 ## Consistency
+
+<Findings or "No issues found.">
+
+## Reversibility
 
 <Findings or "No issues found.">
 ```
