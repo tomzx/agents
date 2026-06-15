@@ -33,6 +33,10 @@ Produces a high-quality article from a target audience definition and a set of r
   not just a textual citation (e.g., `[Author, "Title"](https://...)` not just `Author, "Title"`).
 - **Verify links**: After drafting, curl every hyperlink and replace any that return 4xx or connection
   errors before finalizing the article.
+- **Bold important statements**: Highlight the most important statements, key claims, and takeaways
+  in **bold** so readers scanning the article still capture the core message. Be selective: bold
+  sentences or phrases that carry the argument, not routine sentences. Avoid bolding more than one
+  statement per paragraph on average.
 
 ## Audience Calibration
 
