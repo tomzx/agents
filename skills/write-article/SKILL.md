@@ -50,6 +50,11 @@ Produces a high-quality article from a target audience definition and a set of r
 ## Article Structure
 
 ```markdown
+---
+audience_notes: >
+  [one line on any assumptions made about the audience's prior knowledge]
+---
+
 # [Title: specific and descriptive, not clickbait]
 
 [Lead: 1-3 sentences that state the core insight or frame the problem.]
@@ -117,14 +122,20 @@ If no related articles exist in the repository, omit the "See also" section enti
 
 ## Output Format
 
-Produce the article as clean markdown. After the article, include a brief section:
+Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes`. After the article, include a brief sources section:
 
 ```markdown
 ---
-**Sources used:**
+audience_notes: >
+  [one line on any assumptions made about the audience's prior knowledge]
+---
+
+[...article body...]
+
+## References
+
 - [Source Title](https://...) -- [one-line note on what it contributed]
 - [Source Title](https://...) -- [one-line note on what it contributed]
-**Audience notes:** [one line on any assumptions made about the audience's prior knowledge]
 ```
 
 ## Example Usage
