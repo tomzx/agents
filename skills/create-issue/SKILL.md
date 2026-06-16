@@ -74,7 +74,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
     ## Must
 
-    - [ ] <minimum criterion that defines "done" — testable, specific about what not how>
+    - [ ] <minimum criterion that defines "done" (testable, specific about what not how)>
 
     ## Should
 
@@ -87,8 +87,8 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     (omit this section entirely for public/open-source repositories)
 
     Breakdown:
-    - <work area>: <sub-estimate> — <one-line cost driver>
-    - <work area>: <sub-estimate> — <one-line cost driver>
+    - <work area>: <sub-estimate> (<one-line cost driver>)
+    - <work area>: <sub-estimate> (<one-line cost driver>)
 
     Assumptions: <what the estimate assumes is in place / out of scope>
 
