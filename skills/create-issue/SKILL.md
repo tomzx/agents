@@ -1,12 +1,12 @@
 ---
 name: create-issue
-description: Create a GitHub issue with background, acceptance criteria, and time budget sections.
+description: Create a GitHub issue with background, prioritized acceptance criteria (Must/Should), and a justified time budget.
 argument-hint: "[repository]"
 ---
 
 # Create GitHub Issue
 
-Creates a structured GitHub issue in the specified repository with background, acceptance criteria, and (for private repositories) a time budget so implementers have clear scope and exit criteria.
+Creates a structured GitHub issue in the specified repository with background, prioritized acceptance criteria (Must/Should), and (for private repositories) a justified time budget so implementers have clear scope and exit criteria.
 
 ## Prerequisites
 
@@ -23,6 +23,21 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ## Formatting
 
 - Do not use curly or typographic quotation marks in any text you write for the issue (title, body, sections, lists, or examples). Use straight ASCII double quotes (`"`) and straight apostrophes (`'`) only.
+
+## Acceptance Criteria
+
+- Split into **Must** (the exit gate, the minimum bar for "done") and **Should** (deferrable without blocking the issue).
+- Aim for the smallest set that proves the issue is resolved. If **Must** grows beyond roughly 5 items, the issue is probably too broad and should be split rather than padded with more criteria.
+- Each criterion must be testable (a concrete test can be written for it) and specific about *what*, not *how*.
+- Put the happy path in **Must**. Move edge cases, error handling, and polish to **Should** unless they are part of the core definition of done.
+- Omit the **Should** subsection entirely when there are no deferrable items. Do not invent nice-to-haves just to fill it.
+
+## Time Budget
+
+- Give a **total** plus a short **breakdown** so the estimate can be defended and challenged rather than asserted.
+- Each breakdown line pairs a work area with a sub-estimate and a one-line cost driver (e.g. "new schema migration", "reuses existing helper", "unfamiliar codepath").
+- List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, the estimate should be revisited.
+- Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
 
 ## Steps
 
@@ -57,13 +72,25 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
     # Acceptance Criteria
 
-    - [ ] <criterion 1>
-    - [ ] <criterion 2>
+    ## Must
+
+    - [ ] <minimum criterion that defines "done" — testable, specific about what not how>
+
+    ## Should
+
+    - [ ] <deferrable criterion, e.g. an edge case or polish item>
+    <!-- omit the Should subsection if there are no deferrable criteria -->
 
     # Time budget
 
-    <estimate>, after which the implementer should reassess or seek help.
+    <total estimate>, after which the implementer should reassess or seek help.
     (omit this section entirely for public/open-source repositories)
+
+    Breakdown:
+    - <work area>: <sub-estimate> — <one-line cost driver>
+    - <work area>: <sub-estimate> — <one-line cost driver>
+
+    Assumptions: <what the estimate assumes is in place / out of scope>
 
     ---
 
@@ -85,7 +112,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ```
 /create-issue owner/myrepo
 ```
-Creates an issue titled "Fix null pointer in user login" with background explaining the crash, acceptance criteria requiring a regression test and the fix, and a 2-hour time budget (if private). Labels: `not-urgent`, `not-important`.
+Creates an issue titled "Fix null pointer in user login" with background explaining the crash, Must-have acceptance criteria (the fix plus a regression test), and a justified time budget with a breakdown (if private). Labels: `not-urgent`, `not-important`.
 
 **Scenario 2: Feature request with custom labels**
 ```
@@ -97,7 +124,7 @@ User specifies "this is urgent and important." Apply `urgent` and `important` la
 ```
 /create-issue owner/api-service
 ```
-User provides a list of requirements. Convert each into a checklist item under Acceptance Criteria.
+User provides a list of requirements. Convert each into a checklist item, then split them into **Must** (gates "done") and **Should** (deferrable). If most items land in Must, flag to the user that the issue may be too broad and should be split.
 
 ## Useful Commands Reference
 
