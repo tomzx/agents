@@ -5,7 +5,7 @@ description: Review a technical specification for ambiguities, inconsistencies, 
 
 # Review Specifications
 
-Audits a technical specification and reports findings across six categories: ambiguities, inconsistencies, incoherences, missing information, implementability, and reversibility.
+Audits a technical specification and reports findings across seven categories: ambiguities, inconsistencies, incoherences, missing information, implementability, reversibility, and forward compatibility.
 
 ## Prerequisites
 
@@ -54,6 +54,12 @@ Audits a technical specification and reports findings across six categories: amb
 - Are destructive data model changes, breaking API changes, and irreversible transformations called out explicitly?
 - Do migrations and state transitions include a backward path or deprecation window?
 
+### Forward Compatibility
+- Can the data models and API contracts grow additively, or does the design lock in the current shape?
+- Do consumers tolerate unknown fields and unknown enum values rather than rejecting them?
+- Is a versioning strategy and compatibility policy (e.g., additive-only within a major version) stated?
+- Are extension points reserved for known likely future change, or are fixed-set assumptions baked in?
+
 ## Output Format
 
 ```markdown
@@ -78,6 +84,10 @@ Audits a technical specification and reports findings across six categories: amb
 <Findings or "No issues found.">
 
 ## Reversibility
+
+<Findings or "No issues found.">
+
+## Forward Compatibility
 
 <Findings or "No issues found.">
 ```

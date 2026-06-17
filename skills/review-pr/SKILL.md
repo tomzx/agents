@@ -118,6 +118,10 @@ Before diving into the code, verify:
 	* Consider that when functions/methods signature change, code may now be backward incompatible
 		* Discuss whether this is necessary
 		* Backward incompatible changes should be documented
+* Forward Compatibility
+	* Can contracts and persisted data accept future additions without breaking (unknown fields tolerated, unknown enum values handled gracefully, additive-only changes)?
+	* Is there a versioning strategy so future evolution does not force coordinated upgrades on all consumers?
+	* Are extension points (reserved fields, flags) provided for known likely future change, or does the design bake in fixed-set assumptions?
 * Reversibility
 	* Can we undo this cleanly if the change needs to be rolled back?
 	* Are any of the design decisions taken single way doors or reversible?

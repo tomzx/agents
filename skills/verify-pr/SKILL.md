@@ -115,6 +115,7 @@ Record a mapping of:
 - Are new dependencies justified and versions pinned?
 - Are lock files updated?
 - Is backward compatibility maintained or are breaking changes documented?
+- Are contracts and persisted data forward compatible (unknown fields tolerated, unknown enum values handled, additive-only changes, versioning strategy)?
 - Do any design decisions look like one-way doors that should be reconsidered?
 
 ### 6. Test quality

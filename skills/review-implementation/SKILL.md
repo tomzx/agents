@@ -5,7 +5,7 @@ description: Review a code implementation for correctness, quality, test coverag
 
 # Review Implementation
 
-Audits a code implementation and reports findings across seven categories: correctness, code quality, test coverage, security, performance, spec alignment, and reversibility.
+Audits a code implementation and reports findings across eight categories: correctness, code quality, test coverage, security, performance, spec alignment, reversibility, and forward compatibility.
 Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix.
 
 ## Prerequisites
@@ -66,6 +66,11 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Are there irreversible side effects (destructive migrations, permanent data loss, one-way API transformations)?
 - Are one-way-door design decisions called out explicitly?
 
+### Forward Compatibility
+- Can contracts and persisted data accept future additions without breaking (unknown fields tolerated, unknown enum values handled, additive-only changes)?
+- Is there a versioning strategy so future evolution does not force coordinated upgrades on all consumers?
+- Are extension points provided for known likely future change, or does the code bake in fixed-set assumptions?
+
 ## Output Format
 
 ```markdown
@@ -98,6 +103,10 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 <Findings or "No issues found.">
 
 ## Reversibility
+
+<Findings or "No issues found.">
+
+## Forward Compatibility
 
 <Findings or "No issues found.">
 ```

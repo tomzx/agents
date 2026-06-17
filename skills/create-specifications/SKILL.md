@@ -23,7 +23,19 @@ Produces a detailed technical specification from a requirements document, coveri
 5. Describe key sequences: user flows, system interactions, and async processes.
 6. Document technical decisions and their rationale.
 7. Identify risks, unknowns, and deferred decisions.
-8. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/specification.md`.
+8. Design data models, API contracts, and persisted state for evolution so future versions stay forward compatible (see Forward Compatibility below).
+9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/specification.md`.
+
+## Forward Compatibility
+
+A forward-compatible design keeps working as the system evolves without forcing coordinated upgrades on every consumer. When specifying data models and API contracts, ensure they can grow additively:
+
+- Tolerate unknown fields: consumers must ignore (or preserve) fields they do not recognize rather than rejecting the payload. Specify this explicitly for every schema.
+- Handle unknown enum values gracefully: closed enums that throw on unseen values lock out future additions. Prefer open enums, or require consumers to fail soft on unknown values.
+- Prefer additive changes: new optional fields, new endpoints, and new values are safe; removing, renaming, or repurposing existing ones is not. Call out which elements are part of the stable surface versus open to change.
+- Version the contract: include a schema/API version field where practical, and state the compatibility policy (e.g., additive-only within a major version).
+- Reserve extension points for known likely future change (reserved field numbers, extension columns, feature flags) rather than baking in assumptions that the current shape is final.
+- Avoid positional coupling and fixed-set assumptions that would make a future addition a breaking change.
 
 ## Output Format
 

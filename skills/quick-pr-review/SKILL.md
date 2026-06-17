@@ -136,9 +136,10 @@ When a check is borderline (e.g., a change is arguably a public interface additi
   - Removing public configuration keys or environment variables
   - Breaking changes to serialization formats (JSON fields removed, renamed)
   - Introducing new exported classes, types, protocols, or public method signatures
+  - New public interfaces that lock in a non-extensible shape and break forward compatibility: closed enums that reject unknown values, schemas that fail on unknown fields, serialization formats or API contracts with no versioning path, or fixed-set assumptions that make a future additive change breaking
   - ADRs, specs, or design docs that define or commit to new public API contracts (even if the diff is markdown, the intent is to establish an interface)
   - Dependency version bumps that are effectively major: for pre-release packages (version < 1.0.0), a minor version bump (e.g. 0.20→0.22) is equivalent to a major version change under semver and may introduce breaking API changes
-- If any significant public interface changes are found (removals, breaking changes, or substantial new API surface): **do not approve**
+- If any significant public interface changes are found (removals, breaking changes, substantial new API surface, or new contracts that are not forward compatible): **do not approve**
 
 #### Security-sensitive changes (approval gate)
 - Scan the diff for changes to:
@@ -358,7 +359,7 @@ Post/update the comment as normal, then leave the approval to the user.
 Speak the audible alert (see **Output**) so the user knows their manual review is needed.
 
 **Approve** when all of the following are true (and `MANUAL_APPROVAL_ORG != true`):
-- No significant public interface changes (removals, breaking changes, or substantial new API surface)
+- No significant public interface changes (removals, breaking changes, substantial new API surface, or new contracts that are not forward compatible)
 - No security-sensitive changes
 - No new dependencies added
 - No failing checks that represent significant risk (tests failing, or non-reversible destructive operations)
@@ -369,7 +370,7 @@ gh pr review $2 --repo {REPO} --approve
 
 **Do not approve** when:
 - The owner is a manual-approval organization (`Shopify` or `shop`)
-- Significant public interface changes are detected (removals, breaking changes, or substantial new API surface including specs/ADRs that define new public contracts)
+- Significant public interface changes are detected (removals, breaking changes, substantial new API surface, forward-incompatible new contracts, or specs/ADRs that define new public contracts)
 - Security-sensitive changes are detected (auth, crypto, secrets, security config, input validation)
 - New dependencies are introduced
 - Tests are failing

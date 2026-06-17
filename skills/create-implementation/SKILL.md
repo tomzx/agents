@@ -104,6 +104,7 @@ git rebase origin/main
 - Handle error cases at system boundaries; trust internal code and framework guarantees.
 - Do not introduce new dependencies unless specified in the plan.
 - Ensure new code is covered by the tests defined in the test plan.
+- Design public contracts and persisted data for evolution: tolerate unknown fields, handle unknown enum values gracefully, and prefer additive changes so future versions stay forward compatible.
 
 ## Checklist Before Marking Done
 
@@ -114,6 +115,7 @@ git rebase origin/main
 - [ ] Tests written and passing
 - [ ] No linting or type errors
 - [ ] No dead code or commented-out code introduced
+- [ ] Public contracts and persisted data tolerate future additions (forward compatible)
 - [ ] Existing tests still pass (no regressions)
 - [ ] Branch rebased on latest `main`
 - [ ] Task frontmatter updated: `status: done`, `completed_date: <today>`

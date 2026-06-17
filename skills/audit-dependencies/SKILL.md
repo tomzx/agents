@@ -32,6 +32,7 @@ Audits all direct and transitive dependencies for four risk categories: security
 | Unmaintained (no release > 2 years, archived, or deprecated) | 🟡 Soon | Find replacement |
 | License incompatibility | 🔴 Immediate (legal) | Remove or replace |
 | Duplicate functionality | 🟢 Routine | Consolidate |
+| Unsafe version ranges (no upper bound, or over-pinned) | 🟡 Soon | Tighten ranges, add constraints |
 
 ## Steps
 
@@ -73,6 +74,8 @@ cargo audit
 ```
 
 ### 3. Check for Outdated Packages
+
+**Forward compatibility check — version range strategy:** review how each dependency is constrained. Ranges with no upper bound can pull a breaking major on resolve; over-pinning to an exact patch blocks security upgrades and future evolution. Flag ranges that are unsafe for forward compatibility and recommend upper bounds or caret/tilde constraints that allow additive upgrades.
 
 **Python (uv):**
 ```

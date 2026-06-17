@@ -42,6 +42,7 @@ Audits an existing solutions survey and reports findings across five categories:
 - Are license compatibility and security posture considered for adopt candidates?
 - Are maintenance health and lock-in risk assessed?
 - For commercial options, is cost (and its scaling) accounted for?
+- For adopt candidates, is forward compatibility assessed (upgrade stability, semver discipline, version range safety, tolerance to additive changes in the dependency's API)?
 
 ### Recommendation Soundness
 - Does the recommended direction follow from the evaluation, or contradict it?

@@ -71,6 +71,7 @@ status: draft
 - **Integration effort:** <low / medium / high, with reasoning>
 - **Cost:** <licensing, hosting, or maintenance cost>
 - **Risks:** <license, maintenance health, security, lock-in>
+- **Forward compatibility:** <upgrade stability, semver discipline, version range safety, how future dependency upgrades or additive contract changes would affect us>
 
 ## Recommendation
 
