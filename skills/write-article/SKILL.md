@@ -13,6 +13,8 @@ Produces a high-quality article from a target audience definition and a set of r
 - **Relevant sources**: URLs, file paths, or inline content to draw from (research papers, blog posts, docs, notes, etc.)
 - **Topic** (optional): If not inferable from sources, state the article topic explicitly
 
+If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill.
+
 ## Steps
 
 1. Read all provided sources thoroughly.
@@ -84,8 +86,8 @@ audience_notes: >
 
 ## See also
 
-- [Title of related article](relative/path/to/article.md) -- [one-line note on the connection]
-- [Title of related article](relative/path/to/article.md) -- [one-line note on the connection]
+- [Title of related article](relative/path/to/article.md) - [one-line note on the connection]
+- [Title of related article](relative/path/to/article.md) - [one-line note on the connection]
 ```
 
 Adjust section count and naming to fit the content. Not every article needs all four sections.
@@ -134,8 +136,8 @@ audience_notes: >
 
 ## References
 
-- [Source Title](https://...) -- [one-line note on what it contributed]
-- [Source Title](https://...) -- [one-line note on what it contributed]
+- [Source Title](https://...) - [one-line note on what it contributed]
+- [Source Title](https://...) - [one-line note on what it contributed]
 ```
 
 ## Example Usage
