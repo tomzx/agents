@@ -26,8 +26,8 @@ Prompting the same workflow by hand every session is slow, inconsistent, and eas
 
 The library is organized into thematic groups covering the full software development lifecycle and surrounding knowledge work.
 
-- **SDLC pipeline**, an end-to-end orchestrator and its stages: `/sdlc`, `/sdlc-status`, plus `create-*`, `review-*`, `qualify-issue`, `reproduce-issue`, `fix-issue`, `publish-plan`, `create-tasks-decomposition`, and the `initialize-sdlc-directory` / `sync-sdlc` / `update-sdlc-templates` bootstrap skills.
-- **GitHub issues and PRs**: `create-issue`, `review-issue`, `triage-issues`, `prioritize-issues`, `label-issue`, `search-existing-issues`, `check-duplicates`, `configure-labels`, `handle-issue-comment`, `create-pr`, `create-pr-description`, `update-pr-description`, `review-pr`, `quick-pr-review`, `quick-pr-reviews`, `handle-pr-comment`, `handle-pr-ci`, `handle-pr-feedback`, `merge-pr`, `validate-pr`, `verify-pr`, `deploy-pr`, and `observe-production`.
+- **SDLC pipeline**, an end-to-end orchestrator and its stages: `/sdlc`, `/sdlc-status`, `/backpropagate-sdlc` (reverse traceability checker), plus `create-*`, `review-*`, `qualify-issue`, `reproduce-issue`, `fix-issue`, `publish-plan`, `create-tasks-decomposition`, and the `initialize-sdlc-directory` / `sync-sdlc` / `update-sdlc-templates` bootstrap skills.
+- **GitHub issues and PRs**: `create-issue`, `review-issue`, `triage-issues`, `triage-issue` (single-issue core, for event-driven triage), `prioritize-issues`, `label-issue`, `search-existing-issues`, `check-duplicates`, `configure-labels`, `handle-issue-comment`, `create-pr`, `create-pr-description`, `update-pr-description`, `review-pr`, `quick-pr-review`, `quick-pr-reviews`, `handle-pr-comment`, `handle-pr-ci`, `handle-pr-feedback`, `merge-pr`, `validate-pr`, `verify-pr`, `deploy-pr`, and `observe-production`.
 - **Code quality audits**: `audit-dependencies`, `audit-observability`, `audit-sdlc`, `audit-security`, `analyze-git-churn`, `find-code-duplication`, `find-complexity-hotspots`, `find-coverage-gaps`, `find-dead-code`, `find-documentation-gaps`, `find-type-gaps`.
 - **Daily, weekly, and monthly cadence**: `start-day`/`start-week`/`start-month`, `end-day`/`end-week`/`end-month`, `end-of-{day,week,month}-{review,summary}`, `what-to-demo`, `sprint-retro`, `summarize-meeting`.
 - **Slack knowledge bases**: `slack-kb-channel`, `slack-kb-individual`, `kb-organized-memory`, `check-opinion-alignment`, `sync-opinions`.
@@ -36,7 +36,7 @@ The library is organized into thematic groups covering the full software develop
 - **Developer profiles**: `describe-colleague`, `developer-trust-profile`, `initialize-developer-trust-profile`, `user-code-familiarity`.
 - **Research**: `arxiv-article`, `arxiv-catchup`, `create-existing-solutions`, `review-existing-solutions`, `create-feasibility`, `review-feasibility`.
 - **Repository onboarding and tooling**: `onboard-repository`, `compare-skills`, `review-skills`, `directory-to-spec`, `sync-repository`, `gh-cached`, `ghx`, `github-post-attribution`, `pr-review-send`, `worktrunk`.
-- **Conventions**: `AGENTS.md` (symlinked as `CLAUDE.md`) codifies house style for Python, prose, and commit hygiene, and is picked up automatically by opencode.
+- **Conventions**: `AGENTS.md` (symlinked as `CLAUDE.md`) codifies house style for Python, prose, and commit hygiene, and is picked up automatically by opencode. Per-repository overrides live in `repositories/{owner}/{repository}/AGENTS.md` and are applied automatically without touching the target repository.
 
 ## Out of Scope
 
