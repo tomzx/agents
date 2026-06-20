@@ -272,6 +272,9 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
 | Not validated | N |
 | Contradicted | N |
 
+<details>
+<summary>Details</summary>
+
 ### Claims
 
 #### 1. "<claim text>"
@@ -286,6 +289,8 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
 ### CLI Demonstrations
 
 <embedded GIFs or links>
+
+</details>
 
 ---
 

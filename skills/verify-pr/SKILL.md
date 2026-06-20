@@ -150,6 +150,9 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
 | Security | Clean / Issues found |
 | Documentation | Up to date / Needs updates |
 
+<details>
+<summary>Details</summary>
+
 ### Claim Traceability
 
 | Claim | Location | Status |
@@ -170,6 +173,8 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
 ### Notes
 
 <Any additional observations>
+
+</details>
 
 ---
 
