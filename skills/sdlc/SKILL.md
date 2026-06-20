@@ -197,13 +197,15 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 
 ```
 .sdlc/
+├── .gitignore                     # Excludes state.yml and features/*/progress.md (local-only)
 ├── context/
 │   ├── project-overview.md        # Project goals, scope, key stakeholders
 │   ├── architecture.md            # Architecture decisions and patterns
 │   └── conventions.md             # Naming, structure, coding standards
+├── state.yml                      # Orchestrator run state (local-only, gitignored)
 ├── features/
 │   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
-│       ├── progress.md            # Feature-level progress tracking and session log
+│       ├── progress.md            # Feature-level progress + session log (local-only, gitignored)
 │       ├── needs-assessment.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
@@ -360,6 +362,22 @@ feature: null             # FEAT-NNNN-slug if one has been created, null otherwi
 - **When a FEAT-NNNN directory is created**: populate `feature`.
 - **When `github_ref` changes** (issue created, PR opened): update `github_ref`.
 - **On pipeline completion**: set `current_phase` to `complete`.
+
+### Local-only files (never commit)
+
+`state.yml` and each feature's `progress.md` are local workflow state, regenerated per machine and per run.
+They must never be committed or included in PRs.
+`/initialize-sdlc-directory` creates a `.sdlc/.gitignore` that excludes them, and `/sync-sdlc` keeps it up to date:
+
+```gitignore
+# Local-only workflow state — do not commit
+# Orchestrator run state
+state.yml
+# Per-feature progress tracking and session logs
+features/*/progress.md
+```
+
+If you commit/push manually, never `git add` these two paths.
 
 ## Steps
 
