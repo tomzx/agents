@@ -1,4 +1,7 @@
-# Skill: review-needs-assessment
+---
+name: review-needs-assessment
+description: Review a needs assessment for evidence rigor, stakeholder coverage, alternative-path completeness, and verdict soundness.
+---
 
 # Review Needs Assessment
 

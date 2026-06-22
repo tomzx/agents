@@ -1,4 +1,8 @@
-# Skill: assess-needs
+---
+name: assess-needs
+description: Evaluate whether a proposed feature addresses a genuine need before investing in feasibility or requirements, examining the problem, stakeholders, alternatives, and cost of inaction.
+argument-hint: "[issue-url or feature-description]"
+---
 
 # Assess Needs
 
