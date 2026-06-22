@@ -15,7 +15,6 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
 - Information about the testing stack (if available)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

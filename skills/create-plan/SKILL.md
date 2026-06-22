@@ -14,7 +14,6 @@ Produces a structured implementation plan from a specification or requirements d
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include analytics instrumentation as deliverables in the plan
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include logging, metrics, tracing, and alerting as deliverables in the plan
 - Team size and velocity context (if available)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

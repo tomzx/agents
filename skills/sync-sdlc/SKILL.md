@@ -20,6 +20,8 @@ Works for both initial bootstrapping and periodic sync.
 
 1. Determine the project root: use `$1` if provided, otherwise use the current working directory.
 
+   **SDLC_DIR resolution:** Apply `sdlc/references/shared.md` (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror writes when set). `sync-meta.yml` is written to the repo's `.sdlc/` only.
+
 2. **Resolve the dot-claude version.**
    The canonical templates and skill definitions live in a git repository.
    Resolve the current version by running:
@@ -43,10 +45,10 @@ Works for both initial bootstrapping and periodic sync.
    If `.sdlc/` already exists, run `/update-sdlc-templates` to pull any upstream template improvements and merge them with user edits.
    In both cases, ensure the local-only workflow state files are gitignored: read `.sdlc/.gitignore` (create it if absent) and add any missing entries for `state.yml` and `features/*/progress.md`. These are regenerated per machine and per run and must never be committed or included in PRs.
 
-5. Read existing `.sdlc/` content to establish the current state:
-   - List all directories under `.sdlc/features/` to identify tracked features.
-   - Read each existing feature's `requirements.md` and `specification.md` if present.
-   - Read `.sdlc/context/project-overview.md`, `architecture.md`, `conventions.md`, and `vocabulary.md` if they exist.
+5. Read existing `.sdlc/` content to establish the current state. Resolve each path via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); treat the union of both locations as the current state, with the repo copy winning on conflict:
+   - List all directories under `.sdlc/features/` (and the mirror's `features/` if set) to identify tracked features.
+   - Read each existing feature's `requirements.md` and `specification.md` if present (from whichever location holds them).
+   - Read `.sdlc/context/project-overview.md`, `architecture.md`, `conventions.md`, and `vocabulary.md` if they exist (from whichever location holds them).
    - Note which context files and feature artifacts are present vs. missing.
 
 6. Analyze the codebase to gather the information needed to fill in context files and identify features.

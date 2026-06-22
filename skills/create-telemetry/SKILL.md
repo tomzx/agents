@@ -14,7 +14,6 @@ Without this step, features ship without instrumentation, making it impossible t
 
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing acceptance criteria)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

@@ -15,7 +15,6 @@ Without this step, features ship blind: outages go undetected, root causes take 
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): align observability with business metrics already defined
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing NFRs like latency and availability targets)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

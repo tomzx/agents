@@ -31,7 +31,7 @@ A formatted status report displayed to the user, containing:
 
 ## Steps
 
-1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root.
+1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root. Apply `sdlc/references/shared.md` for path resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); `state.yml` and `progress.md` are never read from the mirror.
 2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see at a glance what the pipeline was last doing.
 3. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
 4. If `$1` specifies a feature ID (e.g., `FEAT-0001`), filter to that feature only.

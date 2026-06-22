@@ -12,7 +12,6 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

@@ -16,7 +16,6 @@ This is the per-issue core of `triage-issues`. Use it directly for event-driven 
 - `gh` CLI authenticated with write access to the target repository
 - An issue number (`$1`) to triage
 - Repository in `owner/repo` format (`$2`), or omit to use the repository in the current working directory
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 - Follow `skills/github-post-attribution/SKILL.md` to resolve commit SHA and append attribution footers to every comment posted to GitHub
 
 ## Workflow

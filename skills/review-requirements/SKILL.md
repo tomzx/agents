@@ -10,7 +10,6 @@ Audits a requirements document and reports findings across five categories: clar
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, or a requirements document provided in context or as a file path
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

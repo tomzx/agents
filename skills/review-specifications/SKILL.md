@@ -11,7 +11,6 @@ Audits a technical specification and reports findings across seven categories: a
 
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md`, or a specification document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

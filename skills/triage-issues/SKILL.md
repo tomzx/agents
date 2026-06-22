@@ -16,7 +16,6 @@ Use this skill for batch triage of a backlog. For event-driven triage of a singl
 
 - `gh` CLI authenticated with write access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to use the repository in the current working directory
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 - Attribution footers on every comment posted to GitHub are handled inside `triage-issue` (per `skills/github-post-attribution/SKILL.md`)
 
 ## Workflow

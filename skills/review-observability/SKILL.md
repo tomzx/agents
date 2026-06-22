@@ -13,7 +13,6 @@ Audits an observability plan for completeness, actionability, consistency, and a
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (for cross-referencing)
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, to avoid overlap with business metrics)
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing NFRs)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

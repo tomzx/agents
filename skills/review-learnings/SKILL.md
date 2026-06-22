@@ -10,7 +10,6 @@ Audits a learnings document and reports findings across four categories: actiona
 ## Prerequisites
 
 - `.sdlc/knowledge/learnings/NNNN-<slug>.md`, or a learnings document provided in context or as a file path
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

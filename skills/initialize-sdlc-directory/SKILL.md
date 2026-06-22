@@ -18,7 +18,9 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 1. Determine the project root: use `$1` if provided, otherwise use the current working directory.
 
-2. For each directory below, create it if it does not already exist:
+2. **Resolve the SDLC write location** per `sdlc/references/shared.md`: default `<project-root>/.sdlc/`; if it cannot be created and `SDLC_DIR` is set, use `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror created files to the external store when set. Record which location was used in the report.
+
+3. For each directory below, create it (under the resolved write location) if it does not already exist:
    ```
    .sdlc/
    .sdlc/context/
@@ -32,7 +34,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    .sdlc/knowledge/learnings/
    ```
 
-3. Create `.sdlc/.gitignore` — **only if it does not already exist** — with the following content to keep local-only workflow state out of version control:
+4. Create `.sdlc/.gitignore` — **only if it does not already exist** — with the following content to keep local-only workflow state out of version control:
    ```gitignore
    # Local-only workflow state — do not commit
    # Orchestrator run state
@@ -40,9 +42,9 @@ Already-existing files are never overwritten — this is safe to run on a projec
    # Per-feature progress tracking and session logs
    features/*/progress.md
    ```
-   `state.yml` (the orchestrator run state) and each feature's `progress.md` (progress tracking + session log) are regenerated per machine and per run, so they must never be committed or included in PRs. The `features/*/progress.md` pattern ignores only the per-feature files, not the template at `templates/features/progress.md`.
+   `state.yml` (the orchestrator run state) and each feature's `progress.md` (progress tracking + session log) are regenerated per machine and per run, so they must never be committed or included in PRs. The `features/*/progress.md` pattern ignores only the per-feature files, not the template at `templates/features/progress.md`. Only the repo's `.sdlc/.gitignore` is meaningful; do not create a `.gitignore` under the `SDLC_DIR` mirror.
 
-4. For each canonical template file (read from `../sdlc/templates/` relative to this skill), copy it to the corresponding path under `.sdlc/templates/` — **only if the destination file does not already exist**:
+5. For each canonical template file (read from `../sdlc/templates/` relative to this skill), copy it to the corresponding path under `.sdlc/templates/` — **only if the destination file does not already exist**:
 
    | Canonical source | Destination |
    |---|---|
@@ -56,13 +58,13 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/knowledge/decision.md` | `.sdlc/templates/knowledge/decision.md` |
    | `../sdlc/templates/knowledge/learning.md` | `.sdlc/templates/knowledge/learning.md` |
 
-5. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
+6. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
    - `project-overview.md`
    - `architecture.md`
    - `conventions.md`
    - `vocabulary.md`
 
-6. Report what was created and what was skipped (already existed).
+7. Report what was created and what was skipped (already existed). When `SDLC_DIR` is set, the report notes whether each path was written to the repo, the mirror, or both.
 
 ## Output Format
 

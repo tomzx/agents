@@ -16,7 +16,6 @@ Produces working code that passes tests and meets all acceptance criteria.
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): implement logging, metrics, tracing, and health checks alongside feature code
 - Access to the codebase for reading and editing
 - Test suite available (or created alongside the implementation)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

@@ -11,7 +11,6 @@ Produces a `README.md` for a project using a fixed template with centered header
 ## Prerequisites
 
 - A project directory with source code, a license file, and a package manifest (e.g., `go.mod`, `package.json`, `Cargo.toml`, `pyproject.toml`)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 - If `$1` is provided, use it as the project directory; otherwise use the current working directory
 
 ## Steps

@@ -12,7 +12,6 @@ Produces a detailed technical specification from a requirements document, coveri
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

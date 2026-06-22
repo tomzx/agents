@@ -11,7 +11,6 @@ Audits a decision record and reports findings across four categories: clarity, c
 ## Prerequisites
 
 - `.sdlc/knowledge/decisions/NNNN-<slug>.md`, or a decision document provided in context or as a file path
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

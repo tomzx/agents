@@ -11,7 +11,6 @@ Audits an existing solutions survey and reports findings across five categories:
 
 - `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md`, or a survey document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

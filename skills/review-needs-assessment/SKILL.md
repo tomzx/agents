@@ -10,7 +10,6 @@ Audits a needs assessment and reports findings across four categories: evidence 
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md`, or a needs assessment document provided in context or as a file path
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

@@ -11,7 +11,6 @@ Audits documentation and reports findings across five categories: completeness, 
 
 - Documentation provided in context or as a file path to read
 - The feature or component being documented (for accuracy checking, if accessible)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

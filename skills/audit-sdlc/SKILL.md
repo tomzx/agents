@@ -80,7 +80,7 @@ The `$1` argument controls which skills run. Defaults to `diagnose` if not speci
    b. Capture its findings in a structured format.
 4. Merge all findings into a single unified report.
 5. Rank findings by priority using the Severity Classification below.
-6. Write the unified report to `.sdlc/audit-report.md`.
+6. Write the unified report to `.sdlc/audit-report.md` (repo only; generated reports are never mirrored).
 7. Present the summary to the user.
 8. Ask the user whether to create issues for the highest-priority findings.
 

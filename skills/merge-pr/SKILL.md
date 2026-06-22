@@ -13,7 +13,6 @@ Verifies that a pull request has the required approvals and passing CI checks, t
 - `gh` CLI authenticated with write access to the target repository
 - PR number (`$1`) identifying an open pull request
 - All review feedback addressed (run `/handle-pr-feedback` first if comments are unresolved)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

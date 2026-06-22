@@ -19,9 +19,11 @@ Templates with user customizations are merged intelligently, preserving the user
 
 1. Determine the project root: use `$1` if provided, otherwise use the current working directory.
 
+   **SDLC_DIR resolution:** Apply `sdlc/references/shared.md` for `.sdlc/templates/` paths (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/templates/`; mirror writes when set).
+
 2. For each canonical template, read both versions:
    - **Canonical:** `../templates/<path>` (the upstream default)
-   - **Installed:** `.sdlc/templates/<path>` (the project's copy)
+   - **Installed:** `.sdlc/templates/<path>` (the project's copy, resolved via SDLC_DIR)
 
 3. Classify each template into one of three states:
 

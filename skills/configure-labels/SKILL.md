@@ -14,7 +14,6 @@ Idempotent: safe to re-run on a repository that already has some or all labels c
 
 - `gh` CLI authenticated with write access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to use the repository in the current working directory
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Workflow
 

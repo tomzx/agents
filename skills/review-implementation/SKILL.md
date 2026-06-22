@@ -14,7 +14,6 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Specification or acceptance criteria (optional, improves alignment check)
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): verify analytics events are implemented correctly
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): verify logging, metrics, tracing, and health checks are implemented correctly
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Steps
 

@@ -194,6 +194,7 @@ If the work turns out to be more complex than expected, escalate to the full pip
 ## Directory Structure
 
 All SDLC artifacts live under `.sdlc/` in the repository root.
+When the `SDLC_DIR` environment variable is set, the same tree can also live (or be mirrored) outside the repo under `$SDLC_DIR/{owner}/{repository}/.sdlc/`; see Artifact Location Resolution below and `references/shared.md` for the full rules.
 
 ```
 .sdlc/
@@ -246,6 +247,12 @@ All SDLC artifacts live under `.sdlc/` in the repository root.
 ```
 
 **Feature directory naming:** `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (e.g., `FEAT-0001-notification-system`, `FEAT-0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
+
+## Artifact Location Resolution (SDLC_DIR)
+
+The complete resolution rules — `{owner}/{repository}` derivation, the repo-first read fallback, write mirroring, and what is never mirrored — live in `references/shared.md`, the single source shared across all SDLC skills.
+Apply them to every `.sdlc/` read and write in this pipeline.
+Summary: reads check the repo's `.sdlc/` first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; writes go to the repo and mirror to `SDLC_DIR` when set; `state.yml` and `features/*/progress.md` are never mirrored.
 
 ## ID Formats and Cross-References
 
@@ -350,6 +357,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 
 The orchestrator maintains `.sdlc/state.yml` in the repository root to track the current run.
 Read it at the start of every invocation to resume context; write it after every phase transition.
+It is local-only workflow state and is never read from or mirrored to `SDLC_DIR` (see `references/shared.md`).
 
 ```yaml
 current_phase: null       # the next phase to run (entry point name)
@@ -389,7 +397,7 @@ If you commit/push manually, never `git add` these two paths.
 6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
-9. Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill. Apply any artifact style rules found in `conventions.md` (e.g. documentation formatting, sentence-per-line rules) to every document produced during the pipeline.
+9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
 10. Execute each sub-skill in order from the entry point to the end of the pipeline.
 11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.

@@ -12,7 +12,6 @@ Each task gets its own file under `.sdlc/features/FEAT-NNNN-<slug>/tasks/` with 
 ## Prerequisites
 
 - `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there to the produced document
 
 ## Task Sizing Guidelines
 
