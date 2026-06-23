@@ -34,7 +34,9 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ## Time Budget
 
 - Give a **total** plus a short **breakdown** so the estimate can be defended and challenged rather than asserted.
-- Each breakdown line pairs a work area with a sub-estimate and a one-line cost driver (e.g. "new schema migration", "reuses existing helper", "unfamiliar codepath").
+- Weight the estimate toward **planning and evaluation**, not implementation. With AI-assisted development, writing the code is nearly free and instant; the real cost is understanding the problem, designing the solution, evaluating alternatives, and validating the result. Treat implementation sub-estimates as negligible unless the work is genuinely large (e.g. multi-day migrations, hardware-bound work, or mass repetitive changes).
+- The breakdown should foreground the activities that actually constrain delivery: research, design, feasibility evaluation, review, and validation/testing.
+- Each breakdown line pairs a work area with a sub-estimate and a one-line cost driver (e.g. "unfamiliar codepath", "needs a design decision", "requires cross-team input").
 - List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, the estimate should be revisited.
 - Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
 
@@ -88,6 +90,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     Breakdown:
     - <work area>: <sub-estimate> (<one-line cost driver>)
     - <work area>: <sub-estimate> (<one-line cost driver>)
+    Weight the breakdown toward planning and evaluation (research, design, review, validation) rather than implementation, which is now nearly free with AI assistance.
 
     Assumptions: <what the estimate assumes is in place / out of scope>
 
