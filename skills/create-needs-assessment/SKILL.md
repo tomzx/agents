@@ -1,5 +1,5 @@
 ---
-name: assess-needs
+name: create-needs-assessment
 description: Evaluate whether a proposed feature addresses a genuine need before investing in feasibility or requirements, examining the problem, stakeholders, alternatives, and cost of inaction.
 argument-hint: "[issue-url or feature-description]"
 ---

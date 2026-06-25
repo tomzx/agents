@@ -31,7 +31,7 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
           │
           ▼
   Stage 2 — Needs Validation
-  /assess-needs           Evaluate whether the feature addresses a genuine need
+  /create-needs-assessment Evaluate whether the feature addresses a genuine need
   /review-needs-assessment Audit evidence rigor, stakeholder coverage, alternative paths, verdict soundness
                           (gate: stop if not needed, update issue with findings)
            │
@@ -507,7 +507,7 @@ Each phase consumes output from the previous phase:
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| assess-needs | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (`status: draft`) |
+| create-needs-assessment | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (`status: draft`) |
 | review-needs-assessment | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` | Findings; sets `status: approved` or `rejected` |
 | create-requirements | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (approved) | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
