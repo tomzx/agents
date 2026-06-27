@@ -13,6 +13,7 @@ Works for both initial bootstrapping and periodic sync.
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - Read access to the project root and its subdirectories
 - Write access to create or update `.sdlc/`
 

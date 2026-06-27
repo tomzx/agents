@@ -12,6 +12,7 @@ Runs audit skills that scan code, dependencies, and infrastructure. Does not mod
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - Working directory is the root of the repository
 - `.sdlc/` directory exists (run `/sync-sdlc` first if not)
 - Read any files present under `.sdlc/context/` for project-level context

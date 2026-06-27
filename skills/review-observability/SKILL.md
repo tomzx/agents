@@ -9,6 +9,7 @@ Audits an observability plan for completeness, actionability, consistency, and a
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md`, or an observability document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (for cross-referencing)
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, to avoid overlap with business metrics)

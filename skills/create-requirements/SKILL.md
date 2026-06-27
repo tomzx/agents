@@ -10,6 +10,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
 

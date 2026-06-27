@@ -9,6 +9,7 @@ Audits a technical specification and reports findings across seven categories: a
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md`, or a specification document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
 

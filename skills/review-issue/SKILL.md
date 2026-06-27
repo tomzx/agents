@@ -12,6 +12,7 @@ If findings exist, either proposes an edited issue body in the conversation or p
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with access to the repository
 - Issue URL or number (`$1`)
 

@@ -9,6 +9,7 @@ Audits a telemetry plan for completeness, actionability, measurability, and cons
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md`, or a telemetry document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (for cross-referencing)
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing acceptance criteria)

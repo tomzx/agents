@@ -11,6 +11,7 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - A concrete decision that was made (or needs to be made) during implementation
 - Enough context to explain the forces that shaped the decision
 

@@ -12,6 +12,7 @@ Idempotent: safe to re-run on a repository that already has some or all labels c
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to use the repository in the current working directory
 

@@ -11,6 +11,7 @@ Each task gets its own file under `.sdlc/features/FEAT-NNNN-<slug>/tasks/` with 
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
 
 ## Task Sizing Guidelines

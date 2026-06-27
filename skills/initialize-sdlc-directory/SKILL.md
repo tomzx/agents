@@ -11,6 +11,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - Write access to the project root
 - The canonical templates at `../sdlc/templates/` relative to this skill file (i.e. `skills/sdlc/templates/`)
 

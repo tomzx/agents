@@ -10,6 +10,7 @@ Reviews and responds to all developer comments on a GitHub pull request, impleme
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository
 - PR number identifying an open pull request with at least one review comment
   - If `$1` is provided, use it directly

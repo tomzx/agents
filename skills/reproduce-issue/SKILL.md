@@ -17,6 +17,7 @@ call `create-implementation` directly if the issue is already reproduced.
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository
 - A GitHub issue number describing a bug
 - Git worktree support (`git worktree` available)

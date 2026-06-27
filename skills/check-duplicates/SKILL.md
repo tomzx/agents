@@ -15,6 +15,7 @@ It does not modify the issue or create any branches.
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read access to the target repository
 - A GitHub issue number to check
 

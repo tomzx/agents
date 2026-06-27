@@ -11,6 +11,7 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 
 ## Steps

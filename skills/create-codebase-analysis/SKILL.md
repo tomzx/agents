@@ -15,6 +15,7 @@ This skill goes deeper into the internal architecture you are about to modify: i
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional): carry forward any internal reuse candidates it already identified so they are not re-discovered
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`) for project-level context

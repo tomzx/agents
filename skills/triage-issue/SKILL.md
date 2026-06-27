@@ -13,6 +13,7 @@ This is the per-issue core of `triage-issues`. Use it directly for event-driven 
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository
 - An issue number (`$1`) to triage
 - Repository in `owner/repo` format (`$2`), or omit to use the repository in the current working directory

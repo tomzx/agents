@@ -9,6 +9,7 @@ Audits a test suite or test plan and reports findings across five categories: co
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/tests.md`, or a test suite/test plan provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
 

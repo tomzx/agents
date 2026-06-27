@@ -13,6 +13,7 @@ Conducts a comprehensive code review of a GitHub pull request, covering pre-revi
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read access to the target repository
 - `ISSUES_DIR` environment variable set (resolved via `scripts/get-env ISSUES_DIR`)
 - PR number (`$1`) identifying an open pull request

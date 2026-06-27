@@ -10,6 +10,7 @@ Audits a decision record and reports findings across four categories: clarity, c
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/knowledge/decisions/NNNN-<slug>.md`, or a decision document provided in context or as a file path
 
 ## Steps

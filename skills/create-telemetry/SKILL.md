@@ -12,6 +12,7 @@ Without this step, features ship without instrumentation, making it impossible t
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing acceptance criteria)
 

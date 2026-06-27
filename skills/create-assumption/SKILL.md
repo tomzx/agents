@@ -12,6 +12,7 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - An assumption that was made (implicitly or explicitly) during design or implementation
 - Enough context to assess its basis and risk
 

@@ -12,6 +12,7 @@ Produces documentation for a feature or component organized according to the [Di
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - Feature or component description provided in context or as `$1`
 - Access to the codebase, specification, or implementation (if available)
 

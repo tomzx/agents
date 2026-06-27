@@ -9,6 +9,7 @@ Audits an implementation plan and reports findings across six categories: comple
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/plan.md`, or an implementation plan provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (optional, improves coverage analysis)
 

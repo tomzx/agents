@@ -10,6 +10,7 @@ The review verifies that the analysis describes the real code (not assumptions) 
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md`, or an analysis document provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
 

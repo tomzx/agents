@@ -10,6 +10,7 @@ Fetches failing CI check logs for a pull request, diagnoses the root cause of ea
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read/write access to the target repository
 - PR number (`$1`) identifying an open pull request with at least one failing CI check
 

@@ -12,6 +12,7 @@ Templates with user customizations are merged intelligently, preserving the user
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `.sdlc/templates/` directory exists (run `/initialize-sdlc-directory` first if not)
 - The canonical templates at `../sdlc/templates/` relative to this skill file
 

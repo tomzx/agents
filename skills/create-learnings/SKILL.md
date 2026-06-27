@@ -11,6 +11,7 @@ Produces a structured document covering what went well, what didn't, process imp
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - A completed feature, sprint, or project to reflect on
 - Context about what was built, how long it took, and any notable events
 - If `.sdlc/features/FEAT-NNNN-<slug>/questions.md` exists for the feature, review it to surface unresolved questions.

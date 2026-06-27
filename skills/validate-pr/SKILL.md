@@ -13,6 +13,7 @@ This is runtime validation: "did you build the right thing?" Static code inspect
 
 ## Prerequisites
 
+- Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
 - `asciinema` installed (for CLI changes)
