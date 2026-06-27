@@ -1,0 +1,25 @@
+name: Setup Labels
+
+on:
+  workflow_dispatch:
+    inputs:
+      framework-repository:
+        description: "Repository providing this engine (owner/repo). Leave empty for default."
+        required: false
+        type: string
+      framework-ref:
+        description: "Ref of the engine repository to check out. Leave empty for default (main)."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  setup:
+    uses: TomzxCode/llm-augmented-workflows/.github/workflows/setup-labels.yml@main
+    with:
+      framework-repository: ${{ inputs.framework-repository }}
+      framework-ref: ${{ inputs.framework-ref }}
+    secrets: inherit

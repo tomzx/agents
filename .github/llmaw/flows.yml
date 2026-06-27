@@ -1,0 +1,475 @@
+# LLM-Augmented Workflows configuration.
+#
+# End-to-end automation of the full SDLC pipeline for both feature requests and
+# bug fixes, modelled on the `sdlc` skill (skills/sdlc/SKILL.md).
+#
+# Design
+# ------
+# The engine is stateless; all state lives in GitHub. The pipeline is encoded as
+# a label state-machine: each phase is split into a create step (drafts the
+# artifact) and a review step (gates it). All flow labels are namespaced with
+# the `llmaw:` prefix so they never collide with human labels.
+#
+#   issue opened -> triage (verdict: feature | bug | needs-info | other)
+#
+#   FEATURE (each phase: create drafts -> review gates):
+#     llmaw:feature-request
+#       [create-needs-assessment]  -> llmaw:review-needs-assessment [review-needs-assessment]
+#       -> llmaw:needs-approved
+#       [create-requirements]      -> llmaw:review-requirements [review-requirements]
+#       -> llmaw:requirements-approved
+#       ... existing-solutions, codebase-analysis, feasibility ...
+#       -> llmaw:feasible
+#       ... specification, telemetry, observability ...
+#       -> llmaw:observability-approved
+#       [create-plan] (plan PR) --merge--> llmaw:plan-approved
+#       [create-tasks-decomposition] -> llmaw:review-tasks-decomposition [review-tasks-decomposition]
+#       -> llmaw:tasks-approved
+#       [create-tests]             -> llmaw:review-tests [review-tests]
+#       -> llmaw:tests-approved
+#       [create-implementation] (impl PR) --merge--> llmaw:shipped + llmaw:finished
+#       [create-learnings]
+#
+#   BUGFIX:  llmaw:bug -> check-duplicates -> reproduce -> [fix PR]
+#            --merge--> llmaw:bug-fixed + llmaw:finished -> learnings
+#            (no review-* pairs; the fix PR is gated by review-pr.)
+#
+# Rules
+#  - One agent step per rule. Phases chain by emitting a label that the next
+#    rule matches: a create rule emits a `review-*` label, the review rule emits
+#    the next phase's `-approved` label.
+#  - `*-approved` (and `bug-*`) labels are durable milestones: they accumulate
+#    as a completion record and are NEVER removed. Only the transient `review-*`
+#    "awaiting review" labels are removed — each review rule consumes its own
+#    trigger on entry (so they can't leak). Deterministic `labels` steps cost no
+#    tokens.
+#  - Routing is outcome-driven: each skill writes a YAML verdict to
+#    $OUTCOME_YAML (approved | rejected | changes-requested | needs-info | ...),
+#    and an `on_outcome` step after the skill maps it to the next label / close /
+#    comment. Skills never reference llmaw: labels, so the same skill works in
+#    interactive `/sdlc` and here. The `_` case is the fallback when no verdict
+#    matches (surfaces the issue for human review). Skill names assume the
+#    agents repository (AGENTS_REPOSITORY) exposes the SDLC skill set.
+#  - Review verdicts: approved advances, changes-requested pauses (findings are
+#    posted by the review skill; re-run create to revise), rejected closes.
+#  - The plan PR is the publish-plan human sign-off gate: merging it labels the
+#    linked issue `llmaw:plan-approved`. Implementation/fix PRs use `closes #N`,
+#    so GitHub auto-closes the linked issue on merge.
+#
+# Triggered events (declared in the wrapper workflow):
+#   issues: opened | labeled | reopened | closed
+#   pull_request: closed | labeled | ready_for_review
+#   issue_comment: created
+#   pull_request_review_comment: created
+#
+# Any phase can be (re)started by manually adding its label, or force-run from
+# the Actions tab via the dispatcher's `rule-id` input.
+
+defaults:
+  model: opencode/deepseek-v4-flash-free   # opencode model id (provider/model)
+  agents_repository: tomzx/agents          # repo providing skills, cloned at runtime
+  timeout_minutes: 30
+
+# Labels auto-created/updated by the setup-labels workflow.
+labels:
+  # --- entry / classification ---
+  - name: llmaw:feature-request
+    description: Triaged as a feature request; enters the feature pipeline
+    color: 1D76DB
+  - name: llmaw:bug
+    description: Triaged as a bug; enters the bug-fix pipeline
+    color: D73A4A
+
+  # --- feature: transient "artifact drafted, awaiting review" (consumed by the review rule) ---
+  - name: llmaw:review-needs-assessment
+    description: Needs assessment drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-requirements
+    description: Requirements drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-existing-solutions
+    description: Existing-solutions survey drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-codebase-analysis
+    description: Codebase analysis drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-feasibility
+    description: Feasibility assessment drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-specifications
+    description: Specification drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-telemetry
+    description: Telemetry plan drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-observability
+    description: Observability plan drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-tasks-decomposition
+    description: Task decomposition drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-tests
+    description: Test plan drafted; awaiting review
+    color: FBCA04
+
+  # --- feature: durable milestones (review-approved; accumulate, never removed) ---
+  - name: llmaw:needs-approved
+    description: Needs assessment approved; ready for requirements
+    color: 0E8A16
+  - name: llmaw:requirements-approved
+    description: Requirements approved; ready for existing-solutions survey
+    color: 0E8A16
+  - name: llmaw:solutions-approved
+    description: Existing-solutions survey approved; ready for codebase analysis
+    color: 0E8A16
+  - name: llmaw:analysis-approved
+    description: Codebase analysis approved; ready for feasibility
+    color: 0E8A16
+  - name: llmaw:feasible
+    description: Feasibility approved; ready for specification
+    color: 0E8A16
+  - name: llmaw:spec-approved
+    description: Specification approved; ready for telemetry
+    color: 5319E7
+  - name: llmaw:telemetry-approved
+    description: Telemetry plan approved; ready for observability
+    color: 5319E7
+  - name: llmaw:observability-approved
+    description: Observability plan approved; ready for planning
+    color: 5319E7
+  - name: llmaw:plan-approved
+    description: Plan PR merged (author sign-off); ready for task decomposition
+    color: 5319E7
+  - name: llmaw:tasks-approved
+    description: Tasks approved; ready for test design
+    color: FBCA04
+  - name: llmaw:tests-approved
+    description: Test plan approved; ready for implementation
+    color: FBCA04
+  - name: llmaw:shipped
+    description: Implementation merged; ready for learnings
+    color: 0E8A16
+
+  # --- bugfix milestones ---
+  - name: llmaw:bug-verified
+    description: Duplicate check done; ready to reproduce
+    color: FBCA04
+  - name: llmaw:bug-reproduced
+    description: Bug reproduced; ready for fix
+    color: FBCA04
+  - name: llmaw:bug-fixed
+    description: Fix merged; ready for learnings
+    color: 0E8A16
+
+  # --- terminal (stamped deterministically at PR merge) ---
+  - name: llmaw:finished
+    description: Flow completed (PR merged); terminal marker shared by all flows
+    color: 0E8A16
+
+flows:
+  triage:
+    description: Classify every new issue and route it into a pipeline.
+    rules:
+      - id: triage-new-issue
+        when: { event: issues, action: opened }
+        run:
+          # Writes verdict: feature | bug | needs-info | other.
+          - skill: triage-issue
+          - on_outcome:
+              feature:    { labels: { add: [llmaw:feature-request] } }
+              bug:        { labels: { add: [llmaw:bug] } }
+              needs-info: { comment: "Need more information to classify this issue." }
+              other:      {}   # question/chore/docs/security: triaged, no pipeline
+              _:          { comment: "Triage produced no verdict; needs review." }
+
+  feature:
+    description: Full SDLC pipeline; each phase drafts (create-*) then gates (review-*).
+    rules:
+      # --- Stage: needs validation ---
+      - id: feat-needs-create
+        when: { event: issues, action: labeled, label: llmaw:feature-request }
+        run:
+          - skill: create-needs-assessment
+          - on_outcome:
+              approved:   { labels: { add: [llmaw:review-needs-assessment] } }
+              rejected:   { close: true, comment: "Closing as wontfix." }
+              needs-info: { comment: "Need more information to assess this need." }
+              _:          { comment: "Needs assessment produced no verdict; needs review." }
+      - id: feat-needs-review
+        when: { event: issues, action: labeled, label: llmaw:review-needs-assessment }
+        run:
+          - skill: review-needs-assessment
+          - labels: { remove: [llmaw:review-needs-assessment] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:needs-approved] } }
+              changes-requested: { comment: "Needs assessment has findings to address; re-run create to revise." }
+              rejected:          { close: true, comment: "Closing: needs assessment rejected." }
+              _:                 { comment: "Needs-assessment review produced no verdict." }
+
+      # --- Stage: requirements & research ---
+      - id: feat-requirements-create
+        when: { event: issues, action: labeled, label: llmaw:needs-approved }
+        run:
+          - skill: create-requirements
+          - on_outcome:
+              approved:   { labels: { add: [llmaw:review-requirements] } }
+              needs-info: { comment: "Need clarification to draft requirements." }
+              _:          { comment: "Requirements produced no verdict; needs review." }
+      - id: feat-requirements-review
+        when: { event: issues, action: labeled, label: llmaw:review-requirements }
+        run:
+          - skill: review-requirements
+          - labels: { remove: [llmaw:review-requirements] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:requirements-approved] } }
+              changes-requested: { comment: "Requirements have findings to address; re-run create to revise." }
+              rejected:          { close: true, comment: "Closing: requirements rejected." }
+              _:                 { comment: "Requirements review produced no verdict." }
+
+      - id: feat-existing-solutions-create
+        when: { event: issues, action: labeled, label: llmaw:requirements-approved }
+        run:
+          - skill: create-existing-solutions
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-existing-solutions] } }
+              _:        { comment: "Existing-solutions survey produced no verdict; needs review." }
+      - id: feat-existing-solutions-review
+        when: { event: issues, action: labeled, label: llmaw:review-existing-solutions }
+        run:
+          - skill: review-existing-solutions
+          - labels: { remove: [llmaw:review-existing-solutions] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:solutions-approved] } }
+              changes-requested: { comment: "Existing-solutions survey has findings to address." }
+              rejected:          { close: true, comment: "Closing: existing-solutions survey rejected." }
+              _:                 { comment: "Existing-solutions review produced no verdict." }
+
+      - id: feat-codebase-analysis-create
+        when: { event: issues, action: labeled, label: llmaw:solutions-approved }
+        run:
+          - skill: create-codebase-analysis
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-codebase-analysis] } }
+              _:        { comment: "Codebase analysis produced no verdict; needs review." }
+      - id: feat-codebase-analysis-review
+        when: { event: issues, action: labeled, label: llmaw:review-codebase-analysis }
+        run:
+          - skill: review-codebase-analysis
+          - labels: { remove: [llmaw:review-codebase-analysis] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:analysis-approved] } }
+              changes-requested: { comment: "Codebase analysis has findings to address." }
+              rejected:          { close: true, comment: "Closing: codebase analysis rejected." }
+              _:                 { comment: "Codebase-analysis review produced no verdict." }
+
+      - id: feat-feasibility-create
+        when: { event: issues, action: labeled, label: llmaw:analysis-approved }
+        run:
+          - skill: create-feasibility
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-feasibility] } }
+              rejected: { close: true, comment: "Closing as not feasible." }
+              _:        { comment: "Feasibility produced no verdict; needs review." }
+      - id: feat-feasibility-review
+        when: { event: issues, action: labeled, label: llmaw:review-feasibility }
+        run:
+          - skill: review-feasibility
+          - labels: { remove: [llmaw:review-feasibility] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:feasible] } }
+              changes-requested: { comment: "Feasibility assessment has findings to address." }
+              rejected:          { close: true, comment: "Closing: feasibility rejected (no-go)." }
+              _:                 { comment: "Feasibility review produced no verdict." }
+
+      # --- Stage: design ---
+      - id: feat-specification-create
+        when: { event: issues, action: labeled, label: llmaw:feasible }
+        run:
+          - skill: create-specifications
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-specifications] } }
+              _:        { comment: "Specification produced no verdict; needs review." }
+      - id: feat-specification-review
+        when: { event: issues, action: labeled, label: llmaw:review-specifications }
+        run:
+          - skill: review-specifications
+          - labels: { remove: [llmaw:review-specifications] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:spec-approved] } }
+              changes-requested: { comment: "Specification has findings to address." }
+              rejected:          { close: true, comment: "Closing: specification rejected." }
+              _:                 { comment: "Specification review produced no verdict." }
+
+      - id: feat-telemetry-create
+        when: { event: issues, action: labeled, label: llmaw:spec-approved }
+        run:
+          - skill: create-telemetry
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-telemetry] } }
+              _:        { comment: "Telemetry plan produced no verdict; needs review." }
+      - id: feat-telemetry-review
+        when: { event: issues, action: labeled, label: llmaw:review-telemetry }
+        run:
+          - skill: review-telemetry
+          - labels: { remove: [llmaw:review-telemetry] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:telemetry-approved] } }
+              changes-requested: { comment: "Telemetry plan has findings to address." }
+              rejected:          { close: true, comment: "Closing: telemetry plan rejected." }
+              _:                 { comment: "Telemetry review produced no verdict." }
+
+      - id: feat-observability-create
+        when: { event: issues, action: labeled, label: llmaw:telemetry-approved }
+        run:
+          - skill: create-observability
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-observability] } }
+              _:        { comment: "Observability plan produced no verdict; needs review." }
+      - id: feat-observability-review
+        when: { event: issues, action: labeled, label: llmaw:review-observability }
+        run:
+          - skill: review-observability
+          - labels: { remove: [llmaw:review-observability] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:observability-approved] } }
+              changes-requested: { comment: "Observability plan has findings to address." }
+              rejected:          { close: true, comment: "Closing: observability plan rejected." }
+              _:                 { comment: "Observability review produced no verdict." }
+
+      # --- Stage: plan (PR is the human sign-off gate) ---
+      - id: feat-plan
+        when: { event: issues, action: labeled, label: llmaw:observability-approved }
+        run:
+          # create-plan then publish-plan opens a draft plan/ PR. Its merge
+          # (on-plan-merged) advances the flow, so approved is a no-op here.
+          - skill: create-plan
+          - on_outcome:
+              approved: {}
+              _:        { comment: "Plan creation produced no PR; needs review." }
+
+      # publish-plan gate: plan PR merged -> advance the linked issue.
+      - id: on-plan-merged
+        when: { event: pull_request, action: closed, merged: true, branch_prefix: plan/ }
+        run:
+          - labels: { add: [llmaw:plan-approved], target: linked-issue }
+
+      # --- Stage: build ---
+      - id: feat-tasks-create
+        when: { event: issues, action: labeled, label: llmaw:plan-approved }
+        run:
+          - skill: create-tasks-decomposition
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-tasks-decomposition] } }
+              _:        { comment: "Task decomposition produced no verdict; needs review." }
+      - id: feat-tasks-review
+        when: { event: issues, action: labeled, label: llmaw:review-tasks-decomposition }
+        run:
+          - skill: review-tasks-decomposition
+          - labels: { remove: [llmaw:review-tasks-decomposition] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:tasks-approved] } }
+              changes-requested: { comment: "Task decomposition has findings to address." }
+              rejected:          { close: true, comment: "Closing: task decomposition rejected." }
+              _:                 { comment: "Task-decomposition review produced no verdict." }
+
+      - id: feat-tests-create
+        when: { event: issues, action: labeled, label: llmaw:tasks-approved }
+        run:
+          - skill: create-tests
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-tests] } }
+              _:        { comment: "Test plan produced no verdict; needs review." }
+      - id: feat-tests-review
+        when: { event: issues, action: labeled, label: llmaw:review-tests }
+        run:
+          - skill: review-tests
+          - labels: { remove: [llmaw:review-tests] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:tests-approved] } }
+              changes-requested: { comment: "Test plan has findings to address." }
+              rejected:          { close: true, comment: "Closing: test plan rejected." }
+              _:                 { comment: "Test-plan review produced no verdict." }
+
+      - id: feat-implementation
+        when: { event: issues, action: labeled, label: llmaw:tests-approved }
+        run:
+          # create-implementation opens an impl/ PR. Its merge (on-impl-merged)
+          # advances the flow, so approved is a no-op. The PR is gated by
+          # review-pr (see the review flow, on ready_for_review).
+          - skill: create-implementation
+          - on_outcome:
+              approved: {}
+              _:        { comment: "Implementation produced no PR; needs review." }
+
+      # Implementation PR merged -> GitHub auto-closes via `closes #N`;
+      # stamp `llmaw:shipped` (triggers learnings) + `llmaw:finished`.
+      - id: on-impl-merged
+        when: { event: pull_request, action: closed, merged: true, branch_prefix: impl/ }
+        run:
+          - labels: { add: [llmaw:shipped, llmaw:finished], target: linked-issue }
+
+      # --- Stage: learnings (close-out) ---
+      - id: feat-learnings
+        when: { event: issues, action: labeled, label: llmaw:shipped }
+        run:
+          - skill: create-learnings               # terminal
+
+  bugfix:
+    description: SDLC bug-fix fast path (check-duplicates -> reproduce -> fix -> PR).
+    rules:
+      - id: bug-duplicates
+        when: { event: issues, action: labeled, label: llmaw:bug }
+        run:
+          # Writes verdict: novel | duplicate.
+          - skill: check-duplicates
+          - on_outcome:
+              novel:     { labels: { add: [llmaw:bug-verified] } }
+              duplicate: { close: true, comment: "Closing as duplicate." }
+              _:         { comment: "Duplicate check produced no verdict; needs review." }
+
+      - id: bug-reproduce
+        when: { event: issues, action: labeled, label: llmaw:bug-verified }
+        run:
+          # Creates a worktree, attempts reproduction, posts results.
+          - skill: reproduce-issue
+          - on_outcome:
+              reproduced:       { labels: { add: [llmaw:bug-reproduced] } }
+              cannot-reproduce: { comment: "Could not reproduce; need more information." }
+              _:                { comment: "Reproduction produced no verdict; needs review." }
+
+      - id: bug-fix
+        when: { event: issues, action: labeled, label: llmaw:bug-reproduced }
+        run:
+          # fix-issue opens a fix/ PR. Its merge (on-fix-merged) advances the
+          # flow, so approved is a no-op. The PR is gated by review-pr.
+          - skill: fix-issue
+          - on_outcome:
+              approved: {}
+              _:        { comment: "Fix produced no PR; needs review." }
+
+      # Fix PR merged -> GitHub auto-closes via `closes #N`;
+      # stamp `llmaw:bug-fixed` (triggers learnings) + `llmaw:finished`.
+      - id: on-fix-merged
+        when: { event: pull_request, action: closed, merged: true, branch_prefix: fix/ }
+        run:
+          - labels: { add: [llmaw:bug-fixed, llmaw:finished], target: linked-issue }
+
+      - id: bug-learnings
+        when: { event: issues, action: labeled, label: llmaw:bug-fixed }
+        run:
+          - skill: create-learnings               # terminal
+
+  review:
+    description: Automated PR review and interactive comment handling.
+    rules:
+      # Automated review when a human marks an agent PR ready (draft -> ready).
+      - id: review-pr
+        when: { event: pull_request, action: ready_for_review }
+        run:
+          - skill: review-pr
+
+      # Inline review comment on a plan PR -> address plan feedback.
+      - id: handle-pr-feedback
+        when: { event: pull_request_review_comment, action: created }
+        run:
+          - skill: handle-pr-feedback

@@ -1,0 +1,51 @@
+name: LLM Workflows
+
+on:
+  issues:
+    types: [opened, labeled, reopened, closed]
+  pull_request:
+    types: [closed, labeled, ready_for_review]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "opencode model id (provider/model). Leave empty to use OPENCODE_MODEL var or default."
+        required: false
+        type: string
+      agents-repository:
+        description: "Repository providing opencode skills (owner/repo). Leave empty for default."
+        required: false
+        type: string
+      framework-repository:
+        description: "Repository providing this engine (owner/repo). Leave empty for default."
+        required: false
+        type: string
+      framework-ref:
+        description: "Ref of the engine repository to check out. Leave empty for default (main)."
+        required: false
+        type: string
+      rule-id:
+        description: "Dry-run: force-run a single rule by id (skips event matching)."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+# Do not add a `concurrency` group here. The reusable dispatch.yml owns it;
+# defining the same group in both the caller and the called workflow deadlocks.
+
+jobs:
+  dispatch:
+    uses: TomzxCode/llm-augmented-workflows/.github/workflows/dispatch.yml@main
+    with:
+      model: ${{ inputs.model }}
+      agents-repository: ${{ inputs.agents-repository }}
+      framework-repository: ${{ inputs.framework-repository }}
+      framework-ref: ${{ inputs.framework-ref }}
+      rule-id: ${{ inputs.rule-id }}
+    secrets: inherit
