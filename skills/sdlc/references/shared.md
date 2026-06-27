@@ -70,6 +70,36 @@ The repository always wins; `SDLC_DIR` is a fallback only.
 - `state.yml` and `features/*/progress.md` are local-only workflow state (regenerated per machine and per run). They are never read from or written to `SDLC_DIR`.
 - `sync-meta.yml` and generated reports (`audit-report.md`, `backpropagation-report.md`, `improvement-dryrun-*.md`) stay in the repo's `.sdlc/` only.
 
+## Automation runner environment
+
+When invoked by an automation runner, an SDLC skill resolves its target from environment variables, never from positional arguments or from `.sdlc/state.yml` (which may be absent).
+A variable that does not apply to the current event is present but empty, and is treated as unset.
+
+| Variable | Present when | Content |
+|---|---|---|
+| `REPO` | always | `{owner}/{repository}` of the target repo, e.g. `tomzx/agents` |
+| `ISSUE_NUMBER` | issue events | the issue number, e.g. `42` |
+| `ISSUE_TITLE` | issue events | issue title |
+| `ISSUE_BODY` | issue events | issue body text |
+| `ISSUE_LABELS` | issue events | comma-separated current label names |
+| `LABEL` | `labeled` events | the label that was added |
+| `PR_NUMBER` | pull request events | the PR number |
+| `PR_BRANCH` | pull request events | PR head branch ref, e.g. `plan/issue-42`, `impl/42` |
+| `PR_TITLE` | pull request events | PR title |
+| `PR_BODY` | pull request events | PR body text |
+| `PR_MERGED` | pull request events | merged flag, `true` only when the PR was merged on close, otherwise `false`/empty |
+| `COMMENT_AUTHOR` | comment events | login of the commenter |
+| `COMMENT_BODY` | comment events | comment text |
+| `COMMENT_TYPE` | comment events | `inline` (PR review comment) or `general` (issue or PR comment) |
+| `GH_TOKEN` | always | the GitHub auth token, for use with `gh` |
+| `OPENCODE_DISABLE_AUTO_UPDATE` | always | `1` |
+
+Exactly one of `ISSUE_NUMBER` or `PR_NUMBER` identifies the subject; the other is empty.
+
+The following `GITHUB_*` variables are also available when present: `GITHUB_EVENT_NAME` (event name), `GITHUB_EVENT_PATH` (full event payload JSON), `GITHUB_WORKSPACE` (checked-out repository root, the working directory), `GITHUB_REPOSITORY` (same value as `REPO`), and `GITHUB_SERVER_URL` with `GITHUB_RUN_ID` (used to construct a run URL).
+
+Reporting a verdict back to the runner uses `$OUTCOME_YAML` (see below).
+
 ## Outcome Emission ($OUTCOME_YAML)
 
 A runner may invoke a skill and need its result as structured data. When the `$OUTCOME_YAML` environment variable is set to a file path, write a YAML object recording your verdict there as your **final action**:
