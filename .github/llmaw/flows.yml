@@ -169,6 +169,11 @@ labels:
     description: Fix merged; ready for learnings
     color: 0E8A16
 
+  # --- human intervention (skill returned no verdict) ---
+  - name: llmaw:needs-human
+    description: Skill returned no verdict; needs human intervention to proceed
+    color: D93F0B
+
   # --- terminal (stamped deterministically at PR merge) ---
   - name: llmaw:finished
     description: Flow completed (PR merged); terminal marker shared by all flows
@@ -188,7 +193,7 @@ flows:
               bug:        { labels: { add: [llmaw:bug] } }
               needs-info: { comment: "Need more information to classify this issue." }
               other:      {}   # question/chore/docs/security: triaged, no pipeline
-              _:          { comment: "Triage produced no verdict; needs review." }
+              _:          { labels: { add: [llmaw:needs-human] }, comment: "Triage produced no verdict; needs review." }
 
   feature:
     description: Full SDLC pipeline; each phase drafts (create-*) then gates (review-*).
@@ -204,7 +209,7 @@ flows:
               approved:   { labels: { add: [llmaw:review-needs-assessment] } }
               rejected:   { close: true, comment: "Closing as wontfix." }
               needs-info: { comment: "Need more information to assess this need." }
-              _:          { comment: "Needs assessment produced no verdict; needs review." }
+              _:          { labels: { add: [llmaw:needs-human] }, comment: "Needs assessment produced no verdict; needs review." }
       - id: feat-needs-review
         when: { event: issues, action: labeled, label: llmaw:review-needs-assessment }
         run:
@@ -216,7 +221,7 @@ flows:
               approved:          { labels: { add: [llmaw:needs-approved] } }
               changes-requested: { comment: "Needs assessment has findings to address; re-run create to revise." }
               rejected:          { close: true, comment: "Closing: needs assessment rejected." }
-              _:                 { comment: "Needs-assessment review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Needs-assessment review produced no verdict." }
 
       # --- Stage: requirements & research ---
       - id: feat-requirements-create
@@ -228,7 +233,7 @@ flows:
           - on_outcome:
               approved:   { labels: { add: [llmaw:review-requirements] } }
               needs-info: { comment: "Need clarification to draft requirements." }
-              _:          { comment: "Requirements produced no verdict; needs review." }
+              _:          { labels: { add: [llmaw:needs-human] }, comment: "Requirements produced no verdict; needs review." }
       - id: feat-requirements-review
         when: { event: issues, action: labeled, label: llmaw:review-requirements }
         run:
@@ -240,7 +245,7 @@ flows:
               approved:          { labels: { add: [llmaw:requirements-approved] } }
               changes-requested: { comment: "Requirements have findings to address; re-run create to revise." }
               rejected:          { close: true, comment: "Closing: requirements rejected." }
-              _:                 { comment: "Requirements review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Requirements review produced no verdict." }
 
       - id: feat-existing-solutions-create
         when: { event: issues, action: labeled, label: llmaw:requirements-approved }
@@ -250,7 +255,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-existing-solutions] } }
-              _:        { comment: "Existing-solutions survey produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Existing-solutions survey produced no verdict; needs review." }
       - id: feat-existing-solutions-review
         when: { event: issues, action: labeled, label: llmaw:review-existing-solutions }
         run:
@@ -262,7 +267,7 @@ flows:
               approved:          { labels: { add: [llmaw:solutions-approved] } }
               changes-requested: { comment: "Existing-solutions survey has findings to address." }
               rejected:          { close: true, comment: "Closing: existing-solutions survey rejected." }
-              _:                 { comment: "Existing-solutions review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Existing-solutions review produced no verdict." }
 
       - id: feat-codebase-analysis-create
         when: { event: issues, action: labeled, label: llmaw:solutions-approved }
@@ -272,7 +277,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-codebase-analysis] } }
-              _:        { comment: "Codebase analysis produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Codebase analysis produced no verdict; needs review." }
       - id: feat-codebase-analysis-review
         when: { event: issues, action: labeled, label: llmaw:review-codebase-analysis }
         run:
@@ -284,7 +289,7 @@ flows:
               approved:          { labels: { add: [llmaw:analysis-approved] } }
               changes-requested: { comment: "Codebase analysis has findings to address." }
               rejected:          { close: true, comment: "Closing: codebase analysis rejected." }
-              _:                 { comment: "Codebase-analysis review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Codebase-analysis review produced no verdict." }
 
       - id: feat-feasibility-create
         when: { event: issues, action: labeled, label: llmaw:analysis-approved }
@@ -295,7 +300,7 @@ flows:
           - on_outcome:
               approved: { labels: { add: [llmaw:review-feasibility] } }
               rejected: { close: true, comment: "Closing as not feasible." }
-              _:        { comment: "Feasibility produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Feasibility produced no verdict; needs review." }
       - id: feat-feasibility-review
         when: { event: issues, action: labeled, label: llmaw:review-feasibility }
         run:
@@ -307,7 +312,7 @@ flows:
               approved:          { labels: { add: [llmaw:feasible] } }
               changes-requested: { comment: "Feasibility assessment has findings to address." }
               rejected:          { close: true, comment: "Closing: feasibility rejected (no-go)." }
-              _:                 { comment: "Feasibility review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Feasibility review produced no verdict." }
 
       # --- Stage: design ---
       - id: feat-specification-create
@@ -318,7 +323,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-specifications] } }
-              _:        { comment: "Specification produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Specification produced no verdict; needs review." }
       - id: feat-specification-review
         when: { event: issues, action: labeled, label: llmaw:review-specifications }
         run:
@@ -330,7 +335,7 @@ flows:
               approved:          { labels: { add: [llmaw:spec-approved] } }
               changes-requested: { comment: "Specification has findings to address." }
               rejected:          { close: true, comment: "Closing: specification rejected." }
-              _:                 { comment: "Specification review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Specification review produced no verdict." }
 
       - id: feat-telemetry-create
         when: { event: issues, action: labeled, label: llmaw:spec-approved }
@@ -340,7 +345,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-telemetry] } }
-              _:        { comment: "Telemetry plan produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Telemetry plan produced no verdict; needs review." }
       - id: feat-telemetry-review
         when: { event: issues, action: labeled, label: llmaw:review-telemetry }
         run:
@@ -352,7 +357,7 @@ flows:
               approved:          { labels: { add: [llmaw:telemetry-approved] } }
               changes-requested: { comment: "Telemetry plan has findings to address." }
               rejected:          { close: true, comment: "Closing: telemetry plan rejected." }
-              _:                 { comment: "Telemetry review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Telemetry review produced no verdict." }
 
       - id: feat-observability-create
         when: { event: issues, action: labeled, label: llmaw:telemetry-approved }
@@ -362,7 +367,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-observability] } }
-              _:        { comment: "Observability plan produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Observability plan produced no verdict; needs review." }
       - id: feat-observability-review
         when: { event: issues, action: labeled, label: llmaw:review-observability }
         run:
@@ -374,7 +379,7 @@ flows:
               approved:          { labels: { add: [llmaw:observability-approved] } }
               changes-requested: { comment: "Observability plan has findings to address." }
               rejected:          { close: true, comment: "Closing: observability plan rejected." }
-              _:                 { comment: "Observability review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Observability review produced no verdict." }
 
       # --- Stage: plan (PR is the human sign-off gate) ---
       - id: feat-plan
@@ -387,7 +392,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: {}
-              _:        { comment: "Plan creation produced no PR; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan creation produced no PR; needs review." }
 
       # publish-plan gate: plan PR merged -> advance the linked issue.
       - id: on-plan-merged
@@ -404,7 +409,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tasks-decomposition] } }
-              _:        { comment: "Task decomposition produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Task decomposition produced no verdict; needs review." }
       - id: feat-tasks-review
         when: { event: issues, action: labeled, label: llmaw:review-tasks-decomposition }
         run:
@@ -416,7 +421,7 @@ flows:
               approved:          { labels: { add: [llmaw:tasks-approved] } }
               changes-requested: { comment: "Task decomposition has findings to address." }
               rejected:          { close: true, comment: "Closing: task decomposition rejected." }
-              _:                 { comment: "Task-decomposition review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Task-decomposition review produced no verdict." }
 
       - id: feat-tests-create
         when: { event: issues, action: labeled, label: llmaw:tasks-approved }
@@ -426,7 +431,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tests] } }
-              _:        { comment: "Test plan produced no verdict; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Test plan produced no verdict; needs review." }
       - id: feat-tests-review
         when: { event: issues, action: labeled, label: llmaw:review-tests }
         run:
@@ -438,7 +443,7 @@ flows:
               approved:          { labels: { add: [llmaw:tests-approved] } }
               changes-requested: { comment: "Test plan has findings to address." }
               rejected:          { close: true, comment: "Closing: test plan rejected." }
-              _:                 { comment: "Test-plan review produced no verdict." }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Test-plan review produced no verdict." }
 
       - id: feat-implementation
         when: { event: issues, action: labeled, label: llmaw:tests-approved }
@@ -451,7 +456,7 @@ flows:
           - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: {}
-              _:        { comment: "Implementation produced no PR; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Implementation produced no PR; needs review." }
 
       # Implementation PR merged -> GitHub auto-closes via `closes #N`;
       # stamp `llmaw:shipped` (triggers learnings) + `llmaw:finished`.
@@ -479,7 +484,7 @@ flows:
           - on_outcome:
               novel:     { labels: { add: [llmaw:bug-verified] } }
               duplicate: { close: true, comment: "Closing as duplicate." }
-              _:         { comment: "Duplicate check produced no verdict; needs review." }
+              _:         { labels: { add: [llmaw:needs-human] }, comment: "Duplicate check produced no verdict; needs review." }
 
       - id: bug-reproduce
         when: { event: issues, action: labeled, label: llmaw:bug-verified }
@@ -489,7 +494,7 @@ flows:
           - on_outcome:
               reproduced:       { labels: { add: [llmaw:bug-reproduced] } }
               cannot-reproduce: { comment: "Could not reproduce; need more information." }
-              _:                { comment: "Reproduction produced no verdict; needs review." }
+              _:                { labels: { add: [llmaw:needs-human] }, comment: "Reproduction produced no verdict; needs review." }
 
       - id: bug-fix
         when: { event: issues, action: labeled, label: llmaw:bug-reproduced }
@@ -499,7 +504,7 @@ flows:
           - skill: fix-issue
           - on_outcome:
               approved: {}
-              _:        { comment: "Fix produced no PR; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Fix produced no PR; needs review." }
 
       # Fix PR merged -> GitHub auto-closes via `closes #N`;
       # stamp `llmaw:bug-fixed` (triggers learnings) + `llmaw:finished`.
