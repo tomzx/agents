@@ -10,6 +10,7 @@ Audits an implementation plan and reports findings across six categories: comple
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/plan.md`, or an implementation plan provided in context or as a file path
 - `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (optional, improves coverage analysis)
 

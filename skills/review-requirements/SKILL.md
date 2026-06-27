@@ -10,6 +10,7 @@ Audits a requirements document and reports findings across five categories: clar
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, or a requirements document provided in context or as a file path
 
 ## Steps

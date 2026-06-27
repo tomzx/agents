@@ -12,6 +12,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` and `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly

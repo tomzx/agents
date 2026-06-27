@@ -15,6 +15,7 @@ Use this skill for batch triage of a backlog. For event-driven triage of a singl
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, operate on `$REPO`.
 - `gh` CLI authenticated with write access to the target repository
 - Repository in `owner/repo` format (`$1`), or omit to use the repository in the current working directory
 - Attribution footers on every comment posted to GitHub are handled inside `triage-issue` (per `skills/github-post-attribution/SKILL.md`)

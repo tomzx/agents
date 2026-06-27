@@ -12,6 +12,7 @@ Opens a GitHub pull request for the current branch with a structured description
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, use `$REPO` and link `$ISSUE_NUMBER`.
 - `gh` CLI authenticated with write access to the target repository
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)

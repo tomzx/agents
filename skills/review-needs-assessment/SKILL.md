@@ -10,6 +10,7 @@ Audits a needs assessment and reports findings across four categories: evidence 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md`, or a needs assessment document provided in context or as a file path
 
 ## Steps

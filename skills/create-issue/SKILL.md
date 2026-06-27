@@ -11,6 +11,7 @@ Creates a structured GitHub issue in the specified repository with background, p
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, operate on `$REPO`.
 - `gh` CLI authenticated with write access to the target repository
 - Repository name in `owner/repo` format (`$1`), or omitted to use the repository in the current working directory
 

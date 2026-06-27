@@ -14,6 +14,7 @@ This answers "did you build the thing right?" Runtime proof is handled by `/vali
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - PR number (`$1`) identifying an open pull request
 - Ideally, `/validate-pr` has already been run and claims are confirmed at runtime

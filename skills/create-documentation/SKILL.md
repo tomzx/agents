@@ -13,6 +13,7 @@ Produces documentation for a feature or component organized according to the [Di
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - Feature or component description provided in context or as `$1`
 - Access to the codebase, specification, or implementation (if available)
 

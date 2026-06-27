@@ -10,6 +10,7 @@ Audits a task decomposition and reports findings across five categories: granula
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/tasks/` directory containing individual task files, or task files provided in context
 - `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (optional, improves completeness check)
 

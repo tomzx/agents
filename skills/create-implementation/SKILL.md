@@ -12,6 +12,7 @@ Produces working code that passes tests and meets all acceptance criteria.
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - A task description, specification, or plan provided in context or as `$1`
 - `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): implement analytics events and telemetry alongside feature code
 - `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): implement logging, metrics, tracing, and health checks alongside feature code

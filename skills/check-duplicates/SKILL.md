@@ -16,6 +16,7 @@ It does not modify the issue or create any branches.
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - A GitHub issue number to check
 

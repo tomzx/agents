@@ -11,6 +11,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
 

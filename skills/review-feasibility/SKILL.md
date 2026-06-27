@@ -10,6 +10,7 @@ Audits a feasibility assessment and reports findings across five categories: com
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, or a feasibility document provided in context or as a file path
 
 ## Steps

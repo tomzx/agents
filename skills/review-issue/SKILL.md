@@ -13,6 +13,7 @@ If findings exist, either proposes an edited issue body in the conversation or p
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with access to the repository
 - Issue URL or number (`$1`)
 

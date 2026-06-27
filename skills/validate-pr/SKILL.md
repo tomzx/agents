@@ -14,6 +14,7 @@ This is runtime validation: "did you build the right thing?" Static code inspect
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
 - `asciinema` installed (for CLI changes)

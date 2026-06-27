@@ -11,6 +11,7 @@ Deploys a merged pull request to the target environment, runs smoke tests to ver
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the target repository
 - A merged PR number or merge SHA provided as `$1`
 - Deployment tooling available (CI/CD pipeline, container registry, or manual deployment scripts)

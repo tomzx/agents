@@ -10,6 +10,7 @@ Audits documentation and reports findings across five categories: completeness, 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - Documentation provided in context or as a file path to read
 - The feature or component being documented (for accuracy checking, if accessible)
 

@@ -11,6 +11,7 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document

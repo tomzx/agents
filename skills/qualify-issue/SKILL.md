@@ -15,6 +15,7 @@ This skill owns the iterative clarification loop. It stops when the issue is ful
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the target repository
 - Issue URL or number (`$1`), and optionally repository in `owner/repo` format (`$2`)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there

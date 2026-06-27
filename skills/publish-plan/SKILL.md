@@ -12,6 +12,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the repository
 - A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/FEAT-NNNN-<slug>/plan.md`; falls back to `plan.md` in the working directory)
 - Issue URL or number (`$1`)

@@ -11,6 +11,7 @@ Produces a detailed technical specification from a requirements document, coveri
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
 - `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): honor each component's change disposition and its "must not change" constraints, and follow the migration path for any refactor or replace

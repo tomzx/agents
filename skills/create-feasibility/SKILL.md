@@ -11,6 +11,7 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular feeds the cost and risk of changing existing code
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
