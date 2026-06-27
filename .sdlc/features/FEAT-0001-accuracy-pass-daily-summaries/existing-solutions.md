@@ -1,7 +1,7 @@
 ---
 issue: "#5"
 title: "Accuracy Pass on Daily Summaries"
-status: draft
+status: in-review
 ---
 
 # Existing Solutions: Accuracy Pass on Daily Summaries
