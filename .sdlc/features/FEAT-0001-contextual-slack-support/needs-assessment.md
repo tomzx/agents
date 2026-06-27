@@ -1,7 +1,7 @@
 ---
 issue: "#4"
 title: "Contextual Slack Support"
-status: draft
+status: in-review
 ---
 
 # Needs Assessment: Contextual Slack Support
