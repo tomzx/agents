@@ -1,7 +1,7 @@
 ---
 issue: "#5"
 title: "Accuracy Pass on Daily Summaries"
-status: draft
+status: approved
 ---
 
 # Requirements: Accuracy Pass on Daily Summaries
@@ -24,7 +24,7 @@ The end-of-day pipeline produces daily summaries (GitHub activity, Slack activit
 | FR-01 | Must | The system shall provide a command or skill that presents an existing daily summary file for accuracy review |
 | FR-02 | Must | The system shall allow the user to flag individual facts or claims within a summary as inaccurate |
 | FR-03 | Must | The system shall allow the user to provide corrected text for each flagged inaccuracy |
-| FR-04 | Must | The system shall persist the corrected content so future reads of the summary return the corrected version |
+| FR-04 | Must | The system shall ensure that future reads of the summary present the corrected version, whether through in-place editing or by composing original content with stored deltas |
 | FR-05 | Should | The system shall support reviewing summaries within a configurable date range (single day, week, month, custom range) |
 | FR-06 | Should | The system shall skip days that have already been reviewed when invoked again for the same date range |
 | FR-07 | Should | The system shall record corrections as separate delta files, preserving the original text and providing an audit trail |
@@ -106,7 +106,9 @@ The end-of-day pipeline produces daily summaries (GitHub activity, Slack activit
 
 ## Conflicts
 
-None identified yet.
+| Requirements | Type | Resolution |
+|---|---|---|
+| FR-04 (Must), FR-07 (Should) | Direct contradiction | Amended FR-04 to be outcome-focused ("present the corrected version") rather than mechanism-focused, removing the conflict with FR-07's delta-based approach. See open question #2 for the implementation design choice. |
 
 ## Open Questions
 
