@@ -48,4 +48,5 @@ jobs:
       framework-repository: ${{ inputs.framework-repository }}
       framework-ref: ${{ inputs.framework-ref }}
       rule-id: ${{ inputs.rule-id }}
-    secrets: inherit
+    secrets:
+      LLMAW_APP_PRIVATE_KEY: ${{ secrets.LLMAW_APP_PRIVATE_KEY }}
