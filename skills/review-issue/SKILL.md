@@ -101,6 +101,16 @@ If findings exist, either proposes an edited issue body in the conversation or p
 
 If there are no findings across all categories, confirm: "Issue looks complete and well-formed — ready to proceed to `/create-requirements`."
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: Bug report missing reproduction steps**

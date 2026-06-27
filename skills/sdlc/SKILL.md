@@ -41,11 +41,15 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-requirements    Audit for clarity, completeness, testability, conflicts
            │
            ▼
-  /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
-  /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
-           │
-           ▼
-  /create-feasibility     Assess technical, financial, and operational viability
+   /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
+   /review-existing-solutions  Audit search coverage, evaluation rigor, recommendation soundness
+            │
+            ▼
+   /create-codebase-analysis  Analyze existing internal code/architecture the feature will touch; assess changeability per component
+   /review-codebase-analysis  Audit coverage, accuracy, changeability rigor, impact and migration
+            │
+            ▼
+   /create-feasibility     Assess technical, financial, and operational viability
   /review-feasibility     Audit completeness, risk coverage, go/no-go soundness
                           (gate: stop if not feasible, update issue with findings)
 
@@ -210,6 +214,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── needs-assessment.md
 │       ├── requirements.md
 │       ├── existing-solutions.md
+│       ├── codebase-analysis.md
 │       ├── feasibility.md
 │       ├── specification.md
 │       ├── telemetry.md
@@ -224,6 +229,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── needs-assessment.md
 │   │   ├── requirements.md
 │   │   ├── existing-solutions.md
+│   │   ├── codebase-analysis.md
 │   │   ├── feasibility.md
 │   │   ├── specification.md
 │   │   ├── telemetry.md
@@ -327,7 +333,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `needs` | An issue ready to assess whether it addresses a genuine need before investing in requirements |
 | `requirements` | An issue ready to develop requirements |
 | `existing-solutions` | Approved requirements ready to survey for prior art |
-| `feasibility` | Requirements and existing solutions ready for viability assessment |
+| `codebase-analysis` | Approved requirements (and existing-solutions survey) ready to analyze the internal code/architecture the feature will touch |
+| `feasibility` | Requirements, existing solutions, and codebase analysis ready for viability assessment |
 | `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
 | `telemetry` | A specification ready to define how feature usage will be measured |
 | `observability` | A specification ready to define how feature health will be monitored |
@@ -513,9 +520,11 @@ Each phase consumes output from the previous phase:
 | review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
 | create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
 | review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
-| create-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
+| create-codebase-analysis | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (+ `existing-solutions.md`) | `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` (`status: draft`) |
+| review-codebase-analysis | `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` | Findings; sets `status: approved` when resolved |
+| create-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
 | review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
-| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `feasibility.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
+| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
 | create-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (`status: draft`) |
 | review-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |

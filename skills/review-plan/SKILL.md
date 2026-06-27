@@ -80,6 +80,16 @@ Audits an implementation plan and reports findings across six categories: comple
 <Findings or "No issues found.">
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: Missing rollout step**

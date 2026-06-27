@@ -140,6 +140,10 @@ Every alert must have a runbook: a short list of steps to diagnose and resolve.
 
 Add spans at service boundaries and for expensive operations (DB queries, external API calls, large computations). Record attributes that help narrow down the issue: user ID, request ID, operation type, resource identifier.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+
 ## Example Usage
 
 **Scenario 1: REST API endpoint**

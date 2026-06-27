@@ -81,6 +81,10 @@ status: draft
 |---|---|---|---|
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the draft `plan/` PR is opened. If no PR was opened, omit the file.
+
 ## Example Usage
 
 **Scenario 1: End-to-end feature**

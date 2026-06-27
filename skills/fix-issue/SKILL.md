@@ -136,6 +136,10 @@ This skill handles pushing the branch and opening a structured PR.
 | **Multiple root causes** | Fix the primary cause, file follow-up issues for secondary causes |
 | **Fix breaks other tests** | Resolve before proceeding to `create-pr` |
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the `fix/` PR is opened. If no PR was opened (reproduction failed, blocked, or it escalates to the full pipeline), omit the file.
+
 ## Example Usage
 
 **Scenario 1: Reproducible bug**

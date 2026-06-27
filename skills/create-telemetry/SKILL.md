@@ -112,6 +112,10 @@ Common metric types:
 - **Time-to-value:** Median time from feature discovery to first successful use
 - **Error rate:** % of interactions that result in an error
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+
 ## Example Usage
 
 **Scenario 1: New notification system**

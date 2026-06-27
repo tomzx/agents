@@ -169,6 +169,15 @@ Proceed with `create-implementation` or `fix-issue`.
 | **Worktree creation fails** | Fall back to a regular branch in the main working directory |
 | **Issue is not a bug** | Comment on the issue suggesting it be reclassified, stop |
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `reproduced` | Bug reproduced in the worktree |
+| `cannot-reproduce` | Could not reproduce; needs more information |
+
 ## Example Usage
 
 **Scenario 1: Reproducible bug**

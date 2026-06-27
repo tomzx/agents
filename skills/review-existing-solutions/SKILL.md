@@ -72,6 +72,16 @@ Audits an existing solutions survey and reports findings across five categories:
 <Findings or "No issues found.">
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: Missing an obvious option**
@@ -88,7 +98,7 @@ Report under Recommendation Soundness.
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-specifications`.
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-codebase-analysis` to analyze the internal code and architecture the feature will touch.
 
 ## Useful Commands Reference
 

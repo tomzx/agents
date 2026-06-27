@@ -83,6 +83,16 @@ For each conflict found, report: the requirement IDs involved, the nature of the
 | FR-01, NFR-01 | Mutual exclusivity | Offline support cannot coexist with real-time sync as both Must. | Re-prioritize one to Should, or define an offline-then-sync model. |
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: Missing acceptance criteria**

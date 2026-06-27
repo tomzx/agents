@@ -80,6 +80,10 @@ status: draft
 | Bugs found in review | — | N |
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the learnings artifact is written.
+
 ## Example Usage
 
 **Scenario 1: Feature retrospective**

@@ -224,6 +224,16 @@ Indicate the date+time (using ISO 8601 format) the file was generated in the fil
 When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/review-pr.md`.
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: New feature PR**

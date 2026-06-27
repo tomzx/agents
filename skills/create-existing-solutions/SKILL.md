@@ -87,6 +87,10 @@ status: draft
 1. <Question that needs an answer before the design can rely on this survey.>
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+
 ## Example Usage
 
 **Scenario 1: A well-served problem**
@@ -105,7 +109,7 @@ The survey recommends building, and records the data model and failure modes doc
 ## Next Step
 
 Run `/review-existing-solutions` to audit the survey for coverage, evaluation rigor, and a sound recommendation before moving on.
-Once approved, continue with `/create-specifications`, which consumes this survey alongside the requirements.
+Once approved, continue with `/create-codebase-analysis`, which analyzes the internal code and architecture the feature will touch.
 
 ## Useful Commands Reference
 

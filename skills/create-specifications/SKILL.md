@@ -12,10 +12,11 @@ Produces a detailed technical specification from a requirements document, coveri
 
 - `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
+- `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): honor each component's change disposition and its "must not change" constraints, and follow the migration path for any refactor or replace
 
 ## Steps
 
-1. Read and understand the requirements document, and the existing solutions survey if present.
+1. Read and understand the requirements document, the existing solutions survey if present, and the codebase analysis if present.
 2. Identify the major components and their responsibilities.
 3. Define data models: entities, attributes, and relationships.
 4. Specify API contracts: endpoints, request/response schemas, and error codes.
@@ -110,6 +111,10 @@ Client → Service → DB
 
 - <What is explicitly not covered by this specification>
 ```
+
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
 
 ## Example Usage
 

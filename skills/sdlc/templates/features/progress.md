@@ -23,6 +23,8 @@ last_updated: "<YYYY-MM-DD>"
 | Planning & Feasibility | review-requirements | — |
 | Planning & Feasibility | create-existing-solutions | — |
 | Planning & Feasibility | review-existing-solutions | — |
+| Planning & Feasibility | create-codebase-analysis | — |
+| Planning & Feasibility | review-codebase-analysis | — |
 | Planning & Feasibility | create-feasibility | — |
 | Planning & Feasibility | review-feasibility | — |
 | Design | create-specifications | — |

@@ -93,6 +93,13 @@ Do not post a comment on the issue in this case.
 | Someone already assigned | Inform user, let them decide whether to proceed |
 | No conflicts | Issue is clear to work on, proceed |
 
+If `$OUTCOME_YAML` is set, also emit your routing verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `novel` | No conflicts, issue is clear to work on |
+| `duplicate` | Duplicate issue or existing fix PR found |
+
 ## Example Usage
 
 **Scenario 1: Duplicate found**

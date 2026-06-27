@@ -135,6 +135,10 @@ When a blocker is resolved:
 2. Update `progress.md` accordingly.
 3. Continue implementation.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the implementation `impl/` PR is opened. If no PR was opened (e.g. blocked), omit the file.
+
 ## Example Usage
 
 **Scenario 1: API endpoint task**

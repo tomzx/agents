@@ -69,3 +69,19 @@ The repository always wins; `SDLC_DIR` is a fallback only.
 
 - `state.yml` and `features/*/progress.md` are local-only workflow state (regenerated per machine and per run). They are never read from or written to `SDLC_DIR`.
 - `sync-meta.yml` and generated reports (`audit-report.md`, `backpropagation-report.md`, `improvement-dryrun-*.md`) stay in the repo's `.sdlc/` only.
+
+## Outcome Emission ($OUTCOME_YAML)
+
+A runner may invoke a skill and need its result as structured data. When the `$OUTCOME_YAML` environment variable is set to a file path, write a YAML object recording your verdict there as your **final action**:
+
+```yaml
+verdict: <value>       # the skill's routing decision (see each skill's Outcome section)
+reason: <one sentence>  # optional
+```
+
+Rules:
+
+- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. For `create-*` artifact skills the verdict mirrors the `status` written to the artifact frontmatter (`approved` on success).
+- If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
+- This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
+- If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.

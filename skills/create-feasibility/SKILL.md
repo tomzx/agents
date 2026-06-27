@@ -11,6 +11,7 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 ## Prerequisites
 
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
+- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular feeds the cost and risk of changing existing code
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
@@ -19,13 +20,14 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 1. Read the issue or feature description. Fetch from GitHub if a URL is provided.
 2. Read `.sdlc/context/architecture.md` to understand the current system and technology stack.
 3. Read `.sdlc/context/project-overview.md` to understand project scope and constraints.
-4. Assess **technical feasibility**: can the feature be built with the current stack and integrations? Are there unknowns that require a spike?
-5. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)? Are there infrastructure, licensing, or third-party costs?
-6. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
-7. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
-8. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
-9. Derive the feature directory name: `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces. Record the related issue number in the frontmatter `issue` field, not in the directory name.
-10. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, creating the directory if it does not exist.
+4. Read `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` when available, and carry its changeability assessments and migration risks into the technical and effort estimates below.
+5. Assess **technical feasibility**: can the feature be built with the current stack and integrations? Are there unknowns that require a spike?
+6. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)? Are there infrastructure, licensing, or third-party costs?
+7. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
+8. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
+9. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
+10. Derive the feature directory name: `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces. Record the related issue number in the frontmatter `issue` field, not in the directory name.
+11. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, creating the directory if it does not exist.
 
 ## Output Format
 
@@ -95,6 +97,15 @@ If the overall verdict is **No-go**:
 - Do not create the feature directory or proceed to requirements.
 - The issue may be revisited if conditions change (new budget, new technology, reprioritized roadmap).
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | Overall go/no-go |
+|---|---|
+| `approved` | Go or Go with conditions |
+| `rejected` | No-go (see Handling No-Go Verdicts) |
+
 ## Example Usage
 
 **Scenario 1: Straightforward feature**
@@ -112,7 +123,7 @@ Not operationally feasible given team size and timeline. Verdict: No-go.
 ## Next Step
 
 Run `/review-feasibility` to audit the assessment for completeness, risk coverage, and soundness of the go/no-go decision.
-If approved, continue with `/create-requirements`.
+If approved, continue with `/create-specifications`.
 
 ## Useful Commands Reference
 

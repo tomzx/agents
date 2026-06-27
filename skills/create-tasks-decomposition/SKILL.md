@@ -105,6 +105,10 @@ After writing all task files, output a summary to the conversation:
 **Total:** N tasks — X person-days estimated
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the task files. If the decomposition could not be produced, omit the file.
+
 ## Example Usage
 
 **Scenario 1: API feature**

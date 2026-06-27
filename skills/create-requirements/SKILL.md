@@ -96,6 +96,15 @@ Functional requirements state *what* the system shall do; acceptance criteria st
 Do not restate an FR as its acceptance criterion.
 Write concrete, scenario-based criteria (happy path, edge cases, error states), usually several per requirement, each independently checkable and translatable into a test case.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | Requirements drafted (artifact written with `status: approved`) |
+| `needs-info` | Issue lacks the detail needed to derive requirements |
+
 ## Example Usage
 
 **Scenario 1: Feature brief in context**
@@ -115,7 +124,7 @@ List open questions and draft requirements for the parts that are clear.
 ## Next Step
 
 Run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.
-Once approved, continue with `/create-specifications`.
+Once approved, continue with `/create-existing-solutions` to survey prior art.
 
 ## Useful Commands Reference
 

@@ -394,6 +394,17 @@ Use the closest match from the repo's label set.
 
 When invoked from `triage-issues`, the orchestrator assembles each per-issue summary row into a combined table.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your routing verdict there per `skills/sdlc/references/shared.md`, derived from the classified type:
+
+| Verdict | Classified type |
+|---|---|
+| `feature` | feature |
+| `bug` | bug |
+| `needs-info` | too vague to classify |
+| `other` | question, chore, documentation, security |
+
 ## Example Usage
 
 **Scenario 1: Triaging a specific issue from a webhook**

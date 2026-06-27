@@ -119,6 +119,16 @@ If the overall verdict is **Nice-to-have**:
 - The feature may proceed to `/create-feasibility`, but the downstream artifacts should reflect the lower priority.
 - Flag the verdict in the feasibility assessment so cost-benefit is weighted accordingly.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | Overall needs verdict |
+|---|---|
+| `approved` | Needed or Nice-to-have |
+| `rejected` | Not needed (see Handling Not-Needed Verdicts) |
+| `needs-info` | Insufficient evidence to decide |
+
 ## Example Usage
 
 **Scenario 1: Clear need**

@@ -17,7 +17,7 @@ Audits a feasibility assessment and reports findings across five categories: com
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
 4. After all findings are resolved:
-   - If the overall verdict is **Go** or **Go with conditions**: update `status: in-review` → `status: approved` in the frontmatter. The pipeline may proceed to `/create-requirements`.
+   - If the overall verdict is **Go** or **Go with conditions**: update `status: in-review` → `status: approved` in the frontmatter. The pipeline may proceed to `/create-specifications`.
    - If the overall verdict is **No-go**: update `status: in-review` → `status: rejected` in the frontmatter. Update the GitHub issue with findings and stop the pipeline.
    - Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist).
 
@@ -74,6 +74,16 @@ Audits a feasibility assessment and reports findings across five categories: com
 <Findings or "No issues found.">
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
+
+| Verdict | When |
+|---|---|
+| `approved` | No blocking findings; the subject passes review |
+| `changes-requested` | Findings the author must address before it passes |
+| `rejected` | Fundamental flaw requiring rework or stopping |
+
 ## Example Usage
 
 **Scenario 1: Missing risk identification**
@@ -87,7 +97,7 @@ Financial feasibility assumes zero third-party costs, but the feature requires s
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-requirements`.
+Once all findings are resolved and `status` is set to `approved`, continue with `/create-specifications`.
 If `status` is `rejected`, update the issue and stop the pipeline.
 
 ## Useful Commands Reference
