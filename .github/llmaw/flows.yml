@@ -52,6 +52,14 @@
 #    agents repository (AGENTS_REPOSITORY) exposes the SDLC skill set.
 #  - Review verdicts: approved advances, changes-requested pauses (findings are
 #    posted by the review skill; re-run create to revise), rejected closes.
+#  - Per-issue working branch: every artifact phase runs `ensure-branch.sh`
+#    first (checks out or creates `sdlc/issue-<N>`), then `commit-sdlc.sh` after
+#    (commits .sdlc/ and pushes). The branch is the cross-run persistence for the
+#    .sdlc/ artifact chain, since the engine is stateless and each rule run
+#    starts from a fresh checkout. The branch name is derived from ISSUE_NUMBER,
+#    so no separate state is needed to locate it. Phases that open their own PR
+#    (create-plan, create-implementation) still read upstream artifacts from the
+#    working branch; commit-sdlc no-ops if the skill switched to its PR branch.
 #  - The plan PR is the publish-plan human sign-off gate: merging it labels the
 #    linked issue `llmaw:plan-approved`. Implementation/fix PRs use `closes #N`,
 #    so GitHub auto-closes the linked issue on merge.
@@ -189,7 +197,9 @@ flows:
       - id: feat-needs-create
         when: { event: issues, action: labeled, label: llmaw:feature-request }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-needs-assessment
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved:   { labels: { add: [llmaw:review-needs-assessment] } }
               rejected:   { close: true, comment: "Closing as wontfix." }
@@ -198,7 +208,9 @@ flows:
       - id: feat-needs-review
         when: { event: issues, action: labeled, label: llmaw:review-needs-assessment }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-needs-assessment
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-needs-assessment] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:needs-approved] } }
@@ -210,7 +222,9 @@ flows:
       - id: feat-requirements-create
         when: { event: issues, action: labeled, label: llmaw:needs-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-requirements
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved:   { labels: { add: [llmaw:review-requirements] } }
               needs-info: { comment: "Need clarification to draft requirements." }
@@ -218,7 +232,9 @@ flows:
       - id: feat-requirements-review
         when: { event: issues, action: labeled, label: llmaw:review-requirements }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-requirements
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-requirements] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:requirements-approved] } }
@@ -229,14 +245,18 @@ flows:
       - id: feat-existing-solutions-create
         when: { event: issues, action: labeled, label: llmaw:requirements-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-existing-solutions
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-existing-solutions] } }
               _:        { comment: "Existing-solutions survey produced no verdict; needs review." }
       - id: feat-existing-solutions-review
         when: { event: issues, action: labeled, label: llmaw:review-existing-solutions }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-existing-solutions
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-existing-solutions] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:solutions-approved] } }
@@ -247,14 +267,18 @@ flows:
       - id: feat-codebase-analysis-create
         when: { event: issues, action: labeled, label: llmaw:solutions-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-codebase-analysis
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-codebase-analysis] } }
               _:        { comment: "Codebase analysis produced no verdict; needs review." }
       - id: feat-codebase-analysis-review
         when: { event: issues, action: labeled, label: llmaw:review-codebase-analysis }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-codebase-analysis
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-codebase-analysis] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:analysis-approved] } }
@@ -265,7 +289,9 @@ flows:
       - id: feat-feasibility-create
         when: { event: issues, action: labeled, label: llmaw:analysis-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-feasibility
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-feasibility] } }
               rejected: { close: true, comment: "Closing as not feasible." }
@@ -273,7 +299,9 @@ flows:
       - id: feat-feasibility-review
         when: { event: issues, action: labeled, label: llmaw:review-feasibility }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-feasibility
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-feasibility] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:feasible] } }
@@ -285,14 +313,18 @@ flows:
       - id: feat-specification-create
         when: { event: issues, action: labeled, label: llmaw:feasible }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-specifications
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-specifications] } }
               _:        { comment: "Specification produced no verdict; needs review." }
       - id: feat-specification-review
         when: { event: issues, action: labeled, label: llmaw:review-specifications }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-specifications
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-specifications] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:spec-approved] } }
@@ -303,14 +335,18 @@ flows:
       - id: feat-telemetry-create
         when: { event: issues, action: labeled, label: llmaw:spec-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-telemetry
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-telemetry] } }
               _:        { comment: "Telemetry plan produced no verdict; needs review." }
       - id: feat-telemetry-review
         when: { event: issues, action: labeled, label: llmaw:review-telemetry }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-telemetry
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-telemetry] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:telemetry-approved] } }
@@ -321,14 +357,18 @@ flows:
       - id: feat-observability-create
         when: { event: issues, action: labeled, label: llmaw:telemetry-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-observability
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-observability] } }
               _:        { comment: "Observability plan produced no verdict; needs review." }
       - id: feat-observability-review
         when: { event: issues, action: labeled, label: llmaw:review-observability }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-observability
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-observability] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:observability-approved] } }
@@ -340,9 +380,11 @@ flows:
       - id: feat-plan
         when: { event: issues, action: labeled, label: llmaw:observability-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           # create-plan then publish-plan opens a draft plan/ PR. Its merge
           # (on-plan-merged) advances the flow, so approved is a no-op here.
           - skill: create-plan
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: {}
               _:        { comment: "Plan creation produced no PR; needs review." }
@@ -357,14 +399,18 @@ flows:
       - id: feat-tasks-create
         when: { event: issues, action: labeled, label: llmaw:plan-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-tasks-decomposition
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tasks-decomposition] } }
               _:        { comment: "Task decomposition produced no verdict; needs review." }
       - id: feat-tasks-review
         when: { event: issues, action: labeled, label: llmaw:review-tasks-decomposition }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-tasks-decomposition
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-tasks-decomposition] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:tasks-approved] } }
@@ -375,14 +421,18 @@ flows:
       - id: feat-tests-create
         when: { event: issues, action: labeled, label: llmaw:tasks-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-tests
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tests] } }
               _:        { comment: "Test plan produced no verdict; needs review." }
       - id: feat-tests-review
         when: { event: issues, action: labeled, label: llmaw:review-tests }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: review-tests
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - labels: { remove: [llmaw:review-tests] }
           - on_outcome:
               approved:          { labels: { add: [llmaw:tests-approved] } }
@@ -393,10 +443,12 @@ flows:
       - id: feat-implementation
         when: { event: issues, action: labeled, label: llmaw:tests-approved }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           # create-implementation opens an impl/ PR. Its merge (on-impl-merged)
           # advances the flow, so approved is a no-op. The PR is gated by
           # review-pr (see the review flow, on ready_for_review).
           - skill: create-implementation
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
           - on_outcome:
               approved: {}
               _:        { comment: "Implementation produced no PR; needs review." }
@@ -412,7 +464,9 @@ flows:
       - id: feat-learnings
         when: { event: issues, action: labeled, label: llmaw:shipped }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-learnings               # terminal
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
 
   bugfix:
     description: SDLC bug-fix fast path (check-duplicates -> reproduce -> fix -> PR).
@@ -457,7 +511,9 @@ flows:
       - id: bug-learnings
         when: { event: issues, action: labeled, label: llmaw:bug-fixed }
         run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-learnings               # terminal
+          - shell: .github/llmaw/scripts/commit-sdlc.sh
 
   review:
     description: Automated PR review and interactive comment handling.
