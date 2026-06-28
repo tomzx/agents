@@ -115,3 +115,65 @@ Rules:
 - If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
 - This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
+- Values must be valid YAML scalars. If `verdict` or `reason` contains a colon `:`, hash `#`, or any indicator character (``{}[]&*!|>'"%@` ``), quote the value (single or double quotes) or use a literal block scalar (`|`). Prefer quoting `reason` whenever it is a free-form sentence.
+
+## Review Findings Persistence (review-* skills)
+
+The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is ephemeral relative to the branch).
+
+When a `review-*` skill runs, after producing its findings it writes them to a findings file beside the artifact under review:
+
+```
+.sdlc/features/FEAT-NNNN-<slug>/review-<artifact>.md
+```
+
+The `<artifact>` stem matches the primary artifact the skill reviews:
+
+| Artifact | Findings file |
+|---|---|
+| `needs-assessment.md` | `review-needs-assessment.md` |
+| `requirements.md` | `review-requirements.md` |
+| `existing-solutions.md` | `review-existing-solutions.md` |
+| `codebase-analysis.md` | `review-codebase-analysis.md` |
+| `feasibility.md` | `review-feasibility.md` |
+| `specification.md` | `review-specification.md` |
+| `telemetry.md` | `review-telemetry.md` |
+| `observability.md` | `review-observability.md` |
+| `tasks/` | `review-tasks.md` |
+| `tests.md` | `review-tests.md` |
+
+Frontmatter:
+
+```yaml
+---
+artifact: <artifact>
+verdict: <approved | changes-requested | rejected>
+reviewed_at: <ISO date>
+---
+```
+
+The body is the findings in the skill's normal output format.
+
+Rules:
+
+- Write this file for every verdict when running under automation (`$OUTCOME_YAML` set). On `approved`, overwrite it with `verdict: approved` (body "No blocking findings.") so the corresponding `create-*` skill sees a clean state and does not re-enter revision mode.
+- This file is the durable record the create step reads to decide whether to revise. The posted comment (`post_reason`) is for humans; this file is for the next run.
+- The file follows the same `SDLC_DIR` read/write resolution as the artifact it accompanies, and is committed to the working branch by the runner's `commit-sdlc.sh`.
+
+## Revision Mode (create-* skills)
+
+A `create-*` skill may be re-invoked after its artifact was returned with `changes-requested`. Before drafting, detect whether a revision is in progress:
+
+1. Locate the feature directory for `$ISSUE_NUMBER` (the directory whose frontmatter `issue` field references it).
+2. Look for `review-<artifact>.md` next to the target artifact (see Review Findings Persistence).
+
+If that file exists and its `verdict` is `changes-requested`, operate in **revision mode**:
+
+- Read the existing artifact and the findings together.
+- Amend the artifact to address each finding. Do not regenerate from scratch: preserve content the findings did not challenge, and make the minimum changes that resolve every finding.
+- Keep the artifact frontmatter `status` at `in-review` (the review skill set it; do not regress it to `draft`).
+- Optionally bump a `revision: <n>` counter in the artifact frontmatter, starting at 1 on the first revision.
+
+Otherwise (no findings file, or `verdict: approved`), draft fresh as normal.
+
+Either way, emit the usual outcome (`approved` -> the next `review-*` step). Revision mode changes how the artifact is produced, not the verdict the skill emits.
