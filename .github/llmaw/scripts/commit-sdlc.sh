@@ -9,6 +9,10 @@
 # No-op when there is nothing to commit, or when the current branch is not the
 # working branch (e.g. create-implementation switched to its own impl/ branch to
 # open a PR, in which case its .sdlc/ edits ride on that PR).
+#
+# Commit message: callers may pass a subject (e.g. "draft requirements") as the
+# first argument to distinguish each phase's artifacts; the issue number and
+# trailer are added here. Defaults to a generic subject when omitted.
 set -euo pipefail
 
 : "${ISSUE_NUMBER:?ISSUE_NUMBER must be set by the dispatcher}"
@@ -30,7 +34,9 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git commit -m "chore(sdlc): update .sdlc artifacts for issue #${ISSUE_NUMBER}
+SUBJECT="${1:-update .sdlc artifacts}"
+
+git commit -m "chore(sdlc): ${SUBJECT} for issue #${ISSUE_NUMBER}
 
 Committed by llmaw per-issue working-branch automation."
 
