@@ -12,22 +12,34 @@
 #
 #   issue opened -> triage (verdict: feature | bug | needs-info | other)
 #
+#   Transient triggers drive every create step: a review rule (or a merge rule,
+#   or triage) emits a llmaw:create-<step> label that the matching create rule
+#   consumes on entry. On "changes-requested" the review rule re-adds the SAME
+#   create-<step> label, re-firing the create skill in revision mode (see
+#   skills/sdlc/references/shared.md -> Revision Mode). Milestone labels
+#   (*-approved, shipped, bug-fixed) are durable audit records only, never
+#   triggers.
+#
 #   FEATURE (each phase: create drafts -> review gates):
-#     llmaw:feature-request
-#       [create-needs-assessment]  -> llmaw:review-needs-assessment [review-needs-assessment]
-#       -> llmaw:needs-approved
-#       [create-requirements]      -> llmaw:review-requirements [review-requirements]
-#       -> llmaw:requirements-approved
+#     triage: feature-request (classify) + create-needs-assessment (trigger)
+#       [create-needs-assessment]   -> review-needs-assessment [review-needs-assessment]
+#         approved          -> needs-approved + create-requirements
+#         changes-requested -> create-needs-assessment (revise)
+#       [create-requirements]       -> review-requirements
+#         approved          -> requirements-approved + create-existing-solutions
+#         changes-requested -> create-requirements (revise)
 #       ... existing-solutions, codebase-analysis, feasibility ...
-#       -> llmaw:feasible
-#       ... specification, telemetry, observability ...
-#       -> llmaw:observability-approved
-#       [create-plan] (plan PR) --merge--> llmaw:plan-approved
-#       [create-tasks-decomposition] -> llmaw:review-tasks-decomposition [review-tasks-decomposition]
-#       -> llmaw:tasks-approved
-#       [create-tests]             -> llmaw:review-tests [review-tests]
-#       -> llmaw:tests-approved
-#       [create-implementation] (impl PR) --merge--> llmaw:shipped + llmaw:finished
+#       [create-specifications]     -> review-specifications
+#         -> spec-approved + create-telemetry
+#       ... telemetry, observability ...
+#       [create-observability]      -> review-observability
+#         -> observability-approved + create-plan
+#       [create-plan] (plan PR) --merge--> plan-approved + create-tasks-decomposition
+#       [create-tasks-decomposition]-> review-tasks-decomposition
+#         -> tasks-approved + create-tests
+#       [create-tests]              -> review-tests
+#         -> tests-approved + create-implementation
+#       [create-implementation] (impl PR) --merge--> shipped + finished (-> learnings)
 #       [create-learnings]
 #
 #   BUGFIX:  llmaw:bug -> check-duplicates -> reproduce -> [fix PR]
@@ -35,14 +47,21 @@
 #            (no review-* pairs; the fix PR is gated by review-pr.)
 #
 # Rules
-#  - One agent step per rule. Phases chain by emitting a label that the next
-#    rule matches: a create rule emits a `review-*` label, the review rule emits
-#    the next phase's `-approved` label.
-#  - `*-approved` (and `bug-*`) labels are durable milestones: they accumulate
-#    as a completion record and are NEVER removed. Only the transient `review-*`
-#    "awaiting review" labels are removed — each review rule consumes its own
-#    trigger on entry (so they can't leak). Deterministic `labels` steps cost no
-#    tokens.
+#  - One agent step per rule. Phases chain via transient triggers: a create rule
+#    consumes a `create-<step>` label on entry and emits a `review-<step>` label;
+#    the review rule consumes that on entry and, on `approved`, emits the next
+#    `create-<step>` (plus the durable milestone); on `changes-requested` it
+#    re-emits the SAME `create-<step>`, re-firing create in revision mode.
+#  - Two label families:
+#      * transient triggers — `create-<step>` and `review-<step>`: consumed on
+#        entry by the rule that matches them, so they are re-addable and drive
+#        every phase transition (including revise loops).
+#      * durable milestones — `*-approved`, `shipped`, `bug-*`, `finished`:
+#        accumulate as a completion/audit record, are NEVER removed, and are
+#        NEVER used as triggers (a durable label can't be re-added, so it can't
+#        drive a revise loop). The lone exception is the terminal learnings
+#        step, which has no review gate and is triggered by `shipped` /
+#        `bug-fixed` stamped at PR merge.
 #  - Routing is outcome-driven: each skill writes a YAML verdict to
 #    $OUTCOME_YAML (approved | rejected | changes-requested | needs-info | ...),
 #    and an `on_outcome` step after the skill maps it to the next label / close /
@@ -50,8 +69,10 @@
 #    interactive `/sdlc` and here. The `_` case is the fallback when no verdict
 #    matches (surfaces the issue for human review). Skill names assume the
 #    agents repository (AGENTS_REPOSITORY) exposes the SDLC skill set.
-#  - Review verdicts: approved advances, changes-requested pauses (findings are
-#    posted by the review skill; re-run create to revise), rejected closes.
+#  - Review verdicts: approved advances (milestone + next create-<step>);
+#    changes-requested re-fires the same create-<step> in revision mode (findings
+#    are persisted to .sdlc/ by the review skill and posted as a comment);
+#    rejected closes.
 #  - Per-issue working branch: every artifact phase runs `ensure-branch.sh`
 #    first (checks out or creates `sdlc/issue-<N>`), then `commit-sdlc.sh` after
 #    (commits .sdlc/ and pushes). The branch is the cross-run persistence for the
@@ -61,8 +82,9 @@
 #    (create-plan, create-implementation) still read upstream artifacts from the
 #    working branch; commit-sdlc no-ops if the skill switched to its PR branch.
 #  - The plan PR is the publish-plan human sign-off gate: merging it labels the
-#    linked issue `llmaw:plan-approved`. Implementation/fix PRs use `closes #N`,
-#    so GitHub auto-closes the linked issue on merge.
+#    linked issue `llmaw:plan-approved` plus `llmaw:create-tasks-decomposition`.
+#    Implementation/fix PRs use `closes #N`, so GitHub auto-closes the linked
+#    issue on merge.
 #
 # Triggered events (declared in the wrapper workflow):
 #   issues: opened | labeled | reopened | closed
@@ -89,6 +111,44 @@ labels:
   - name: llmaw:bug
     description: Triaged as a bug; enters the bug-fix pipeline
     color: D73A4A
+
+  # --- feature: transient "create step" triggers (consumed by the create rule on entry) ---
+  - name: llmaw:create-needs-assessment
+    description: Run create-needs-assessment (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-requirements
+    description: Run create-requirements (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-existing-solutions
+    description: Run create-existing-solutions (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-codebase-analysis
+    description: Run create-codebase-analysis (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-feasibility
+    description: Run create-feasibility (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-specifications
+    description: Run create-specifications (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-telemetry
+    description: Run create-telemetry (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-observability
+    description: Run create-observability (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-plan
+    description: Run create-plan (open plan PR)
+    color: FBCA04
+  - name: llmaw:create-tasks-decomposition
+    description: Run create-tasks-decomposition (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-tests
+    description: Run create-tests (draft or revise)
+    color: FBCA04
+  - name: llmaw:create-implementation
+    description: Run create-implementation (open impl PR)
+    color: FBCA04
 
   # --- feature: transient "artifact drafted, awaiting review" (consumed by the review rule) ---
   - name: llmaw:review-needs-assessment
@@ -191,7 +251,7 @@ flows:
           # Writes verdict: feature | bug | needs-info | other.
           - skill: triage-issue
           - on_outcome:
-              feature:    { labels: { add: [llmaw:feature-request] } }
+              feature:    { labels: { add: [llmaw:feature-request, llmaw:create-needs-assessment] } }
               bug:        { labels: { add: [llmaw:bug] } }
               needs-info: { comment: "Need more information to classify this issue.", post_reason: true }
               other:      {}   # question/chore/docs/security: triaged, no pipeline
@@ -203,11 +263,12 @@ flows:
     rules:
       # --- Stage: needs validation ---
       - id: feat-needs-create
-        when: { event: issues, action: labeled, label: llmaw:feature-request }
+        when: { event: issues, action: labeled, label: llmaw:create-needs-assessment }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-needs-assessment
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft needs assessment"]
+          - labels: { remove: [llmaw:create-needs-assessment] }
           - on_outcome:
               approved:   { labels: { add: [llmaw:review-needs-assessment] } }
               rejected:   { close: true, comment: "Closing as wontfix.", post_reason: true }
@@ -221,18 +282,19 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review needs assessment"]
           - labels: { remove: [llmaw:review-needs-assessment] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:needs-approved] } }
-              changes-requested: { comment: "Needs assessment has findings to address; re-run create to revise.", post_reason: true }
+              approved:          { labels: { add: [llmaw:needs-approved, llmaw:create-requirements] } }
+              changes-requested: { labels: { add: [llmaw:create-needs-assessment] }, comment: "Needs assessment has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: needs assessment rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Needs-assessment review produced no verdict." }
 
       # --- Stage: requirements & research ---
       - id: feat-requirements-create
-        when: { event: issues, action: labeled, label: llmaw:needs-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-requirements }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-requirements
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft requirements"]
+          - labels: { remove: [llmaw:create-requirements] }
           - on_outcome:
               approved:   { labels: { add: [llmaw:review-requirements] } }
               needs-info: { comment: "Need clarification to draft requirements.", post_reason: true }
@@ -245,17 +307,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review requirements"]
           - labels: { remove: [llmaw:review-requirements] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:requirements-approved] } }
-              changes-requested: { comment: "Requirements have findings to address; re-run create to revise.", post_reason: true }
+              approved:          { labels: { add: [llmaw:requirements-approved, llmaw:create-existing-solutions] } }
+              changes-requested: { labels: { add: [llmaw:create-requirements] }, comment: "Requirements have findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: requirements rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Requirements review produced no verdict." }
 
       - id: feat-existing-solutions-create
-        when: { event: issues, action: labeled, label: llmaw:requirements-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-existing-solutions }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-existing-solutions
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft existing-solutions survey"]
+          - labels: { remove: [llmaw:create-existing-solutions] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-existing-solutions] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Existing-solutions survey produced no verdict; needs review." }
@@ -267,17 +330,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review existing-solutions survey"]
           - labels: { remove: [llmaw:review-existing-solutions] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:solutions-approved] } }
-              changes-requested: { comment: "Existing-solutions survey has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:solutions-approved, llmaw:create-codebase-analysis] } }
+              changes-requested: { labels: { add: [llmaw:create-existing-solutions] }, comment: "Existing-solutions survey has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: existing-solutions survey rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Existing-solutions review produced no verdict." }
 
       - id: feat-codebase-analysis-create
-        when: { event: issues, action: labeled, label: llmaw:solutions-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-codebase-analysis }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-codebase-analysis
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft codebase analysis"]
+          - labels: { remove: [llmaw:create-codebase-analysis] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-codebase-analysis] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Codebase analysis produced no verdict; needs review." }
@@ -289,17 +353,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review codebase analysis"]
           - labels: { remove: [llmaw:review-codebase-analysis] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:analysis-approved] } }
-              changes-requested: { comment: "Codebase analysis has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:analysis-approved, llmaw:create-feasibility] } }
+              changes-requested: { labels: { add: [llmaw:create-codebase-analysis] }, comment: "Codebase analysis has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: codebase analysis rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Codebase-analysis review produced no verdict." }
 
       - id: feat-feasibility-create
-        when: { event: issues, action: labeled, label: llmaw:analysis-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-feasibility }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-feasibility
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft feasibility assessment"]
+          - labels: { remove: [llmaw:create-feasibility] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-feasibility] } }
               rejected: { close: true, comment: "Closing as not feasible.", post_reason: true }
@@ -312,18 +377,19 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review feasibility assessment"]
           - labels: { remove: [llmaw:review-feasibility] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:feasible] } }
-              changes-requested: { comment: "Feasibility assessment has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:feasible, llmaw:create-specifications] } }
+              changes-requested: { labels: { add: [llmaw:create-feasibility] }, comment: "Feasibility assessment has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: feasibility rejected (no-go).", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Feasibility review produced no verdict." }
 
       # --- Stage: design ---
       - id: feat-specification-create
-        when: { event: issues, action: labeled, label: llmaw:feasible }
+        when: { event: issues, action: labeled, label: llmaw:create-specifications }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-specifications
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft specification"]
+          - labels: { remove: [llmaw:create-specifications] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-specifications] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Specification produced no verdict; needs review." }
@@ -335,17 +401,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review specification"]
           - labels: { remove: [llmaw:review-specifications] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:spec-approved] } }
-              changes-requested: { comment: "Specification has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:spec-approved, llmaw:create-telemetry] } }
+              changes-requested: { labels: { add: [llmaw:create-specifications] }, comment: "Specification has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: specification rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Specification review produced no verdict." }
 
       - id: feat-telemetry-create
-        when: { event: issues, action: labeled, label: llmaw:spec-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-telemetry }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-telemetry
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft telemetry plan"]
+          - labels: { remove: [llmaw:create-telemetry] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-telemetry] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Telemetry plan produced no verdict; needs review." }
@@ -357,17 +424,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review telemetry plan"]
           - labels: { remove: [llmaw:review-telemetry] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:telemetry-approved] } }
-              changes-requested: { comment: "Telemetry plan has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:telemetry-approved, llmaw:create-observability] } }
+              changes-requested: { labels: { add: [llmaw:create-telemetry] }, comment: "Telemetry plan has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: telemetry plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Telemetry review produced no verdict." }
 
       - id: feat-observability-create
-        when: { event: issues, action: labeled, label: llmaw:telemetry-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-observability }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-observability
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft observability plan"]
+          - labels: { remove: [llmaw:create-observability] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-observability] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Observability plan produced no verdict; needs review." }
@@ -379,20 +447,21 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review observability plan"]
           - labels: { remove: [llmaw:review-observability] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:observability-approved] } }
-              changes-requested: { comment: "Observability plan has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:observability-approved, llmaw:create-plan] } }
+              changes-requested: { labels: { add: [llmaw:create-observability] }, comment: "Observability plan has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: observability plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Observability review produced no verdict." }
 
       # --- Stage: plan (PR is the human sign-off gate) ---
       - id: feat-plan
-        when: { event: issues, action: labeled, label: llmaw:observability-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-plan }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           # create-plan then publish-plan opens a draft plan/ PR. Its merge
           # (on-plan-merged) advances the flow, so approved is a no-op here.
           - skill: create-plan
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft plan"]
+          - labels: { remove: [llmaw:create-plan] }
           - on_outcome:
               approved: {}
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan creation produced no PR; needs review." }
@@ -401,15 +470,16 @@ flows:
       - id: on-plan-merged
         when: { event: pull_request, action: closed, merged: true, branch_prefix: plan/ }
         run:
-          - labels: { add: [llmaw:plan-approved], target: linked-issue }
+          - labels: { add: [llmaw:plan-approved, llmaw:create-tasks-decomposition], target: linked-issue }
 
       # --- Stage: build ---
       - id: feat-tasks-create
-        when: { event: issues, action: labeled, label: llmaw:plan-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-tasks-decomposition }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-tasks-decomposition
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft task decomposition"]
+          - labels: { remove: [llmaw:create-tasks-decomposition] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tasks-decomposition] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Task decomposition produced no verdict; needs review." }
@@ -421,17 +491,18 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review task decomposition"]
           - labels: { remove: [llmaw:review-tasks-decomposition] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:tasks-approved] } }
-              changes-requested: { comment: "Task decomposition has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:tasks-approved, llmaw:create-tests] } }
+              changes-requested: { labels: { add: [llmaw:create-tasks-decomposition] }, comment: "Task decomposition has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: task decomposition rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Task-decomposition review produced no verdict." }
 
       - id: feat-tests-create
-        when: { event: issues, action: labeled, label: llmaw:tasks-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-tests }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-tests
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft test plan"]
+          - labels: { remove: [llmaw:create-tests] }
           - on_outcome:
               approved: { labels: { add: [llmaw:review-tests] } }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Test plan produced no verdict; needs review." }
@@ -443,13 +514,13 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review test plan"]
           - labels: { remove: [llmaw:review-tests] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:tests-approved] } }
-              changes-requested: { comment: "Test plan has findings to address.", post_reason: true }
+              approved:          { labels: { add: [llmaw:tests-approved, llmaw:create-implementation] } }
+              changes-requested: { labels: { add: [llmaw:create-tests] }, comment: "Test plan has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: test plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Test-plan review produced no verdict." }
 
       - id: feat-implementation
-        when: { event: issues, action: labeled, label: llmaw:tests-approved }
+        when: { event: issues, action: labeled, label: llmaw:create-implementation }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           # create-implementation opens an impl/ PR. Its merge (on-impl-merged)
@@ -457,6 +528,7 @@ flows:
           # review-pr (see the review flow, on ready_for_review).
           - skill: create-implementation
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft implementation"]
+          - labels: { remove: [llmaw:create-implementation] }
           - on_outcome:
               approved: {}
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Implementation produced no PR; needs review." }
