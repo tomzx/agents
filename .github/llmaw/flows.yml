@@ -34,7 +34,8 @@
 #       ... telemetry, observability ...
 #       [create-observability]      -> review-observability
 #         -> observability-approved + create-plan
-#       [create-plan] (plan PR) --merge--> plan-approved + create-tasks-decomposition
+#       [create-plan]               -> review-plan
+#         -> publish-plan (plan PR) --merge--> plan-approved + create-tasks-decomposition
 #       [create-tasks-decomposition]-> review-tasks-decomposition
 #         -> tasks-approved + create-tests
 #       [create-tests]              -> review-tests
@@ -79,10 +80,11 @@
 #    .sdlc/ artifact chain, since the engine is stateless and each rule run
 #    starts from a fresh checkout. The branch name is derived from ISSUE_NUMBER,
 #    so no separate state is needed to locate it. Phases that open their own PR
-#    (create-plan, create-implementation) still read upstream artifacts from the
+#    (publish-plan, create-implementation) still read upstream artifacts from the
 #    working branch; commit-sdlc no-ops if the skill switched to its PR branch.
-#  - The plan PR is the publish-plan human sign-off gate: merging it labels the
-#    linked issue `llmaw:plan-approved` plus `llmaw:create-tasks-decomposition`.
+#  - The plan PR is the publish-plan human sign-off gate (gated upstream by
+#    review-plan): merging it labels the linked issue `llmaw:plan-approved` plus
+#    `llmaw:create-tasks-decomposition`.
 #    Implementation/fix PRs use `closes #N`, so GitHub auto-closes the linked
 #    issue on merge.
 #
@@ -138,7 +140,10 @@ labels:
     description: Run create-observability (draft or revise)
     color: FBCA04
   - name: llmaw:create-plan
-    description: Run create-plan (open plan PR)
+    description: Run create-plan (draft or revise)
+    color: FBCA04
+  - name: llmaw:publish-plan
+    description: Run publish-plan (open plan PR)
     color: FBCA04
   - name: llmaw:create-tasks-decomposition
     description: Run create-tasks-decomposition (draft or revise)
@@ -174,6 +179,9 @@ labels:
     color: FBCA04
   - name: llmaw:review-observability
     description: Observability plan drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-plan
+    description: Plan drafted; awaiting review
     color: FBCA04
   - name: llmaw:review-tasks-decomposition
     description: Task decomposition drafted; awaiting review
@@ -452,19 +460,40 @@ flows:
               rejected:          { close: true, comment: "Closing: observability plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Observability review produced no verdict." }
 
-      # --- Stage: plan (PR is the human sign-off gate) ---
-      - id: feat-plan
+      # --- Stage: plan (create -> review -> publish PR as human sign-off gate) ---
+      - id: feat-plan-create
         when: { event: issues, action: labeled, label: llmaw:create-plan }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
-          # create-plan then publish-plan opens a draft plan/ PR. Its merge
-          # (on-plan-merged) advances the flow, so approved is a no-op here.
           - skill: create-plan
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft plan"]
           - labels: { remove: [llmaw:create-plan] }
           - on_outcome:
+              approved: { labels: { add: [llmaw:review-plan] } }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan creation produced no verdict; needs review." }
+      - id: feat-plan-review
+        when: { event: issues, action: labeled, label: llmaw:review-plan }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          - skill: review-plan
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review plan"]
+          - labels: { remove: [llmaw:review-plan] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:publish-plan] } }
+              changes-requested: { labels: { add: [llmaw:create-plan] }, comment: "Plan has findings to address; revising.", post_reason: true }
+              rejected:          { close: true, comment: "Closing: plan rejected.", post_reason: true }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Plan review produced no verdict." }
+      - id: feat-plan-publish
+        when: { event: issues, action: labeled, label: llmaw:publish-plan }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          # publish-plan opens a draft plan/ PR. Its merge (on-plan-merged)
+          # advances the flow, so approved is a no-op here.
+          - skill: publish-plan
+          - labels: { remove: [llmaw:publish-plan] }
+          - on_outcome:
               approved: {}
-              _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan creation produced no PR; needs review." }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan publish produced no PR; needs review." }
 
       # publish-plan gate: plan PR merged -> advance the linked issue.
       - id: on-plan-merged
