@@ -82,9 +82,13 @@
 #    so no separate state is needed to locate it. Phases that open their own PR
 #    (publish-plan, create-implementation) still read upstream artifacts from the
 #    working branch; commit-sdlc no-ops if the skill switched to its PR branch.
-#  - The plan PR is the publish-plan human sign-off gate (gated upstream by
-#    review-plan): merging it labels the linked issue `llmaw:plan-approved` plus
-#    `llmaw:create-tasks-decomposition`.
+#    The working branch only ever carries WORK PRODUCT (.sdlc/ artifacts, code
+#    edits). The tooling that drives the flow (this file + the scripts under
+#    .github/llmaw/scripts/) is pinned to main by the dispatcher via
+#    $LLMAW_TOOLING_ROOT, so it always runs from main regardless of what the
+#    branch carries (and fixes apply to in-flight issues the moment they land).
+#  - The plan PR is the publish-plan human sign-off gate: merging it labels the
+#    linked issue `llmaw:plan-approved` plus `llmaw:create-tasks-decomposition`.
 #    Implementation/fix PRs use `closes #N`, so GitHub auto-closes the linked
 #    issue on merge.
 #
