@@ -111,7 +111,7 @@ reason: <one sentence>  # optional
 
 Rules:
 
-- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. For `create-*` artifact skills the verdict mirrors the `status` written to the artifact frontmatter (`approved` on success).
+- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching `review-*` skill later promotes the artifact `status` to `approved`.
 - If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
 - This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
