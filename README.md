@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-123+-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-127-green" alt="Skill count">
 </p>
 
 ## What
@@ -26,17 +26,211 @@ Prompting the same workflow by hand every session is slow, inconsistent, and eas
 
 The library is organized into thematic groups covering the full software development lifecycle and surrounding knowledge work.
 
-- **SDLC pipeline**, an end-to-end orchestrator and its stages: `/sdlc`, `/sdlc-status`, `/backpropagate-sdlc` (reverse traceability checker), plus `create-*`, `review-*`, `qualify-issue`, `reproduce-issue`, `fix-issue`, `publish-plan`, `create-tasks-decomposition`, and the `initialize-sdlc-directory` / `sync-sdlc` / `update-sdlc-templates` bootstrap skills.
-- **GitHub issues and PRs**: `create-issue`, `review-issue`, `triage-issues`, `triage-issue` (single-issue core, for event-driven triage), `prioritize-issues`, `label-issue`, `search-existing-issues`, `check-duplicates`, `configure-labels`, `handle-issue-comment`, `create-pr`, `create-pr-description`, `update-pr-description`, `review-pr`, `quick-pr-review`, `quick-pr-reviews`, `handle-pr-comment`, `handle-pr-ci`, `handle-pr-feedback`, `merge-pr`, `validate-pr`, `verify-pr`, `deploy-pr`, and `observe-production`.
-- **Code quality audits**: `audit-dependencies`, `audit-observability`, `audit-sdlc`, `audit-security`, `analyze-git-churn`, `find-code-duplication`, `find-complexity-hotspots`, `find-coverage-gaps`, `find-dead-code`, `find-documentation-gaps`, `find-type-gaps`.
-- **Daily, weekly, and monthly cadence**: `start-day`/`start-week`/`start-month`, `end-day`/`end-week`/`end-month`, `end-of-{day,week,month}-{review,summary}`, `what-to-demo`, `sprint-retro`, `summarize-meeting`.
-- **Slack knowledge bases**: `slack-kb-channel`, `slack-kb-individual`, `kb-organized-memory`, `check-opinion-alignment`, `sync-opinions`.
-- **Documentation and writing**: `create-documentation`, `divio-documentation`, `review-documentation`, `setup-docs-site`, `write-article`, `write-readme`, `write-message`, `write-recent-work-and-needs-article`, `review-article`.
-- **Memory and reflection**: `para-memory-files`, `improve-autonomy`, `automate-session`, `identify-skill-gaps`, `session-review`, `create-learnings`, `create-decision`, `create-assumption`, `review-learnings`, `review-decision`, `review-assumption`.
-- **Developer profiles**: `describe-colleague`, `developer-trust-profile`, `initialize-developer-trust-profile`, `user-code-familiarity`.
-- **Research**: `arxiv-article`, `arxiv-catchup`, `create-existing-solutions`, `review-existing-solutions`, `create-feasibility`, `review-feasibility`.
-- **Repository onboarding and tooling**: `onboard-repository`, `compare-skills`, `review-skills`, `directory-to-spec`, `sync-repository`, `gh-cached`, `ghx`, `github-post-attribution`, `pr-review-send`, `worktrunk`.
-- **Conventions**: `AGENTS.md` (symlinked as `CLAUDE.md`) codifies house style for Python, prose, and commit hygiene, and is picked up automatically by opencode. Per-repository overrides live in `repositories/{owner}/{repository}/AGENTS.md` and are applied automatically without touching the target repository.
+### SDLC Pipeline (orchestration)
+
+| Skill | Purpose |
+|-------|---------|
+| `/sdlc` | Run the full lifecycle pipeline, from issue creation through learnings capture. |
+| `/sdlc-status` | Display a progress dashboard for SDLC features from `.sdlc/` directory data. |
+| `/backpropagate-sdlc` | Walk the artifact chain in reverse to verify end-to-end traceability. |
+| `/initialize-sdlc-directory` | Bootstrap the `.sdlc/` directory structure in a project. |
+| `/sync-sdlc` | Analyze code and reconcile it with the `.sdlc/` directory. |
+| `/update-sdlc-templates` | Update `.sdlc/templates/` with the latest canonical practices. |
+
+### Issue & Requirements
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-issue` | Create a GitHub issue with background, criteria, and time budget. |
+| `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
+| `/create-requirements` | Draft a requirements document from a feature brief or issue. |
+| `/review-requirements` | Review requirements for clarity, completeness, and testability. |
+| `/qualify-issue` | Drive a Q&A loop with a reporter to gather enough information. |
+| `/reproduce-issue` | Reproduce a bug reported in a GitHub issue. |
+| `/fix-issue` | Orchestrate a bug fix from issue to PR. |
+| `/check-duplicates` | Check for duplicate issues and existing fix PRs. |
+| `/triage-issue` | Classify and label a single GitHub issue. |
+| `/triage-issues` | Classify and label incoming GitHub issues. |
+| `/label-issue` | Add relevant labels to an issue based on its description. |
+| `/prioritize-issues` | Score and rank a backlog by reach, impact, confidence, and effort. |
+| `/configure-labels` | Configure the standard label set in a GitHub repository. |
+| `/handle-issue-comment` | Reply to a comment on a GitHub issue. |
+
+### Design & Research
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-needs-assessment` | Evaluate whether a proposed feature addresses a genuine need. |
+| `/review-needs-assessment` | Review a needs assessment for evidence rigor and completeness. |
+| `/create-feasibility` | Assess technical, financial, and operational viability. |
+| `/review-feasibility` | Review a feasibility assessment for risk coverage and soundness. |
+| `/create-existing-solutions` | Survey existing solutions and recommend adopt, extend, or build. |
+| `/review-existing-solutions` | Review a solutions survey for rigor and soundness. |
+| `/create-codebase-analysis` | Analyze code a feature will touch and assess changeability. |
+| `/review-codebase-analysis` | Review a codebase analysis for coverage, accuracy, and rigor. |
+| `/arxiv-article` | Download an arXiv article and return a structured summary. |
+| `/arxiv-catchup` | Fetch new arXiv cs.AI papers since the last processed date. |
+
+### Specifications & Plan
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-specifications` | Create a technical specification from requirements. |
+| `/review-specifications` | Review a specification for ambiguities and missing information. |
+| `/create-plan` | Create an implementation plan with phases, milestones, and risks. |
+| `/review-plan` | Review a plan for completeness, feasibility, and risk coverage. |
+| `/publish-plan` | Commit a plan to a branch and open a draft PR. |
+| `/create-tasks-decomposition` | Decompose a plan into discrete, actionable tasks. |
+| `/review-tasks-decomposition` | Review a task decomposition for granularity and clarity. |
+
+### Implementation & Testing
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-implementation` | Implement a feature following the specification and plan. |
+| `/review-implementation` | Review implementation for correctness, quality, and spec alignment. |
+| `/create-tests` | Create a test plan and test cases covering criteria and edge cases. |
+| `/review-tests` | Review a test suite for coverage, quality, and maintainability. |
+
+### GitHub Pull Requests
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-pr` | Create a PR with a structured description linked to its issue. |
+| `/review-pr` | Conduct a comprehensive code review of a PR. |
+| `/create-pr-description` | Generate a PR description based on changes. |
+| `/update-pr-description` | Update a PR description after new commits. |
+| `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
+| `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
+| `/handle-pr-comment` | Reply to a comment on a PR. |
+| `/handle-pr-feedback` | Respond to developer comments, implement or explain, then push. |
+| `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
+| `/merge-pr` | Check approval and CI, then merge and clean up. |
+| `/validate-pr` | Checkout, build, run, and validate claims via runtime proof. |
+| `/verify-pr` | Static code inspection after runtime validation. |
+| `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
+| `/gh-cached` | Browse issues and PRs with local disk caching. |
+| `/ghx` | Extended CLI for inline review comments, thread replies, stashes. |
+| `/github-post-attribution` | Format attribution footers for skill-generated posts. |
+| `/pr-review-send` | Send review comments to GitHub. |
+
+### Documentation & Writing
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-documentation` | Create documentation following the Divio framework. |
+| `/review-documentation` | Review docs for completeness, accuracy, clarity, and usability. |
+| `/divio-documentation` | Comprehensive reference for writing in the Divio/Diataxis system. |
+| `/setup-docs-site` | Scaffold a MkDocs site with Material theme and GitHub Actions. |
+| `/research-article` | Research a topic to map the state of the art and gather sources. |
+| `/create-article` | Write a high-quality article for a given audience and sources. |
+| `/review-article` | Review an article for accuracy, clarity, structure, and fit. |
+| `/create-readme` | Generate a README with badges, feature list, and setup. |
+| `/create-message` | Improve a message by removing negative tone. |
+| `/write-recent-work-and-needs-article` | Write a personal status article about recent work and needs. |
+
+### Observability & Telemetry
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-observability` | Define logging, metrics, tracing, and alerting for a feature. |
+| `/review-observability` | Review an observability plan for completeness and alignment. |
+| `/create-telemetry` | Define analytics events and success metrics for a feature. |
+| `/review-telemetry` | Review a telemetry plan for completeness and measurability. |
+| `/observe-production` | Check SLOs/SLIs, error rates, latency, and throughput. |
+
+### Decisions & Learnings
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-decision` | Record an architectural decision with context and trade-offs. |
+| `/review-decision` | Review a decision record for clarity and reasoning quality. |
+| `/create-assumption` | Record an assumption with its basis, risk, and validation plan. |
+| `/review-assumption` | Review an assumption for specificity and risk assessment. |
+| `/create-learnings` | Capture learnings in a retrospective format. |
+| `/review-learnings` | Review a learnings document for actionability and completeness. |
+| `/session-review` | End-of-session checklist for code quality and design concerns. |
+
+### Code Quality Audits
+
+| Skill | Purpose |
+|-------|---------|
+| `/audit-dependencies` | Audit dependencies for outdated versions and vulnerabilities. |
+| `/audit-security` | Scan for code-level security vulnerabilities. |
+| `/audit-observability` | Identify missing logging, metrics, tracing, and alerting. |
+| `/audit-attention` | Audit time split between compounding and depreciating activities. |
+| `/audit-sdlc` | Run multiple audits and produce a unified findings report. |
+| `/analyze-git-churn` | Identify high-churn files from git history. |
+| `/find-code-duplication` | Find copy-pasted blocks and near-duplicate logic. |
+| `/find-complexity-hotspots` | Find high cyclomatic complexity and deep nesting. |
+| `/find-coverage-gaps` | Find files with missing or insufficient test coverage. |
+| `/find-dead-code` | Find unused functions, classes, exports, and config keys. |
+| `/find-documentation-gaps` | Find public APIs and modules lacking documentation. |
+| `/find-type-gaps` | Find functions and modules missing type annotations. |
+| `/review-skills` | Audit the skill directory for duplicates and broken references. |
+
+### Daily / Weekly / Monthly Cadence
+
+| Skill | Purpose |
+|-------|---------|
+| `/start-day` | Open the workday grounded in yesterday's plan. |
+| `/end-day` | Close the workday with summaries and next-day standup. |
+| `/end-of-day-review` | Reflective review for alignment with goals. |
+| `/end-of-day-summary` | Summarize GitHub and Slack activity for the day. |
+| `/start-week` | Open the week with themes and outcomes. |
+| `/end-week` | Summarize the week and run the attention audit. |
+| `/end-of-week-review` | Reflective review covering goals, attention, and team health. |
+| `/end-of-week-summary` | Summarize weekly Slack activity and action items. |
+| `/start-month` | Open the month with a theme and outcomes. |
+| `/end-month` | Close the month with summaries, action items, and thanks. |
+| `/end-of-month-review` | Review OKR progress and strategic focus. |
+| `/end-of-month-summary` | Summarize monthly GitHub and Slack activity. |
+| `/what-to-demo` | Review notes to determine what to demo. |
+| `/sprint-retro` | Generate a sprint retrospective. |
+| `/summarize-meeting` | Produce a meeting summary from a transcript. |
+
+### Slack Knowledge Bases
+
+| Skill | Purpose |
+|-------|---------|
+| `/slack-kb-channel` | Build a channel knowledge base for a given month. |
+| `/slack-kb-individual` | Collect conversations a person participated in. |
+| `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |
+
+### Memory & Automation
+
+| Skill | Purpose |
+|-------|---------|
+| `/improve-autonomy` | Assess what would be needed to run the session autonomously. |
+| `/automate-session` | Surface ways the workflow could have been automated. |
+| `/identify-skill-gaps` | Find workflows not yet encoded as skills. |
+| `/git-commit` | Generate a commit message from changes. |
+| `/git-commit-staged` | Generate a commit message from staged changes. |
+
+### Developer Profiles
+
+| Skill | Purpose |
+|-------|---------|
+| `/describe-colleague` | Profile a colleague from Slack and GitHub activity. |
+| `/developer-trust-profile` | Manage a developer trust profile for a GitHub user. |
+| `/initialize-developer-trust-profile` | Bootstrap a trust profile from recent PRs. |
+| `/user-code-familiarity` | Build a familiarity profile from GitHub contributions. |
+
+### Repository & Tooling
+
+| Skill | Purpose |
+|-------|---------|
+| `/onboard-repository` | Bootstrap SDLC, triaging, and standardization. |
+| `/compare-skills` | Compare skill directories and identify practices to adopt. |
+| `/directory-to-spec` | Create a spec directory for code in the current directory. |
+| `/sync-repository` | Keep SDLC, code, tests, and docs consistent. |
+| `/worktrunk` | Guidance for Worktrunk CLI -- worktree management and hooks. |
+| `/gws-pull-transcripts` | Pull Google Meet transcripts from Google Drive. |
+| `/vacation-handoff` | Generate a handoff covering deadlines and in-flight work. |
+
+### Conventions
+
+In addition to skills, the repository includes an `AGENTS.md` (symlinked as `CLAUDE.md`) that codifies house style for Python, prose, and commit hygiene, and is picked up automatically by opencode. Per-repository overrides live in `repositories/{owner}/{repository}/AGENTS.md` and are applied automatically without touching the target repository.
 
 ## Out of Scope
 
@@ -83,7 +277,7 @@ Once linked, skills appear as slash commands. Try a few:
 /review-pr 42
 ```
 
-To add your own skill, create a new directory under `skills/` with a `SKILL.md` containing front matter (`name`, `description`) and a body of steps, then re-run opencode. Use `/write-readme` to bootstrap documentation and `/review-skills` to audit the library for duplicates and broken references.
+To add your own skill, create a new directory under `skills/` with a `SKILL.md` containing front matter (`name`, `description`) and a body of steps, then re-run opencode. Use `/create-readme` to bootstrap documentation and `/review-skills` to audit the library for duplicates and broken references.
 
 ## License
 
