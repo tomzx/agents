@@ -1,12 +1,12 @@
 ---
 name: research-article
-description: Research a topic to map the state of the art, gathering and triaging sources before writing an article. Produces a research brief with organized sources, key findings, and identified gaps that feeds into write-article.
+description: Research a topic to map the state of the art, gathering and triaging sources before writing an article. Produces a research brief with organized sources, key findings, and identified gaps that feeds into create-article.
 ---
 
 # Research Article
 
 Given a topic, discovers what the state of the art is by searching broadly, triaging sources, deep-reading the strongest ones, and synthesizing the landscape.
-The output is a research brief that becomes the input to `/write-article`, so the writing step can focus on craft rather than discovery.
+The output is a research brief that becomes the input to `/create-article`, so the writing step can focus on craft rather than discovery.
 
 ## Prerequisites
 
@@ -168,8 +168,8 @@ Recommend an article that explains CRDTs and honestly covers their limitations.
 
 ## Next Step
 
-Run `/write-article`, passing the key sources from this brief and the recommended core insight and angle.
-The research brief is the "relevant sources" prerequisite for `/write-article`, so the writing step can focus on structure, tone, and audience calibration rather than on finding material.
+Run `/create-article`, passing the key sources from this brief and the recommended core insight and angle.
+The research brief is the "relevant sources" prerequisite for `/create-article`, so the writing step can focus on structure, tone, and audience calibration rather than on finding material.
 
 After the article is drafted, run `/review-article` to audit it for accuracy, sourcing, and clarity.
 
