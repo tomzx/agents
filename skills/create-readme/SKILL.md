@@ -1,5 +1,5 @@
 ---
-name: write-readme
+name: create-readme
 description: Generate a README.md for a project using a structured template with badges, feature lists, roadmap, and setup instructions.
 argument-hint: "[project directory or repository name]"
 ---

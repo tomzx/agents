@@ -1,5 +1,5 @@
 ---
-name: write-message
+name: create-message
 description: Improve a message the user wants to send by removing negative tone, providing positive formulation, and adding actionable suggestions when relevant.
 ---
 
