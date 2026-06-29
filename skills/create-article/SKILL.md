@@ -39,6 +39,11 @@ If sources are not yet gathered, run `/research-article` first to discover the s
   in **bold** so readers scanning the article still capture the core message. Be selective: bold
   sentences or phrases that carry the argument, not routine sentences. Avoid bolding more than one
   statement per paragraph on average.
+- **Plain vocabulary**: Prefer common, everyday words over less frequent synonyms, so the article is
+  easy to read (for example, "use" over "utilize", "help" over "facilitate", "show" over "elucidate").
+  Keep technical terms where they are the precise and expected choice; the goal is to avoid uncommon
+  or showy words, not to lose precision. Calibrate this to the audience: write simpler for general
+  readers, and allow more domain terms for expert readers.
 
 ## Audience Calibration
 
@@ -121,6 +126,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Restating the same point in multiple sections
 - Ending with "In conclusion, we have seen that..."
 - Em-dash sentence structures; use commas or parentheses instead
+- Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
 
 ## Output Format
 
