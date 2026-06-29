@@ -125,6 +125,7 @@ Cross-cutting records (invoke at any point in any flow)
   /review-assumption      Audit specificity, basis quality, risk, validation adequacy
   /create-decision        Record an architectural/implementation decision with context
   /review-decision        Audit clarity, reasoning quality, consequence coverage
+  /supersede-decision     Mark a decision as superseded by a newer one (old-decision new-decision)
 
 Maintenance (entry: maintenance — run periodically, independent of any feature)
 
@@ -558,6 +559,7 @@ Each phase consumes output from the previous phase:
 | review-assumption | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` | Findings (improve basis, risk, validation) |
 | create-decision | Any phase context | `.sdlc/knowledge/decisions/NNNN-<slug>.md` |
 | review-decision | `.sdlc/knowledge/decisions/NNNN-<slug>.md` | Findings (improve clarity, reasoning, consequences) |
+| supersede-decision | Two decisions under `.sdlc/knowledge/decisions/` | Old decision marked `Superseded by [NNNN]`; new decision annotated with reverse link |
 | observe-production | Deployed service + observability tools | Health report: SLO status, error rates, latency, throughput, alerts triggered |
 | audit-observability | Codebase + running service | Gaps report: missing logs, metrics, traces, alerts for production services |
 

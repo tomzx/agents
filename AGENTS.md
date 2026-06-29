@@ -27,3 +27,4 @@
 # SDLC skills
 * The conventions shared across every SDLC skill live in a single file: `skills/sdlc/references/shared.md`, resolved relative to the skills library root (the same root as the `repositories/` directory above).
 * Before running any skill that reads or writes under `.sdlc/`, read that file and apply its conventions — they are not repeated in each skill. This covers reading `.sdlc/context/` for artifact style rules and resolving all `.sdlc/` paths via the repo-first `SDLC_DIR` fallback.
+* When creating or renaming a skill, update `README.md` (the skills index) and `.github/llmaw/flows.yml` (if the skill participates in an automated flow) so both stay in sync with the skill directory.
