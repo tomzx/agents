@@ -24,6 +24,11 @@
 * If `repositories/{owner}/{repository}/AGENTS.md` exists, read and apply it together with these base instructions.
 * For forks, symlink `repositories/{fork-owner}/{repository}` to the upstream `repositories/{owner}/{repository}` so both resolve to the same instructions.
 
+# GitHub CLI
+* Prefer `gh-cached` over `gh` for listing, searching, and viewing issues and PRs.
+* Prefer `ghx` over `gh` for getting and posting comments (inline, line-range, thread replies, issue and PR comments).
+* Fall back to `gh` only when `gh-cached` or `ghx` do not support the needed operation.
+
 # SDLC skills
 * The conventions shared across every SDLC skill live in a single file: `skills/sdlc/references/shared.md`, resolved relative to the skills library root (the same root as the `repositories/` directory above).
 * Before running any skill that reads or writes under `.sdlc/`, read that file and apply its conventions — they are not repeated in each skill. This covers reading `.sdlc/context/` for artifact style rules and resolving all `.sdlc/` paths via the repo-first `SDLC_DIR` fallback.
