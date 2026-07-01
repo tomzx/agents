@@ -25,9 +25,8 @@
 * For forks, symlink `repositories/{fork-owner}/{repository}` to the upstream `repositories/{owner}/{repository}` so both resolve to the same instructions.
 
 # GitHub CLI
-* Prefer `gh-cached` over `gh` for listing, searching, and viewing issues and PRs.
-* Prefer `ghx` over `gh` for getting and posting comments (inline, line-range, thread replies, issue and PR comments).
-* Fall back to `gh` only when `gh-cached` or `ghx` do not support the needed operation.
+* Prefer `ghx` over `gh` for listing, searching, and viewing issues and PRs, and for getting and posting comments (inline, line-range, thread replies, issue and PR comments).
+* Fall back to `gh` only when `ghx` does not support the needed operation (e.g. `gh search repos` for repository search).
 
 # SDLC skills
 * The conventions shared across every SDLC skill live in a single file: `skills/sdlc/references/shared.md`, resolved relative to the skills library root (the same root as the `repositories/` directory above).

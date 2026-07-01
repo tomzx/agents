@@ -1,7 +1,7 @@
 ---
 name: create-pr
 description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment.
-allowed-tools: Bash(gh:*, git:*, gh-cached:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[repository] [issue-number]"
 ---
 
@@ -71,7 +71,7 @@ Assign reviewers (if known)
 
 4. If `$1` (repository) and `$2` (issue number) are provided, fetch the issue:
    ```
-   gh-cached issue view $2 --repo $1
+   ghx issue view $2 --repo $1
    ```
    Map each acceptance criterion to the changes in the diff.
    Note any ACs not yet addressed (to call out in the description).
@@ -164,6 +164,6 @@ Close the loop with `/create-learnings` after the feature is merged.
 |---|---|
 | `git log origin/<base>..HEAD --oneline` | List commits ahead of the base branch |
 | `git diff $(git merge-base HEAD origin/main)..HEAD` | Diff against the merge base |
-| `gh-cached issue view <number> --repo <owner/repo>` | Fetch issue details (cached) |
+| `ghx issue view <number> --repo <owner/repo>` | Fetch issue details (cached) |
 | `gh pr create --repo <repo> --title "..." --body "..." [--draft]` | Open the pull request |
 | `gh pr edit <number> --add-reviewer <handle>` | Assign a reviewer after creation |

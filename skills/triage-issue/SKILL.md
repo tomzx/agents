@@ -1,7 +1,7 @@
 ---
 name: triage-issue
 description: Classify and label a single GitHub issue by type, component, platform, provider, urgency, and importance.
-allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
 argument-hint: "<issue-number> [repository]"
 ---
 
@@ -345,7 +345,7 @@ Use the closest match from the repo's label set.
    Parse labels into the dimension catalogs described in the Label Discovery section.
 4. Read the issue's full description and comments:
    ```
-   gh-cached issue view $1 [--repo $2] --comments
+   ghx issue view $1 [--repo $2] --comments
    ```
    If the issue already has at least one `area:*` label, it is considered triaged. Output "Already triaged" and stop without modifying the issue.
 5. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
@@ -374,7 +374,7 @@ Use the closest match from the repo's label set.
     - Check the issue's existing comments for a prior duplicate comment from the current authenticated user or any bot account. If found, skip duplicate detection entirely.
     - Compare the issue against all other issues (open and closed):
       ```
-      gh-cached issue list [--repo $2] --state all --json
+      ghx issue list [--repo $2] --state all --json
       ```
     - Use the detection signals from the Duplicate Detection section (require at least 2 signals to flag)
     - Skip if the issue already has a `duplicate` label or a maintainer has already linked it
@@ -442,8 +442,8 @@ User lacks triage permissions on a public repo. Issue #88 reports the same crash
 | `gh api graphql -f query='{ repository(owner:"<o>", name:"<r>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'` | Fetch available issue types and fields |
 | `gh label list [--repo <repo>] --limit 100 --json name,description` | Fetch repo labels for dimension discovery |
 | `gh label create "area:<name>" [--repo <repo>] --description "<desc>" --color "<hex>"` | Create a new area label |
-| `gh-cached issue view <number> [--repo <repo>] --comments` | Read issue details and comments (cached) |
-| `gh-cached issue list [--repo <repo>] --state all --json` | Fetch full issue corpus for duplicate comparison |
+| `ghx issue view <number> [--repo <repo>] --comments` | Read issue details and comments (cached) |
+| `ghx issue list [--repo <repo>] --state all --json` | Fetch full issue corpus for duplicate comparison |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get issue node ID for GraphQL mutations |
 | `echo '{"type": "<name>"}' \| gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -` | Set issue type by name |
 | `gh api graphql -f query='mutation($issueId: ID!, $fieldId: ID!, $optionId: ID!) { setIssueFieldValue(input: { issueId: $issueId, issueFields: [{ fieldId: $fieldId, singleSelectOptionId: $optionId }] }) { issue { issueFieldValues(first: 10) { nodes { ... on IssueFieldValueSingleSelect { name field { ... on IssueFieldSingleSelect { name } } } } } } } }' -f issueId=<ID> -f fieldId=<FIELD_ID> -f optionId=<OPTION_ID>` | Set org-level issue field (e.g. Priority) |

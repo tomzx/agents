@@ -120,4 +120,4 @@ Once approved, continue with `/create-codebase-analysis`, which analyzes the int
 | `WebSearch` | Find open-source projects, products, standards, and write-ups |
 | `WebFetch` | Read a candidate's docs, README, license, or release history |
 | `grep` / codebase search | Find existing internal code that already solves part of the problem |
-| `gh-cached search ...` | Search the organization's repositories for prior art (cached) |
+| `gh search repos ...` | Search the organization's repositories for prior art (cached) |

@@ -131,4 +131,4 @@ If approved, continue with `/create-specifications`.
 
 | Command | Description |
 |---|---|
-| `gh-cached issue view <url> --comments` | Fetch issue details and comments (cached) |
+| `ghx issue view <url> --comments` | Fetch issue details and comments (cached) |

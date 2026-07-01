@@ -109,8 +109,7 @@ The library is organized into thematic groups covering the full software develop
 | `/validate-pr` | Checkout, build, run, and validate claims via runtime proof. |
 | `/verify-pr` | Static code inspection after runtime validation. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
-| `/gh-cached` | Browse issues and PRs with local disk caching. |
-| `/ghx` | Extended CLI for inline review comments, thread replies, stashes. |
+| `/ghx` | Browse issues and PRs with local disk caching, and post inline review comments, thread replies, and stashes. |
 | `/github-post-attribution` | Format attribution footers for skill-generated posts. |
 | `/pr-review-send` | Send review comments to GitHub. |
 

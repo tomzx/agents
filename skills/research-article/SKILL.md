@@ -181,4 +181,4 @@ After the article is drafted, run `/review-article` to audit it for accuracy, so
 | `WebFetch` | Deep-read a candidate source and extract its claims |
 | `/arxiv-article <url>` | Download, archive, and summarize a single arXiv paper |
 | `grep` / codebase search | Find how the topic is handled in the local repository, if relevant |
-| `gh-cached search ...` | Search the organization's repositories for prior art or related work |
+| `gh search repos ...` | Search the organization's repositories for prior art or related work |

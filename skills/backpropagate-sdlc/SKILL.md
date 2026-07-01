@@ -128,7 +128,7 @@ For each target feature directory, read every artifact that exists and skip the 
 └── questions.md
 ```
 
-Also resolve the originating GitHub issue number from frontmatter, and read the linked PR if one exists (use `gh-cached pr view` if available, otherwise `gh pr view`).
+Also resolve the originating GitHub issue number from frontmatter, and read the linked PR if one exists (use `ghx pr view` if available, otherwise `gh pr view`).
 
 If a feature directory has no requirements.md and no specification.md, report it as "insufficient artifacts" and skip the reverse walk for that feature.
 
@@ -368,4 +368,4 @@ Focused on one feature. The traceability matrix shows every FR maps cleanly thro
 ## Useful Commands Reference
 
 No direct CLI commands are required.
-The skill optionally invokes `gh-cached pr view` (or `gh pr view`) to read the linked PR, and `gh issue create` when `--create-issues` is set.
+The skill optionally invokes `ghx pr view` (or `gh pr view`) to read the linked PR, and `gh issue create` when `--create-issues` is set.

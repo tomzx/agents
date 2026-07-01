@@ -1,7 +1,7 @@
 ---
 name: reproduce-issue
 description: Reproduce a bug reported in a GitHub issue by creating a worktree, analyzing the codebase, and attempting to trigger the bug.
-allowed-tools: Bash(gh:*, git:*, gh-cached:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 
@@ -60,7 +60,7 @@ Post comment   Post comment
 Fetch the issue details to understand the bug:
 
 ```bash
-gh-cached issue view $ISSUE_NUMBER --repo $REPO
+ghx issue view $ISSUE_NUMBER --repo $REPO
 ```
 
 Extract from the issue:

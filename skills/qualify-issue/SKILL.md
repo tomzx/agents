@@ -1,7 +1,7 @@
 ---
 name: qualify-issue
 description: Drive a multi-round Q&A loop with an external reporter to gather enough information to proceed to requirements.
-allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
 argument-hint: "<issue-url-or-number> [repository]"
 ---
 
@@ -55,7 +55,7 @@ body + signal  as comment
 ### 1. Fetch the issue and full comment history
 
 ```bash
-gh-cached issue view $1 [--repo $2] --comments
+ghx issue view $1 [--repo $2] --comments
 ```
 
 Extract:
@@ -190,6 +190,6 @@ Skips posting new questions, updates issue body, signals qualification complete.
 
 | Command | Description |
 |---|---|
-| `gh-cached issue view <issue> [--repo <repo>] --comments` | Fetch issue and full comment history |
+| `ghx issue view <issue> [--repo <repo>] --comments` | Fetch issue and full comment history |
 | `gh issue edit <issue> [--repo <repo>] --body "..."` | Update the issue body with synthesized content |
 | `gh issue comment <issue> [--repo <repo>] --body "..."` | Post a clarification question comment |

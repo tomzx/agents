@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 description: Orchestrate a bug fix from issue to PR by delegating to reproduce-issue, create-implementation, and create-pr.
-allowed-tools: Bash(gh:*, git:*, gh-cached:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 

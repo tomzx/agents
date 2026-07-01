@@ -155,4 +155,4 @@ If the need is rejected (Not needed), update the issue and stop the pipeline.
 
 | Command | Description |
 |---|---|
-| `gh-cached issue view <url> --comments` | Fetch issue details and comments (cached) |
+| `ghx issue view <url> --comments` | Fetch issue details and comments (cached) |

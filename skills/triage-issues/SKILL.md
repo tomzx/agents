@@ -1,7 +1,7 @@
 ---
 name: triage-issues
 description: Classify and label incoming GitHub issues by type, component, platform, provider, urgency, and importance.
-allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
 argument-hint: "[repository]"
 ---
 
@@ -23,7 +23,7 @@ Use this skill for batch triage of a backlog. For event-driven triage of a singl
 ## Workflow
 
 ```
-List open issues via gh-cached --json
+List open issues via ghx --json
              |
              v
 Filter: exclude issues with area:* labels
@@ -44,7 +44,7 @@ Output combined triage summary
 
 1. List open issues that need triage (those without an `area:` label are considered untriaged), sorted by creation date descending (newest first):
    ```
-   gh-cached issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))] | sort_by(.createdAt) | reverse'
+   ghx issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))] | sort_by(.createdAt) | reverse'
    ```
    This filters out issues that already have at least one `area:` label, as those are considered triaged. Process issues from newest to oldest so that recent issues get triaged first, reflecting current state and receiving timely maintainer attention.
 2. For each issue returned (processing in creation-date order, newest first), invoke the singular skill:
@@ -89,4 +89,4 @@ Triages one specific issue directly. Use this from webhook-triggered flows, GitH
 
 - The label catalog is rebuilt by each `/triage-issue` invocation. In the previous integrated flow, newly created `area:*` labels were cached for reuse within the same run; that intra-run caching is gone in the delegated model. `gh label list` is cheap and the impact is negligible.
 - Duplicate detection inside `triage-issue` still fetches the full open + closed issue corpus for comparison, so the per-issue cost is the same whether triaging one issue or many.
-- If the orchestrator's `gh-cached issue list` call returns a very large backlog, consider invoking `/triage-issue` for the most recent N issues first and reporting the remainder as "deferred" rather than processing hundreds of issues in a single run.
+- If the orchestrator's `ghx issue list` call returns a very large backlog, consider invoking `/triage-issue` for the most recent N issues first and reporting the remainder as "deferred" rather than processing hundreds of issues in a single run.

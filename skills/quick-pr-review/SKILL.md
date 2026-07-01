@@ -66,7 +66,7 @@ Fetch PR metadata + latest commit SHA
 ### 1. Gather PR information
 
 ```bash
-gh-cached pr view $2 --repo $1 --json --refresh
+ghx pr view $2 --repo $1 --json --refresh
 gh pr diff $2 --repo $1
 ```
 
@@ -170,7 +170,7 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 #### Tests pass
 - Check CI status from `statusCheckRollup` in the PR JSON.
 - If any required checks are still **pending** or **in progress** (not yet concluded): wait and re-check rather than treating the PR as ready.
-  - Wait ~60 seconds, then re-fetch the PR JSON with `gh-cached pr view $2 --repo $1 --json --refresh` and re-evaluate `statusCheckRollup`.
+  - Wait ~60 seconds, then re-fetch the PR JSON with `ghx pr view $2 --repo $1 --json --refresh` and re-evaluate `statusCheckRollup`.
   - Repeat until all required checks have concluded (passing, failing, or skipped), up to a maximum of 10 attempts (~10 minutes).
   - If checks are still pending after the maximum attempts: do not approve. Post/update the comment with `[ ] Tests pass` noting that checks did not conclude in time, and report to the user that the review should be re-run once CI completes.
 - Once all required checks have concluded: all required checks must be passing or skipped (not failing).
@@ -489,7 +489,7 @@ If checks never conclude, post comment with `[ ] Tests pass` and do not approve.
 
 | Command | Description |
 |---|---|
-| `gh-cached pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including latest commit, CI status, and author (fresh) |
+| `ghx pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including latest commit, CI status, and author (fresh) |
 | `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
 | `ghx pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |

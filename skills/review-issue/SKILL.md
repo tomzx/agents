@@ -1,7 +1,7 @@
 ---
 name: review-issue
 description: Review a GitHub issue for completeness, clarity, acceptance criteria quality, and time budget defensibility before development begins.
-allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
 argument-hint: "<issue-url-or-number>"
 ---
 
@@ -21,7 +21,7 @@ If findings exist, either proposes an edited issue body in the conversation or p
 
 1. Fetch the issue and its comments:
    ```
-   gh-cached issue view $1 --comments
+   ghx issue view $1 --comments
    ```
 2. Identify the issue type (bug / feature / question / chore).
 3. Evaluate using the checklist below.
@@ -161,6 +161,6 @@ Report under Time Budget. Propose a breakdown such as "schema migration: 2h (new
 
 | Command | Description |
 |---|---|
-| `gh-cached issue view <issue> --comments` | Fetch issue details and comments (cached) |
+| `ghx issue view <issue> --comments` | Fetch issue details and comments (cached) |
 | `gh issue edit <issue> --body "..."` | Update the issue body with improved content |
 | `gh issue comment <issue> --body "..."` | Post a comment requesting clarification from the reporter |

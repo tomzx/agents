@@ -101,7 +101,7 @@ Three comments: one requesting a missing test (implement), one asking for a type
 
 | Command | Description |
 |---|---|
-| `gh-cached pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
+| `ghx pr view <pr-number> --comments --refresh` | Fetch PR details and all review comments (fresh) |
 | `ghx pr threads <pr-number> --ids` | List review threads with IDs for replying |
 | `ghx pr comment <pr-number> --reply-thread <thread-id> --body "..."` | Reply to a specific review thread |
 | `ghx pr comment <pr-number> --body "..."` | Post a top-level reply comment on the PR |

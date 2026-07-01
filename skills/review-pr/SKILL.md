@@ -1,7 +1,7 @@
 ---
 name: review-pr
 description: Conduct a comprehensive code review of a GitHub pull request.
-allowed-tools: Bash(gh:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
@@ -45,10 +45,10 @@ Fetch PR metadata + comments ($1)
 
 ## Setup
 
-Fetch PR information by piping the raw `gh-cached` output directly to a file (do not generate or summarize the content):
+Fetch PR information by piping the raw `ghx` output directly to a file (do not generate or summarize the content):
 ```bash
 mkdir -p "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}"
-gh-cached pr view $1 --repo <owner>/<repository> --comments --refresh > "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md"
+ghx pr view $1 --repo <owner>/<repository> --comments --refresh > "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md"
 ```
 
 ## Pre-Review Checklist
@@ -260,6 +260,6 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 
 | Command | Description |
 |---|---|
-| `gh-cached pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
-| `gh-cached issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
+| `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
+| `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
 | `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |

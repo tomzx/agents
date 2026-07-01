@@ -1,7 +1,7 @@
 ---
 name: check-duplicates
 description: Check a GitHub issue for duplicate issues and existing fix PRs before investing effort.
-allowed-tools: Bash(gh:*, git:*, gh-cached:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 
@@ -31,7 +31,7 @@ If posting a comment about a duplicate, read `../github-post-attribution/SKILL.m
 Fetch the issue details to extract search keywords:
 
 ```bash
-gh-cached issue view $ISSUE_NUMBER --repo $REPO
+ghx issue view $ISSUE_NUMBER --repo $REPO
 ```
 
 Extract keywords from:
@@ -44,7 +44,7 @@ Extract keywords from:
 Using 2-3 different keyword combinations, search for similar open and closed issues:
 
 ```bash
-gh-cached issue list --repo $REPO --search "<keywords>" --state all --limit 10
+ghx issue list --repo $REPO --search "<keywords>" --state all --limit 10
 ```
 
 Exclude the current issue from results.
@@ -71,7 +71,7 @@ EOF
 Search for open PRs that reference this issue:
 
 ```bash
-gh-cached pr list --repo $REPO --search "$ISSUE_NUMBER" --state open --limit 10
+ghx pr list --repo $REPO --search "$ISSUE_NUMBER" --state open --limit 10
 ```
 
 If a fix PR already exists, inform the user and stop. Optionally offer to review it with `/review-pr`.

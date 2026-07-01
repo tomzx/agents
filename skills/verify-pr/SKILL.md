@@ -1,7 +1,7 @@
 ---
 name: verify-pr
 description: Static code inspection of a PR after runtime validation passes. Checks code quality, correctness, architecture alignment, and claim-to-code traceability without building or executing.
-allowed-tools: Bash(gh:*, git:*, gh-cached:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -46,7 +46,7 @@ Post verification report
 ### 1. Fetch PR metadata and diff
 
 ```bash
-gh-cached pr view $PR_NUMBER --repo $REPO --comments --refresh
+ghx pr view $PR_NUMBER --repo $REPO --comments --refresh
 ```
 
 ```bash

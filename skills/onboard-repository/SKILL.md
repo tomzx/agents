@@ -1,7 +1,7 @@
 ---
 name: onboard-repository
 description: Bootstrap SDLC, configure automated issue triaging, and apply standardization skills to bring a repository in line with the practices encoded in this skill library. Run once per repository to establish baseline structure, health assessment, and continuous triage.
-allowed-tools: Bash(gh:*, gh-cached:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[project-root]"
 ---
 

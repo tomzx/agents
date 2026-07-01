@@ -1,7 +1,7 @@
 ---
 name: publish-plan
 description: Commit an implementation plan to a branch, open a draft PR linked to the originating issue, and post a comment on the issue pointing to the PR.
-allowed-tools: Bash(gh:*, gh-cached:*, git:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*), Read, Write
 argument-hint: "<issue-url-or-number> [plan-file]"
 ---
 
@@ -49,7 +49,7 @@ Post comment on issue (links to PR)
 
 1. Resolve the issue number from `$1`:
    ```
-   gh-cached issue view $1
+   ghx issue view $1
    ```
    Extract the issue number and repository (`owner/repo`).
 
@@ -148,7 +148,7 @@ Uses `docs/implementation-plan.md` as the plan file, otherwise same flow.
 
 | Command | Description |
 |---|---|
-| `gh-cached issue view <issue>` | Fetch issue details (cached) |
+| `ghx issue view <issue>` | Fetch issue details (cached) |
 | `git checkout -b plan/<number>` | Create the plan branch |
 | `git add <file> && git commit -m "..."` | Stage and commit the plan |
 | `git push -u origin plan/<number>` | Push branch and set upstream |

@@ -1,7 +1,7 @@
 ---
 name: prioritize-issues
 description: Score and rank a backlog of GitHub issues by reach, impact, confidence, and effort (RICE).
-allowed-tools: Bash(gh:*, gh-cached:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
 argument-hint: "[repository]"
 ---
 
@@ -31,7 +31,7 @@ Scores and ranks open GitHub issues using the RICE framework (Reach, Impact, Con
 
 1. Fetch all open issues:
    ```
-   gh-cached issue list [--repo $1] --state open --limit 100
+   ghx issue list [--repo $1] --state open --limit 100
    ```
 2. For each issue, read its title, description, and labels.
 3. Estimate RICE factors based on:
@@ -71,13 +71,13 @@ Fetches all open issues, scores them on RICE, and outputs a ranked table.
 ```
 User says "only issues in milestone v2.0." Filter with:
 ```
-gh-cached issue list [--repo $1] --milestone "v2.0" --state open
+ghx issue list [--repo $1] --milestone "v2.0" --state open
 ```
 
 ## Useful Commands Reference
 
 | Command | Description |
 |---|---|
-| `gh-cached issue list [--repo <repo>] --state open --limit 100` | List open issues (cached) |
-| `gh-cached issue list [--repo <repo>] --milestone "<name>" --state open` | Filter by milestone (cached) |
-| `gh-cached issue view <number> [--repo <repo>]` | Read a single issue (cached) |
+| `ghx issue list [--repo <repo>] --state open --limit 100` | List open issues (cached) |
+| `ghx issue list [--repo <repo>] --milestone "<name>" --state open` | Filter by milestone (cached) |
+| `ghx issue view <number> [--repo <repo>]` | Read a single issue (cached) |

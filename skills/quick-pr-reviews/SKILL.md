@@ -1,7 +1,7 @@
 ---
 name: quick-pr-reviews
 description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations or repositories (owner/repo).
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh:*, ghx:*)
 argument-hint: "[org1 org2 ... | owner/repo1 owner/repo2 ...]"
 ---
 
@@ -71,7 +71,7 @@ This returns a list of PRs. For each entry extract:
 Then fetch the head commit SHA for each PR:
 
 ```bash
-gh-cached pr view {PR} --repo {REPO} --json --refresh | jq -r '.headRefOid'
+ghx pr view {PR} --repo {REPO} --json --refresh | jq -r '.headRefOid'
 ```
 
 This gives you:
@@ -89,7 +89,7 @@ Extract `COMMENT_COMMIT` from the marker line `<!-- quick-pr-review:COMMIT_SHA -
 - If `COMMENT_COMMIT == HEAD_COMMIT`: the PR has not changed since last review. Before skipping, check whether the previous comment contains `- [ ] Tests pass` (i.e., CI was failing). If it does, re-fetch the current CI status:
 
   ```bash
-  gh-cached pr view {PR} --repo {REPO} --json --refresh | jq '.statusCheckRollup'
+  ghx pr view {PR} --repo {REPO} --json --refresh | jq '.statusCheckRollup'
   ```
 
   If all checks are now passing or skipped, the PR needs review (proceed to step 3). If CI is still failing, skip and report "Skipped (CI still failing)".
@@ -174,5 +174,5 @@ All existing review comments match the current HEAD commit. Report all as skippe
 | Command | Description |
 |---|---|
 | `gh search prs --review-requested @me --state open --json number,repository,title,headRefOid` | List open PRs where you are a requested reviewer |
-| `gh-cached pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including CI status (fresh) |
+| `ghx pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including CI status (fresh) |
 | `gh api repos/{owner}/{repo}/issues/{pr}/comments` | List comments on a PR |

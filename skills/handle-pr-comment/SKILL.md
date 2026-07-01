@@ -51,7 +51,7 @@ Fetch PR metadata + comment history
 
 1. Fetch PR details and full comment history:
    ```
-   gh-cached pr view $1 --comments --refresh
+   ghx pr view $1 --comments --refresh
    ```
 2. Clone the repository locally:
    ```
@@ -93,7 +93,7 @@ Action: Draft rejection with technical reasoning; present to user before posting
 
 | Command | Description |
 |---|---|
-| `gh-cached pr view <pr-url> --comments --refresh` | Fetch PR details and all comments (fresh) |
+| `ghx pr view <pr-url> --comments --refresh` | Fetch PR details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone the repository locally |
 | `ghx pr comment <pr-number> --body "..."` | Post a reply to the PR |
 | `git commit -m "..."` | Commit code changes |
