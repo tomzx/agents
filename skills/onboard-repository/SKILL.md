@@ -33,7 +33,7 @@ Phase 2: Automated Triage Workflow
           |
           v
 Phase 3: README
-  /write-readme                Generate README.md if missing or minimal
+  /create-readme                Generate README.md if missing or minimal
           |
           v
 Phase 4: Repository Health Assessment
@@ -134,7 +134,7 @@ wc -l README.md 2>/dev/null
 grep -c "." README.md 2>/dev/null
 ```
 
-If README.md is missing or minimal, run `/write-readme`.
+If README.md is missing or minimal, run `/create-readme`.
 If README.md exists and is substantive, skip and report.
 
 Generating the README before the health assessment ensures that `find-documentation-gaps` can account for the new README content and avoid flagging a missing README as a finding.

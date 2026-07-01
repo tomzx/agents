@@ -318,7 +318,7 @@ Reports that mkdocs.yml, docs/, and the workflow already exist. Offers to update
 | `create-documentation` | Writes documentation content (tutorials, how-tos, reference, explanation) for features. Use after setup-docs-site scaffolds the infrastructure. |
 | `find-documentation-gaps` | Finds undocumented public APIs. Run after setup-docs-site to identify what reference docs are missing. |
 | `sync-repository` | Can invoke setup-docs-site as an optional phase when no docs infrastructure exists. |
-| `write-readme` | Generates README.md. setup-docs-site derives docs/index.md from README content. |
+| `create-readme` | Generates README.md. setup-docs-site derives docs/index.md from README content. |
 | `divio-documentation` | Provides the documentation framework guidelines that create-documentation follows. |
 
 ## Useful Commands Reference

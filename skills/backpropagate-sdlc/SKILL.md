@@ -118,6 +118,7 @@ For each target feature directory, read every artifact that exists and skip the 
 ├── needs-assessment.md
 ├── requirements.md        # FR-NN, NFR-NN, acceptance criteria
 ├── existing-solutions.md
+├── codebase-analysis.md
 ├── feasibility.md
 ├── specification.md
 ├── telemetry.md

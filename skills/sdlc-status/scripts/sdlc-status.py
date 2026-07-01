@@ -70,6 +70,7 @@ def resolve_git_info() -> tuple[str, str, str]:
 PHASE_ORDER: list[tuple[str, str, str | None]] = [
     ("Foundation", "requirements", "requirements.md"),
     ("Foundation", "existing-solutions", "existing-solutions.md"),
+    ("Foundation", "codebase-analysis", "codebase-analysis.md"),
     ("Foundation", "feasibility", "feasibility.md"),
     ("Foundation", "specification", "specification.md"),
     ("Foundation", "plan", "plan.md"),
@@ -902,6 +903,7 @@ PHASE_FILE: dict[str, str | None] = {
     "feasibility": "feasibility.md",
     "requirements": "requirements.md",
     "existing-solutions": "existing-solutions.md",
+    "codebase-analysis": "codebase-analysis.md",
     "specification": "specification.md",
     "plan": "plan.md",
     "implementation": None,

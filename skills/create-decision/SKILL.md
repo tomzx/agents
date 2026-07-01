@@ -25,6 +25,8 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 6. Describe the consequences: what changes as a result, what follow-up is expected.
 7. Save the document to `.sdlc/knowledge/decisions/` (or the project's existing ADR directory if one exists) using the filename pattern `NNNN-<slug>.md` where `NNNN` is the next available number (counting existing files in that directory).
 
+If this decision replaces an earlier one, run `/supersede-decision <old> <new>` afterwards to mark the prior ADR `Superseded by [NNNN]` and record the reverse link. Do not hand-edit the older decision's status.
+
 ## Output Format
 
 ```markdown
