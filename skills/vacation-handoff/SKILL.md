@@ -57,7 +57,7 @@ Write to `{NOTES_DIR}/{YEAR}/{MONTH}/{START}-vacation-handoff.md`:
 
 ### 4. Offer to notify
 
-Ask whether to draft a Slack message announcing the handoff (delegate tone to `write-message`).
+Ask whether to draft a Slack message announcing the handoff (delegate tone to `create-message`).
 
 ## Notes
 
