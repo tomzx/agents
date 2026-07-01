@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-128-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-129-green" alt="Skill count">
 </p>
 
 ## What
@@ -122,6 +122,7 @@ The library is organized into thematic groups covering the full software develop
 | `/review-documentation` | Review docs for completeness, accuracy, clarity, and usability. |
 | `/divio-documentation` | Comprehensive reference for writing in the Divio/Diataxis system. |
 | `/setup-docs-site` | Scaffold a MkDocs site with Material theme and GitHub Actions. |
+| `/sync-documentation` | Reconcile the `docs/` tree with code (stale refs, broken links, nav drift). |
 | `/research-article` | Research a topic to map the state of the art and gather sources. |
 | `/create-article` | Write a high-quality article for a given audience and sources. |
 | `/review-article` | Review an article for accuracy, clarity, structure, and fit. |

@@ -1,21 +1,27 @@
 ---
 name: ghx
 description: >
-  Use ghx to perform GitHub pull request and issue comment operations that the
-  standard `gh` CLI does not support: inline PR review comments, line-range
-  comments, thread replies, pending reviews, local comment stashes, and
-  edit/delete of issue and PR comments. Trigger when the user wants to comment
-  on a PR (especially inline / on a specific file or line), reply to an existing
-  review thread, manage a pending review, stash review comments locally, or
-  edit/delete an existing comment.
+  Use ghx as an extended GitHub CLI. It browses issues and pull requests with
+  local disk caching, and performs PR/issue comment operations the standard `gh`
+  CLI does not support: inline PR review comments, line-range comments, thread
+  replies, pending reviews, local comment stashes, and edit/delete of comments.
+  Trigger when the user wants to list/search/view issues or PRs, pre-populate the
+  cache, comment on a PR (especially inline / on a specific file or line), reply
+  to a review thread, manage a pending review, stash review comments, or
+  edit/delete a comment.
 ---
 
 # ghx Skill
 
-`ghx` is an extended GitHub CLI that uses the GitHub GraphQL API directly to
-provide PR and issue comment operations beyond what `gh` supports — most
-notably inline review comments, line-range comments, thread replies, pending
-reviews, and a local "stash" for offline review comments.
+`ghx` is an extended GitHub CLI. It talks to the GitHub GraphQL API directly to
+provide two kinds of capability:
+
+1. **Cached browsing** — fetches issues, pull requests, and their comments and
+   caches every result to `~/.cache/ghx/cache/<host>/<owner>/<repo>` to minimise
+   API calls.
+2. **Comment operations** — inline review comments, line-range comments, thread
+   replies, pending reviews, and a local "stash" for offline review comments,
+   none of which the standard `gh` CLI supports.
 
 ---
 
@@ -32,7 +38,7 @@ fi
 ```
 
 Pre-built binaries are also available at
-<https://github.com/tomzxcode/ghx/releases>.
+<https://github.com/TomzxCode/ghx/releases/tag/latest>.
 
 ### Authentication
 
@@ -45,13 +51,90 @@ export GH_TOKEN=<token>
 
 ### Target repository
 
-All commands accept `--repo OWNER/REPO` (or `-R`). When omitted, the repo is
-auto-detected from the current git remote. Confirm the target before running
-write operations:
+All commands accept `--repo [HOST/]OWNER/REPO` (or `-R`). When omitted, the repo
+is auto-detected from the `origin` remote of the current directory. Confirm the
+target before running expensive or write operations:
 
 ```bash
 git remote get-url origin
 ```
+
+---
+
+## Cached browsing
+
+### Pre-populate the cache
+
+Run `cache` once to pull everything down so subsequent list/view commands are
+served instantly from disk:
+
+```bash
+ghx cache                            # default: stale after 60 min
+ghx cache --repo owner/repo
+ghx cache --cache-duration 120       # stale after 2 hours
+ghx cache --cache-duration 0         # always re-fetch (delta)
+ghx cache --force                    # force full re-fetch
+```
+
+### List issues
+
+```bash
+ghx issue list                       # open issues (default)
+ghx issue list --state all
+ghx issue list --author alice
+ghx issue list --assignee bob
+ghx issue list --label bug
+ghx issue list --label bug --label p1   # AND logic
+ghx issue list --milestone v2.0
+ghx issue list --search "memory leak"
+ghx issue list --limit 50
+ghx issue list --json                # machine-readable output
+```
+
+### View an issue
+
+```bash
+ghx issue view 42
+ghx issue view 42 --comments         # include all comments
+ghx issue view 42 --ids              # include comment IDs (for edit/delete)
+ghx issue view 42 --refresh          # force fetch from GitHub and update cache
+```
+
+### List pull requests
+
+```bash
+ghx pr list                          # open PRs (default)
+ghx pr list --state merged
+ghx pr list --author alice
+ghx pr list --label enhancement
+ghx pr list --base main
+ghx pr list --head feat/dark-mode
+ghx pr list --draft
+ghx pr list --search "fix crash"
+ghx pr list --json
+```
+
+### View a PR
+
+```bash
+ghx pr view 10
+ghx pr view 10 --comments
+ghx pr view 10 --refresh             # force fetch from GitHub and update cache
+```
+
+### Cached repositories
+
+```bash
+ghx repo list                        # locally cached repositories
+```
+
+### Caching behaviour reference
+
+| Command | Cache behaviour |
+|---|---|
+| `cache` | Fetches all issues/PRs (all states, with comments); writes one JSON file each. Skips when younger than `--cache-duration`. |
+| `issue list` / `pr list` | Reads all cached files and filters in memory when the full cache is fresh; falls back to the GitHub API otherwise. |
+| `issue view` / `pr view` | Serves from the per-item file when it is < 60 min old; fetches from the API and updates the cache otherwise. `--refresh` bypasses all cache checks, always fetches from the API, and updates the cache. |
 
 ---
 
@@ -193,22 +276,24 @@ ghx issue comment delete <comment-id>
 ```
 
 `ghx pr comment edit/delete` and `ghx issue comment edit/delete` operate on
-the same underlying GitHub comment types; ghx auto-detects whether a PR
-comment id refers to a review comment or an issue comment.
+the same underlying GitHub comment types; ghx auto-detects whether a comment id
+refers to a review comment or an issue comment.
 
 ---
 
 ## Tips
 
-- For inline review comments on multiple lines, prefer one `--pending`
-  comment per location, then `ghx pr review submit` once with the desired
-  `--event`. This shows up as a single review on GitHub.
+- Run `ghx cache` at the start of a session to avoid hitting the API rate-limit
+  during bulk investigation.
+- Use `--json` and pipe to `jq` for scripting:
+  ```bash
+  ghx issue list --json | jq '[.[] | {number, title, state}]'
+  ```
+- For inline review comments on multiple lines, prefer one `--pending` comment
+  per location, then `ghx pr review submit` once with the desired `--event`.
 - Use `--stash` (no API call) when iterating on draft feedback you are not
   ready to send.
-- Use `ghx pr threads 42 --ids` to recover comment IDs needed by
-  `ghx pr comment edit/delete`.
-- Read bodies from a file (`--body-file`) for multi-line markdown — easier
-  than escaping in the shell.
+- Read bodies from a file (`--body-file`) for multi-line markdown.
 
 ---
 
@@ -217,7 +302,7 @@ comment id refers to a review comment or an issue comment.
 After completing the user's request, summarise:
 
 1. Which repository and PR/issue was targeted.
-2. Whether the comment was posted immediately, added to a pending review, or
-   saved to a local stash.
+2. Whether the cache was used, the API was called, or a comment was posted
+   immediately, added to a pending review, or saved to a local stash.
 3. The IDs (comment id, thread id, review id) of any objects created, so the
    user can edit/delete/submit later.
