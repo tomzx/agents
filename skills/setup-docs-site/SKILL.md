@@ -56,13 +56,15 @@ Detect the package manager and install:
 For `uv` projects (preferred):
 
 ```bash
-uv add --dev mkdocs mkdocs-material
+uv add --dev mkdocs "mkdocs-material[imaging]"
 ```
+
+The `[imaging]` extra pulls in `cairosvg`/`pillow`, which are required by the `social` plugin to generate social/OpenGraph cards.
 
 For pip projects:
 
 ```bash
-pip install mkdocs mkdocs-material
+pip install mkdocs "mkdocs-material[imaging]"
 ```
 
 Record what was installed.
@@ -78,19 +80,33 @@ site_description: <one sentence from README or pyproject.toml>
 site_url: ""
 repo_url: <github remote url>
 repo_name: <owner/repo>
+edit_uri: edit/main/docs/
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: <github remote url>
 
 theme:
   name: material
+  font:
+    text: Open Sans
   palette:
+    # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: white
+      accent: green
       toggle:
-        icon: material/brightness-7
+        icon: material/weather-night
         name: Switch to dark mode
+    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: black
+      accent: green
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-sunny
         name: Switch to light mode
   features:
     - navigation.instant
@@ -98,9 +114,14 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
+    - navigation.top
     - search.suggest
     - search.highlight
+    - search.share
+    - content.action.edit
+    - content.action.view
     - content.code.copy
+    - content.code.annotate
 
 nav:
   - Home: index.md
@@ -112,18 +133,24 @@ markdown_extensions:
   - admonition
   - attr_list
   - footnotes
+  - md_in_html
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - tables
   - toc:
       permalink: true
 
 plugins:
   - search
+  - social
 ```
 
 Adapt the `nav` section based on what exists:
@@ -191,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v6
       - run: uv sync --dev
       - run: uv run mkdocs build
       - name: Upload artifact
@@ -206,6 +233,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -217,7 +246,7 @@ If the project does not use `uv`, replace the `uv` steps with:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - run: pip install mkdocs mkdocs-material
+      - run: pip install mkdocs "mkdocs-material[imaging]"
       - run: mkdocs build
 ```
 
@@ -260,7 +289,7 @@ Present the summary to the user.
 
 ### Dependencies Installed
 - mkdocs: <version>
-- mkdocs-material: <version>
+- mkdocs-material[imaging]: <version>
 
 ### Files Created
 | File | Status |
@@ -327,4 +356,4 @@ Reports that mkdocs.yml, docs/, and the workflow already exist. Offers to update
 |---|---|
 | `uv run mkdocs serve` | Local preview at http://localhost:8000 with live reload |
 | `uv run mkdocs build` | Build static site to site/ directory |
-| `uv add --dev mkdocs mkdocs-material` | Add MkDocs dependencies |
+| `uv add --dev mkdocs "mkdocs-material[imaging]"` | Add MkDocs dependencies (imaging extra enables the social plugin) |
