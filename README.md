@@ -22,6 +22,34 @@ In a compatible agent, skills are discovered by name and description, loaded on 
 
 Prompting the same workflow by hand every session is slow, inconsistent, and easy to forget. Encoding a workflow as a skill turns a one-off conversation into a repeatable, reviewable, and incrementally improving capability. This repository exists to capture how work actually gets done, from triaging an issue to writing a PR to closing out the day, so the agent performs it the same way every time and the library gets better as workflows mature.
 
+## Install
+
+### Option 1: CLI Install (Recommended)
+
+Use `npx skills` to install skills directly:
+
+```bash
+# Install all skills
+npx skills add tomzx/agents
+
+# Install specific skills
+npx skills add tomzx/agents --skill create-pr review-pr
+
+# List available skills
+npx skills add tomzx/agents --list
+```
+
+### Option 2: Manual Clone
+
+Clone the repository:
+
+```bash
+git clone https://github.com/tomzx/agents.git
+cd agents
+mkdir -p ~/.agents/skills
+ln -s $(pwd)/agents/skills ~/.agents/skills
+```
+
 ## Included
 
 The library is organized into thematic groups covering the full software development lifecycle and surrounding knowledge work.
@@ -245,23 +273,6 @@ In addition to skills, the repository includes an `AGENTS.md` (symlinked as `CLA
 - [gh CLI](https://cli.github.com) and [ghx](https://github.com/TomzxCode/ghx) for the GitHub issue and PR skills.
 - A Unix-like shell (Linux or macOS) for the shell-based skills; Windows works via WSL.
 - Optional API credentials for Slack, Google Workspace, and arXiv skills (see `.env.example`).
-
-## Install
-
-Clone the repository and install the opencode plugin dependency:
-
-```bash
-git clone https://github.com/tomzx/agents.git
-cd agents
-```
-
-Link it into opencode so the skills and agents are discovered. From the repository root:
-
-```bash
-ln -s "$(pwd)" ~/.opencode
-```
-
-Opencode reads `opencode.json`, `AGENTS.md`/`CLAUDE.md`, the `agents/` directory, and every `skills/*/SKILL.md` on startup, so no further registration is needed.
 
 ## Getting Started
 
