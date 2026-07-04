@@ -13,7 +13,7 @@ status: draft
 
 | ID | Description | Input | Expected Output |
 |---|---|---|---|
-| TC-01 | <what is being tested> | <input> | <expected> |
+| TC-1 | <what is being tested> | <input> | <expected> |
 
 ## Integration Tests
 
@@ -42,4 +42,4 @@ status: draft
 
 | Requirement | Test Cases |
 |---|---|
-| FR-01 | TC-01 |
+| FR-1 | TC-1 |

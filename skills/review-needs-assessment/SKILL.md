@@ -11,17 +11,17 @@ Audits a needs assessment and reports findings across four categories: evidence 
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md`, or a needs assessment document provided in context or as a file path
+- `.sdlc/features/N-<slug>/needs-assessment.md`, or a needs assessment document provided in context or as a file path
 
 ## Steps
 
-1. Read the needs assessment document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md`, update `status: draft` to `status: in-review` in the frontmatter before proceeding.
+1. Read the needs assessment document. If reading from `.sdlc/features/N-<slug>/needs-assessment.md`, update `status: draft` to `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the four categories below.
 3. Report findings using the output format. Omit any category that has no findings.
 4. After all findings are resolved:
    - If the overall verdict is **Needed** or **Nice-to-have**: update `status: in-review` to `status: approved` in the frontmatter. The pipeline may proceed to `/create-requirements`.
    - If the overall verdict is **Not needed**: update `status: in-review` to `status: rejected` in the frontmatter. Update the GitHub issue with findings and stop the pipeline.
-   - Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist).
+   - Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
 
 ## Review Checklist
 

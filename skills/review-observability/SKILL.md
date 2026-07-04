@@ -11,18 +11,18 @@ Audits an observability plan for completeness, actionability, consistency, and a
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/observability.md`, or an observability document provided in context or as a file path
-- `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (for cross-referencing)
-- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, to avoid overlap with business metrics)
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing NFRs)
+- `.sdlc/features/N-<slug>/observability.md`, or an observability document provided in context or as a file path
+- `.sdlc/features/N-<slug>/specification.md` (for cross-referencing)
+- `.sdlc/features/N-<slug>/telemetry.md` (optional, to avoid overlap with business metrics)
+- `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing NFRs)
 
 ## Steps
 
-1. Read the observability document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/observability.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the observability document. If reading from `.sdlc/features/N-<slug>/observability.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Cross-reference against the specification, telemetry plan, and requirements.
 3. Identify issues in each of the five categories below.
 4. Report findings. Omit any category that has no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist).
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
 
 ## Review Checklist
 

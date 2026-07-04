@@ -13,9 +13,9 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` and `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
-- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
-- `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
+- `.sdlc/features/N-<slug>/requirements.md` and `.sdlc/features/N-<slug>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
+- `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
 - Information about the testing stack (if available)
 
 ## Steps
@@ -28,7 +28,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 6. Add edge case and failure scenario tests beyond the acceptance criteria.
 7. Organize test cases by test level (unit, integration, end-to-end).
 8. Identify test infrastructure and fixtures needed.
-9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/tests.md`.
+9. Write the output to `.sdlc/features/N-<slug>/tests.md`.
 
 ## Test Case Format
 
@@ -36,7 +36,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 ### TC-<N>: <Test name>
 
 **Level:** Unit / Integration / E2E
-**Covers:** FR-01 / NFR-02 / Edge case
+**Covers:** FR-1 / NFR-2 / Edge case
 **Setup:** <Preconditions and test data>
 **Steps:**
 1. <Action>
@@ -61,7 +61,7 @@ status: draft
 
 ## Unit Tests
 
-<TC-01 through TC-N>
+<TC-1 through TC-N>
 
 ## Integration Tests
 
@@ -84,8 +84,8 @@ status: draft
 
 | Requirement | Test Cases |
 |---|---|
-| FR-01 | TC-01, TC-05 |
-| NFR-01 | TC-08 |
+| FR-1 | TC-1, TC-5 |
+| NFR-1 | TC-8 |
 ```
 
 ## Outcome

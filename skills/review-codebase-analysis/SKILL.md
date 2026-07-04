@@ -12,17 +12,17 @@ The review verifies that the analysis describes the real code (not assumptions) 
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md`, or an analysis document provided in context or as a file path
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
+- `.sdlc/features/N-<slug>/codebase-analysis.md`, or an analysis document provided in context or as a file path
+- `.sdlc/features/N-<slug>/requirements.md` (optional, improves coverage analysis)
 
 ## Steps
 
-1. Read the analysis. If reading from `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the analysis. If reading from `.sdlc/features/N-<slug>/codebase-analysis.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Cross-reference against the requirements document if available: every requirement that implies a code change should map to an analyzed component.
 3. Spot-check the analysis against the actual codebase to confirm behavior claims and paths.
 4. Identify issues in each of the categories below.
 5. Report findings. Omit any category that has no findings.
-6. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
+6. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
 
 ## Review Checklist
 

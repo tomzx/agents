@@ -13,7 +13,7 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
 
 ## Steps
 
@@ -30,7 +30,7 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 6. Recommend a direction (adopt, adopt and extend, build, or hybrid) with a rationale tied to the requirements.
 7. Record the sources of information worth borrowing from even if we do not adopt the solution (patterns, data models, edge cases they handle, pitfalls they document).
 8. Flag open questions where the evaluation is uncertain or needs validation.
-9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md`.
+9. Write the output to `.sdlc/features/N-<slug>/existing-solutions.md`.
 
 ## Output Format
 
@@ -61,7 +61,7 @@ status: draft
 
 | Solution | Type | License | Maturity | Covers | Gaps |
 |---|---|---|---|---|---|
-| <name + link> | Library / Product / Internal / Standard | MIT / proprietary / ... | Mature / Active / Stale | FR-01, FR-03 | FR-02, NFR-01 |
+| <name + link> | Library / Product / Internal / Standard | MIT / proprietary / ... | Mature / Active / Stale | FR-1, FR-3 | FR-2, NFR-1 |
 
 ## Evaluation
 

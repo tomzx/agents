@@ -5,7 +5,7 @@ status: Proposed
 # Decision: <Short title — the decision as a noun phrase>
 
 **Date:** <YYYY-MM-DD>
-**Status:** <Proposed | Accepted | Deprecated | Superseded by [NNNN]>
+**Status:** <Proposed | Accepted | Deprecated | Superseded by [N]>
 **Deciders:** <Names or roles>
 
 ---

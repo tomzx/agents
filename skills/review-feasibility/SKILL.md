@@ -11,17 +11,17 @@ Audits a feasibility assessment and reports findings across five categories: com
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, or a feasibility document provided in context or as a file path
+- `.sdlc/features/N-<slug>/feasibility.md`, or a feasibility document provided in context or as a file path
 
 ## Steps
 
-1. Read the feasibility document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the feasibility document. If reading from `.sdlc/features/N-<slug>/feasibility.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
 4. After all findings are resolved:
    - If the overall verdict is **Go** or **Go with conditions**: update `status: in-review` → `status: approved` in the frontmatter. The pipeline may proceed to `/create-specifications`.
    - If the overall verdict is **No-go**: update `status: in-review` → `status: rejected` in the frontmatter. Update the GitHub issue with findings and stop the pipeline.
-   - Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist).
+   - Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
 
 ## Review Checklist
 

@@ -11,14 +11,14 @@ Audits a decision record and reports findings across four categories: clarity, c
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- `.sdlc/knowledge/decisions/NNNN-<slug>.md`, or a decision document provided in context or as a file path
+- `.sdlc/knowledge/decisions/N-<slug>.md`, or a decision document provided in context or as a file path
 
 ## Steps
 
 1. Read the decision document.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After the review, update `status` in frontmatter to the appropriate value: `Accepted`, `Deprecated`, or `Superseded by [NNNN]`.
+4. After the review, update `status` in frontmatter to the appropriate value: `Accepted`, `Deprecated`, or `Superseded by [N]`.
 
 ## Review Checklist
 

@@ -15,7 +15,7 @@ Produces a structured document covering what went well, what didn't, process imp
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - A completed feature, sprint, or project to reflect on
 - Context about what was built, how long it took, and any notable events
-- If `.sdlc/features/FEAT-NNNN-<slug>/questions.md` exists for the feature, review it to surface unresolved questions.
+- If `.sdlc/features/N-<slug>/questions.md` exists for the feature, review it to surface unresolved questions.
 - If any files exist under `.sdlc/knowledge/assumptions/` or `.sdlc/knowledge/decisions/` for this feature, review them for context.
 
 ## Steps
@@ -26,7 +26,7 @@ Produces a structured document covering what went well, what didn't, process imp
 4. Identify concrete process improvements with owners and dates.
 5. Capture technical insights: decisions that paid off and decisions to revisit.
 6. Distill actionable next steps.
-7. Write the output to `.sdlc/knowledge/learnings/NNNN-<slug>.md` where NNNN is the next available sequence number in that directory.
+7. Write the output to `.sdlc/knowledge/learnings/N-<slug>.md` where N is the next available sequence number in that directory.
 
 ## Output Format
 

@@ -11,9 +11,9 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
+- If no argument is provided, use `$ISSUE_TITLE` and `$ISSUE_BODY` as the feature description (and `$ISSUE_NUMBER` to link the feature).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular feeds the cost and risk of changing existing code
+- `.sdlc/features/N-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular feeds the cost and risk of changing existing code
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
@@ -22,14 +22,14 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 1. Read the issue or feature description. Fetch from GitHub if a URL is provided.
 2. Read `.sdlc/context/architecture.md` to understand the current system and technology stack.
 3. Read `.sdlc/context/project-overview.md` to understand project scope and constraints.
-4. Read `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` when available, and carry its changeability assessments and migration risks into the technical and effort estimates below.
+4. Read `.sdlc/features/N-<slug>/codebase-analysis.md` when available, and carry its changeability assessments and migration risks into the technical and effort estimates below.
 5. Assess **technical feasibility**: can the feature be built with the current stack and integrations? Are there unknowns that require a spike?
 6. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)? Are there infrastructure, licensing, or third-party costs?
 7. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
 8. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
 9. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
-10. Derive the feature directory name: `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces. Record the related issue number in the frontmatter `issue` field, not in the directory name.
-11. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md`, creating the directory if it does not exist.
+10. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+11. Write the output to `.sdlc/features/N-<slug>/feasibility.md`, creating the directory if it does not exist.
 
 ## Output Format
 

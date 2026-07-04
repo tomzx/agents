@@ -12,9 +12,9 @@ Produces a structured implementation plan from a specification or requirements d
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
-- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include analytics instrumentation as deliverables in the plan
-- `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): include logging, metrics, tracing, and alerting as deliverables in the plan
+- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include analytics instrumentation as deliverables in the plan
+- `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include logging, metrics, tracing, and alerting as deliverables in the plan
 - Team size and velocity context (if available)
 
 ## Steps
@@ -26,7 +26,7 @@ Produces a structured implementation plan from a specification or requirements d
 5. Estimate effort for each phase (person-days or story points).
 6. Identify risks and mitigations.
 7. Propose a timeline if team capacity is known.
-8. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/plan.md`.
+8. Write the output to `.sdlc/features/N-<slug>/plan.md`.
 
 ## Output Format
 

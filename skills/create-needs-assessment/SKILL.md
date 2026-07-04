@@ -11,7 +11,7 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
+- If no argument is provided, use `$ISSUE_TITLE` and `$ISSUE_BODY` as the feature description (and `$ISSUE_NUMBER` to link the feature).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
@@ -28,8 +28,8 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 8. Assess **strategic alignment**: does solving this need advance the project's stated goals, or is it tangential?
 9. For each dimension, assign a rating: Strong / Moderate / Weak / None.
 10. Derive the overall needs verdict: Needed / Nice-to-have / Not needed.
-11. Derive the feature directory name: `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces. Record the related issue number in the frontmatter `issue` field, not in the directory name.
-12. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md`, creating the directory if it does not exist.
+11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+12. Write the output to `.sdlc/features/N-<slug>/needs-assessment.md`, creating the directory if it does not exist.
 
 ## Output Format
 

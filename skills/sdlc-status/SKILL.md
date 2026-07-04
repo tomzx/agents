@@ -18,7 +18,7 @@ This is a read-only operation that does not modify any artifacts.
 
 ## Inputs
 
-- `$1` (optional): A specific feature directory name (e.g., `FEAT-0001-notification-system`) or path to `.sdlc/`.
+- `$1` (optional): A specific feature directory name (e.g., `42-notification-system`) or path to `.sdlc/`.
 - If not provided, defaults to `.sdlc/` in the current repository.
 
 ## Outputs
@@ -34,9 +34,9 @@ A formatted status report displayed to the user, containing:
 1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root. Apply `sdlc/references/shared.md` for path resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); `state.yml` and `progress.md` are never read from the mirror.
 2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see at a glance what the pipeline was last doing.
 3. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
-4. If `$1` specifies a feature ID (e.g., `FEAT-0001`), filter to that feature only.
+4. If `$1` specifies a feature ID (e.g., `FEAT-1`), filter to that feature only.
 5. For each feature, read `progress.md` if it exists. Otherwise scan the directory for artifacts and task files.
-6. Read all task files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/` and collect their frontmatter.
+6. Read all task files in `.sdlc/features/N-<slug>/tasks/` and collect their frontmatter.
 7. Render the status report.
 
 ### Preferred: Use the bundled script
@@ -70,11 +70,11 @@ For each feature, output:
 
 | ID | Title | Size | Status | Blocker |
 |---|---|---|---|---|
-| 0001 | ... | S | done | -- |
-| 0002 | ... | M | in-progress | -- |
-| 0003 | ... | S | blocked | Waiting on API access |
+| 1 | ... | S | done | -- |
+| 2 | ... | M | in-progress | -- |
+| 3 | ... | S | blocked | Waiting on API access |
 
-**Critical path progress:** 0001 done -> 0002 in-progress -> 0005 pending -> 0008 pending
+**Critical path progress:** 1 done -> 2 in-progress -> 5 pending -> 8 pending
 ```
 
 If multiple features are found, show a brief summary table first:
@@ -82,8 +82,8 @@ If multiple features are found, show a brief summary table first:
 ```markdown
 | Feature | Phase | Tasks | Last Updated |
 |---|---|---|---|
-| FEAT-0001 | implementation | 3/7 | 2025-06-03 |
-| FEAT-0002 | requirements | 0/3 | 2025-06-01 |
+| FEAT-1 | implementation | 3/7 | 2025-06-03 |
+| FEAT-2 | requirements | 0/3 | 2025-06-01 |
 ```
 
 7. After the report, ask the user which feature to work on and at which phase to resume.

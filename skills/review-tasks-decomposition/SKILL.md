@@ -11,16 +11,16 @@ Audits a task decomposition and reports findings across five categories: granula
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/tasks/` directory containing individual task files, or task files provided in context
-- `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (optional, improves completeness check)
+- `.sdlc/features/N-<slug>/tasks/` directory containing individual task files, or task files provided in context
+- `.sdlc/features/N-<slug>/plan.md` (optional, improves completeness check)
 
 ## Steps
 
-1. Read all `.md` files in `.sdlc/features/FEAT-NNNN-<slug>/tasks/`. Update each task file's `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read all `.md` files in `.sdlc/features/N-<slug>/tasks/`. Update each task file's `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
-5. Populate the Task Progress table in `.sdlc/features/FEAT-NNNN-<slug>/progress.md` with all tasks, their sizes, and `pending` status. Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
+4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. Populate the Task Progress table in `.sdlc/features/N-<slug>/progress.md` with all tasks, their sizes, and `pending` status. Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
 
 ## Review Checklist
 

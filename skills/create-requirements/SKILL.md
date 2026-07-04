@@ -11,7 +11,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
+- If no argument is provided, use `$ISSUE_TITLE` and `$ISSUE_BODY` as the feature brief (and `$ISSUE_NUMBER` to link the feature).
 - A feature brief, user story, or issue description provided in context or as `$1`
 - Stakeholder goals and constraints, if known
 
@@ -24,8 +24,8 @@ Drafts a structured requirements document from a feature brief, user story, or G
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.
 7. Flag any open questions where requirements are unclear or missing.
-8. Derive the feature directory name: `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (count existing subdirectories, zero-pad). Slug is lowercase, hyphens for spaces (e.g., `FEAT-0001-notification-system`). Record the related issue number in the frontmatter `issue` field, not in the directory name.
-9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, creating the directory if it does not exist.
+8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+9. Write the output to `.sdlc/features/N-<slug>/requirements.md`, creating the directory if it does not exist.
 
 ## Output Format
 
@@ -52,14 +52,14 @@ status: draft
 
 | ID | Priority | Requirement |
 |---|---|---|
-| FR-01 | Must / Should / May | The system shall ... |
-| FR-02 | ... | ... |
+| FR-1 | Must / Should / May | The system shall ... |
+| FR-2 | ... | ... |
 
 ## Non-Functional Requirements
 
 | ID | Requirement | Category |
 |---|---|---|
-| NFR-01 | The system shall ... | Performance / Security / Availability / ... |
+| NFR-1 | The system shall ... | Performance / Security / Availability / ... |
 
 ## Constraints
 
@@ -68,15 +68,15 @@ status: draft
 
 ## Acceptance Criteria
 
-- [ ] **FR-01**
+- [ ] **FR-1**
     - **Given** <precondition>
     - **When** <action>
     - **Then** <observable result>
-- [ ] **FR-01** (edge case)
+- [ ] **FR-1** (edge case)
     - **Given** <edge case>
     - **When** <action>
     - **Then** <expected handling>
-- [ ] **FR-01** (error)
+- [ ] **FR-1** (error)
     - **Given** <error condition>
     - **When** <action>
     - **Then** <error is surfaced as ...>

@@ -11,15 +11,15 @@ Audits a requirements document and reports findings across five categories: clar
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, or a requirements document provided in context or as a file path
+- `.sdlc/features/N-<slug>/requirements.md`, or a requirements document provided in context or as a file path
 
 ## Steps
 
-1. Read the requirements document. If reading from `.sdlc/features/FEAT-NNNN-<slug>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the requirements document. If reading from `.sdlc/features/N-<slug>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, append it to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` as an open question and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, append it to `.sdlc/features/N-<slug>/questions.md` as an open question and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -48,7 +48,7 @@ Audits a requirements document and reports findings across five categories: clar
 
 Identify pairs (or groups) of requirements that cannot all be satisfied at once, or that pull the design in incompatible directions. Check for these conflict types:
 
-- **Direct contradiction:** two requirements assert opposite behaviors (e.g., FR-02 "data is stored locally only" vs FR-07 "data syncs to the cloud").
+- **Direct contradiction:** two requirements assert opposite behaviors (e.g., FR-2 "data is stored locally only" vs FR-7 "data syncs to the cloud").
 - **Mutual exclusivity:** both are individually valid but cannot hold simultaneously (e.g., offline-first vs real-time sync).
 - **Priority conflict:** two requirements compete for the same resource or attention and are both marked Must, with no stated tie-breaker.
 - **Functional vs non-functional tension:** a behavior conflicts with a quality attribute (e.g., FR "log full request payloads" vs NFR "store no PII").
@@ -82,7 +82,7 @@ For each conflict found, report: the requirement IDs involved, the nature of the
 
 | Requirements | Type | Description | Suggested Resolution |
 |---|---|---|---|
-| FR-01, NFR-01 | Mutual exclusivity | Offline support cannot coexist with real-time sync as both Must. | Re-prioritize one to Should, or define an offline-then-sync model. |
+| FR-1, NFR-1 | Mutual exclusivity | Offline support cannot coexist with real-time sync as both Must. | Re-prioritize one to Should, or define an offline-then-sync model. |
 ```
 
 ## Outcome
@@ -98,15 +98,15 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ## Example Usage
 
 **Scenario 1: Missing acceptance criteria**
-FR-03 states "the system shall send notifications" but no acceptance criterion defines when, how, or to whom.
+FR-3 states "the system shall send notifications" but no acceptance criterion defines when, how, or to whom.
 Report under Completeness.
 
 **Scenario 2: Untestable requirement**
-NFR-02 says "the UI must be intuitive."
+NFR-2 says "the UI must be intuitive."
 Flag under Testability — rewrite as a measurable usability criterion.
 
 **Scenario 3: Conflicting priorities**
-FR-01 is marked Must (offline support) while NFR-01 is Must (real-time sync).
+FR-1 is marked Must (offline support) while NFR-1 is Must (real-time sync).
 These conflict. Report under Conflicts.
 
 ## Next Step

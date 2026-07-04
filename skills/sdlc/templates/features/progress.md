@@ -55,7 +55,7 @@ Status values: `—` (not started), `done`, `skipped`, `blocked`, or the current
 
 | ID | Title | Size | Status | Completed | Blocker |
 |---|---|---|---|---|---|
-| 0001 | <title> | S | pending | — | — |
+| 1 | <title> | S | pending | — | — |
 
 **Completion:** 0 / 0 tasks (0%)
 

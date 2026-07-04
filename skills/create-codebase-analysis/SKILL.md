@@ -17,8 +17,8 @@ This skill goes deeper into the internal architecture you are about to modify: i
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
-- `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (optional): carry forward any internal reuse candidates it already identified so they are not re-discovered
+- `.sdlc/features/N-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/existing-solutions.md` (optional): carry forward any internal reuse candidates it already identified so they are not re-discovered
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
@@ -38,7 +38,7 @@ This skill goes deeper into the internal architecture you are about to modify: i
 8. For every **Refactor** or **Replace** disposition, outline migration and impact: the path from current to target behavior, backward compatibility, rollout strategy, what else breaks, and how to de-risk (feature flag, dual-run, shadow comparison).
 9. Record **assumptions about existing behavior** that the analysis relies on but has not fully verified. Promote any that carry meaningful risk via `/create-assumption`, and log architectural choices via `/create-decision`.
 10. Flag open questions where the changeability of a part cannot be decided without more investigation.
-11. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md`.
+11. Write the output to `.sdlc/features/N-<slug>/codebase-analysis.md`.
 
 ## Handling Greenfield Features
 

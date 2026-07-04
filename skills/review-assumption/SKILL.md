@@ -11,7 +11,7 @@ Audits an assumption record and reports findings across four categories: specifi
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- `.sdlc/knowledge/assumptions/NNNN-<slug>.md`, or an assumption document provided in context or as a file path
+- `.sdlc/knowledge/assumptions/N-<slug>.md`, or an assumption document provided in context or as a file path
 
 ## Steps
 

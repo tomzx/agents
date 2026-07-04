@@ -107,7 +107,7 @@ Works for both initial bootstrapping and periodic sync.
     - **Orphaned features**: present in `.sdlc/features/` but not identified in the codebase scan.
 
 13. For each **new feature**:
-    a. Create a directory `.sdlc/features/FEAT-NNNN-<slug>/` where `NNNN` is the next available zero-padded sequence number and `<slug>` is a kebab-case name derived from the feature name.
+    a. Create a directory `.sdlc/features/N-<slug>/` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Features discovered from the codebase during reconciliation have no associated issue, so use the next available sequence number for `N`. `<slug>` is a kebab-case name derived from the feature name.
     b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Do not create any other files; `plan.md`, `tests.md`, `questions.md`, and `tasks/` are created when there is real content to put in them.
     c. Populate `requirements.md` with:
        - A real overview paragraph describing the feature's purpose.
@@ -179,17 +179,17 @@ Works for both initial bootstrapping and periodic sync.
 ### Feature reconciliation
 
 #### New features (created)
-- FEAT-NNNN-<slug>: <Feature Name>
+- N-<slug>: <Feature Name>
   - requirements.md: populated (N functional requirements, M non-functional)
   - specification.md: populated
 
 #### Existing features (checked)
-- FEAT-NNNN-<slug>: <Feature Name>
+- N-<slug>: <Feature Name>
   - requirements.md: in sync / drift detected (<count> items, see questions.md)
   - specification.md: in sync / drift detected (<count> items, see questions.md)
 
 #### Orphaned features (no matching code)
-- FEAT-NNNN-<slug>: <Feature Name> — review and update scope or remove manually
+- N-<slug>: <Feature Name> — review and update scope or remove manually
 
 ### Items requiring manual review
 - <any context file sections that could not be determined>

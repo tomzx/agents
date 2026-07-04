@@ -11,11 +11,11 @@ Audits a learnings document and reports findings across four categories: actiona
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/knowledge/learnings/NNNN-<slug>.md`, or a learnings document provided in context or as a file path
+- `.sdlc/knowledge/learnings/N-<slug>.md`, or a learnings document provided in context or as a file path
 
 ## Steps
 
-1. Read the learnings document. If reading from `.sdlc/knowledge/learnings/NNNN-<slug>.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the learnings document. If reading from `.sdlc/knowledge/learnings/N-<slug>.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
 4. After all findings are resolved: update `status: in-review` → `status: complete` in the frontmatter.

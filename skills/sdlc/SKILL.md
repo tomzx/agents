@@ -210,7 +210,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   └── conventions.md             # Naming, structure, coding standards
 ├── state.yml                      # Orchestrator run state (local-only, gitignored)
 ├── features/
-│   └── FEAT-NNNN-<slug>/          # One directory per feature (e.g., FEAT-0001-notification-system)
+│   └── N-<slug>/          # One directory per feature (e.g., 42-notification-system)
 │       ├── progress.md            # Feature-level progress + session log (local-only, gitignored)
 │       ├── needs-assessment.md
 │       ├── requirements.md
@@ -221,8 +221,8 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── telemetry.md
 │       ├── observability.md
 │       ├── plan.md
-│       ├── tasks/                 # One file per task (e.g., 0001-setup-db-schema.md)
-│       │   └── NNNN-<slug>.md
+│       ├── tasks/                 # One file per task (e.g., 1-setup-db-schema.md)
+│       │   └── N-<slug>.md
 │       ├── tests.md
 │       └── questions.md           # Running log of open questions from all review phases
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
@@ -246,14 +246,14 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       └── learning.md
 └── knowledge/
     ├── assumptions/
-    │   └── NNNN-<slug>.md         # Created by /create-assumption; one file per assumption
+    │   └── N-<slug>.md         # Created by /create-assumption; one file per assumption
     ├── decisions/
-    │   └── NNNN-<slug>.md         # Created by /create-decision; one file per decision
+    │   └── N-<slug>.md         # Created by /create-decision; one file per decision
     └── learnings/
-        └── NNNN-<slug>.md         # Created by /create-learnings; one file per retrospective
+        └── N-<slug>.md         # Created by /create-learnings; one file per retrospective
 ```
 
-**Feature directory naming:** `FEAT-NNNN-<slug>` where `NNNN` is the next available four-digit sequence number within `.sdlc/features/` (e.g., `FEAT-0001-notification-system`, `FEAT-0002-password-reset`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue, if any, is recorded in frontmatter only.
+**Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind). `N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue, otherwise the next available sequence number (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue is also recorded in frontmatter. The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below). The full rules live in `references/shared.md` under Feature Directory Naming.
 
 ## Artifact Location Resolution (SDLC_DIR)
 
@@ -267,17 +267,19 @@ Each artifact type uses a consistent ID format:
 
 | Artifact | Format | Scope | Example |
 |---|---|---|---|
-| Feature | `FEAT-NNNN` | Project-wide | `FEAT-0001` |
-| Functional requirement | `FR-NN` | Per-feature | `FR-01` |
-| Non-functional requirement | `NFR-NN` | Per-feature | `NFR-02` |
-| Task | `NNNN` | Per-feature | `0003` |
-| Test case | `TC-NN` | Per-feature | `TC-05` |
-| Assumption | `NNNN` | Project-wide | `0001` |
-| Decision | `NNNN` | Project-wide | `0002` |
+| Feature | `FEAT-N` | Project-wide | `FEAT-42` |
+| Functional requirement | `FR-N` | Per-feature | `FR-1` |
+| Non-functional requirement | `NFR-N` | Per-feature | `NFR-2` |
+| Task | `N` | Per-feature | `3` |
+| Test case | `TC-N` | Per-feature | `TC-5` |
+| Assumption | `N` | Project-wide | `1` |
+| Decision | `N` | Project-wide | `2` |
 
-**Within a feature document**, use bare IDs (`FR-01`, `NFR-02`, `TC-05`) — the feature scope is implied by the file location.
+All SDLC numeric identifiers are unpadded — `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded. The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
 
-**Across features**, qualify with the feature prefix: `FEAT-0001-FR-01`, `FEAT-0002-NFR-03`. Use this form whenever a requirement, test case, or task is referenced from outside its own feature directory (e.g., in a plan dependency, a cross-cutting assumption, or a shared specification).
+**Within a feature document**, use bare IDs (`FR-1`, `NFR-2`, `TC-5`) — the feature scope is implied by the file location.
+
+**Across features**, qualify with the feature prefix: `FEAT-1-FR-1`, `FEAT-2-NFR-3`. Use this form whenever a requirement, test case, or task is referenced from outside its own feature directory (e.g., in a plan dependency, a cross-cutting assumption, or a shared specification).
 
 Each pipeline artifact carries YAML frontmatter tracking its state:
 
@@ -317,7 +319,7 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions from review phases are appended to `.sdlc/features/FEAT-NNNN-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions from review phases are appended to `.sdlc/features/N-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -370,12 +372,12 @@ It is local-only workflow state and is never read from or mirrored to `SDLC_DIR`
 ```yaml
 current_phase: null       # the next phase to run (entry point name)
 github_ref: null          # GitHub issue or PR number, e.g. "#42"
-feature: null             # FEAT-NNNN-slug if one has been created, null otherwise
+feature: null             # N-<slug> directory name if one has been created, null otherwise
 ```
 
 - **On first entry**: create `.sdlc/state.yml`, populating `current_phase` with the entry point and `github_ref` if known.
 - **After each phase completes**: update `current_phase` to the name of the next phase to run. This is the single rule: `current_phase` always holds what comes next.
-- **When a FEAT-NNNN directory is created**: populate `feature`.
+- **When a feature directory is created**: populate `feature`.
 - **When `github_ref` changes** (issue created, PR opened): update `github_ref`.
 - **On pipeline completion**: set `current_phase` to `complete`.
 
@@ -406,11 +408,11 @@ If you commit/push manually, never `git add` these two paths.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
 9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
-9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/FEAT-NNNN-<slug>/`, existing files, or context).
+9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
 10. Execute each sub-skill in order from the entry point to the end of the pipeline.
 11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 12. When all review findings are resolved, move to the next phase.
-13. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/FEAT-NNNN-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
+13. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
 14. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
 15. After learnings are captured and reviewed, the cycle is complete.
 
@@ -515,30 +517,30 @@ Each phase consumes output from the previous phase:
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
-| create-needs-assessment | Reviewed, prioritized issue | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (`status: draft`) |
-| review-needs-assessment | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` | Findings; sets `status: approved` or `rejected` |
-| create-requirements | `.sdlc/features/FEAT-NNNN-<slug>/needs-assessment.md` (approved) | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (`status: draft`) |
-| review-requirements | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
-| create-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` (`status: draft`) |
-| review-existing-solutions | `.sdlc/features/FEAT-NNNN-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
-| create-codebase-analysis | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (+ `existing-solutions.md`) | `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` (`status: draft`) |
-| review-codebase-analysis | `.sdlc/features/FEAT-NNNN-<slug>/codebase-analysis.md` | Findings; sets `status: approved` when resolved |
-| create-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` (`status: draft`) |
-| review-feasibility | `.sdlc/features/FEAT-NNNN-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
-| create-specifications | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (`status: draft`) |
-| review-specifications | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
-| create-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (`status: draft`) |
-| review-telemetry | `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |
-| create-observability | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` | `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (`status: draft`) |
-| review-observability | `.sdlc/features/FEAT-NNNN-<slug>/observability.md` | Findings; sets `status: approved` when resolved |
-| create-plan | `.sdlc/features/FEAT-NNNN-<slug>/specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (`status: draft`) |
-| review-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
-| publish-plan | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/plan.md` | `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
-| review-tasks-decomposition | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved; populates Task Progress table in `progress.md` |
-| create-tests | `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` + `specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` (`status: draft`) |
-| review-tests | `.sdlc/features/FEAT-NNNN-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
-| create-implementation | `.sdlc/features/FEAT-NNNN-<slug>/tasks/` + `specification.md` + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
+| create-needs-assessment | Reviewed, prioritized issue | `.sdlc/features/N-<slug>/needs-assessment.md` (`status: draft`) |
+| review-needs-assessment | `.sdlc/features/N-<slug>/needs-assessment.md` | Findings; sets `status: approved` or `rejected` |
+| create-requirements | `.sdlc/features/N-<slug>/needs-assessment.md` (approved) | `.sdlc/features/N-<slug>/requirements.md` (`status: draft`) |
+| review-requirements | `.sdlc/features/N-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
+| create-existing-solutions | `.sdlc/features/N-<slug>/requirements.md` | `.sdlc/features/N-<slug>/existing-solutions.md` (`status: draft`) |
+| review-existing-solutions | `.sdlc/features/N-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
+| create-codebase-analysis | `.sdlc/features/N-<slug>/requirements.md` (+ `existing-solutions.md`) | `.sdlc/features/N-<slug>/codebase-analysis.md` (`status: draft`) |
+| review-codebase-analysis | `.sdlc/features/N-<slug>/codebase-analysis.md` | Findings; sets `status: approved` when resolved |
+| create-feasibility | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` | `.sdlc/features/N-<slug>/feasibility.md` (`status: draft`) |
+| review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
+| create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) |
+| review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
+| create-telemetry | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
+| review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |
+| create-observability | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
+| review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings; sets `status: approved` when resolved |
+| create-plan | `.sdlc/features/N-<slug>/specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
+| review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
+| publish-plan | `.sdlc/features/N-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
+| create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
+| review-tasks-decomposition | `.sdlc/features/N-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved; populates Task Progress table in `progress.md` |
+| create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
+| review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
+| create-implementation | `.sdlc/features/N-<slug>/tasks/` + `specification.md` + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
 | review-implementation | Code + spec + telemetry + observability | Findings (resolve before next phase) |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings (resolve before next phase) |
@@ -553,13 +555,13 @@ Each phase consumes output from the previous phase:
 | fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction, implementation, PR |
 | check-duplicates | GitHub issue | Duplicate issues and existing fix PRs checked, results posted |
 | reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, results posted |
-| create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/NNNN-<slug>.md` (`status: draft`) |
-| review-learnings | `.sdlc/knowledge/learnings/NNNN-<slug>.md` | Findings; sets `status: complete` when resolved |
-| create-assumption | Any phase context | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` |
-| review-assumption | `.sdlc/knowledge/assumptions/NNNN-<slug>.md` | Findings (improve basis, risk, validation) |
-| create-decision | Any phase context | `.sdlc/knowledge/decisions/NNNN-<slug>.md` |
-| review-decision | `.sdlc/knowledge/decisions/NNNN-<slug>.md` | Findings (improve clarity, reasoning, consequences) |
-| supersede-decision | Two decisions under `.sdlc/knowledge/decisions/` | Old decision marked `Superseded by [NNNN]`; new decision annotated with reverse link |
+| create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/N-<slug>.md` (`status: draft`) |
+| review-learnings | `.sdlc/knowledge/learnings/N-<slug>.md` | Findings; sets `status: complete` when resolved |
+| create-assumption | Any phase context | `.sdlc/knowledge/assumptions/N-<slug>.md` |
+| review-assumption | `.sdlc/knowledge/assumptions/N-<slug>.md` | Findings (improve basis, risk, validation) |
+| create-decision | Any phase context | `.sdlc/knowledge/decisions/N-<slug>.md` |
+| review-decision | `.sdlc/knowledge/decisions/N-<slug>.md` | Findings (improve clarity, reasoning, consequences) |
+| supersede-decision | Two decisions under `.sdlc/knowledge/decisions/` | Old decision marked `Superseded by [N]`; new decision annotated with reverse link |
 | observe-production | Deployed service + observability tools | Health report: SLO status, error rates, latency, throughput, alerts triggered |
 | audit-observability | Codebase + running service | Gaps report: missing logs, metrics, traces, alerts for production services |
 

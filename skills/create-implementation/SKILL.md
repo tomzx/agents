@@ -14,8 +14,8 @@ Produces working code that passes tests and meets all acceptance criteria.
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - A task description, specification, or plan provided in context or as `$1`
-- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): implement analytics events and telemetry alongside feature code
-- `.sdlc/features/FEAT-NNNN-<slug>/observability.md` (optional, if an observability plan was produced): implement logging, metrics, tracing, and health checks alongside feature code
+- `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): implement analytics events and telemetry alongside feature code
+- `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): implement logging, metrics, tracing, and health checks alongside feature code
 - Access to the codebase for reading and editing
 - Test suite available (or created alongside the implementation)
 
@@ -49,7 +49,7 @@ All acceptance criteria met?
 ## Steps
 
 1. Read the task, specification, acceptance criteria, telemetry plan, and observability plan (if present).
-2. Set the task frontmatter `status: in-progress` in the corresponding `.sdlc/features/FEAT-NNNN-<slug>/tasks/NNNN-<slug>.md` file.
+2. Set the task frontmatter `status: in-progress` in the corresponding `.sdlc/features/N-<slug>/tasks/N-<slug>.md` file.
 3. Update the Task Progress table in `progress.md` to reflect the in-progress status.
 4. Set up a feature branch (see Branching Strategy below).
 5. Explore the codebase to understand existing patterns, naming conventions, and architecture.

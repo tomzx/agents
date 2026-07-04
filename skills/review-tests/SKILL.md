@@ -11,16 +11,16 @@ Audits a test suite or test plan and reports findings across five categories: co
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/tests.md`, or a test suite/test plan provided in context or as a file path
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, improves coverage analysis)
+- `.sdlc/features/N-<slug>/tests.md`, or a test suite/test plan provided in context or as a file path
+- `.sdlc/features/N-<slug>/requirements.md` (optional, improves coverage analysis)
 
 ## Steps
 
-1. Read the tests or test plan. If reading from `.sdlc/features/FEAT-NNNN-<slug>/tests.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the tests or test plan. If reading from `.sdlc/features/N-<slug>/tests.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
 2. Map tests to requirements or acceptance criteria if a spec is available.
 3. Identify issues in each category below.
 4. Report findings. Omit categories with no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/FEAT-NNNN-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 

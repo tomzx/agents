@@ -14,9 +14,9 @@ Without this step, features ship blind: outages go undetected, root causes take 
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/FEAT-NNNN-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
-- `.sdlc/features/FEAT-NNNN-<slug>/telemetry.md` (optional, if a telemetry plan was produced): align observability with business metrics already defined
-- `.sdlc/features/FEAT-NNNN-<slug>/requirements.md` (optional, for cross-referencing NFRs like latency and availability targets)
+- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): align observability with business metrics already defined
+- `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing NFRs like latency and availability targets)
 
 ## Steps
 
@@ -28,7 +28,7 @@ Without this step, features ship blind: outages go undetected, root causes take 
 6. Define health checks and readiness probes for new services or endpoints.
 7. Specify alerts with clear conditions, severity, and runbook links.
 8. Determine observability infrastructure requirements (existing vs. new instrumentation).
-9. Write the output to `.sdlc/features/FEAT-NNNN-<slug>/observability.md`.
+9. Write the output to `.sdlc/features/N-<slug>/observability.md`.
 
 ## Output Format
 

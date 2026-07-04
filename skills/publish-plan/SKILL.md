@@ -14,7 +14,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the repository
-- A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/FEAT-NNNN-<slug>/plan.md`; falls back to `plan.md` in the working directory)
+- A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/N-<slug>/plan.md`; falls back to `plan.md` in the working directory)
 - Issue URL or number (`$1`)
 - Clean or committable working tree
 
@@ -53,7 +53,7 @@ Post comment on issue (links to PR)
    ```
    Extract the issue number and repository (`owner/repo`).
 
-2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/FEAT-NNNN-<slug>/plan.md` (where `<feature>` matches the issue number), then fall back to `plan.md` in the current directory.
+2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/N-<slug>/plan.md` (where `<feature>` matches the issue number), then fall back to `plan.md` in the current directory.
    Stop and inform the user if no plan file is found.
 
 3. Create and switch to a plan branch:
@@ -61,9 +61,9 @@ Post comment on issue (links to PR)
    git checkout -b plan/<issue-number>
    ```
 
-4. Stage and commit the `.sdlc/features/FEAT-NNNN-<slug>/` directory (which contains requirements, specification, and plan artifacts):
+4. Stage and commit the `.sdlc/features/N-<slug>/` directory (which contains requirements, specification, and plan artifacts):
    ```
-   git add .sdlc/features/FEAT-NNNN-<slug>/
+   git add .sdlc/features/N-<slug>/
    git commit -m "docs: add implementation plan for #<issue-number>"
    ```
 

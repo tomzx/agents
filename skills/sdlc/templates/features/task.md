@@ -1,5 +1,5 @@
 ---
-id: "NNNN"
+id: "N"
 title: "<Task title>"
 status: draft
 size: <XS|S|M|L>
@@ -8,7 +8,7 @@ completed_date: null
 blocker: null
 ---
 
-# Task NNNN: <Task title>
+# Task N: <Task title>
 
 ## Description
 

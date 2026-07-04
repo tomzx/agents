@@ -22,6 +22,21 @@ The context files are:
 
 Conventions found in `conventions.md` (for example, documentation formatting, one-sentence-per-line rules) apply to every document produced during the pipeline.
 
+## Feature Directory Naming
+
+Feature directories live under `.sdlc/features/` and are named `N-<slug>`, where `N` is the feature number used verbatim with **no zero-padding** (no `FEAT-` prefix on the directory either, since the parent `features/` already conveys the kind). The corresponding **feature ID** used in cross-references is `FEAT-N` (e.g., directory `42-notification-system` ↔ feature ID `FEAT-42`). How `N` is chosen depends on whether the work is tied to a GitHub issue:
+
+- **Issue-driven work (default):** when an issue number is available, use it verbatim as `N` (e.g., issue `#42` → directory `42-<slug>`, feature ID `FEAT-42`). The issue number is available when it is passed as an argument, read from the `$ISSUE_NUMBER` environment variable, or present as `github_ref` in `.sdlc/state.yml`.
+- **Non-issue work:** when there is no issue (a free-text brief, a code-analysis reconciliation in `sync-sdlc`, or an ad-hoc description), use the next available sequence number within `.sdlc/features/` (count existing subdirectories), also unpadded.
+
+The `<slug>` is lowercase, with hyphens for spaces and no special characters.
+
+The related GitHub issue number is also recorded in the artifact frontmatter `issue` field (e.g., `issue: "#42"`), regardless of which numbering method was used.
+
+Before creating a new feature directory, check `.sdlc/features/` for an existing directory whose `N` matches the issue number (or whose frontmatter `issue` field references it) and reuse it instead of creating a duplicate. This matters for revision mode, where a `create-*` skill is re-invoked after a review returned `changes-requested`.
+
+> All SDLC numeric identifiers are unpadded — feature, task, assumption, decision, learning, and per-feature requirement/test IDs use the bare number (`FEAT-42`, `FR-1`, `TC-5`, task `3`), never zero-padded.
+
 ## Artifact Location Resolution (SDLC_DIR)
 
 By default every `.sdlc/` path resolves inside the repository.
@@ -52,7 +67,7 @@ Strip a trailing `.git`. If there is no remote, the `SDLC_DIR` fallback is unava
 
 ### Read resolution
 
-For any artifact path `<path>` relative to the repo root (e.g. `.sdlc/context/conventions.md`, `.sdlc/features/FEAT-0001-x/requirements.md`):
+For any artifact path `<path>` relative to the repo root (e.g. `.sdlc/context/conventions.md`, `.sdlc/features/42-x/requirements.md`):
 
 1. Read `<repo>/<path>` if it exists.
 2. Otherwise, if `SDLC_DIR` is set and `{owner}/{repository}` was derived, read `$SDLC_DIR/{owner}/{repository}/<path>`.
@@ -124,7 +139,7 @@ The automation engine is stateless: each rule run starts from a fresh checkout, 
 When a `review-*` skill runs, after producing its findings it writes them to a findings file beside the artifact under review:
 
 ```
-.sdlc/features/FEAT-NNNN-<slug>/review-<artifact>.md
+.sdlc/features/N-<slug>/review-<artifact>.md
 ```
 
 The `<artifact>` stem matches the primary artifact the skill reviews:

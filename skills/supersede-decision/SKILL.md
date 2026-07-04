@@ -7,7 +7,7 @@ argument-hint: "[old-decision new-decision]"
 # Supersede Decision
 
 Records that one decision replaces another.
-Updates the old decision to `Superseded by [NNNN]`, annotates the new decision with the reverse link, and validates that the relationship is sound (no cycles, no re-superseding an already-terminal decision).
+Updates the old decision to `Superseded by [N]`, annotates the new decision with the reverse link, and validates that the relationship is sound (no cycles, no re-superseding an already-terminal decision).
 Use this instead of editing decision files by hand when a replacement ADR is adopted.
 
 ## Prerequisites
@@ -22,15 +22,15 @@ Use this instead of editing decision files by hand when a replacement ADR is ado
 | 1 | `old-decision` | yes | The decision being replaced. |
 | 2 | `new-decision` | yes | The decision that replaces it. |
 
-Both arguments accept a bare number (`7`, `0007`) or a filename/path (`0007-use-redis.md`).
-A number resolves to the file `NNNN-<slug>.md` in the decisions directory.
+Both arguments accept a bare number (e.g. `7`) or a filename/path (e.g. `7-use-redis.md`); leading zeros are tolerated when matching (`0007` resolves the same as `7`).
+A number resolves to the file `N-<slug>.md` in the decisions directory.
 
 ## Steps
 
 1. Resolve both arguments to files under `.sdlc/knowledge/decisions/` (or the project's existing ADR directory, same resolution as `create-decision`), applying the `SDLC_DIR` read fallback in `shared.md` when the repo path is absent.
 2. Validate the relationship against the Rules below. Stop and report on any violation; change no files.
-3. In the **old** decision, set frontmatter `status: Superseded by [NNNN]` and update the body `**Status:**` line to match. The frontmatter remains the source of truth; the body line is kept in sync for readers.
-4. In the **new** decision, add frontmatter `supersedes: NNNN` (only if absent) and a `**Supersedes:** NNNN-<slug>` line directly beneath `**Status:**`.
+3. In the **old** decision, set frontmatter `status: Superseded by [N]` and update the body `**Status:**` line to match. The frontmatter remains the source of truth; the body line is kept in sync for readers.
+4. In the **new** decision, add frontmatter `supersedes: N` (only if absent) and a `**Supersedes:** N-<slug>` line directly beneath `**Status:**`.
 5. Report the result and emit the outcome.
 
 ## Rules
@@ -48,8 +48,8 @@ On success:
 ```markdown
 ## Superseded
 
-- **0003-use-memcached** -> Superseded by 0009
-- **0009-use-redis** -> added reverse link (Supersedes 0003)
+- **3-use-memcached** -> Superseded by 9
+- **9-use-redis** -> added reverse link (Supersedes 3)
 ```
 
 On refusal:
@@ -57,7 +57,7 @@ On refusal:
 ```markdown
 ## Not superseded
 
-- **0003-use-memcached** is already `Superseded by 0007`. Re-run against the live decision (0007) or its successor.
+- **3-use-memcached** is already `Superseded by 7`. Re-run against the live decision (7) or its successor.
 ```
 
 ## Outcome
@@ -76,16 +76,16 @@ It does not gate on review and is safe to run independently of the `create-decis
 ## Example Usage
 
 **Scenario 1: Number arguments**
-`/supersede-decision 3 9` marks decision 0003 as superseded by 0009 and records the reverse link on 0009.
+`/supersede-decision 3 9` marks decision 3 as superseded by 9 and records the reverse link on 9.
 
 **Scenario 2: Filename arguments**
-`/supersede-decision 0003-use-memcached.md 0009-use-redis.md` resolves by filename and behaves identically.
+`/supersede-decision 3-use-memcached.md 9-use-redis.md` resolves by filename and behaves identically.
 
 **Scenario 3: Already superseded**
-`/supersede-decision 3 9` where 0003 already reads `Superseded by 0007`. Refused: report the live decision (0007) and suggest re-running against it or its successor.
+`/supersede-decision 3 9` where 3 already reads `Superseded by 7`. Refused: report the live decision (7) and suggest re-running against it or its successor.
 
 **Scenario 4: Reverse relationship exists**
-`/supersede-decision 3 9` where 0009 already supersedes 0003. Refused as a cycle; the relationship is already recorded in the opposite direction.
+`/supersede-decision 3 9` where 9 already supersedes 3. Refused as a cycle; the relationship is already recorded in the opposite direction.
 
 **Scenario 5: Pure deprecation, no replacement**
 Out of scope. A decision that should retire with no successor is set to `Deprecated` by `/review-decision`.
