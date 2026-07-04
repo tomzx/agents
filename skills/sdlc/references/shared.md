@@ -24,18 +24,39 @@ Conventions found in `conventions.md` (for example, documentation formatting, on
 
 ## Feature Directory Naming
 
-Feature directories live under `.sdlc/features/` and are named `N-<slug>`, where `N` is the feature number used verbatim with **no zero-padding** (no `FEAT-` prefix on the directory either, since the parent `features/` already conveys the kind). The corresponding **feature ID** used in cross-references is `FEAT-N` (e.g., directory `42-notification-system` ↔ feature ID `FEAT-42`). How `N` is chosen depends on whether the work is tied to a GitHub issue:
+Feature directories live under `.sdlc/features/` and are named `N-<slug>`, where `N` is the feature identifier used verbatim with **no zero-padding** (no `FEAT-` prefix on the directory either, since the parent `features/` already conveys the kind). The corresponding **feature ID** used in cross-references is `FEAT-N` (e.g., directory `42-notification-system` ↔ feature ID `FEAT-42`; directory `p1-onboarding` ↔ feature ID `FEAT-p1`).
 
-- **Issue-driven work (default):** when an issue number is available, use it verbatim as `N` (e.g., issue `#42` → directory `42-<slug>`, feature ID `FEAT-42`). The issue number is available when it is passed as an argument, read from the `$ISSUE_NUMBER` environment variable, or present as `github_ref` in `.sdlc/state.yml`.
-- **Non-issue work:** when there is no issue (a free-text brief, a code-analysis reconciliation in `sync-sdlc`, or an ad-hoc description), use the next available sequence number within `.sdlc/features/` (count existing subdirectories), also unpadded.
+`N` has one of two lexical forms, chosen by whether the work is tied to a GitHub issue:
+
+- **Issue-driven (default):** when a GitHub issue is available, `N` is the issue number used verbatim (e.g., issue `#42` → directory `42-<slug>`, feature ID `FEAT-42`). The issue number is available when it is passed as an argument, read from the `$ISSUE_NUMBER` environment variable, or present as `github_ref` in `.sdlc/state.yml`. The artifact frontmatter `issue` field is set (e.g., `issue: "#42"`).
+- **Pending (no issue yet):** when there is no issue (a free-text brief, a code-analysis reconciliation in `sync-sdlc`, or an ad-hoc description), `N` is the letter `p` followed by the next unused sequence among `p`-prefixed directories (e.g., `p1-<slug>`, `p2-<slug>`, feature ID `FEAT-p1`). The `p` prefix marks the feature as **pending a placeholder issue**: it has no GitHub issue yet and is a candidate for promotion. The artifact frontmatter `issue` field is left unset.
 
 The `<slug>` is lowercase, with hyphens for spaces and no special characters.
 
-The related GitHub issue number is also recorded in the artifact frontmatter `issue` field (e.g., `issue: "#42"`), regardless of which numbering method was used.
+A `p`-prefixed identifier can never collide with an issue number, so issue-driven and pending features can coexist in the same `.sdlc/features/` tree without ambiguity. This is why numbering is independent of storage location: an external mirror for a third-party repo may hold issue-driven features built from upstream issues alongside `p`-prefixed features that have no issue. Location decides where files live, not how `N` is chosen.
 
-Before creating a new feature directory, check `.sdlc/features/` for an existing directory whose `N` matches the issue number (or whose frontmatter `issue` field references it) and reuse it instead of creating a duplicate. This matters for revision mode, where a `create-*` skill is re-invoked after a review returned `changes-requested`.
+### Placeholder-issue promotion
 
-> All SDLC numeric identifiers are unpadded — feature, task, assumption, decision, learning, and per-feature requirement/test IDs use the bare number (`FEAT-42`, `FR-1`, `TC-5`, task `3`), never zero-padded.
+A pending feature is expected to be promoted to an issue-driven feature once a GitHub issue can be created for it (always, in a repo you own; only if an upstream issue is filed or accepted, in a third-party repo). Promotion is a single operation:
+
+1. Create a placeholder GitHub issue in the repo with a stub body (include an `<!-- sdlc-placeholder -->` marker and the feature slug).
+2. Capture the returned issue number `M`.
+3. Rename the directory `p<seq>-<slug>` → `M-<slug>`.
+4. Rewrite every feature ID occurrence: `FEAT-p<seq>` → `FEAT-M` in frontmatter and in every cross-reference across `.sdlc/`, including qualified forms like `FEAT-p1-FR-2`.
+5. Set `issue: "#M"` in the artifact frontmatter. Clear the placeholder marker once the issue body is filled in.
+
+Rename-on-promotion keeps the directory matching the issue number, preserving the direct issue ↔ directory traceability at the cost of a one-time, automatable cross-reference update.
+
+### Create-time check
+
+Before creating a new feature directory, check `.sdlc/features/` for an existing directory whose `N` matches the candidate and reuse it instead of creating a duplicate:
+
+- Creating issue-driven `M` → only an existing `M-<slug>` whose frontmatter `issue` references `#M` can match; a `p`-prefixed directory never matches a numeric `M`.
+- Creating pending → take the next unused `p<seq>`.
+
+This matters for revision mode, where a `create-*` skill is re-invoked after a review returned `changes-requested`.
+
+> All SDLC numeric identifiers are unpadded: feature, task, assumption, decision, learning, and per-feature requirement/test IDs use the bare number (`FEAT-42`, `FR-1`, `TC-5`, task `3`), never zero-padded. The `p` prefix is the only non-numeric token permitted in a feature identifier.
 
 ## Artifact Location Resolution (SDLC_DIR)
 

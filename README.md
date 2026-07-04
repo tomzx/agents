@@ -70,6 +70,7 @@ The library is organized into thematic groups covering the full software develop
 | Skill | Purpose |
 |-------|---------|
 | `/create-issue` | Create a GitHub issue with background, criteria, and time budget. |
+| `/create-placeholder-issue` | Promote a pending (p-prefixed) SDLC feature to an issue-driven one by creating a placeholder GitHub issue and renaming its directory. |
 | `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
 | `/create-requirements` | Draft a requirements document from a feature brief or issue. |
 | `/review-requirements` | Review requirements for clarity, completeness, and testability. |

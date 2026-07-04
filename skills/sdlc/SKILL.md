@@ -253,7 +253,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
         └── N-<slug>.md         # Created by /create-learnings; one file per retrospective
 ```
 
-**Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind). `N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue, otherwise the next available sequence number (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue is also recorded in frontmatter. The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below). The full rules live in `references/shared.md` under Feature Directory Naming.
+**Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind). `N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`); otherwise `N` is a `p`-prefixed sequence number marking a feature that is **pending a placeholder issue** (e.g., `p1-<slug>` with feature ID `FEAT-p1`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue is recorded in frontmatter when present. The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below). The full rules live in `references/shared.md` under Feature Directory Naming.
 
 ## Artifact Location Resolution (SDLC_DIR)
 
@@ -275,7 +275,7 @@ Each artifact type uses a consistent ID format:
 | Assumption | `N` | Project-wide | `1` |
 | Decision | `N` | Project-wide | `2` |
 
-All SDLC numeric identifiers are unpadded — `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded. The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
+All SDLC numeric identifiers are unpadded: `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded. A feature with no issue yet uses a `p`-prefixed id instead (e.g. `FEAT-p1`, directory `p1-<slug>`); see Feature Directory Naming. The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
 
 **Within a feature document**, use bare IDs (`FR-1`, `NFR-2`, `TC-5`) — the feature scope is implied by the file location.
 

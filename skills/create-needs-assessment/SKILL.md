@@ -28,7 +28,7 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 8. Assess **strategic alignment**: does solving this need advance the project's stated goals, or is it tangential?
 9. For each dimension, assign a rating: Strong / Moderate / Weak / None.
 10. Derive the overall needs verdict: Needed / Nice-to-have / Not needed.
-11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
 12. Write the output to `.sdlc/features/N-<slug>/needs-assessment.md`, creating the directory if it does not exist.
 
 ## Output Format

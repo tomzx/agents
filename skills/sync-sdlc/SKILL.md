@@ -1,7 +1,7 @@
 ---
 name: sync-sdlc
-description: Analyze the codebase and reconcile it with the .sdlc/ directory. Creates the .sdlc/ structure if absent, populates context files, creates missing features, updates stale artifacts, and flags drift between code and documentation.
-argument-hint: "[project-root]"
+description: Analyze the codebase and reconcile it with the .sdlc/ directory. Creates the .sdlc/ structure if absent, populates context files, creates missing features, updates stale artifacts, and flags drift between code and documentation. With --create-issues, promotes pending (p-prefixed) features to issue-driven ones by creating placeholder GitHub issues.
+argument-hint: "[project-root] [--create-issues]"
 ---
 
 # Sync SDLC
@@ -17,9 +17,13 @@ Works for both initial bootstrapping and periodic sync.
 - Read access to the project root and its subdirectories
 - Write access to create or update `.sdlc/`
 
+## Flags
+
+- `--create-issues`: After reconciliation, promote every pending (`p`-prefixed) feature to an issue-driven one by invoking `/create-placeholder-issue` for each. This creates placeholder GitHub issues and renames the feature directories to their issue numbers. Only acts on features whose `.sdlc/` resolves in the repository (a repo you own); it is skipped with a warning when the SDLC store is `SDLC_DIR`-only (a third-party repo where creating issues is inappropriate). Requires `gh` authenticated with write access. Without this flag, pending features are left as `p*`.
+
 ## Steps
 
-1. Determine the project root: use `$1` if provided, otherwise use the current working directory.
+1. Determine the project root: use `$1` if provided and it is not a flag (does not start with `--`), otherwise use the current working directory. Parse `--create-issues` out of the arguments; it is a flag, not the project root.
 
    **SDLC_DIR resolution:** Apply `sdlc/references/shared.md` (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror writes when set). `sync-meta.yml` is written to the repo's `.sdlc/` only.
 
@@ -107,7 +111,7 @@ Works for both initial bootstrapping and periodic sync.
     - **Orphaned features**: present in `.sdlc/features/` but not identified in the codebase scan.
 
 13. For each **new feature**:
-    a. Create a directory `.sdlc/features/N-<slug>/` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Features discovered from the codebase during reconciliation have no associated issue, so use the next available sequence number for `N`. `<slug>` is a kebab-case name derived from the feature name.
+    a. Create a directory `.sdlc/features/p<seq>-<slug>/` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Features discovered from the codebase during reconciliation have no associated issue, so they are created as **pending** features with a `p`-prefixed sequence id (the next unused `p<seq>`, e.g. `p1`, `p2`), to be promoted to placeholder issues later. `<slug>` is a kebab-case name derived from the feature name.
     b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Do not create any other files; `plan.md`, `tests.md`, `questions.md`, and `tasks/` are created when there is real content to put in them.
     c. Populate `requirements.md` with:
        - A real overview paragraph describing the feature's purpose.
@@ -136,7 +140,15 @@ Works for both initial bootstrapping and periodic sync.
     b. Flag it in the report as potentially removed from the codebase.
     c. The user should review and either update the feature's scope or remove the `.sdlc/features/` directory manually.
 
-16. **Write sync metadata.**
+16. **Promote pending features** (only when `--create-issues` is set).
+    a. If the SDLC store resolves to `SDLC_DIR`-only (no in-repo `.sdlc/`), skip promotion and record a warning: the repo appears to be third-party, so creating issues there is inappropriate.
+    b. Otherwise, list every `p`-prefixed directory under `.sdlc/features/` (pending features with no GitHub issue yet).
+    c. For each, invoke `/create-placeholder-issue <feature>` (pass the feature id, e.g. `FEAT-p1`). That skill creates a placeholder issue, renames the directory to the issue number, and rewrites every `FEAT-p<seq>` cross-reference.
+    d. Collect each verdict. Re-runs are safe: `create-placeholder-issue` no-ops on features that are already issue-driven and deduplicates against existing placeholder issues.
+
+    If `--create-issues` was not set, skip this step entirely; pending features remain `p*` until promoted manually or on a later sync with the flag.
+
+17. **Write sync metadata.**
     Write `.sdlc/sync-meta.yml` with:
     ```yaml
     dot_claude_ref: <current_ref>
@@ -145,7 +157,7 @@ Works for both initial bootstrapping and periodic sync.
     ```
     This file should be committed alongside the other `.sdlc/` changes so that the next sync can detect version drift.
 
-17. Produce the sync report.
+18. Produce the sync report.
 
 ## Output Format
 
@@ -191,6 +203,10 @@ Works for both initial bootstrapping and periodic sync.
 #### Orphaned features (no matching code)
 - N-<slug>: <Feature Name> — review and update scope or remove manually
 
+#### Promoted features (--create-issues)
+- p<seq>-<slug> -> M-<slug>: <Feature Name> (issue #M, <url>) [promoted | skipped: third-party | failed: <reason>]
+(Omit this subsection when `--create-issues` was not set. When it was set but there are no pending features, show "No pending features to promote.")
+
 ### Items requiring manual review
 - <any context file sections that could not be determined>
 - <any orphaned features>
@@ -222,3 +238,9 @@ Updates templates, compares and updates context files, creates new features, che
 /sync-sdlc /path/to/my-project
 ```
 Same as above but targets the specified project root.
+
+**Scenario 4: Sync and back pending features with GitHub issues**
+```
+/sync-sdlc --create-issues
+```
+Same as a normal sync, then promotes every `p`-prefixed feature: creates a placeholder issue for each, renames the directory to the issue number, and rewrites cross-references. Skipped automatically when the SDLC store is `SDLC_DIR`-only (third-party repo).

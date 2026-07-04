@@ -24,7 +24,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.
 7. Flag any open questions where requirements are unclear or missing.
-8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
 9. Write the output to `.sdlc/features/N-<slug>/requirements.md`, creating the directory if it does not exist.
 
 ## Output Format

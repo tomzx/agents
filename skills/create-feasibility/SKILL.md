@@ -28,7 +28,7 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 7. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
 8. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
 9. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
-10. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise the next incremental sequence number. Record the related issue number in the frontmatter `issue` field.
+10. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
 11. Write the output to `.sdlc/features/N-<slug>/feasibility.md`, creating the directory if it does not exist.
 
 ## Output Format
