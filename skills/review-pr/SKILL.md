@@ -1,11 +1,9 @@
 ---
 name: review-pr
 description: Conduct a comprehensive code review of a GitHub pull request.
-allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
-
-BASE_DIR=!`scripts/get-env ISSUES_DIR`
 
 # Review Pull Request
 
@@ -16,9 +14,7 @@ Conducts a comprehensive code review of a GitHub pull request, covering pre-revi
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
-- `ISSUES_DIR` environment variable set (resolved via `scripts/get-env ISSUES_DIR`)
 - PR number (`$1`) identifying an open pull request
-- `scripts/get-env` utility available
 
 ## Workflow
 
@@ -39,16 +35,16 @@ Fetch PR metadata + comments ($1)
   (feature / bug fix / DB / API?)
             |
             v
-  Write pr-review.md
+  Write review-pr.md
   (create or update)
 ```
 
 ## Setup
 
-Fetch PR information by piping the raw `ghx` output directly to a file (do not generate or summarize the content):
+Fetch PR information by piping the raw `ghx` output directly to a file (do not generate or summarize the content). Paths resolve under `.sdlc/` per `sdlc/references/shared.md`:
 ```bash
-mkdir -p "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}"
-ghx pr view $1 --repo <owner>/<repository> --comments --refresh > "{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/gh-pr-view.md"
+mkdir -p ".sdlc/pull-requests/{PR_NUMBER}"
+ghx pr view $1 --repo <owner>/<repository> --comments --refresh > ".sdlc/pull-requests/{PR_NUMBER}/gh-pr-view.md"
 ```
 
 ## Pre-Review Checklist
@@ -223,7 +219,7 @@ Put 🔴/🟢 at the top of the document to indicate the overall status of the r
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
-When reviewing, write the response to `{BASE_DIR}/{REPOSITORY}/{PR_NUMBER}/review-pr.md`.
+When reviewing, write the response to `.sdlc/pull-requests/{PR_NUMBER}/review-pr.md` (resolving per `sdlc/references/shared.md`).
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
 
 ## Outcome
@@ -254,7 +250,7 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 ```
 /review-pr 55
 ```
-`pr-review.md` already exists from a previous run. Update the file and summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
+`review-pr.md` already exists from a previous run. Update the file and summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
 
 ## Useful Commands Reference
 
@@ -262,4 +258,3 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 |---|---|
 | `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
 | `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
-| `scripts/get-env ISSUES_DIR` | Resolve the issues directory path |
