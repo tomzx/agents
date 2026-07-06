@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-129-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-130-green" alt="Skill count">
 </p>
 
 ## What
@@ -134,6 +134,7 @@ The library is organized into thematic groups covering the full software develop
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-feedback` | Respond to developer comments, implement or explain, then push. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
+| `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
 | `/validate-pr` | Checkout, build, run, and validate claims via runtime proof. |
 | `/verify-pr` | Static code inspection after runtime validation. |
