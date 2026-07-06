@@ -55,7 +55,7 @@ Generate PR description markdown
    ```
    gt issue view $2 --repo $1
    ```
-3. Resolve dot-claude attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `create-pr-description`.
+3. Resolve agents attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `create-pr-description`.
 4. Generate the PR description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
 5. Return the result inside a markdown code block with each sentence on its own line. Do not line wrap the description; each paragraph/bullet should be a single long line.
 

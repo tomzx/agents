@@ -1,7 +1,7 @@
 ---
 name: github-post-attribution
 description: >-
-  Resolves dot-claude commit SHA and GitHub URL for a skill's SKILL.md, and
+  Resolves agents commit SHA and GitHub URL for a skill's SKILL.md, and
   formats footers for comments or issue bodies posted via gh. Use whenever a
   skill posts to GitHub (PR comments, issue comments, issue create, review
   comments) so readers see which skill and which repo revision produced the
@@ -10,7 +10,7 @@ description: >-
 
 # GitHub post attribution (shared)
 
-Skills that post content to GitHub should append a small footer: link to the **invoking** skill's `SKILL.md` at the **current** dot-claude commit (the revision in use when the post was made), plus the model name that executed the skill.
+Skills that post content to GitHub should append a small footer: link to the **invoking** skill's `SKILL.md` at the **current** agents commit (the revision in use when the post was made), plus the model name that executed the skill.
 
 ## When to use
 
@@ -19,9 +19,9 @@ Skills that post content to GitHub should append a small footer: link to the **i
 
 ## Resolve repository root, commit, and GitHub base URL
 
-`REPO_ROOT` = the directory that contains `skills/` (the dot-claude checkout). The path to this file is always known from the `Read` call that loaded it. Use it directly -- no additional filesystem exploration needed.
+`REPO_ROOT` = the directory that contains `skills/` (the agents checkout). The path to this file is always known from the `Read` call that loaded it. Use it directly -- no additional filesystem exploration needed.
 
-Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.claude/skills → ~/src/dot-claude/skills`) and capture all values in one call:
+Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.claude/skills → ~/src/agents/skills`) and capture all values in one call:
 
 ```bash
 SKILL_MD_DIR=$(dirname "$(readlink -f /path/to/this/SKILL.md)")
@@ -110,4 +110,4 @@ Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` -- 
 ## Notes
 
 - **No package manager**: skills do not declare dependencies in YAML; consuming skills must **read** this file (or follow a one-line pointer in their own `SKILL.md`) so the agent loads the procedure.
-- **Forks and renames**: `{BASE}` comes from `origin`, so links stay correct if the remote is `dot-claude`, `claude-commands`, or a fork.
+- **Forks and renames**: `{BASE}` comes from `origin`, so links stay correct if the remote is `agents`, `claude-commands`, or a fork.

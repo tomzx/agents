@@ -254,7 +254,7 @@ Next steps:
 2. Review each feature's requirements.md and specification.md.
 3. Address Critical and High priority findings first.
 4. Commit .sdlc/ and .github/workflows/triage-issues.yml to version control.
-5. Run /update-sdlc-templates after pulling new versions of dot-claude.
+5. Run /update-sdlc-templates after pulling new versions of agents.
 6. Re-run health assessment quarterly with /sdlc maintenance.
 ```
 

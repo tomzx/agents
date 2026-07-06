@@ -82,7 +82,7 @@ Produce updated PR description markdown
 
    Bias strongly toward keeping existing text. Only change what the new commits have made inaccurate or incomplete.
 
-6. Resolve dot-claude attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `update-pr-description`.
+6. Resolve agents attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `update-pr-description`.
 
 7. Produce the updated description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
 

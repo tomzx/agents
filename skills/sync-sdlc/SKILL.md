@@ -27,24 +27,24 @@ Works for both initial bootstrapping and periodic sync.
 
    **SDLC_DIR resolution:** Apply `sdlc/references/shared.md` (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror writes when set). `sync-meta.yml` is written to the repo's `.sdlc/` only.
 
-2. **Resolve the dot-claude version.**
+2. **Resolve the agents version.**
    The canonical templates and skill definitions live in a git repository.
    Resolve the current version by running:
    ```
    git -C <skill-base-dir> rev-parse HEAD
    git -C <skill-base-dir> remote get-url origin
    ```
-   where `<skill-base-dir>` is the parent directory containing the `sdlc/` templates (typically the dot-claude repo root).
+   where `<skill-base-dir>` is the parent directory containing the `sdlc/` templates (typically the agents repo root).
    Store the resulting SHA as `current_ref` and the remote URL as `current_remote`.
 
 3. **Read sync metadata and generate a migration summary.**
    Read `.sdlc/sync-meta.yml` from the project root if it exists.
-   - If it exists and `dot_claude_ref` differs from `current_ref`:
+   - If it exists and `agents_ref` differs from `current_ref`:
      a. Run `git -C <skill-base-dir> log <stored-ref>..HEAD -- skills/sdlc/` to get the changelog of template and process changes.
      b. For each commit that changed a template or context file, read the diff to understand what was added, removed, or restructured.
      c. Produce a **migration summary** listing concrete actions needed to adapt the project's existing `.sdlc/` files (e.g. "remove Glossary section from project-overview.md", "add Observability section to specification template").
    - If it does not exist, this is a first sync, so no migration is needed.
-   - If `dot_claude_ref` matches `current_ref`, no migration is needed.
+   - If `agents_ref` matches `current_ref`, no migration is needed.
 
 4. If `.sdlc/` does not exist, run `/initialize-sdlc-directory` (passing `$1` if provided) to create the directory tree and copy templates.
    If `.sdlc/` already exists, run `/update-sdlc-templates` to pull any upstream template improvements and merge them with user edits.
@@ -151,8 +151,8 @@ Works for both initial bootstrapping and periodic sync.
 17. **Write sync metadata.**
     Write `.sdlc/sync-meta.yml` with:
     ```yaml
-    dot_claude_ref: <current_ref>
-    dot_claude_remote: <current_remote>
+    agents_ref: <current_ref>
+    agents_remote: <current_remote>
     last_synced: <today's date in ISO 8601>
     ```
     This file should be committed alongside the other `.sdlc/` changes so that the next sync can detect version drift.
@@ -164,7 +164,7 @@ Works for both initial bootstrapping and periodic sync.
 ```
 ## SDLC sync report
 
-### Migration summary (dot-claude changes since last sync)
+### Migration summary (agents changes since last sync)
 | Change | Affected files | Action taken |
 |---|---|---|
 | <e.g. "Removed Glossary section from project-overview template"> | .sdlc/context/project-overview.md | Removed Glossary section |
@@ -176,8 +176,8 @@ Works for both initial bootstrapping and periodic sync.
 (output from /initialize-sdlc-directory or /update-sdlc-templates)
 
 ### Sync metadata
-- dot_claude_ref: <SHA>
-- dot_claude_remote: <URL>
+- agents_ref: <SHA>
+- agents_remote: <URL>
 - last_synced: <date>
 
 ### Context files

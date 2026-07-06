@@ -1,6 +1,6 @@
 ---
 name: identify-skill-gaps
-description: Identify workflows the user performs that are not yet encoded as skills in the dot-claude repository, and prompt to create or backlog them. Drives a self-reinforcing improvement loop.
+description: Identify workflows the user performs that are not yet encoded as skills in the agents repository, and prompt to create or backlog them. Drives a self-reinforcing improvement loop.
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
@@ -11,7 +11,7 @@ Surfaces manual workflows that could be automated as skills, then prompts to sca
 
 ## Prerequisites
 
-- dot-claude repository available at `~/dot-claude` (for reading the existing skill library)
+- agents repository available at `~/agents` (for reading the existing skill library)
 - Optional: `{BASE_DIR}/skill-backlog.md` (created if it does not exist when the user chooses backlog)
 - Optional: activity context from the current session (summaries, standup, review files) to infer today's workflows
 
@@ -19,7 +19,7 @@ Surfaces manual workflows that could be automated as skills, then prompts to sca
 
 ### 1. Inventory existing skills
 
-List all directories under `~/dot-claude/skills/`. This is the current skill library.
+List all directories under `~/agents/skills/`. This is the current skill library.
 
 ### 2. Extract workflows from context
 

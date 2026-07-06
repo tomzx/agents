@@ -80,11 +80,11 @@ Extract:
 **Manual-approval organizations**: if `OWNER` (case-insensitive) is `Shopify` or `shop`, set `MANUAL_APPROVAL_ORG=true`.
 When `MANUAL_APPROVAL_ORG=true`, run all checks and post/update the review comment as normal, but **never run `gh pr review --approve` automatically** (see step 8).
 
-Also resolve dot-claude attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`.
+Also resolve agents attribution for the review comment footer: read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `quick-pr-review`.
 Use the **Reviewed with** line and optional `{BASE}/issues/new` sub-line from that skill.
 
 Extract:
-- `SKILL_COMMIT`: full commit SHA of the dot-claude repo
+- `SKILL_COMMIT`: full commit SHA of the agents repo
 - `SKILL_SHORT_SHA`: short SHA from the same procedure
 - `SKILL_FILE_URL`: URL to `skills/quick-pr-review/SKILL.md` at `SKILL_COMMIT`
 
@@ -315,8 +315,8 @@ No user-facing behavior changes detected; documentation update not required.
 </details>
 
 ---
-Reviewed with [quick-pr-review](https://github.com/tomzx/dot-claude/blob/abc1234deadbeef.../skills/quick-pr-review/SKILL.md) (`abc1234`)
-<sub>This should not have been approved? [Let me know](https://github.com/tomzx/dot-claude/issues/new).</sub>
+Reviewed with [quick-pr-review](https://github.com/tomzx/agents/blob/abc1234deadbeef.../skills/quick-pr-review/SKILL.md) (`abc1234`)
+<sub>This should not have been approved? [Let me know](https://github.com/tomzx/agents/issues/new).</sub>
 ```
 
 (Example URLs illustrate shape; substitute real `SKILL_FILE_URL`, `{BASE}`, and SHAs from your repo.)

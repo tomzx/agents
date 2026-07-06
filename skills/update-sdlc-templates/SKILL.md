@@ -80,6 +80,6 @@ Templates with user customizations are merged intelligently, preserving the user
 ```
 Pulls in structural improvements from the latest canonical templates. User's project-specific content (filled-in sections, renamed columns) is preserved.
 
-**Scenario 2: After cloning a new version of dot-claude**
+**Scenario 2: After cloning a new version of agents**
 The canonical templates may have new sections or revised frontmatter.
 Run `/update-sdlc-templates` to propagate changes to the project's `.sdlc/templates/` without discarding earlier customizations.
