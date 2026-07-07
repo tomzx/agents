@@ -127,7 +127,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Ending with "In conclusion, we have seen that..."
 - Em-dash sentence structures; use commas or parentheses instead
 - Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
-- The use of the following terms (unless it is the most appropriate): shape
+- The use of the following terms (unless it is the most appropriate): shape, honest
 
 ## Output Format
 
