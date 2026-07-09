@@ -9,6 +9,22 @@ The instructions below apply automatically whenever a skill reads or writes anyt
 These conventions apply to every skill that touches `.sdlc/` artifacts:
 the orchestrator (`sdlc`), the setup skills (`initialize-sdlc-directory`, `sync-sdlc`, `update-sdlc-templates`, `sdlc-status`, `backpropagate-sdlc`, `audit-sdlc`), every `create-*` and `review-*` pipeline skill, and any skill that consults `.sdlc/context/` for project context.
 
+## Skill Handoff
+
+Most SDLC skills end with a `## Next Step` section naming one or more successor skills.
+When a skill completes and points to a successor, load that successor with the `skill` tool before performing any of its work.
+
+A skill's `allowed-tools`, workflow, attribution steps, and gates take effect only once its content is in context.
+Never execute a successor's actions from memory or general knowledge.
+This is mandatory for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-feedback`): their commit and push rules are bypassed whenever the skill is not loaded.
+
+This rule applies however the successor was reached:
+- via the orchestrator (`/sdlc <phase>`), which loads each phase skill before executing it, or
+- via direct invocation of an individual skill (for example `/create-implementation`), where this file is the only place the handoff rule is stated.
+
+If a successor needs to commit, push, or open a PR and its skill is not yet loaded, load it first, then follow its workflow.
+Do not start the successor's commit, push, or PR actions and load the skill only afterward.
+
 ## Project context files
 
 Before producing a document, read any files present under `.sdlc/context/` and apply the artifact style rules found there to the output.

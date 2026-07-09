@@ -15,6 +15,17 @@ Pass an optional phase name to enter the pipeline at a specific stage.
 - Use **`/sdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases in sequence, handle review cycles, and manage backtracking automatically.
 - Use **individual skills directly** (e.g., `/create-pr`, `/review-implementation`) when you need a single phase and want full control over inputs and outputs without the pipeline orchestration overhead.
 
+## Load Each Phase Skill (mandatory)
+
+Before performing any work that belongs to a pipeline phase, load that phase's skill with the `skill` tool.
+
+A skill's `allowed-tools`, workflow, attribution steps, and gates only apply once its content is in context.
+Never execute a phase's actions from memory or general knowledge.
+This is especially true for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-feedback`): their commit and push rules are bypassed whenever they are not loaded.
+
+This applies at every phase transition the orchestrator makes, on every entry point and fast path.
+If you reach a phase that needs committing, pushing, or a PR and its skill is not yet loaded, load it before doing anything else, then follow its workflow.
+
 ## Pipeline Overview
 
 ```
@@ -416,7 +427,7 @@ If you commit/push manually, never `git add` these two paths.
 9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 10. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
 11. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
-12. Execute each sub-skill in order from the entry point to the end of the pipeline.
+12. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
 13. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 14. When all review findings are resolved, move to the next phase.
 15. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
