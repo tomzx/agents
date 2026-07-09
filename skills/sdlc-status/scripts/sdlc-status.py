@@ -641,9 +641,63 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .help-tip .legend-item { font-size: 0.75rem; gap: 0.45rem; display: flex; align-items: center; padding: 0.15rem 0; }
   .help-tip .legend-chip { font-size: 0.7rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 500; }
 
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
   @media (max-width: 768px) {
-    body { padding: 1rem; }
-    .summary-cards { grid-template-columns: repeat(2, 1fr); }
+    body { padding: 0.75rem; font-size: 0.9rem; }
+    .header { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+    .header .date { font-size: 0.7rem; }
+
+    .layout { display: block; }
+    .sidebar {
+      flex: none;
+      width: 100%;
+      position: static;
+      top: auto;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .sidebar h3 { margin-bottom: 0.4rem; }
+    .feature-list {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 0.4rem;
+      padding-bottom: 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ftab {
+      flex: 0 0 auto;
+      width: auto;
+      min-height: 44px;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .ftab .ftitle { max-width: 60vw; }
+
+    .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .card { padding: 0.75rem 0.85rem; }
+    .card .value { font-size: 1.15rem; }
+
+    .section { padding: 0.85rem; }
+
+    .pipeline-stages { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0.6rem; }
+    .pipeline-stages-row { display: flex; flex-direction: column; flex-wrap: nowrap; width: 100%; gap: 0.6rem; align-items: stretch; }
+    .pipeline-stages-row .cp-arrow { display: none; }
+    .pipeline-stage { width: 100%; }
+    .pipeline-phases { gap: 0.35rem; }
+    .chip { padding: 0.35rem 0.55rem; font-size: 0.75rem; }
+
+    .progress-meta { font-size: 0.72rem; }
+
+    .phase-detail { font-size: 0.82rem; padding: 0.65rem 0.75rem; overflow-wrap: break-word; word-break: break-word; }
+    .phase-detail pre { max-width: 100%; overflow-x: auto; }
+
+    .blocker-banner { padding: 0.55rem 0.7rem; }
+
+    .footer { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+
+    .session-log { max-height: 320px; }
   }
 </style>
 </head>
@@ -834,6 +888,17 @@ def render_markdown(text: str) -> str:
     return md.markdown(text, extensions=["extra", "pymdownx.tasklist"])
 
 
+def wrap_tables(html: str) -> str:
+    if not html:
+        return html
+    return re.sub(
+        r"(<table\b.*?</table>)",
+        r'<div class="table-wrap">\1</div>',
+        html,
+        flags=re.DOTALL,
+    )
+
+
 def annotate_refs(html: str, refs: dict[str, dict]) -> str:
     if not refs:
         return html
@@ -973,8 +1038,9 @@ def render_tasks(tasks: list[dict]) -> str:
         )
     return (
         '<div class="section"><h3>Tasks</h3>'
+        '<div class="table-wrap">'
         '<table><thead><tr><th>ID</th><th>Title</th><th>Size</th><th>Status</th><th>Completed</th><th>Blocker</th></tr></thead>'
-        f"<tbody>{rows}</tbody></table></div>"
+        f"<tbody>{rows}</tbody></table></div></div>"
     )
 
 
@@ -1002,8 +1068,8 @@ def render_sessions(sessions: list[dict]) -> str:
         )
     return (
         '<div class="section"><h3>Session Log</h3><div class="session-log">'
-        '<table><thead><tr><th>Date</th><th>Summary</th><th>Next Step</th></tr></thead>'
-        f"<tbody>{rows}</tbody></table></div></div>"
+        '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Summary</th><th>Next Step</th></tr></thead>'
+        f"<tbody>{rows}</tbody></table></div></div></div>"
     )
 
 
@@ -1067,16 +1133,19 @@ def render_feature(feature: dict, is_first: bool, feat_idx: int = 0) -> str:
     phase_details = ""
     for phase, content in fc.items():
         rendered = annotate_vocab_refs(annotate_refs(render_markdown(badge_priorities_in_tables(content)), refs), vocab_refs)
+        rendered = wrap_tables(rendered)
         cls = "" if phase == first_active else "hidden"
         phase_details += f'<div id="pd-{feat_idx}-{phase}" class="phase-detail {cls}">{rendered}</div>'
 
     # Generate open questions detail
     oq_rendered = render_questions(open_questions) if open_questions else ""
+    oq_rendered = wrap_tables(oq_rendered)
     phase_details += f'<div id="pd-{feat_idx}-open-questions" class="phase-detail hidden">{oq_rendered}</div>'
 
     # Generate vocabulary detail
     if vocab_content:
         vocab_rendered = annotate_vocab_refs(render_markdown(vocab_content), vocab_refs)
+        vocab_rendered = wrap_tables(vocab_rendered)
         phase_details += f'<div id="pd-{feat_idx}-vocabulary" class="phase-detail hidden">{vocab_rendered}</div>'
 
     return (
