@@ -127,6 +127,10 @@ Cross-cutting records (invoke at any point in any flow)
   /review-decision        Audit clarity, reasoning quality, consequence coverage
   /supersede-decision     Mark a decision as superseded by a newer one (old-decision new-decision)
 
+Cross-cutting guard (runs automatically before every phase via the Linked-PR Guard)
+
+  /check-linked-pr        Detect a PR someone else linked to the current issue; offer continue / stop / review
+
 Maintenance (entry: maintenance — run periodically, independent of any feature)
 
   Coordinated audit
@@ -370,15 +374,17 @@ Read it at the start of every invocation to resume context; write it after every
 It is local-only workflow state and is never read from or mirrored to `SDLC_DIR` (see `references/shared.md`).
 
 ```yaml
-current_phase: null       # the next phase to run (entry point name)
-github_ref: null          # GitHub issue or PR number, e.g. "#42"
-feature: null             # N-<slug> directory name if one has been created, null otherwise
+current_phase: null             # the next phase to run (entry point name)
+github_ref: null                # GitHub issue or PR number, e.g. "#42"
+feature: null                   # N-<slug> directory name if one has been created, null otherwise
+linked_prs_acknowledged: []     # PR numbers from other authors the user chose to ignore this run
 ```
 
 - **On first entry**: create `.sdlc/state.yml`, populating `current_phase` with the entry point and `github_ref` if known.
 - **After each phase completes**: update `current_phase` to the name of the next phase to run. This is the single rule: `current_phase` always holds what comes next.
 - **When a feature directory is created**: populate `feature`.
 - **When `github_ref` changes** (issue created, PR opened): update `github_ref`.
+- **When the Linked-PR Guard runs** and the user dismisses a competing PR: append its number to `linked_prs_acknowledged` so the guard does not re-prompt for it (see Linked-PR Guard).
 - **On pipeline completion**: set `current_phase` to `complete`.
 
 ### Local-only files (never commit)
@@ -408,17 +414,44 @@ If you commit/push manually, never `git add` these two paths.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
 9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
-9. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
-10. Execute each sub-skill in order from the entry point to the end of the pipeline.
-11. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-12. When all review findings are resolved, move to the next phase.
-13. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
-14. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
-15. After learnings are captured and reviewed, the cycle is complete.
+10. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
+11. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
+12. Execute each sub-skill in order from the entry point to the end of the pipeline.
+13. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+14. When all review findings are resolved, move to the next phase.
+15. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
+16. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
+17. After learnings are captured and reviewed, the cycle is complete.
 
 ### Status Report (entry: `status`)
 
 Delegate to the `sdlc-status` skill, which handles all reporting logic including the HTML dashboard script and text-based fallback. See `sdlc-status/SKILL.md` for details.
+
+### Linked-PR Guard (between phases)
+
+Before every sub-skill runs (step 10), the orchestrator checks whether someone else has linked a pull request to the issue being worked on. This catches a competing PR that appears after work has already started, so effort is not duplicated.
+
+Invoke the `check-linked-pr` skill against the current issue (resolved from `github_ref`):
+
+```
+/check-linked-pr <issue-number> <owner>/<repository>
+```
+
+The guard is **skipped** (treated as clear) when:
+
+- The feature has no GitHub issue yet (a `p`-prefixed feature), so nothing can be linked.
+- The current phase is the issue/PR plumbing itself (`create-issue`, `create-pr`, `merge-pr`, etc.) where no separate issue lookup is meaningful.
+- `$OUTCOME_YAML` is set and no interactive user is present (see the skill's Outcome section; under automation the guard emits a verdict and never blocks).
+
+When the guard finds a competing PR the user has not already dismissed, present the three options the `check-linked-pr` skill defines:
+
+| Choice | Effect |
+|---|---|
+| **Continue** | The PR number is appended to `linked_prs_acknowledged` in `.sdlc/state.yml`; the guard will not re-prompt for it. Proceed with the current phase. |
+| **Stop** | Pause the pipeline pending the external PR. Record the dependency (PR number, author) in `progress.md` and leave the pipeline resumable. |
+| **Review** | Run `/review-pr <pr-number>`. If it approves, stop the flow and depend on the external PR. If it requests changes or rejects, acknowledge the PR and continue the current flow. |
+
+Because dismissed PR numbers persist in `state.yml`, running the guard at every phase transition stays low-noise: it only surfaces genuinely new competing PRs.
 
 ### Automatic Resume (entry: `continue`)
 

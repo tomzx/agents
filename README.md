@@ -78,6 +78,7 @@ The library is organized into thematic groups covering the full software develop
 | `/reproduce-issue` | Reproduce a bug reported in a GitHub issue. |
 | `/fix-issue` | Orchestrate a bug fix from issue to PR. |
 | `/check-duplicates` | Check for duplicate issues and existing fix PRs. |
+| `/check-linked-pr` | Detect a PR someone else linked to the current issue; offer continue, stop, or review. |
 | `/triage-issue` | Classify and label a single GitHub issue. |
 | `/triage-issues` | Classify and label incoming GitHub issues. |
 | `/label-issue` | Add relevant labels to an issue based on its description. |
