@@ -69,6 +69,10 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
           ▼
+  /create-mockups        Define UI wireframes, screens, states, and flows (UI features; skip if no UI surface)
+  /review-mockups        Audit coverage, usability, accessibility, consistency, spec fidelity
+          │
+          ▼
   /create-telemetry       Define analytics events, success metrics, funnel, telemetry
   /review-telemetry       Audit completeness, measurability, actionability, consistency
           │
@@ -233,6 +237,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── codebase-analysis.md
 │       ├── feasibility.md
 │       ├── specification.md
+│       ├── mockups.md
 │       ├── telemetry.md
 │       ├── observability.md
 │       ├── plan.md
@@ -248,6 +253,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── codebase-analysis.md
 │   │   ├── feasibility.md
 │   │   ├── specification.md
+│   │   ├── mockups.md
 │   │   ├── telemetry.md
 │   │   ├── observability.md
 │   │   ├── plan.md
@@ -354,6 +360,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `codebase-analysis` | Approved requirements (and existing-solutions survey) ready to analyze the internal code/architecture the feature will touch |
 | `feasibility` | Requirements, existing solutions, and codebase analysis ready for viability assessment |
 | `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
+| `mockups` | An approved specification ready to define the UI wireframes, screens, and interaction states (UI features) |
 | `telemetry` | A specification ready to define how feature usage will be measured |
 | `observability` | A specification ready to define how feature health will be monitored |
 | `plan` | A specification (and telemetry/observability plans) ready for planning |
@@ -573,11 +580,13 @@ Each phase consumes output from the previous phase:
 | review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
 | create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
+| create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`); skipped (no artifact) when the feature has no UI surface |
+| review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings; sets `status: approved` when resolved |
 | create-telemetry | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
 | review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |
 | create-observability | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
 | review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings; sets `status: approved` when resolved |
-| create-plan | `.sdlc/features/N-<slug>/specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
+| create-plan | `.sdlc/features/N-<slug>/specification.md` + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
 | publish-plan | `.sdlc/features/N-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
 | create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |

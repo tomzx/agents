@@ -30,22 +30,26 @@
 #         changes-requested -> create-requirements (revise)
 #       ... existing-solutions, codebase-analysis, feasibility ...
 #       [create-specifications]     -> review-specifications
-#         -> spec-approved + create-telemetry
+#         -> spec-approved + create-mockups
+#       [create-mockups]            -> review-mockups
+#         approved  -> mockups-approved + create-telemetry
+#         skipped   -> mockups-approved + create-telemetry (no UI surface)
 #       ... telemetry, observability ...
 #       [create-observability]      -> review-observability
 #         -> observability-approved + create-plan
 #       [create-plan]               -> review-plan
-#         -> publish-plan (plan PR) --merge--> plan-approved + create-tasks-decomposition
+#         -> plan-approved + create-tasks-decomposition (autonomous: no plan PR gate)
 #       [create-tasks-decomposition]-> review-tasks-decomposition
 #         -> tasks-approved + create-tests
 #       [create-tests]              -> review-tests
 #         -> tests-approved + create-implementation
-#       [create-implementation] (impl PR) --merge--> shipped + finished (-> learnings)
+#       [create-implementation] (impl PR, auto-merged by merge-pr.sh)
+#         -> shipped + finished (-> learnings)
 #       [create-learnings]
 #
-#   BUGFIX:  llmaw:bug -> check-duplicates -> reproduce -> [fix PR]
-#            --merge--> llmaw:bug-fixed + llmaw:finished -> learnings
-#            (no review-* pairs; the fix PR is gated by review-pr.)
+#   BUGFIX:  llmaw:bug -> check-duplicates -> reproduce -> [fix PR, auto-merged]
+#            -> llmaw:bug-fixed + llmaw:finished -> learnings
+#            (no review-* pairs; the fix PR is auto-merged by merge-pr.sh.)
 #
 # Rules
 #  - One agent step per rule. Phases chain via transient triggers: a create rule
@@ -80,23 +84,23 @@
 #    .sdlc/ artifact chain, since the engine is stateless and each rule run
 #    starts from a fresh checkout. The branch name is derived from ISSUE_NUMBER,
 #    so no separate state is needed to locate it. Phases that open their own PR
-#    (publish-plan, create-implementation) still read upstream artifacts from the
+#    (create-implementation, fix-issue) still read upstream artifacts from the
 #    working branch; commit-sdlc no-ops if the skill switched to its PR branch.
 #    The working branch only ever carries WORK PRODUCT (.sdlc/ artifacts, code
 #    edits). The tooling that drives the flow (this file + the scripts under
 #    .github/llmaw/scripts/) is pinned to main by the dispatcher via
 #    $LLMAW_TOOLING_ROOT, so it always runs from main regardless of what the
 #    branch carries (and fixes apply to in-flight issues the moment they land).
-#  - The plan PR is the publish-plan human sign-off gate: merging it labels the
-#    linked issue `llmaw:plan-approved` plus `llmaw:create-tasks-decomposition`.
-#    Implementation/fix PRs use `closes #N`, so GitHub auto-closes the linked
-#    issue on merge.
+#  - Autonomous (no human gate): plan review approval advances directly to
+#    `llmaw:create-tasks-decomposition` (no plan PR). Implementation/fix PRs are
+#    auto-merged by merge-pr.sh right after the skill opens them; they use
+#    `closes #N`, so GitHub auto-closes the linked issue on merge.
 #
 # Triggered events (declared in the wrapper workflow):
 #   issues: opened | labeled | reopened | closed
-#   pull_request: closed | labeled | ready_for_review
-#   issue_comment: created
-#   pull_request_review_comment: created
+#   pull_request: closed | labeled   (ready_for_review / *_comment events are
+#   issue_comment: created            no longer routed: the human review/comment
+#   pull_request_review_comment: ...  gates were removed for autonomous mode)
 #
 # Any phase can be (re)started by manually adding its label, or force-run from
 # the Actions tab via the dispatcher's `rule-id` input.
@@ -104,7 +108,7 @@
 defaults:
   model: opencode/deepseek-v4-flash-free   # opencode model id (provider/model)
   agents_repository: tomzx/agents          # repo providing skills, cloned at runtime
-  timeout_minutes: 30
+  timeout_minutes: 60
   # execution: event-driven                 # or "continuous": chain rules in one job
                                             # until llmaw:needs-human (see docs/flows.md)
 
@@ -137,6 +141,9 @@ labels:
   - name: llmaw:create-specifications
     description: Run create-specifications (draft or revise)
     color: FBCA04
+  - name: llmaw:create-mockups
+    description: Run create-mockups (draft or revise; skips if no UI surface)
+    color: FBCA04
   - name: llmaw:create-telemetry
     description: Run create-telemetry (draft or revise)
     color: FBCA04
@@ -145,9 +152,6 @@ labels:
     color: FBCA04
   - name: llmaw:create-plan
     description: Run create-plan (draft or revise)
-    color: FBCA04
-  - name: llmaw:publish-plan
-    description: Run publish-plan (open plan PR)
     color: FBCA04
   - name: llmaw:create-tasks-decomposition
     description: Run create-tasks-decomposition (draft or revise)
@@ -177,6 +181,9 @@ labels:
     color: FBCA04
   - name: llmaw:review-specifications
     description: Specification drafted; awaiting review
+    color: FBCA04
+  - name: llmaw:review-mockups
+    description: Mockups drafted; awaiting review
     color: FBCA04
   - name: llmaw:review-telemetry
     description: Telemetry plan drafted; awaiting review
@@ -211,7 +218,10 @@ labels:
     description: Feasibility approved; ready for specification
     color: 0E8A16
   - name: llmaw:spec-approved
-    description: Specification approved; ready for telemetry
+    description: Specification approved; ready for mockups
+    color: 5319E7
+  - name: llmaw:mockups-approved
+    description: Mockups approved (or skipped, no UI surface); ready for telemetry
     color: 5319E7
   - name: llmaw:telemetry-approved
     description: Telemetry plan approved; ready for observability
@@ -220,7 +230,7 @@ labels:
     description: Observability plan approved; ready for planning
     color: 5319E7
   - name: llmaw:plan-approved
-    description: Plan PR merged (author sign-off); ready for task decomposition
+    description: Plan review approved; ready for task decomposition
     color: 5319E7
   - name: llmaw:tasks-approved
     description: Tasks approved; ready for test design
@@ -413,10 +423,34 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review specification"]
           - labels: { remove: [llmaw:review-specifications] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:spec-approved, llmaw:create-telemetry] } }
+              approved:          { labels: { add: [llmaw:spec-approved, llmaw:create-mockups] } }
               changes-requested: { labels: { add: [llmaw:create-specifications] }, comment: "Specification has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: specification rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Specification review produced no verdict." }
+
+      - id: feat-mockups-create
+        when: { event: issues, action: labeled, label: llmaw:create-mockups }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          - skill: create-mockups
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft mockups"]
+          - labels: { remove: [llmaw:create-mockups] }
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-mockups] } }
+              skipped:  { labels: { add: [llmaw:mockups-approved, llmaw:create-telemetry] }, comment: "No UI surface; mockups skipped.", post_reason: true }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Mockups produced no verdict; needs review." }
+      - id: feat-mockups-review
+        when: { event: issues, action: labeled, label: llmaw:review-mockups }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          - skill: review-mockups
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review mockups"]
+          - labels: { remove: [llmaw:review-mockups] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:mockups-approved, llmaw:create-telemetry] } }
+              changes-requested: { labels: { add: [llmaw:create-mockups] }, comment: "Mockups have findings to address; revising.", post_reason: true }
+              rejected:          { close: true, comment: "Closing: mockups rejected.", post_reason: true }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Mockups review produced no verdict." }
 
       - id: feat-telemetry-create
         when: { event: issues, action: labeled, label: llmaw:create-telemetry }
@@ -464,7 +498,7 @@ flows:
               rejected:          { close: true, comment: "Closing: observability plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Observability review produced no verdict." }
 
-      # --- Stage: plan (create -> review -> publish PR as human sign-off gate) ---
+      # --- Stage: plan (create -> review; autonomous, no plan PR gate) ---
       - id: feat-plan-create
         when: { event: issues, action: labeled, label: llmaw:create-plan }
         run:
@@ -483,27 +517,10 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review plan"]
           - labels: { remove: [llmaw:review-plan] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:publish-plan] } }
+              approved:          { labels: { add: [llmaw:plan-approved, llmaw:create-tasks-decomposition] } }
               changes-requested: { labels: { add: [llmaw:create-plan] }, comment: "Plan has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: plan rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Plan review produced no verdict." }
-      - id: feat-plan-publish
-        when: { event: issues, action: labeled, label: llmaw:publish-plan }
-        run:
-          - shell: .github/llmaw/scripts/ensure-branch.sh
-          # publish-plan opens a draft plan/ PR. Its merge (on-plan-merged)
-          # advances the flow, so approved is a no-op here.
-          - skill: publish-plan
-          - labels: { remove: [llmaw:publish-plan] }
-          - on_outcome:
-              approved: {}
-              _:        { labels: { add: [llmaw:needs-human] }, comment: "Plan publish produced no PR; needs review." }
-
-      # publish-plan gate: plan PR merged -> advance the linked issue.
-      - id: on-plan-merged
-        when: { event: pull_request, action: closed, merged: true, branch_prefix: plan/ }
-        run:
-          - labels: { add: [llmaw:plan-approved, llmaw:create-tasks-decomposition], target: linked-issue }
 
       # --- Stage: build ---
       - id: feat-tasks-create
@@ -556,11 +573,13 @@ flows:
         when: { event: issues, action: labeled, label: llmaw:create-implementation }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
-          # create-implementation opens an impl/ PR. Its merge (on-impl-merged)
-          # advances the flow, so approved is a no-op. The PR is gated by
-          # review-pr (see the review flow, on ready_for_review).
+          # create-implementation opens an impl/ PR; merge-pr.sh auto-merges it
+          # (no human gate). Its merge (on-impl-merged) advances the flow, so
+          # approved is a no-op. merge-pr.sh no-ops when no PR was opened,
+          # letting on_outcome route the non-approved verdict to needs-human.
           - skill: create-implementation
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft implementation"]
+          - shell: .github/llmaw/scripts/merge-pr.sh
           - labels: { remove: [llmaw:create-implementation] }
           - on_outcome:
               approved: {}
@@ -608,9 +627,12 @@ flows:
       - id: bug-fix
         when: { event: issues, action: labeled, label: llmaw:bug-reproduced }
         run:
-          # fix-issue opens a fix/ PR. Its merge (on-fix-merged) advances the
-          # flow, so approved is a no-op. The PR is gated by review-pr.
+          # fix-issue opens a fix/ PR; merge-pr.sh auto-merges it (no human gate).
+          # Its merge (on-fix-merged) advances the flow, so approved is a no-op.
+          # merge-pr.sh no-ops when no PR was opened, letting on_outcome route the
+          # non-approved verdict to needs-human.
           - skill: fix-issue
+          - shell: .github/llmaw/scripts/merge-pr.sh
           - on_outcome:
               approved: {}
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Fix produced no PR; needs review." }
@@ -628,18 +650,3 @@ flows:
           - shell: .github/llmaw/scripts/ensure-branch.sh
           - skill: create-learnings               # terminal
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "record learnings"]
-
-  review:
-    description: Automated PR review and interactive comment handling.
-    rules:
-      # Automated review when a human marks an agent PR ready (draft -> ready).
-      - id: review-pr
-        when: { event: pull_request, action: ready_for_review }
-        run:
-          - skill: review-pr
-
-      # Inline review comment on a plan PR -> address plan feedback.
-      - id: handle-pr-feedback
-        when: { event: pull_request_review_comment, action: created }
-        run:
-          - skill: handle-pr-feedback

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-131-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-133-green" alt="Skill count">
 </p>
 
 ## What
@@ -107,6 +107,8 @@ The library is organized into thematic groups covering the full software develop
 |-------|---------|
 | `/create-specifications` | Create a technical specification from requirements. |
 | `/review-specifications` | Review a specification for ambiguities and missing information. |
+| `/create-mockups` | Create UI wireframes, screens, states, and flows from a specification. |
+| `/review-mockups` | Review mockups for coverage, usability, accessibility, and spec fidelity. |
 | `/create-plan` | Create an implementation plan with phases, milestones, and risks. |
 | `/review-plan` | Review a plan for completeness, feasibility, and risk coverage. |
 | `/publish-plan` | Commit a plan to a branch and open a draft PR. |
