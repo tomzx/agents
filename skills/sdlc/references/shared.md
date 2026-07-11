@@ -215,6 +215,7 @@ Rules:
 - Write this file for every verdict when running under automation (`$OUTCOME_YAML` set). On `approved`, overwrite it with `verdict: approved` (body "No blocking findings.") so the corresponding `create-*` skill sees a clean state and does not re-enter revision mode.
 - This file is the durable record the create step reads to decide whether to revise. The posted comment (`post_reason`) is for humans; this file is for the next run.
 - The file follows the same `SDLC_DIR` read/write resolution as the artifact it accompanies, and is committed to the working branch by the runner's `commit-sdlc.sh`.
+- `backpropagate-sdlc` and `sync-sdlc` may regress an approved findings file to `verdict: changes-requested`, recording the drift in the body, when they detect the reviewed artifact has drifted from the code. The forward pipeline then resyncs the artifact via revision mode (see below) and the matching `review-*` skill restores `approved` once the drift is resolved.
 
 ## Revision Mode (create-* skills)
 

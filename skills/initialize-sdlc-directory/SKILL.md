@@ -62,7 +62,6 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/features/task.md` | `.sdlc/templates/features/task.md` |
    | `../sdlc/templates/features/tests.md` | `.sdlc/templates/features/tests.md` |
    | `../sdlc/templates/features/documentation.md` | `.sdlc/templates/features/documentation.md` |
-   | `../sdlc/templates/features/questions.md` | `.sdlc/templates/features/questions.md` |
    | `../sdlc/templates/knowledge/assumption.md` | `.sdlc/templates/knowledge/assumption.md` |
    | `../sdlc/templates/knowledge/decision.md` | `.sdlc/templates/knowledge/decision.md` |
    | `../sdlc/templates/knowledge/learning.md` | `.sdlc/templates/knowledge/learning.md` |

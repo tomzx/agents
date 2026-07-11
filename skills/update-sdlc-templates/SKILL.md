@@ -62,7 +62,7 @@ Templates with user customizations are merged intelligently, preserving the user
 - features/plan.md  — upstream removed "Timeline" table; your version has content there. Resolve manually.
 
 ### New templates added
-- features/questions.md
+- features/documentation.md
 ```
 
 ## Merge Principles

@@ -93,7 +93,7 @@ The `$1` argument selects which features to backpropagate. Defaults to `all`.
 
 Flags:
 
-- `--fix`: For each confirmed drift, append a dated entry to the feature's `questions.md` as a "Backpropagation drift" item, and remove the stale artifact's `review-<artifact>.md` findings file (resetting its frontmatter `status` to `draft`) so the forward pipeline re-reviews it. Never rewrites requirement or spec content: drift is ambiguous (the code may be wrong, or the artifact may be stale), so the skill flags it for a human decision rather than guessing which side to update.
+- `--fix`: For each confirmed drift, regress the stale artifact's `review-<artifact>.md` from `verdict: approved` to `verdict: changes-requested`, recording the drift in its body so the forward pipeline resyncs the artifact with the code and re-reviews it. Never rewrites requirement or spec content: drift is ambiguous (the code may be wrong, or the artifact may be stale), so the skill flags it for a human decision rather than guessing which side to update.
 - `--create-issues`: After reporting, create GitHub issues for high-severity drift (orphan upstream requirements, broken traceability for shipped behavior).
 
 ## Steps
@@ -105,7 +105,7 @@ Determine the target feature set from `$1` (default `all`) and read the flags.
 ```
 /backpropagate-sdlc                    # all features, report only
 /backpropagate-sdlc FEAT-3          # one feature, report only
-/backpropagate-sdlc all --fix          # all features, append drift + invalidate reviews
+/backpropagate-sdlc all --fix          # all features, regress drifted reviews
 /backpropagate-sdlc FEAT-2 --create-issues
 ```
 
@@ -125,8 +125,7 @@ For each target feature directory, read every artifact that exists and skip the 
 ├── observability.md
 ├── plan.md
 ├── tasks/N-<slug>.md   # one file per task
-├── tests.md               # TC-N
-└── questions.md
+└── tests.md               # TC-N
 ```
 
 Also resolve the originating GitHub issue number from frontmatter, and read the linked PR if one exists (use `ghx pr view` if available, otherwise `gh pr view`).
@@ -235,16 +234,15 @@ Every drift item falls into exactly one of three classes, which determines sever
 Merge all findings into a single report.
 Deduplicate when the same drift surfaces in multiple passes (a requirement with no code will appear in Pass 1, Pass 2, and Pass 5; collapse into one finding citing all passes).
 
-Write the report to `.sdlc/backpropagation-report.md`.
+Write one report per feature to `.sdlc/features/N-<slug>/backpropagation-report.md` (for an `all` run, write one file per feature).
 Present the summary to the user.
 
 ### 7. Apply fixes (only if `--fix`)
 
 For each confirmed drift:
 
-1. Append a dated, one-line entry to the feature's `questions.md` under a `## Backpropagation drift` heading, naming the pass, the IDs involved, and the class.
-2. If the artifact is the stale side of the drift and has an approved `review-<artifact>.md`, remove that findings file (and reset its frontmatter `status` to `draft`) so `/sdlc continue` re-enters the forward pipeline at that phase for re-review.
-3. Never rewrite artifact prose. Never delete a requirement, spec section, or test. These are human decisions.
+1. If the artifact is the stale side of the drift and its `review-<artifact>.md` has `verdict: approved`, regress that findings file: set `verdict: changes-requested` and append a `## Backpropagation drift: <date>` section to its body naming the pass, the IDs involved, the discrepancy, and the class. This triggers the forward pipeline's revision mode so `/sdlc continue` resyncs the artifact with the code and re-reviews it.
+2. Never rewrite artifact prose. Never delete a requirement, spec section, or test. These are human decisions.
 
 If `--create-issues` is set, after fixes, ask the user which orphan-upstream findings should become GitHub issues, then create them with a short body linking the feature directory and the drift class.
 
@@ -306,7 +304,7 @@ status: complete
 <Only present if --fix was specified>
 | Finding | Fix applied | Files changed |
 |---|---|---|
-| <description> | <appended drift note, invalidated review> | questions.md, <artifact> |
+| <description> | regressed review to changes-requested (drift in body) | review-<artifact>.md |
 
 ## Recommended Actions
 
@@ -340,7 +338,7 @@ Walks every feature. Finds that FEAT-2 has a `TC-4` for a behavior removed last 
 ```
 /backpropagate-sdlc FEAT-7 --fix
 ```
-Finds specification.md drifted: it describes a `POST /invites` endpoint that the code renamed to `POST /invitations`. Appends a drift note to `questions.md` and removes `review-specification.md` (resetting `specification.md` to `status: draft`). The next `/sdlc continue` re-enters at the specifications phase.
+Finds specification.md drifted: it describes a `POST /invites` endpoint that the code renamed to `POST /invitations`. Regresses `review-specification.md` from `approved` to `changes-requested`, recording the drift in its body. The next `/sdlc continue` re-enters at the specifications phase and resyncs the spec with the code.
 
 **Scenario 3: Inheriting a project**
 ```

@@ -243,8 +243,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── plan.md
 │       ├── tasks/                 # One file per task (e.g., 1-setup-db-schema.md)
 │       │   └── N-<slug>.md
-│       ├── tests.md
-│       └── questions.md           # Drift log written by sync-sdlc and backpropagate-sdlc
+│       └── tests.md
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
 │   │   ├── needs-assessment.md
@@ -259,8 +258,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── plan.md
 │   │   ├── progress.md            # Template for feature-level progress tracking
 │   │   ├── task.md                # Template for a single task file
-│   │   ├── tests.md
-│   │   └── questions.md
+│   │   └── tests.md
 │   └── knowledge/
 │       ├── assumption.md
 │       ├── decision.md
@@ -340,7 +338,7 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions surfaced during review are recorded in that review's findings body. `.sdlc/features/N-<slug>/questions.md` is the drift log written by `sync-sdlc` and `backpropagate-sdlc`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions surfaced during review are recorded in that review's findings body. When `backpropagate-sdlc` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
