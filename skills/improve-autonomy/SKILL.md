@@ -3,7 +3,7 @@ name: improve-autonomy
 description: Reflect on the current session and identify what would have been needed to run it fully autonomously end to end, producing a concrete readiness assessment and a prioritized gap list. Use when the user asks /improve-autonomy, "what would it take to run this autonomously?", or wants to assess autonomy readiness.
 ---
 
-# Agentic Reflection
+# Improve Autonomy
 
 Asks: "What would have been needed to run this session autonomously, end to end, with no human in the loop?" Produces a structured readiness assessment that surfaces missing context, missing tools, missing decisions, and missing guardrails that prevented full autonomy.
 
@@ -129,7 +129,7 @@ If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agenti
 ## Output Format
 
 ```markdown
-## Agentic Reflection
+## Improve Autonomy
 
 ### Session Intent
 <One or two sentences describing what the session accomplished.>
@@ -217,4 +217,4 @@ If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agenti
 
 `/automate-session` asks "which steps could be automated and what hooks/skills should I create?" It focuses on incremental automation within the current session structure.
 
-`/agentic-reflection` asks "what would it take to run this entire session with zero human input?" It starts from the ideal (full autonomy) and works backward to identify every gap, including gaps in context, decision-making, and error recovery that `/automate-session` may not surface because it accepts the current workflow as given.
+`/improve-autonomy` asks "what would it take to run this entire session with zero human input?" It starts from the ideal (full autonomy) and works backward to identify every gap, including gaps in context, decision-making, and error recovery that `/automate-session` may not surface because it accepts the current workflow as given.
