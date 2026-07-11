@@ -68,6 +68,8 @@ Works for both initial bootstrapping and periodic sync.
    - What naming, directory, coding, commit, and branching conventions are followed?
    - What domain terms, technical terms, and acronyms are used in the codebase?
    - What are the distinct features or subsystems present in the codebase?
+   - What test files exist, and which features or modules do they cover?
+   - What documentation exists (README sections, `docs/` pages, API docs, inline docstrings), and which features does it cover?
 
    Useful signals to look at (read what exists; skip what does not):
    - `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE`
@@ -75,6 +77,7 @@ Works for both initial bootstrapping and periodic sync.
    - CI configuration files (`.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, etc.)
    - Top-level directory structure (`ls -1`)
    - Entry-point files (e.g., `main.py`, `src/index.ts`, `cmd/`, `app/`)
+   - Test directories and files (`tests/`, `test/`, `*_test.*`, `*.spec.*`, `*_spec.*`)
    - Existing documentation under `docs/` if present
    - `CLAUDE.md` or `.claude/` for project-specific conventions already captured
    - Open or recently closed GitHub issues (`gh issue list --limit 20`) if the project has a remote
@@ -103,6 +106,7 @@ Works for both initial bootstrapping and periodic sync.
     A feature is a coherent unit of functionality visible to users or operators, not an internal module or utility.
     Aim for 3–10 features; fewer for small projects, more for large ones.
     Good signals: top-level CLI commands, API route groups, major UI sections, distinct background jobs, named services.
+    For each feature, record the source files that implement it, the test files that cover it, and any documentation that describes it. This implementation, test, and documentation evidence drives artifact status and progress tracking in steps 13–14.
 
 12. Match identified features against existing `.sdlc/features/` directories.
     Build three lists:
@@ -112,7 +116,7 @@ Works for both initial bootstrapping and periodic sync.
 
 13. For each **new feature**:
     a. Create a directory `.sdlc/features/p<seq>-<slug>/` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Features discovered from the codebase during reconciliation have no associated issue, so they are created as **pending** features with a `p`-prefixed sequence id (the next unused `p<seq>`, e.g. `p1`, `p2`), to be promoted to placeholder issues later. `<slug>` is a kebab-case name derived from the feature name.
-    b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Do not create any other files; `plan.md`, `tests.md`, `questions.md`, and `tasks/` are created when there is real content to put in them.
+    b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Since these features were reverse-engineered from existing code, set frontmatter `status: done` on both — they document already-implemented functionality, not work yet to be done.
     c. Populate `requirements.md` with:
        - A real overview paragraph describing the feature's purpose.
        - Functional requirements derived from the code (what the system does).
@@ -126,14 +130,20 @@ Works for both initial bootstrapping and periodic sync.
        - Key sequence flows if non-trivial.
        - Technical decisions already made (libraries chosen, patterns used).
        - Known risks or open unknowns.
+    e. **Identify test coverage.** Using the evidence gathered in step 11, determine which test files cover this feature's functionality. Match by naming conventions, import paths, module structure, or test descriptions. Record the specific test files and test cases found.
+    f. **Create `tests.md`** if test coverage was found. Use the tests template from `.sdlc/templates/features/` with frontmatter `status: done`. Populate it from the actual test code: list the test files, summarize what each covers, categorize into unit/integration/end-to-end as appropriate, note edge cases already tested, and build a coverage matrix mapping functional requirements (from `requirements.md`) to test cases. If no tests were found for this feature, skip this step and note the gap in the sync report.
+    g. **Create `progress.md`** reflecting that implementation already exists. Use the progress template from `.sdlc/templates/features/`. Set frontmatter `current_phase` to `complete`, `re_entry_point` to the first missing artifact (`create-tests` if no tests found, `create-documentation` if tests exist but no documentation was found, or `none` if both exist), and `last_updated` to today's date. In the Pipeline Status table, mark `create-requirements`, `create-specifications`, and `create-implementation` as `done`; mark `create-tests` and `review-tests` as `done` if tests were found, otherwise leave as `—`; mark `create-documentation` and `review-documentation` as `done` if documentation was found, otherwise leave as `—`; mark all review, planning, and feasibility phases that were not formally conducted as `skipped`; leave PR, deployment, and learnings phases as `—`. Write a Summary noting the feature was reverse-engineered from existing code during sync. Leave the Task Progress table empty since tasks were not formally decomposed.
 
 14. For each **existing feature**:
     a. Read the current `requirements.md` and `specification.md`.
     b. Generate a fresh analysis of the feature from the codebase.
     c. Compare the fresh analysis with the existing files.
-    d. If the existing `requirements.md` is missing functional requirements that the code clearly implements, or contains requirements that no longer match the code, produce a drift report entry listing the discrepancies. Do **not** overwrite the existing file; instead append findings to the feature's `questions.md` (create it if it does not exist) as "Sync drift" items.
-    e. If the existing `specification.md` has drifted from the code, produce a drift report entry the same way.
+    d. If the existing `requirements.md` is missing functional requirements that the code clearly implements, or contains requirements that no longer match the code, produce a drift report entry listing the discrepancies. Do **not** overwrite the existing file; instead, if `review-requirements.md` exists with `verdict: approved`, regress it to `verdict: changes-requested` and append a `## Sync drift: <date>` section to its body describing the discrepancies, so the forward pipeline resyncs and re-reviews it.
+    e. If the existing `specification.md` has drifted from the code, regress `review-specification.md` the same way and add a drift report entry.
     f. If the existing files match the codebase analysis, note it as "in sync" in the report.
+    g. Reconcile `progress.md`. If it does not exist, create it following the same logic as step 13g. If it exists but `current_phase` predates implementation (e.g., `specification`, `plan`, or earlier) while the code is already implemented, update `current_phase` to `complete` and adjust the Pipeline Status table accordingly. Never downgrade a `current_phase` that already reflects completion or a later stage.
+    h. Reconcile `tests.md`. If test files covering this feature exist in the codebase but `tests.md` does not, create it following step 13f. If `tests.md` already exists, compare its documented test cases against the actual test code and, for any discrepancies, regress `review-tests.md` to `changes-requested` with a `## Sync drift: <date>` body the same way.
+    i. If `requirements.md` or `specification.md` have frontmatter `status: draft` but the feature is already implemented, update `status` to `done`.
 
 15. For each **orphaned feature**:
     a. Do not delete or modify any files.
@@ -192,13 +202,19 @@ Works for both initial bootstrapping and periodic sync.
 
 #### New features (created)
 - N-<slug>: <Feature Name>
-  - requirements.md: populated (N functional requirements, M non-functional)
-  - specification.md: populated
+  - requirements.md: populated (N functional requirements, M non-functional), status: done
+  - specification.md: populated, status: done
+  - tests.md: created (N test cases documented) / not created (no tests found)
+  - progress.md: created (current_phase: complete, re_entry_point: <phase or none>)
+  - documentation: found (<paths>) / not found
 
 #### Existing features (checked)
 - N-<slug>: <Feature Name>
-  - requirements.md: in sync / drift detected (<count> items, see questions.md)
-  - specification.md: in sync / drift detected (<count> items, see questions.md)
+  - requirements.md: in sync / drift detected (<count> items, see review-requirements.md)
+  - specification.md: in sync / drift detected (<count> items, see review-specification.md)
+  - tests.md: created / in sync / drift detected / not created (no tests found)
+  - progress.md: created / updated / in sync
+  - documentation: found (<paths>) / not found
 
 #### Orphaned features (no matching code)
 - N-<slug>: <Feature Name> — review and update scope or remove manually
@@ -214,7 +230,7 @@ Works for both initial bootstrapping and periodic sync.
 ### Next steps
 1. Review context file changes and correct anything that was inferred incorrectly.
 2. Review each new feature's requirements.md and specification.md.
-3. Address drift items in questions.md for existing features.
+3. Address drift items in the regressed `review-<artifact>.md` files for existing features.
 4. Decide the fate of orphaned features (update scope or remove).
 5. Commit changes to `.sdlc/` to version control.
 ```
@@ -225,13 +241,13 @@ Works for both initial bootstrapping and periodic sync.
 ```
 /sync-sdlc
 ```
-Creates `.sdlc/` with templates, populates all context files fresh, creates feature directories with requirements and specifications.
+Creates `.sdlc/` with templates, populates all context files fresh, creates feature directories with requirements, specifications, tests, and progress reflecting existing implementation.
 
 **Scenario 2: Periodic sync on an established project**
 ```
 /sync-sdlc
 ```
-Updates templates, compares and updates context files, creates new features, checks existing features for drift, flags orphaned features.
+Updates templates, compares and updates context files, creates new features, checks existing features for drift, reconciles progress and test artifacts, flags orphaned features.
 
 **Scenario 3: Sync a project from a different directory**
 ```
