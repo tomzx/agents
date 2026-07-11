@@ -49,6 +49,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
    | Canonical source | Destination |
    |---|---|
+   | `../sdlc/templates/features/needs-assessment.md` | `.sdlc/templates/features/needs-assessment.md` |
    | `../sdlc/templates/features/requirements.md` | `.sdlc/templates/features/requirements.md` |
    | `../sdlc/templates/features/specification.md` | `.sdlc/templates/features/specification.md` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
