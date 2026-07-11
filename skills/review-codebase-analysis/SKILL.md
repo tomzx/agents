@@ -17,12 +17,12 @@ The review verifies that the analysis describes the real code (not assumptions) 
 
 ## Steps
 
-1. Read the analysis. If reading from `.sdlc/features/N-<slug>/codebase-analysis.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the analysis from `.sdlc/features/N-<slug>/codebase-analysis.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the requirements document if available: every requirement that implies a code change should map to an analyzed component.
 3. Spot-check the analysis against the actual codebase to confirm behavior claims and paths.
 4. Identify issues in each of the categories below.
 5. Report findings. Omit any category that has no findings.
-6. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
+6. Write the findings to `.sdlc/features/N-<slug>/review-codebase-analysis.md` with frontmatter `artifact: codebase-analysis`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
 
 ## Review Checklist
 
@@ -106,7 +106,7 @@ Report under Changeability Rigor.
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-feasibility`, which consumes this analysis to judge viability and cost.
+Once the findings verdict is `approved`, continue with `/create-feasibility`, which consumes this analysis to judge viability and cost.
 
 ## Useful Commands Reference
 

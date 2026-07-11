@@ -18,11 +18,11 @@ Audits an observability plan for completeness, actionability, consistency, and a
 
 ## Steps
 
-1. Read the observability document. If reading from `.sdlc/features/N-<slug>/observability.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the observability document from `.sdlc/features/N-<slug>/observability.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the specification, telemetry plan, and requirements.
 3. Identify issues in each of the five categories below.
 4. Report findings. Omit any category that has no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
+5. Write the findings to `.sdlc/features/N-<slug>/review-observability.md` with frontmatter `artifact: observability`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -107,7 +107,7 @@ Report under Overlap with Telemetry: use `orders_request_total` (observability, 
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-plan`.
+Once the findings verdict is `approved`, continue with `/create-plan`.
 
 ## Useful Commands Reference
 

@@ -13,7 +13,7 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
 
 ## Steps
 
@@ -34,64 +34,11 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Existing Solutions: <Feature Name>
-
-## Overview
-
-<One paragraph summarizing what was searched for and the recommended direction.>
-
-## Search Scope
-
-| Source | Searched | Notes |
-|---|---|---|
-| Internal codebase | Yes / No | <queries or paths checked> |
-| Open-source | Yes / No | <queries used> |
-| Commercial / SaaS | Yes / No | ... |
-| Standards / protocols | Yes / No | ... |
-| Reference material | Yes / No | ... |
-
-## Candidate Solutions
-
-| Solution | Type | License | Maturity | Covers | Gaps |
-|---|---|---|---|---|---|
-| <name + link> | Library / Product / Internal / Standard | MIT / proprietary / ... | Mature / Active / Stale | FR-1, FR-3 | FR-2, NFR-1 |
-
-## Evaluation
-
-### <Solution Name>
-
-- **Strengths:** <what it does well>
-- **Weaknesses:** <where it falls short>
-- **Integration effort:** <low / medium / high, with reasoning>
-- **Cost:** <licensing, hosting, or maintenance cost>
-- **Risks:** <license, maintenance health, security, lock-in>
-- **Forward compatibility:** <upgrade stability, semver discipline, version range safety, how future dependency upgrades or additive contract changes would affect us>
-
-## Recommendation
-
-**Direction:** Adopt / Adopt and extend / Build / Hybrid
-
-<Rationale tied to the requirements and the evaluation above.>
-
-## Sources of Information
-
-- <Solution or write-up>: <pattern, edge case, or pitfall worth borrowing even if not adopted>
-
-## Open Questions
-
-1. <Question that needs an answer before the design can rely on this survey.>
-```
+Use the template at `skills/sdlc/templates/features/existing-solutions.md` (copied to `.sdlc/templates/features/existing-solutions.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
 
 ## Example Usage
 

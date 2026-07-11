@@ -29,68 +29,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Requirements: <Feature Name>
-
-## Overview
-
-<One paragraph describing the problem and the goal of this feature.>
-
-## Stakeholders
-
-| Stakeholder | Interest |
-|---|---|
-| <role> | <what they need from this feature> |
-
-## Functional Requirements
-
-| ID | Priority | Requirement |
-|---|---|---|
-| FR-1 | Must / Should / May | The system shall ... |
-| FR-2 | ... | ... |
-
-## Non-Functional Requirements
-
-| ID | Requirement | Category |
-|---|---|---|
-| NFR-1 | The system shall ... | Performance / Security / Availability / ... |
-
-## Constraints
-
-- <Constraint 1>
-- <Constraint 2>
-
-## Acceptance Criteria
-
-- [ ] **FR-1**
-    - **Given** <precondition>
-    - **When** <action>
-    - **Then** <observable result>
-- [ ] **FR-1** (edge case)
-    - **Given** <edge case>
-    - **When** <action>
-    - **Then** <expected handling>
-- [ ] **FR-1** (error)
-    - **Given** <error condition>
-    - **When** <action>
-    - **Then** <error is surfaced as ...>
-
-## Conflicts
-
-<!-- Populated by /review-requirements. Leave as "None identified yet." when drafting. -->
-
-None identified yet.
-
-## Open Questions
-
-1. <Question that needs an answer before implementation can begin>
-```
+Use the template at `skills/sdlc/templates/features/requirements.md` (copied to `.sdlc/templates/features/requirements.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 Use MoSCoW priority for functional requirements: **Must** (essential), **Should** (important), **May** (nice-to-have).
 
@@ -104,7 +43,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 
 | Verdict | When |
 |---|---|
-| `approved` | Requirements drafted (artifact written with `status: approved`) |
+| `approved` | Requirements drafted (artifact written with `status: draft`, ready for `/review-requirements`) |
 | `needs-info` | Issue lacks the detail needed to derive requirements |
 
 ## Example Usage

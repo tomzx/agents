@@ -15,13 +15,11 @@ Audits a needs assessment and reports findings across four categories: evidence 
 
 ## Steps
 
-1. Read the needs assessment document. If reading from `.sdlc/features/N-<slug>/needs-assessment.md`, update `status: draft` to `status: in-review` in the frontmatter before proceeding.
+1. Read the needs assessment document from `.sdlc/features/N-<slug>/needs-assessment.md` if present, otherwise from context or as a file path.
 2. Identify issues in each of the four categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. After all findings are resolved:
-   - If the overall verdict is **Needed** or **Nice-to-have**: update `status: in-review` to `status: approved` in the frontmatter. The pipeline may proceed to `/create-requirements`.
-   - If the overall verdict is **Not needed**: update `status: in-review` to `status: rejected` in the frontmatter. Update the GitHub issue with findings and stop the pipeline.
-   - Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
+4. Write the findings to `.sdlc/features/N-<slug>/review-needs-assessment.md` with frontmatter `artifact: needs-assessment`, `verdict` (`approved` if the overall verdict is Needed or Nice-to-have, `rejected` if Not needed, `changes-requested` if the author must address findings), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+   - If the overall verdict is **Not needed**: also update the GitHub issue with the findings and stop the pipeline.
 
 ## Review Checklist
 
@@ -94,8 +92,8 @@ Evidence rating is Weak but the verdict is Needed. Flag under Verdict Soundness:
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-requirements`.
-If `status` is `rejected`, update the issue and stop the pipeline.
+Once the findings verdict is `approved`, continue with `/create-requirements`.
+If the findings verdict is `rejected`, update the issue and stop the pipeline.
 
 ## Useful Commands Reference
 

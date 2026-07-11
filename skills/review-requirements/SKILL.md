@@ -15,11 +15,11 @@ Audits a requirements document and reports findings across five categories: clar
 
 ## Steps
 
-1. Read the requirements document. If reading from `.sdlc/features/N-<slug>/requirements.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the requirements document from `.sdlc/features/N-<slug>/requirements.md` if present, otherwise from context or as a file path.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, append it to `.sdlc/features/N-<slug>/questions.md` as an open question and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
+5. Write the findings to `.sdlc/features/N-<slug>/review-requirements.md` with frontmatter `artifact: requirements`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -111,7 +111,7 @@ These conflict. Report under Conflicts.
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-existing-solutions` to survey prior art before designing.
+Once the findings verdict is `approved`, continue with `/create-existing-solutions` to survey prior art before designing.
 
 ## Useful Commands Reference
 

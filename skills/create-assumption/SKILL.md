@@ -27,52 +27,7 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-status: Active
----
-
-# Assumption: <Short title — what is assumed, as a statement>
-
-**Date:** <YYYY-MM-DD>
-**Status:** <Active | Validated | Invalidated | Deferred>
-**Author:** <Name or role>
-
----
-
-## Statement
-
-<State the assumption in one or two sentences. Be specific about scope — "users will have" is weaker than "registered users on mobile will have".>
-
-## Basis
-
-<What evidence, data, prior experience, or reasoning supports this assumption?
-If it is a guess with no basis, say so explicitly.>
-
-## Confidence
-
-**Level:** <High | Medium | Low>
-
-<One sentence explaining the confidence level.>
-
-## Risk if Wrong
-
-**Impact:** <High | Medium | Low>
-
-<Describe what breaks or changes if this assumption is false.
-Include which components, flows, or decisions depend on it.>
-
-## Validation Plan
-
-**Method:** <How to verify — spike, user research, load test, A/B test, reviewing docs, etc.>
-**Owner:** <Who is responsible for validating>
-**By:** <Date or milestone by which validation should complete>
-
-## Related
-
-- <Link to any decisions, requirements, or other assumptions that depend on this one>
-```
+Use the template at `skills/sdlc/templates/knowledge/assumption.md` (copied to `.sdlc/templates/knowledge/assumption.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Example Usage
 

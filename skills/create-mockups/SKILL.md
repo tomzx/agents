@@ -16,8 +16,8 @@ For features with no user interface (a pure API, a background job, a CLI), skip 
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
-- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`, if produced): reuse the data models, API contracts, and flows it defines so the mockups stay faithful to what the system can actually deliver
+- `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`, if produced): reuse the data models, API contracts, and flows it defines so the mockups stay faithful to what the system can actually deliver
 - `.sdlc/features/N-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): reuse existing UI components and patterns it inventoried, and honor any "must not change" constraints on shared components
 
 ## Steps
@@ -37,30 +37,7 @@ For features with no user interface (a pure API, a background job, a CLI), skip 
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Mockups: <Feature Name>
-
-## Overview
-
-<One paragraph describing the UI surface, the primary user, and the main goal of the screens.>
-
-## Screen Inventory
-
-| Screen | Purpose | Entry From | Exits To |
-|---|---|---|---|
-| <name> | <what the user does here> | <where they came from> | <where they can go> |
-
-## Wireframes
-
-### <Screen 1>
-
-```
+Use the template at `skills/sdlc/templates/features/mockups.md` (copied to `.sdlc/templates/features/mockups.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 +-----------------------------------------------+
 |  <logo>              <nav>            <avatar> |
 +-----------------------------------------------+

@@ -20,6 +20,7 @@ Audits documentation and reports findings across five categories: completeness, 
 2. Compare it against the feature or component being documented, if accessible.
 3. Identify issues in each category below.
 4. Report findings. Omit categories with no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-documentation.md` with frontmatter `artifact: documentation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 

@@ -30,57 +30,7 @@ Produces a structured document covering what went well, what didn't, process imp
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Learnings: <Feature / Sprint / Project Name>
-
-**Date:** <YYYY-MM-DD>
-**Duration:** <How long it took>
-**Delivered:** <What was shipped>
-
----
-
-## What Went Well
-
-- <Specific practice, decision, or event that had a positive impact>
-
-## What Didn't Go Well
-
-- <Issue>: <Root cause — not just the symptom>
-
-## Process Improvements
-
-| Improvement | Rationale | Owner | Target Date |
-|---|---|---|---|
-| <Action to take> | <Why this will help> | <Who> | <When> |
-
-## Technical Insights
-
-### Decisions That Paid Off
-
-- <Decision>: <Why it helped>
-
-### Decisions to Revisit
-
-- <Decision>: <What we'd do differently and why>
-
-## Action Items
-
-- [ ] <Concrete next step> — **Owner:** <name>, **By:** <date>
-
-## Metrics (if available)
-
-| Metric | Planned | Actual |
-|---|---|---|
-| Duration | X days | Y days |
-| Scope changes | — | N additions |
-| Bugs found in review | — | N |
-```
+Use the template at `skills/sdlc/templates/knowledge/learning.md` (copied to `.sdlc/templates/knowledge/learning.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Outcome
 

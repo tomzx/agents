@@ -16,11 +16,11 @@ Audits an implementation plan and reports findings across six categories: comple
 
 ## Steps
 
-1. Read the plan. If reading from `.sdlc/features/N-<slug>/plan.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the plan from `.sdlc/features/N-<slug>/plan.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the specification or requirements if available.
 3. Identify issues in each category below.
 4. Report findings. Omit any category that has no findings.
-5. After all findings are resolved: update `status: in-review` → `status: approved` in the frontmatter. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. Write the findings to `.sdlc/features/N-<slug>/review-plan.md` with frontmatter `artifact: plan`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -108,7 +108,7 @@ Report under Risk Coverage.
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, run `/publish-plan` to commit the plan and open a draft PR for author sign-off, then continue with `/create-tasks-decomposition`.
+Once the findings verdict is `approved`, run `/publish-plan` to commit the plan and open a draft PR for author sign-off, then continue with `/create-tasks-decomposition`.
 
 ## Useful Commands Reference
 

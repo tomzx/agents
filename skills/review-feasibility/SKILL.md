@@ -15,13 +15,11 @@ Audits a feasibility assessment and reports findings across five categories: com
 
 ## Steps
 
-1. Read the feasibility document. If reading from `.sdlc/features/N-<slug>/feasibility.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the feasibility document from `.sdlc/features/N-<slug>/feasibility.md` if present, otherwise from context or as a file path.
 2. Identify issues in each of the five categories below.
 3. Report findings using the output format. Omit any category that has no findings.
-4. After all findings are resolved:
-   - If the overall verdict is **Go** or **Go with conditions**: update `status: in-review` → `status: approved` in the frontmatter. The pipeline may proceed to `/create-specifications`.
-   - If the overall verdict is **No-go**: update `status: in-review` → `status: rejected` in the frontmatter. Update the GitHub issue with findings and stop the pipeline.
-   - Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist).
+4. Write the findings to `.sdlc/features/N-<slug>/review-feasibility.md` with frontmatter `artifact: feasibility`, `verdict` (`approved` if the overall verdict is Go or Go with conditions, `rejected` if No-go, `changes-requested` if the author must address findings), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+   - If the overall verdict is **No-go**: also update the GitHub issue with the findings and stop the pipeline.
 
 ## Review Checklist
 
@@ -99,8 +97,8 @@ Financial feasibility assumes zero third-party costs, but the feature requires s
 
 ## Next Step
 
-Once all findings are resolved and `status` is set to `approved`, continue with `/create-specifications`.
-If `status` is `rejected`, update the issue and stop the pipeline.
+Once the findings verdict is `approved`, continue with `/create-specifications`.
+If the findings verdict is `rejected`, update the issue and stop the pipeline.
 
 ## Useful Commands Reference
 

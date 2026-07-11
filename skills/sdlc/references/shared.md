@@ -163,7 +163,7 @@ reason: <one sentence>  # optional
 
 Rules:
 
-- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching `review-*` skill later promotes the artifact `status` to `approved`.
+- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching `review-*` skill records its outcome in a `review-<artifact>.md` findings file (see Review Findings Persistence) and does not modify the artifact `status`.
 - If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
 - This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
@@ -173,7 +173,7 @@ Rules:
 
 The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is ephemeral relative to the branch).
 
-When a `review-*` skill runs, after producing its findings it writes them to a findings file beside the artifact under review:
+When a `review-*` skill that governs a feature-pipeline artifact runs (see the table below for which artifacts), after producing its findings it writes them to a findings file beside the artifact under review. That review skill writes only this file: it does not modify the reviewed artifact's review-bookkeeping `status` (`draft`/`in-review`/`approved`) and does not append to `questions.md`. Open questions discovered during review are recorded in the findings body. (Domain lifecycle statuses are separate and still set by the relevant review skill: task `pending`, and the knowledge-record statuses — assumption `Validated`, decision `Accepted`, learnings `complete`. Knowledge-record reviews are not listed below.) The findings file path is:
 
 ```
 .sdlc/features/N-<slug>/review-<artifact>.md
@@ -192,8 +192,11 @@ The `<artifact>` stem matches the primary artifact the skill reviews:
 | `mockups.md` | `review-mockups.md` |
 | `telemetry.md` | `review-telemetry.md` |
 | `observability.md` | `review-observability.md` |
+| `plan.md` | `review-plan.md` |
 | `tasks/` | `review-tasks.md` |
 | `tests.md` | `review-tests.md` |
+| documentation | `review-documentation.md` |
+| implementation (code) | `review-implementation.md` |
 
 Frontmatter:
 
@@ -224,7 +227,7 @@ If that file exists and its `verdict` is `changes-requested`, operate in **revis
 
 - Read the existing artifact and the findings together.
 - Amend the artifact to address each finding. Do not regenerate from scratch: preserve content the findings did not challenge, and make the minimum changes that resolve every finding.
-- Keep the artifact frontmatter `status` at `in-review` (the review skill set it; do not regress it to `draft`).
+- Set the artifact frontmatter `status` to `in-review` while revising. Reviews do not modify the artifact frontmatter; the authoring `create-*` skill owns the `status` field.
 - Optionally bump a `revision: <n>` counter in the artifact frontmatter, starting at 1 on the first revision.
 
 Otherwise (no findings file, or `verdict: approved`), draft fresh as normal.

@@ -79,6 +79,10 @@ Produces documentation for a feature or component organized according to the [Di
 <Why the feature works the way it does, trade-offs made, or the conceptual model.>
 ```
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: draft` written to the artifact. If the artifact could not be produced, omit the file.
+
 ## Example Usage
 
 **Scenario 1: New CLI command**

@@ -12,7 +12,7 @@ Produces a detailed technical specification from a requirements document, coveri
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/requirements.md` (must have `status: approved`), or a requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
 - `.sdlc/features/N-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): honor each component's change disposition and its "must not change" constraints, and follow the migration path for any refactor or replace
 
@@ -41,56 +41,7 @@ A forward-compatible design keeps working as the system evolves without forcing 
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Specification: <Feature Name>
-
-## Overview
-
-<One paragraph describing the technical approach.>
-
-## Architecture
-
-<ASCII diagram or description showing components and their relationships.>
-
-## Data Models
-
-### <Entity Name>
-
-| Field | Type | Constraints | Description |
-|---|---|---|---|
-| id | uuid | PK, not null | ... |
-
-## API Contracts
-
-### <METHOD /path>
-
-**Request**
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-
-**Response (200 OK)**
-
-| Field | Type | Description |
-|---|---|---|
-
-**Error Responses**
-
-| Status | Code | Description |
-|---|---|---|
-| 400 | INVALID_INPUT | ... |
-
-## Sequences
-
-### <Flow Name>
-
-```
+Use the template at `skills/sdlc/templates/features/specification.md` (copied to `.sdlc/templates/features/specification.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 Client → Service → DB
    |                 |
    |   POST /thing   |
@@ -116,7 +67,7 @@ Client → Service → DB
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
 
 ## Example Usage
 

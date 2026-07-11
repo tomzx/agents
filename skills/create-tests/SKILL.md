@@ -13,7 +13,7 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/requirements.md` and `.sdlc/features/N-<slug>/specification.md` (both must have `status: approved`), or documents provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/requirements.md` and `.sdlc/features/N-<slug>/specification.md` (both must have passed review with findings verdict `approved`), or documents provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
 - Information about the testing stack (if available)
@@ -46,51 +46,11 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Test Plan: <Feature Name>
-
-## Scope
-
-<What is being tested and what is out of scope.>
-
-## Unit Tests
-
-<TC-1 through TC-N>
-
-## Integration Tests
-
-<TC-N+1 through TC-M>
-
-## End-to-End Tests
-
-<TC-M+1 through TC-P>
-
-## Edge Cases and Failure Scenarios
-
-<TC-P+1 through TC-Q>
-
-## Test Infrastructure
-
-- <Fixtures, mocks, or test data required>
-- <Test environment requirements>
-
-## Coverage Matrix
-
-| Requirement | Test Cases |
-|---|---|
-| FR-1 | TC-1, TC-5 |
-| NFR-1 | TC-8 |
-```
+Use the template at `skills/sdlc/templates/features/tests.md` (copied to `.sdlc/templates/features/tests.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the test plan could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the test plan could not be produced, omit the file.
 
 ## Example Usage
 

@@ -12,7 +12,7 @@ Produces a structured implementation plan from a specification or requirements d
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`), or a specification/requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification/requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include analytics instrumentation as deliverables in the plan
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include logging, metrics, tracing, and alerting as deliverables in the plan
 - Team size and velocity context (if available)
@@ -30,58 +30,7 @@ Produces a structured implementation plan from a specification or requirements d
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Implementation Plan: <Feature Name>
-
-## Goal
-
-<One paragraph describing what this plan achieves.>
-
-## Phases
-
-### Phase 1: <Name>
-
-**Goal:** <What is complete at the end of this phase.>
-**Effort:** <Estimate>
-**Depends on:** <Prior phases or external dependencies, or "None">
-
-**Deliverables:**
-- [ ] <Deliverable 1>
-- [ ] <Deliverable 2>
-
-### Phase 2: <Name>
-
-...
-
-## Milestones
-
-| Milestone | Phase | Success Criteria |
-|---|---|---|
-| M1: <name> | Phase 1 | <Measurable condition> |
-
-## Dependencies
-
-| Dependency | Type | Owner | Risk if Delayed |
-|---|---|---|---|
-| <name> | Internal / External | <team or person> | <impact> |
-
-## Risk Register
-
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| <description> | High / Med / Low | High / Med / Low | <action> |
-
-## Timeline (if capacity is known)
-
-| Phase | Start | End | Notes |
-|---|---|---|---|
-```
+Use the template at `skills/sdlc/templates/features/plan.md` (copied to `.sdlc/templates/features/plan.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Outcome
 

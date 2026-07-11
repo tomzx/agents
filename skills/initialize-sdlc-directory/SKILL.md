@@ -51,7 +51,13 @@ Already-existing files are never overwritten — this is safe to run on a projec
    |---|---|
    | `../sdlc/templates/features/needs-assessment.md` | `.sdlc/templates/features/needs-assessment.md` |
    | `../sdlc/templates/features/requirements.md` | `.sdlc/templates/features/requirements.md` |
+   | `../sdlc/templates/features/existing-solutions.md` | `.sdlc/templates/features/existing-solutions.md` |
+   | `../sdlc/templates/features/codebase-analysis.md` | `.sdlc/templates/features/codebase-analysis.md` |
+   | `../sdlc/templates/features/feasibility.md` | `.sdlc/templates/features/feasibility.md` |
    | `../sdlc/templates/features/specification.md` | `.sdlc/templates/features/specification.md` |
+   | `../sdlc/templates/features/mockups.md` | `.sdlc/templates/features/mockups.md` |
+   | `../sdlc/templates/features/telemetry.md` | `.sdlc/templates/features/telemetry.md` |
+   | `../sdlc/templates/features/observability.md` | `.sdlc/templates/features/observability.md` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
    | `../sdlc/templates/features/task.md` | `.sdlc/templates/features/task.md` |
    | `../sdlc/templates/features/tests.md` | `.sdlc/templates/features/tests.md` |

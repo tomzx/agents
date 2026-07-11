@@ -69,7 +69,7 @@ For each relevant spec:
 - Confirm the spec reflects the current behavior after the change.
 - Add new requirements or constraints introduced by this session.
 - Remove or update any requirements that the change made obsolete.
-- Run `/spec-review` on updated specs to check for ambiguities, inconsistencies, or missing information.
+- Run `/review-specifications` on updated specs to check for ambiguities, inconsistencies, or missing information.
 
 ### 6. Observability Review
 

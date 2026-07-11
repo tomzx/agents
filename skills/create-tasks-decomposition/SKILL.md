@@ -13,7 +13,7 @@ Each task gets its own file under `.sdlc/features/N-<slug>/tasks/` with a unique
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/plan.md` (must have `status: approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/plan.md` (must have passed review with findings verdict `approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
 
 ## Task Sizing Guidelines
 
@@ -38,32 +38,7 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 
 ## Output Format (one file per task)
 
-```markdown
----
-id: "N"
-title: "<Task title>"
-status: draft
-size: <XS|S|M|L>
-depends_on: []    # list of task IDs this task cannot start until complete, e.g. ["1", "3"]
-completed_date: null
-blocker: null
----
-
-# Task N: <Task title>
-
-## Description
-
-<What needs to be done and why.>
-
-## Acceptance Criteria
-
-- [ ] <Testable condition>
-- [ ] <Testable condition>
-
-## Notes
-
-<Optional: implementation hints, risks, or constraints specific to this task.>
-```
+Use the template at `skills/sdlc/templates/features/task.md` (copied to `.sdlc/templates/features/task.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write one file per task to `.sdlc/features/N-<slug>/tasks/<id>-<slug>.md`.
 
 ### Task Status Lifecycle
 
@@ -109,7 +84,7 @@ After writing all task files, output a summary to the conversation:
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the task files. If the decomposition could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the decomposition could not be produced, omit the file.
 
 ## Example Usage
 

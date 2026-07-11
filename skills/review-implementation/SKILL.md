@@ -24,6 +24,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 3. Identify issues in each category below.
 4. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
 5. Report findings using the output format. Omit categories with no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-implementation.md` with frontmatter `artifact: implementation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 

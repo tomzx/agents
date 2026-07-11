@@ -16,10 +16,10 @@ Audits a task decomposition and reports findings across five categories: granula
 
 ## Steps
 
-1. Read all `.md` files in `.sdlc/features/N-<slug>/tasks/`. Update each task file's `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read all `.md` files in `.sdlc/features/N-<slug>/tasks/`.
 2. Evaluate each task against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update every task file's `status: in-review` → `status: pending`. Append unresolved open questions to `.sdlc/features/N-<slug>/questions.md` (create the file if it does not exist). For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Write the findings to `.sdlc/features/N-<slug>/review-tasks.md` with frontmatter `artifact: tasks`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally. When the verdict is `approved`, set each task file's frontmatter `status` to `pending` (the task-lifecycle "ready to start" state, which `create-implementation` relies on).
 5. Populate the Task Progress table in `.sdlc/features/N-<slug>/progress.md` with all tasks, their sizes, and `pending` status. Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
 
 ## Review Checklist
@@ -100,7 +100,7 @@ Report under Granularity.
 
 ## Next Step
 
-Once all findings are resolved and tasks are set to `status: pending`, continue with `/create-tests`.
+Once the findings verdict is `approved`, continue with `/create-tests`.
 
 ## Useful Commands Reference
 

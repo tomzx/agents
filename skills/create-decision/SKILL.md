@@ -29,62 +29,7 @@ If this decision replaces an earlier one, run `/supersede-decision <old> <new>` 
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-status: Proposed
----
-
-# Decision: <Short title — the decision as a noun phrase>
-
-**Date:** <YYYY-MM-DD>
-**Status:** <Proposed | Accepted | Deprecated | Superseded by [N]>
-**Deciders:** <Names or roles>
-
----
-
-## Context
-
-<Describe the situation and forces at play. What problem does this decision address?
-Include relevant constraints: performance, security, team capability, deadlines, existing architecture.>
-
-## Options Considered
-
-### Option A: <Name> *(chosen)*
-
-<Description of the approach.>
-
-**Pros:**
-- <Benefit>
-
-**Cons:**
-- <Drawback>
-
-### Option B: <Name>
-
-<Description of the approach.>
-
-**Pros:**
-- <Benefit>
-
-**Cons:**
-- <Drawback>
-
-## Decision
-
-<State the decision in one or two sentences. Be specific — name the library, pattern, or approach chosen.>
-
-## Trade-offs
-
-- **Gained:** <What improves or is enabled by this decision>
-- **Sacrificed:** <What is given up or made harder>
-
-## Consequences
-
-- <What changes in the codebase or process as a result>
-- <Any follow-up tasks or future decisions this decision defers>
-- <Any risks introduced that need monitoring>
-```
+Use the template at `skills/sdlc/templates/knowledge/decision.md` (copied to `.sdlc/templates/knowledge/decision.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Example Usage
 

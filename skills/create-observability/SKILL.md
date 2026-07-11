@@ -14,7 +14,7 @@ Without this step, features ship blind: outages go undetected, root causes take 
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): align observability with business metrics already defined
 - `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing NFRs like latency and availability targets)
 
@@ -32,80 +32,7 @@ Without this step, features ship blind: outages go undetected, root causes take 
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Observability: <Feature Name>
-
-## Overview
-
-<One paragraph describing the observability goals for this feature.>
-
-## Logging
-
-### <Log Category>
-
-| Log Level | Event | Fields | When |
-|---|---|---|---|
-| INFO | <event name> | <structured fields to include> | <trigger condition> |
-| WARN | ... | ... | ... |
-| ERROR | ... | ... | ... |
-
-## Metrics
-
-### <Metric Name>
-
-| Field | Value |
-|---|---|
-| Type | Counter / Histogram / Gauge |
-| Description | <What this metric measures> |
-| Labels | <dimension labels for filtering> |
-| Source | <Where in the codebase this is emitted> |
-
-## Tracing
-
-| Span Name | Service | Attributes | Parent Span |
-|---|---|---|---|
-| <span_name> | <service> | <key attributes to record> | <parent span or "root"> |
-
-## Health Checks
-
-| Check | Type | Endpoint / Method | Healthy Condition |
-|---|---|---|---|
-| <name> | Liveness / Readiness | <path or method> | <what determines healthy> |
-
-## Alerts
-
-### <Alert Name>
-
-| Field | Value |
-|---|---|
-| Condition | <PromQL/query expression> |
-| Severity | Critical / Warning / Info |
-| For | <duration before firing> |
-| Runbook | <link or inline steps> |
-| Notification | <channel: Slack, PagerDuty, etc.> |
-
-## SLOs
-
-| SLO | Target | SLI | Measurement Window |
-|---|---|---|---|
-| <name> | <e.g., 99.9%> | <how availability/latency is computed> | <rolling 30d, etc.> |
-
-## Infrastructure Requirements
-
-| Requirement | Type | Notes |
-|---|---|---|
-| <e.g., "Add metrics exporter to worker service"> | Log / Metric / Trace / Alert | <additional context> |
-
-## Out of Scope
-
-- <What is explicitly not observed and why>
-```
+Use the template at `skills/sdlc/templates/features/observability.md` (copied to `.sdlc/templates/features/observability.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Logging Guidance
 
@@ -144,7 +71,7 @@ Add spans at service boundaries and for expensive operations (DB queries, extern
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
 
 ## Example Usage
 

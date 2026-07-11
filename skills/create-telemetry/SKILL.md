@@ -14,7 +14,7 @@ Without this step, features ship without instrumentation, making it impossible t
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/specification.md` (must have `status: approved`), or a specification document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing acceptance criteria)
 
 ## Steps
@@ -31,64 +31,7 @@ Without this step, features ship without instrumentation, making it impossible t
 
 ## Output Format
 
-```markdown
----
-issue: "#<N>"
-title: "<Feature Name>"
-status: draft
----
-
-# Telemetry: <Feature Name>
-
-## Overview
-
-<One paragraph describing the measurement goals for this feature.>
-
-## Success Metrics
-
-| Metric | Target | Measurement Method | Timeframe |
-|---|---|---|---|
-| <metric name> | <target value or threshold> | <how it is computed> | <over what period> |
-
-## User Funnel
-
-| Step | Event | Entry Criteria | Exit Criteria |
-|---|---|---|---|
-| 1. <step name> | <event that marks entry> | <precondition> | <what moves user to next step> |
-| 2. <step name> | ... | ... | ... |
-
-## Analytics Events
-
-### <event_name>
-
-**Trigger:** <When this event fires (user action, system event, etc.)>
-**Location:** <Where in the codebase this is emitted>
-
-| Property | Type | Required | Description |
-|---|---|---|---|
-| <property_name> | <string/number/boolean> | Yes/No | <What this property captures> |
-
-## Counter Metrics
-
-| Metric | Concern | Threshold |
-|---|---|---|
-| <metric name> | <what negative signal it detects> | <value that triggers investigation> |
-
-## Telemetry Requirements
-
-| Requirement | Type | Notes |
-|---|---|---|
-| <e.g., "Add analytics SDK to settings page"> | Infrastructure / Event / Dashboard | <additional context> |
-
-## Dashboards and Alerts
-
-- **Dashboard:** <What dashboard to create or update, and what it shows>
-- **Alerts:** <Any automated alerts and their conditions>
-
-## Out of Scope
-
-- <What is explicitly not tracked and why>
-```
+Use the template at `skills/sdlc/templates/features/telemetry.md` (copied to `.sdlc/templates/features/telemetry.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Event Naming Conventions
 
@@ -116,7 +59,7 @@ Common metric types:
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: approved` written to the artifact. If the artifact could not be produced, omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
 
 ## Example Usage
 
