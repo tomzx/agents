@@ -163,7 +163,7 @@ reason: <one sentence>  # optional
 
 Rules:
 
-- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching `review-*` skill records its outcome in a `review-<artifact>.md` findings file (see Review Findings Persistence) and does not modify the artifact `status`.
+- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching feature-pipeline `review-*` skill records its outcome in a `review-<artifact>.md` findings file (see Review Findings Persistence) and does not modify the artifact `status` (knowledge-record reviews are the exception; they set domain lifecycle statuses).
 - If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
 - This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
@@ -173,7 +173,7 @@ Rules:
 
 The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is ephemeral relative to the branch).
 
-When a `review-*` skill that governs a feature-pipeline artifact runs (see the table below for which artifacts), after producing its findings it writes them to a findings file beside the artifact under review. That review skill writes only this file: it does not modify the reviewed artifact's review-bookkeeping `status` (`draft`/`in-review`/`approved`) and does not append to `questions.md`. Open questions discovered during review are recorded in the findings body. (Domain lifecycle statuses are separate and still set by the relevant review skill: task `pending`, and the knowledge-record statuses — assumption `Validated`, decision `Accepted`, learnings `complete`. Knowledge-record reviews are not listed below.) The findings file path is:
+When a `review-*` skill that governs a feature-pipeline artifact runs (see the table below for which artifacts), after producing its findings it writes them to a findings file beside the artifact under review. That review skill writes only this file: it does not modify the reviewed artifact's review-bookkeeping `status` (`draft`/`in-review`/`approved`). Open questions discovered during review are recorded in the findings body. (Domain lifecycle statuses are separate and still set by the relevant review skill: task `pending`, and the knowledge-record statuses (assumption `Validated`, decision `Accepted`, learnings `complete`). Knowledge-record reviews are not listed below.) The findings file path is:
 
 ```
 .sdlc/features/N-<slug>/review-<artifact>.md

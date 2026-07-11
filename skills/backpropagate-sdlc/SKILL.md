@@ -45,7 +45,7 @@ This skill does exactly that, and it is the only skill that builds a full tracea
 | Observability gap | observability.md defines a metric or alert the code never produces | Observability ↔ Code |
 | Doc drift | documentation describes a parameter the code no longer accepts | Docs ↔ Code |
 | ID corruption | A cross-reference like `FEAT-1-FR-7` points to nothing | ID Integrity |
-| Status regression | specification.md is `draft` while implementation is `done` | Status Monotonicity |
+| Review gap | specification.md has no approved review while tasks are `done` | Review-approval monotonicity |
 
 ## The Reverse Trace Chain
 
@@ -76,7 +76,7 @@ Ground truth (start here)
   documentation
       │  Pass 8: Documentation ↔ Code/Spec
       ▼
-  Cross-cutting: ID integrity, status monotonicity, orphan classification
+  Cross-cutting: ID integrity, review-approval monotonicity, orphan classification
       │
       ▼
   Traceability matrix + findings report
@@ -93,7 +93,7 @@ The `$1` argument selects which features to backpropagate. Defaults to `all`.
 
 Flags:
 
-- `--fix`: For each confirmed drift, append a dated entry to the feature's `questions.md` as a "Backpropagation drift" item, and regress the stale artifact's frontmatter `status` from `approved` back to `draft` so the forward pipeline knows it needs re-review. Never rewrites requirement or spec content: drift is ambiguous (the code may be wrong, or the artifact may be stale), so the skill flags it for a human decision rather than guessing which side to update.
+- `--fix`: For each confirmed drift, append a dated entry to the feature's `questions.md` as a "Backpropagation drift" item, and remove the stale artifact's `review-<artifact>.md` findings file (resetting its frontmatter `status` to `draft`) so the forward pipeline re-reviews it. Never rewrites requirement or spec content: drift is ambiguous (the code may be wrong, or the artifact may be stale), so the skill flags it for a human decision rather than guessing which side to update.
 - `--create-issues`: After reporting, create GitHub issues for high-severity drift (orphan upstream requirements, broken traceability for shipped behavior).
 
 ## Steps
@@ -105,7 +105,7 @@ Determine the target feature set from `$1` (default `all`) and read the flags.
 ```
 /backpropagate-sdlc                    # all features, report only
 /backpropagate-sdlc FEAT-3          # one feature, report only
-/backpropagate-sdlc all --fix          # all features, append drift + regress status
+/backpropagate-sdlc all --fix          # all features, append drift + invalidate reviews
 /backpropagate-sdlc FEAT-2 --create-issues
 ```
 
@@ -211,15 +211,14 @@ Verify each one resolves to an artifact that exists.
 Broken references are findings.
 Duplicate IDs within a feature (two `FR-3`, for example) are findings.
 
-#### Status monotonicity
+#### Review-approval monotonicity
 
-Read the `status` frontmatter from every artifact.
-Status should flow consistently downstream: an upstream artifact should not still be `draft` when a downstream artifact is `approved` or `done`.
-Flag inversions, for example `specification.md: draft` with `tasks/*.md: done`.
+Read each artifact's `review-<artifact>.md` findings verdict (see `skills/sdlc/references/shared.md`); for tasks and implementation, `done`/`in-progress` count as downstream signals.
+Review approval should flow consistently downstream: an upstream artifact should not lack an approved review (or carry a `changes-requested`/`rejected` verdict) when a downstream artifact has an approved review or has been implemented.
+Flag inversions, for example `specification.md` with no approved review while `tasks/*.md` are `done`.
 
-The legal status order, most-upstream to most-downstream, mirrors the pipeline.
-A downstream `done` or `approved` implies every upstream artifact is at least `approved`.
-A downstream `in-review` implies every upstream artifact is at least `approved` or also `in-review`.
+The legal order, most-upstream to most-downstream, mirrors the pipeline.
+A downstream approved review (or `done` tasks) implies every upstream artifact's review is also `approved`.
 
 #### Orphan classification
 
@@ -244,7 +243,7 @@ Present the summary to the user.
 For each confirmed drift:
 
 1. Append a dated, one-line entry to the feature's `questions.md` under a `## Backpropagation drift` heading, naming the pass, the IDs involved, and the class.
-2. If the artifact's frontmatter `status` is `approved` and the artifact is the stale side of the drift, regress it to `draft` so `/sdlc continue` will re-enter the forward pipeline at that phase.
+2. If the artifact is the stale side of the drift and has an approved `review-<artifact>.md`, remove that findings file (and reset its frontmatter `status` to `draft`) so `/sdlc continue` re-enters the forward pipeline at that phase for re-review.
 3. Never rewrite artifact prose. Never delete a requirement, spec section, or test. These are human decisions.
 
 If `--create-issues` is set, after fixes, ask the user which orphan-upstream findings should become GitHub issues, then create them with a short body linking the feature directory and the drift class.
@@ -307,7 +306,7 @@ status: complete
 <Only present if --fix was specified>
 | Finding | Fix applied | Files changed |
 |---|---|---|
-| <description> | <appended drift note, regressed status> | questions.md, <artifact> |
+| <description> | <appended drift note, invalidated review> | questions.md, <artifact> |
 
 ## Recommended Actions
 
@@ -341,13 +340,13 @@ Walks every feature. Finds that FEAT-2 has a `TC-4` for a behavior removed last 
 ```
 /backpropagate-sdlc FEAT-7 --fix
 ```
-Finds specification.md drifted: it describes a `POST /invites` endpoint that the code renamed to `POST /invitations`. Appends a drift note to `questions.md`, regresses `specification.md` from `approved` to `draft`. The next `/sdlc continue` re-enters at the specifications phase.
+Finds specification.md drifted: it describes a `POST /invites` endpoint that the code renamed to `POST /invitations`. Appends a drift note to `questions.md` and removes `review-specification.md` (resetting `specification.md` to `status: draft`). The next `/sdlc continue` re-enters at the specifications phase.
 
 **Scenario 3: Inheriting a project**
 ```
 /backpropagate-sdlc all --create-issues
 ```
-Establishes a trust baseline on a `.sdlc/` inherited from another team. Surfaces 14 broken ID references, 3 orphan upstream requirements, and 2 status inversions. Creates issues for the orphan upstream findings.
+Establishes a trust baseline on a `.sdlc/` inherited from another team. Surfaces 14 broken ID references, 3 orphan upstream requirements, and 2 review-approval inversions. Creates issues for the orphan upstream findings.
 
 **Scenario 4: Single layer quick check**
 ```

@@ -15,10 +15,10 @@ Audits a learnings document and reports findings across four categories: actiona
 
 ## Steps
 
-1. Read the learnings document. If reading from `.sdlc/knowledge/learnings/N-<slug>.md`, update `status: draft` → `status: in-review` in the frontmatter before proceeding.
+1. Read the learnings document from `.sdlc/knowledge/learnings/N-<slug>.md` if present, otherwise from context or as a file path.
 2. Evaluate it against the checklist below.
 3. Report findings by category. Omit categories with no findings.
-4. After all findings are resolved: update `status: in-review` → `status: complete` in the frontmatter.
+4. After all findings are resolved: set the learnings document's frontmatter `status` to `complete`.
 
 ## Review Checklist
 

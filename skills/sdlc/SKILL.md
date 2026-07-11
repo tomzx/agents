@@ -244,7 +244,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── tasks/                 # One file per task (e.g., 1-setup-db-schema.md)
 │       │   └── N-<slug>.md
 │       ├── tests.md
-│       └── questions.md           # Running log of open questions from all review phases
+│       └── questions.md           # Drift log written by sync-sdlc and backpropagate-sdlc
 ├── templates/                     # Editable defaults used by create-* skills; kept in sync by /update-sdlc-templates
 │   ├── features/
 │   │   ├── needs-assessment.md
@@ -308,13 +308,13 @@ Each pipeline artifact carries YAML frontmatter tracking its state:
 ---
 issue: "#42"
 title: "Notification System"
-status: draft        # draft → in-review → approved (learnings: → complete)
+status: draft        # set on creation; review outcome lives in review-<artifact>.md
 ---
 ```
 
 `create-*` pipeline skills write artifacts with `status: draft`.
-`review-*` pipeline skills set `status: in-review` when the review begins and `status: approved` (or `complete` for learnings) when all findings are resolved.
-Assumption and decision records use their own status vocabulary (`Active → Validated | Invalidated | Deferred`; `Proposed → Accepted | Deprecated | Superseded`) updated by `review-assumption` and `review-decision` respectively.
+`review-*` pipeline skills do not modify the artifact `status`; they write a `review-<artifact>.md` findings file (verdict `approved` / `changes-requested` / `rejected`) beside the artifact, per `skills/sdlc/references/shared.md`. Downstream phases gate on that findings verdict, not on the artifact `status`.
+Domain lifecycle statuses are the exception and are still set by their review skill: task `pending` (set by `review-tasks-decomposition`), and the knowledge-record terminals: assumption (`Active → Validated | Invalidated | Deferred`), decision (`Proposed → Accepted | Deprecated | Superseded`), and learnings (`draft → complete`).
 
 ### Task Status Lifecycle
 
@@ -340,7 +340,7 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions from review phases are appended to `.sdlc/features/N-<slug>/questions.md`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions surfaced during review are recorded in that review's findings body. `.sdlc/features/N-<slug>/questions.md` is the drift log written by `sync-sdlc` and `backpropagate-sdlc`. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -569,34 +569,34 @@ Each phase consumes output from the previous phase:
 | triage-issues | Open issues | Labeled, classified issues |
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
 | create-needs-assessment | Reviewed, prioritized issue | `.sdlc/features/N-<slug>/needs-assessment.md` (`status: draft`) |
-| review-needs-assessment | `.sdlc/features/N-<slug>/needs-assessment.md` | Findings; sets `status: approved` or `rejected` |
-| create-requirements | `.sdlc/features/N-<slug>/needs-assessment.md` (approved) | `.sdlc/features/N-<slug>/requirements.md` (`status: draft`) |
-| review-requirements | `.sdlc/features/N-<slug>/requirements.md` | Findings; sets `status: approved` when resolved |
+| review-needs-assessment | `.sdlc/features/N-<slug>/needs-assessment.md` | Findings → `review-needs-assessment.md` (verdict `approved`/`rejected`) |
+| create-requirements | `.sdlc/features/N-<slug>/needs-assessment.md` (review approved) | `.sdlc/features/N-<slug>/requirements.md` (`status: draft`) |
+| review-requirements | `.sdlc/features/N-<slug>/requirements.md` | Findings → `review-requirements.md` |
 | create-existing-solutions | `.sdlc/features/N-<slug>/requirements.md` | `.sdlc/features/N-<slug>/existing-solutions.md` (`status: draft`) |
-| review-existing-solutions | `.sdlc/features/N-<slug>/existing-solutions.md` | Findings; sets `status: approved` when resolved |
+| review-existing-solutions | `.sdlc/features/N-<slug>/existing-solutions.md` | Findings → `review-existing-solutions.md` |
 | create-codebase-analysis | `.sdlc/features/N-<slug>/requirements.md` (+ `existing-solutions.md`) | `.sdlc/features/N-<slug>/codebase-analysis.md` (`status: draft`) |
-| review-codebase-analysis | `.sdlc/features/N-<slug>/codebase-analysis.md` | Findings; sets `status: approved` when resolved |
+| review-codebase-analysis | `.sdlc/features/N-<slug>/codebase-analysis.md` | Findings → `review-codebase-analysis.md` |
 | create-feasibility | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` | `.sdlc/features/N-<slug>/feasibility.md` (`status: draft`) |
-| review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings; sets `status: approved` or `rejected` |
+| review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings → `review-feasibility.md` (verdict `approved`/`rejected`) |
 | create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) |
-| review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings; sets `status: approved` when resolved |
+| review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings → `review-specifications.md` |
 | create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`); skipped (no artifact) when the feature has no UI surface |
-| review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings; sets `status: approved` when resolved |
+| review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings → `review-mockups.md` |
 | create-telemetry | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
-| review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings; sets `status: approved` when resolved |
+| review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings → `review-telemetry.md` |
 | create-observability | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
-| review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings; sets `status: approved` when resolved |
+| review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings → `review-observability.md` |
 | create-plan | `.sdlc/features/N-<slug>/specification.md` + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
-| review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings; sets `status: approved` when resolved |
+| review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings → `review-plan.md` |
 | publish-plan | `.sdlc/features/N-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
 | create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
-| review-tasks-decomposition | `.sdlc/features/N-<slug>/tasks/` (all task files) | Findings; sets each task `status: pending` when resolved; populates Task Progress table in `progress.md` |
+| review-tasks-decomposition | `.sdlc/features/N-<slug>/tasks/` (all task files) | Findings → `review-tasks.md`; on approval sets each task `status: pending`; populates Task Progress table in `progress.md` |
 | create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
-| review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings; sets `status: approved` when resolved |
+| review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings → `review-tests.md` |
 | create-implementation | `.sdlc/features/N-<slug>/tasks/` + `specification.md` + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
-| review-implementation | Code + spec + telemetry + observability | Findings (resolve before next phase) |
+| review-implementation | Code + spec + telemetry + observability | Findings → `review-implementation.md` |
 | create-documentation | Implemented feature | Documentation |
-| review-documentation | Documentation | Findings (resolve before next phase) |
+| review-documentation | Documentation | Findings → `review-documentation.md` |
 | create-pr | Reviewed code + docs + issue | Pull request |
 | validate-pr | Pull request | Validation report: runtime proof of each claim, asciinema recordings for CLI changes |
 | verify-pr | Pull request + validation report | Verification report: claim-to-code traceability, code quality findings |

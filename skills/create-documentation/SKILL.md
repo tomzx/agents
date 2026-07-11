@@ -27,57 +27,11 @@ Produces documentation for a feature or component organized according to the [Di
 6. Write reference documentation for all public APIs, config options, and interfaces.
 7. Write an explanation section if the design or behavior needs conceptual context.
 8. Cross-link between types but keep their boundaries clean.
+9. Write the documentation to `.sdlc/features/N-<slug>/documentation.md`, creating the directory if it does not exist.
 
 ## Output Format
 
-```markdown
-# <Feature Name>
-
-## Overview
-
-<One paragraph describing what the feature does and when to use it.>
-
----
-
-## Tutorial: Getting Started with <Feature>
-
-<Step-by-step guide for a first-time user achieving a minimal working result.>
-
----
-
-## How-To Guides
-
-### How to <Task 1>
-
-<Steps to accomplish the specific task.>
-
-### How to <Task 2>
-
-...
-
----
-
-## Reference
-
-### Configuration
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-
-### API
-
-#### <Method / Endpoint>
-
-<Parameters, return values, errors.>
-
----
-
-## Explanation
-
-### <Concept or Design Decision>
-
-<Why the feature works the way it does, trade-offs made, or the conceptual model.>
-```
+Use the template at `skills/sdlc/templates/features/documentation.md` (copied to `.sdlc/templates/features/documentation.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
