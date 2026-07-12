@@ -93,13 +93,13 @@ For each PR:
 
 ```bash
 gh pr view $PR --repo "$REPO" \
-  --json number,headRefName,baseRefName,headRepository,baseRepository,mergeable,mergeStateStatus
+  --json number,headRefName,baseRefName,headRepositoryOwner,isCrossRepository,mergeable,mergeStateStatus
 ```
 
 - If `mergeable == "UNKNOWN"`, wait a few seconds and re-query. Give up after ~30 seconds; treat as "mergeable unknown" (skip, report).
 - Keep the PR if `mergeable == "CONFLICTING"` (or `mergeStateStatus == "CONFLICTING"`).
 
-For each kept PR capture: `HEAD_REF`, `BASE_REF`, and whether it is same-repo (`headRepository == baseRepository`) or a fork.
+For each kept PR capture: `HEAD_REF`, `BASE_REF`, and whether it is same-repo (`isCrossRepository == false`) or a fork (`isCrossRepository == true`; use `headRepositoryOwner.login` as the fork owner).
 
 ### 4. Prepare one worktree per conflicting PR (reuse or create)
 
@@ -292,7 +292,7 @@ Falls back to sequential processing in the current session, same resolution rule
 | Command | Description |
 |---|---|
 | `gh search prs --author @me --state open --repo <owner/repo> --json number,title` | List the current user's open PRs in a repo |
-| `gh pr view <pr> --json mergeable,mergeStateStatus,headRefName,baseRefName,headRepository,baseRepository` | Detect conflicts and fetch branch names (poll if `mergeable` is `UNKNOWN`) |
+| `gh pr view <pr> --json mergeable,mergeStateStatus,headRefName,baseRefName,headRepositoryOwner,isCrossRepository` | Detect conflicts and fetch branch names (poll if `mergeable` is `UNKNOWN`) |
 | `git worktree list --porcelain` | Find an existing worktree on a branch (reuse path) |
 | `git worktree add <path> <branch>` | Create a worktree on a PR head branch (orchestrator only) |
 | `git merge origin/<base> --no-edit` | Reproduce the conflict by merging the base branch (sub-agent) |
