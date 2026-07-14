@@ -2,6 +2,7 @@
 * Be concise
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
+* Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing
 
 # Python
 * Use uv for package management
