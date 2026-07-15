@@ -68,6 +68,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 6. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
    - `project-overview.md`
+   - `goals.md`
    - `architecture.md`
    - `conventions.md`
    - `vocabulary.md`
@@ -91,10 +92,11 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 Next steps:
 1. Fill in `.sdlc/context/project-overview.md` with your project's goals, stakeholders, and scope.
-2. Fill in `.sdlc/context/architecture.md` with the system topology.
-3. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
-4. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
-5. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
+2. Fill in `.sdlc/context/goals.md` with your objectives, key results, and KPIs (or run `/create-goals`).
+3. Fill in `.sdlc/context/architecture.md` with the system topology.
+4. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
+5. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
+6. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
    Run `/update-sdlc-templates` later to pull in upstream improvements while preserving your edits.
 ```
 

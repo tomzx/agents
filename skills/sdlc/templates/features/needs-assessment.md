@@ -52,7 +52,7 @@ If Yes, explain why new code is still justified (if at all).
 
 | Criterion | Assessment |
 |---|---|
-| Aligns with project goals | <Yes, which goal / Partially / No> |
+| Aligns with project goals (`goals.md`) | <Yes, which objective / Partially / No> |
 | Serves core or edge use case | <Core / Edge / Outlier> |
 | Dependency enabler | <Unblocks how many other features> |
 

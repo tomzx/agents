@@ -13,7 +13,7 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, use `$ISSUE_TITLE` and `$ISSUE_BODY` as the feature description (and `$ISSUE_NUMBER` to link the feature).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
-- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
+- Read any files present under `.sdlc/context/` (`project-overview.md`, `goals.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
 ## Steps
@@ -25,7 +25,7 @@ Evaluates whether a proposed feature addresses a genuine need before investing i
 5. Assess the **evidence**: is the need demonstrated by user requests, support tickets, usage data, competitive analysis, or is it an assumption?
 6. Assess **what happens if we do nothing**: the cost of the status quo, including workarounds people already use.
 7. Assess **alternative paths**: could this need be met by an existing feature, a configuration change, better documentation, or a process change instead of new code?
-8. Assess **strategic alignment**: does solving this need advance the project's stated goals, or is it tangential?
+8. Read `.sdlc/context/goals.md` if present, then assess **strategic alignment**: which specific objective and key result does this need advance, or is it tangential? If `goals.md` is absent, note that alignment cannot be checked and flag it as an open question.
 9. For each dimension, assign a rating: Strong / Moderate / Weak / None.
 10. Derive the overall needs verdict: Needed / Nice-to-have / Not needed.
 11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.

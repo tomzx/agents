@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-133-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-137-green" alt="Skill count">
 </p>
 
 ## What
@@ -64,6 +64,13 @@ The library is organized into thematic groups covering the full software develop
 | `/initialize-sdlc-directory` | Bootstrap the `.sdlc/` directory structure in a project. |
 | `/sync-sdlc` | Analyze code and reconcile it with the `.sdlc/` directory. |
 | `/update-sdlc-templates` | Update `.sdlc/templates/` with the latest canonical practices. |
+
+### Strategy & Goals
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-goals` | Define project objectives, key results, and KPIs the project aligns to. |
+| `/review-goals` | Review goals for measurability, ownership, alignment, and focus. |
 
 ### Issue & Requirements
 
@@ -171,6 +178,8 @@ The library is organized into thematic groups covering the full software develop
 | `/review-observability` | Review an observability plan for completeness and alignment. |
 | `/create-telemetry` | Define analytics events and success metrics for a feature. |
 | `/review-telemetry` | Review a telemetry plan for completeness and measurability. |
+| `/create-service-levels` | Define SLOs, SLIs, SLAs, and error budgets for a service. |
+| `/review-service-levels` | Review SLOs for measurability, coverage, and policy soundness. |
 | `/observe-production` | Check SLOs/SLIs, error rates, latency, and throughput. |
 
 ### Decisions & Learnings

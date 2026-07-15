@@ -127,6 +127,13 @@ Setup (run once per project, no dependencies on other flows)
   /update-sdlc-templates       Pull upstream template improvements, merge with user edits
   /configure-labels            Configure the standard label taxonomy in the GitHub repository
 
+Project context (invoke when establishing or revising project-level context that features align to)
+
+  /create-goals          Define objectives, key results, and KPIs the project aligns to
+  /review-goals          Audit measurability, ownership, alignment, focus
+  /create-service-levels  Define SLOs, SLIs, SLAs, and error budgets for the service
+  /review-service-levels  Audit measurability, coverage, error-budget policy, alignment
+
 Bug fix fast path (entry: bugfix)
 
   /check-duplicates        Search for duplicate issues and existing fix PRs
@@ -225,8 +232,11 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 ├── .gitignore                     # Excludes state.yml and features/*/progress.md (local-only)
 ├── context/
 │   ├── project-overview.md        # Project goals, scope, key stakeholders
+│   ├── goals.md                   # Objectives, key results, KPIs (optional, via /create-goals)
+│   ├── service-levels.md         # SLOs, SLIs, SLAs, error budgets (optional, via /create-service-levels)
 │   ├── architecture.md            # Architecture decisions and patterns
-│   └── conventions.md             # Naming, structure, coding standards
+│   ├── conventions.md             # Naming, structure, coding standards
+│   └── vocabulary.md              # Domain and technical terms
 ├── state.yml                      # Orchestrator run state (local-only, gitignored)
 ├── features/
 │   └── N-<slug>/          # One directory per feature (e.g., 42-notification-system)
