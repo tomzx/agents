@@ -1,11 +1,11 @@
 ---
 name: review-article
-description: Review an article for accuracy, clarity, structure, sourcing, and audience fit.
+description: Review an article for accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style.
 ---
 
 # Review Article
 
-Audits an article and reports findings across six categories: accuracy, clarity, structure, sourcing, audience fit, and style.
+Audits an article and reports findings across seven categories: accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style.
 Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix.
 
 ## Prerequisites
@@ -13,14 +13,16 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Article provided in context or as a file path to read
 - Target audience (if known, improves audience-fit check)
 - Relevant sources (optional, improves accuracy check)
+- Other related articles in the same series (optional, enables cross-article consistency checks)
 
 ## Steps
 
 1. Read the article thoroughly.
 2. Cross-reference claims against provided sources if available.
-3. Identify issues in each category below.
-4. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-5. Report findings using the output format. Omit categories with no findings.
+3. Compare claims, figures, and terminology against other related articles in context if available.
+4. Identify issues in each category below.
+5. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
+6. Report findings using the output format. Omit categories with no findings.
 
 ## Review Checklist
 
@@ -53,6 +55,12 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Is the depth calibrated: neither too shallow nor too detailed?
 - Does the article assume appropriate prior knowledge?
 - Would the target audience find this valuable?
+
+### Cross-Article Consistency
+- When other related articles are in context, are facts, statistics, and dates consistent across them?
+- Is terminology and naming used consistently across related articles?
+- Do claims or conclusions in one article contradict another in the series?
+- Are cross-article references (links to companion articles) accurate and up to date?
 
 ### Style
 - Is each sentence on its own line in the markdown source?
@@ -87,6 +95,10 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 
 <Findings or "No issues found.">
 
+## Cross-Article Consistency
+
+<Findings or "No issues found.">
+
 ## Style
 
 <Findings or "No issues found.">
@@ -115,6 +127,10 @@ The article starts with "In today's fast-paced world of technology..." before re
 **Scenario 3: Em-dash usage**
 Three sentences use em-dash constructions where commas would work.
 🟢 MAY replace em-dashes with commas or parentheses.
+
+**Scenario 4: Conflicting figures across articles**
+A companion article in the series reports 40% adoption while this one cites 35% for the same metric and period.
+🔴 MUST reconcile the discrepancy and align both articles.
 
 ## Next Step
 
