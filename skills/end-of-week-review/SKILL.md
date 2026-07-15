@@ -1,6 +1,6 @@
 ---
 name: end-of-week-review
-description: Reflective end-of-week review covering goal progress, time and attention patterns, team health, and what to change next week.
+description: Reflective end-of-week review covering goal progress, time and attention patterns, team health, and what to change next week. Runs the audit-attention skill to classify the week's activities as compounding or depreciating.
 ---
 
 BASE_DIR=!`scripts/get-env NOTES_DIR`
@@ -22,6 +22,7 @@ Guides a structured weekly reflection connecting your week's work to goals, surf
 - Optional: `{BASE_DIR}/goals.md` with current personal goals
 - Optional: `{BASE_DIR}/team-goals.md` with current team goals
 - Optional: `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.colleagues.md` from end-of-week-summary
+- The **audit-attention** skill available (invoked in step 3)
 
 ## Steps
 
@@ -49,9 +50,17 @@ Before asking questions, analyze the gathered data to identify:
 
 **Recurring friction:** Look for activities, meetings, or requests that consumed time multiple days running without clear goal alignment.
 
-### 3. Ask Reflective Questions
+### 3. Run Attention Audit
 
-Present a summary of the synthesized patterns, then ask the user the following questions in a single message:
+Invoke the **audit-attention** skill against this week's activities, using the gathered context and synthesized patterns as the activity list. Apply the two-year test to classify each significant activity as compounding or depreciating, estimate the fraction of the week that landed on compounding work, and note any boundary moves since the last audit.
+
+If the gathered context does not yield a clear activity list, ask the user to enumerate the significant activities of the week before proceeding.
+
+Capture the audit output; it becomes the `## Attention Allocation` section of the review written in step 5.
+
+### 4. Ask Reflective Questions
+
+Present a summary of the synthesized patterns and the attention audit results, then ask the user the following questions in a single message:
 
 1. What were your top 3 goals for the week? Rate progress on each (0%, 25%, 50%, 75%, 100%).
 2. What was the highest-leverage thing you did this week? What made it possible?
@@ -60,7 +69,7 @@ Present a summary of the synthesized patterns, then ask the user the following q
 5. What one behavior or habit would make next week meaningfully better?
 6. Is there a decision you have been avoiding that this week made more urgent?
 
-### 4. Write the Review
+### 5. Write the Review
 
 Write the review to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/review.md`:
 
@@ -94,6 +103,22 @@ date: {TODAY}
 - Administrative: <X>%
 
 **Verdict:** <one sentence on whether time was well spent>
+
+## Attention Allocation
+
+**Fraction of week on compounding work:** <X>% (direction cycle over cycle: up / flat / down / first audit)
+
+**Two-year test results:**
+
+| Activity | Compounding / Depreciating | Keep / Delegate next week |
+|----------|---------------------------|---------------------------|
+| <activity> | <C/D> | <keep/delegate> |
+
+**Boundary moves since last audit:** <activities that shifted category, and which direction; or "none / first audit">
+
+**Time to ring-fence next week:** <specific compounding activity and the block that protects it>
+
+**To delegate next week:** <specific depreciating activities and the delegation path>
 
 ## Highest Leverage
 
