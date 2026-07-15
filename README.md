@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-137-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-139-green" alt="Skill count">
 </p>
 
 ## What
@@ -167,8 +167,14 @@ The library is organized into thematic groups covering the full software develop
 | `/create-article` | Write a high-quality article for a given audience and sources. |
 | `/review-article` | Review an article for accuracy, clarity, structure, and fit. |
 | `/create-readme` | Generate a README with badges, feature list, and setup. |
-| `/create-message` | Improve a message by removing negative tone. |
 | `/write-recent-work-and-needs-article` | Write a personal status article about recent work and needs. |
+
+### Communication & Empathy
+
+| Skill | Purpose |
+|-------|---------|
+| `/what-they-need` | Reframe a message into the underlying need before responding. |
+| `/create-message` | Improve a message by removing negative tone. |
 
 ### Observability & Telemetry
 
@@ -260,12 +266,20 @@ The library is organized into thematic groups covering the full software develop
 | `/initialize-developer-trust-profile` | Bootstrap a trust profile from recent PRs. |
 | `/user-code-familiarity` | Build a familiarity profile from GitHub contributions. |
 
+### Teams & Organizations
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-team-charter` | Author a team charter: purpose, vision, stakeholders, responsibilities, roles, operating norms, decision-making, and success metrics. |
+| `/create-team-api` | Define a team's Team API (Team Topologies): team type, ownership boundaries, services, inputs, outputs, dependencies, and interaction modes. |
+
 ### Repository & Tooling
 
 | Skill | Purpose |
 |-------|---------|
 | `/onboard-repository` | Bootstrap SDLC, triaging, and standardization. |
 | `/compare-skills` | Compare skill directories and identify practices to adopt. |
+| `/create-skill` | Author a new skill by synthesizing the best of similar existing skills. |
 | `/directory-to-spec` | Create a spec directory for code in the current directory. |
 | `/sync-repository` | Keep SDLC, code, tests, and docs consistent. |
 | `/worktrunk` | Guidance for Worktrunk CLI -- worktree management and hooks. |
