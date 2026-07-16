@@ -73,7 +73,9 @@ Already-existing files are never overwritten — this is safe to run on a projec
    - `conventions.md`
    - `vocabulary.md`
 
-7. Report what was created and what was skipped (already existed). When `SDLC_DIR` is set, the report notes whether each path was written to the repo, the mirror, or both.
+7. **Write the SDLC anchor** to the repo's primary agent-instruction file, per `sdlc/references/shared.md` (AGENTS.md SDLC anchor). This injects a short, marker-delimited `## SDLC` section into `AGENTS.md` (falling back to `CLAUDE.md` if that is what the project uses, or creating `AGENTS.md` if neither exists) so future agent sessions know `.sdlc/` exists and where to find context. The block is idempotent: create it if absent, replace its delimited content if the markers already exist, and never touch content outside the markers. Note the target file and whether it was created, updated, or skipped (read-only) in the report.
+
+8. Report what was created and what was skipped (already existed). When `SDLC_DIR` is set, the report notes whether each path was written to the repo, the mirror, or both.
 
 ## Output Format
 
@@ -85,6 +87,9 @@ Already-existing files are never overwritten — this is safe to run on a projec
 - .sdlc/context/project-overview.md
 - .sdlc/templates/features/requirements.md
 ...
+
+### Agent instructions
+- AGENTS.md: SDLC anchor created (or updated / skipped: read-only)
 
 ### Skipped (already exist)
 - .sdlc/context/conventions.md
@@ -106,7 +111,7 @@ Next steps:
 ```
 /initialize-sdlc-directory
 ```
-Creates all directories and templates from scratch. All context files are created as stubs.
+Creates all directories and templates from scratch. All context files are created as stubs. Writes the SDLC anchor into `AGENTS.md` (creating it if absent).
 
 **Scenario 2: Existing project with partial structure**
 ```

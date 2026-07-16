@@ -567,8 +567,8 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
-| sync-sdlc | Existing project root (`.sdlc/` created if absent) | Updated `.sdlc/` with context files, new feature directories, drift report for existing features |
-| initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated |
+| sync-sdlc | Existing project root (`.sdlc/` created if absent) | Updated `.sdlc/` with context files, new feature directories, drift report for existing features, SDLC anchor in `AGENTS.md` |
+| initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated + SDLC anchor in `AGENTS.md` |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |
 | create-issue | Feature idea / bug description | Structured GitHub issue |

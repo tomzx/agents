@@ -49,6 +49,7 @@ Works for both initial bootstrapping and periodic sync.
 4. If `.sdlc/` does not exist, run `/initialize-sdlc-directory` (passing `$1` if provided) to create the directory tree and copy templates.
    If `.sdlc/` already exists, run `/update-sdlc-templates` to pull any upstream template improvements and merge them with user edits.
    In both cases, ensure the local-only workflow state files are gitignored: read `.sdlc/.gitignore` (create it if absent) and add any missing entries for `state.yml` and `features/*/progress.md`. These are regenerated per machine and per run and must never be committed or included in PRs.
+   Also ensure the **SDLC anchor** is present in the repo's primary agent-instruction file, per `sdlc/references/shared.md` (AGENTS.md SDLC anchor): a marker-delimited `## SDLC` section in `AGENTS.md` (falling back to `CLAUDE.md`, or creating `AGENTS.md` if neither exists) that tells future sessions `.sdlc/` exists and where to find context. On first sync `initialize-sdlc-directory` writes it; on later syncs this step re-ensures it (idempotent: create if absent, replace the delimited content if the markers exist, never touch content outside them). If the target file is read-only, skip and note it in the report.
 
 5. Read existing `.sdlc/` content to establish the current state. Resolve each path via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); treat the union of both locations as the current state, with the repo copy winning on conflict:
    - List all directories under `.sdlc/features/` (and the mirror's `features/` if set) to identify tracked features.
@@ -184,6 +185,9 @@ Works for both initial bootstrapping and periodic sync.
 
 ### Directory structure
 (output from /initialize-sdlc-directory or /update-sdlc-templates)
+
+### Agent instructions
+- AGENTS.md: SDLC anchor created / updated / unchanged / skipped: read-only
 
 ### Sync metadata
 - agents_ref: <SHA>

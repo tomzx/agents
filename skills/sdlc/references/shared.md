@@ -40,6 +40,51 @@ The context files are:
 
 Conventions found in `conventions.md` (for example, documentation formatting, one-sentence-per-line rules) apply to every document produced during the pipeline.
 
+## AGENTS.md SDLC anchor
+
+So a future agent session knows the project tracks work under `.sdlc/`, every project that has a `.sdlc/` directory carries a short, idempotent **SDLC anchor** block in its primary agent-instruction file. This is the entry point that tells an agent the SDLC artifacts exist and where to find them.
+
+### Target file
+
+The anchor is written to the repo's primary agent-instruction file, resolved in this order:
+
+1. `AGENTS.md` in the project root, if it exists.
+2. Otherwise `CLAUDE.md` in the project root, if it exists (projects that standardized on Claude).
+3. Otherwise, create `AGENTS.md` in the project root.
+
+Only one file ever holds the anchor. It is a repo-level concern: write it to the repository, never to the `SDLC_DIR` mirror, because it must be visible to any agent that opens the repo. If the target file is read-only or absent and cannot be created, skip the write and note it in the report.
+
+### Content
+
+The block is delimited by HTML comment markers so it can be updated in place without touching the rest of the file:
+
+```
+<!-- sdlc-anchor begin -->
+## SDLC
+
+This project tracks features, requirements, specifications, and decisions under [`.sdlc/`](.sdlc/).
+
+Before starting work on a feature:
+- Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`) for project context, and apply the style rules in `conventions.md` to anything you write.
+- Run `/sdlc status` to see feature progress, or `/sdlc continue` to resume in-progress work.
+- Run `/sync-sdlc` to reconcile `.sdlc/` with the current codebase.
+
+Never commit local-only state: `.sdlc/state.yml` and `.sdlc/features/*/progress.md`.
+<!-- sdlc-anchor end -->
+```
+
+### Idempotency
+
+- If the target file does not exist, create it containing only the block.
+- If the file exists but has no `<!-- sdlc-anchor begin -->` ... `<!-- sdlc-anchor end -->` block, append the block at the end of the file, separated from existing content by a blank line.
+- If the file exists and the block is already present, replace the delimited content with the canonical text above. This lets later syncs evolve the wording without leaving stale duplicates.
+- Never modify content outside the markers.
+
+### When it is written
+
+- `initialize-sdlc-directory` writes the anchor when it creates the `.sdlc/` structure.
+- `sync-sdlc` re-ensures the anchor on every run (first sync via `initialize-sdlc-directory`, later syncs via its own ensure step), so removing or evolving it self-heals on the next sync.
+
 ## Feature Directory Naming
 
 Feature directories live under `.sdlc/features/` and are named `N-<slug>`, where `N` is the feature identifier used verbatim with **no zero-padding** (no `FEAT-` prefix on the directory either, since the parent `features/` already conveys the kind). The corresponding **feature ID** used in cross-references is `FEAT-N` (e.g., directory `42-notification-system` ↔ feature ID `FEAT-42`; directory `p1-onboarding` ↔ feature ID `FEAT-p1`).
