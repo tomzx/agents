@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-139-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-174-green" alt="Skill count">
 </p>
 
 ## What
@@ -256,6 +256,7 @@ The library is organized into thematic groups covering the full software develop
 | `/identify-skill-gaps` | Find workflows not yet encoded as skills. |
 | `/git-commit` | Generate a commit message from changes. |
 | `/git-commit-staged` | Generate a commit message from staged changes. |
+| `/sessions-memory` | Turn agentsview sessions into daily notes and PARA facts. |
 
 ### Developer Profiles
 
