@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-174-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-176-green" alt="Skill count">
 </p>
 
 ## What
@@ -85,6 +85,8 @@ The library is organized into thematic groups covering the full software develop
 | `/reproduce-issue` | Reproduce a bug reported in a GitHub issue. |
 | `/fix-issue` | Orchestrate a bug fix from issue to PR. |
 | `/check-duplicates` | Check for duplicate issues and existing fix PRs. |
+| `/check-issue-status` | Determine whether an issue is already addressed in the code (features or bugs, any format). |
+| `/check-issues-status` | Batch-check a repository, a user's issues, or a query for ones already addressed in the code. |
 | `/check-linked-pr` | Detect a PR someone else linked to the current issue; offer continue, stop, or review. |
 | `/triage-issue` | Classify and label a single GitHub issue. |
 | `/triage-issues` | Classify and label incoming GitHub issues. |
