@@ -138,7 +138,7 @@ Record a mapping of:
 ### 8. Post verification report
 
 ```bash
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
+BODY="$(cat <<'EOF'
 ## Verification Report
 
 ### Summary
@@ -180,9 +180,12 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat <<'EOF'
 
 ---
 
-Posted with [verify-pr](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 EOF
 )"
+FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
+gh pr comment $PR_NUMBER --repo $REPO --body "${BODY}
+
+${FOOTER}"
 ```
 
 ## Failure Modes

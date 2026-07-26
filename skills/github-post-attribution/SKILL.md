@@ -103,9 +103,29 @@ SDLC phase: requirements (FEAT-1 #969)
 Posted with [review-requirements](https://github.com/owner/repo/blob/abc1234.../skills/review-requirements/SKILL.md) via glm-5.1 (`abc1234`)
 ```
 
-## Shell escaping: do NOT backslash-escape backticks
+## Shell escaping: expand variables AND keep backticks literal
 
-Inside a `<<'EOF'` heredoc, backticks are literal. Never write `\`abc1234\`` -- write `(`abc1234`)` with plain backticks. Resolve `SKILL_SHORT_SHA` to the actual 7-char SHA before constructing the command.
+The footer mixes shell variables (`${SKILL_FILE_URL}`, `${SKILL_SHORT_SHA}`) with markdown backticks. These conflict inside a single heredoc:
+
+- A **quoted** delimiter `<<'EOF'` keeps backticks literal BUT disables parameter expansion, so `${SKILL_FILE_URL}` and `${SKILL_SHORT_SHA}` are posted as literal `${...}` text. This is the trap: the footer looks right in the source but ships with unsubstituted placeholders.
+- An **unquoted** delimiter `<<EOF` expands `${VAR}` BUT turns every backtick in the body into command substitution, so any example backticks elsewhere in the template (e.g. `file.py:42` in code spans) break.
+
+Do NOT put the footer inside the body heredoc. Split them: keep the body in a **quoted** heredoc (all backticks literal), and put the footer in a separate **double-quoted** string where `${VAR}` expands and the SHA backtick is backslash-escaped:
+
+```bash
+BODY="$(cat <<'EOF'
+## Report
+...body, all backticks literal...
+---
+EOF
+)"
+FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) via ${MODEL_NAME} (\`${SKILL_SHORT_SHA}\`)"
+gh pr comment $N --repo $REPO --body "${BODY}
+
+${FOOTER}"
+```
+
+Then sanity-check before posting: the rendered body must contain no `${` and no literal `SKILL_FILE_URL` / `SKILL_SHORT_SHA` tokens. For backtick-free bodies, an unquoted `<<EOF` heredoc with a backslash-escaped SHA backtick also works; the split form above is the safe default because it is immune to backticks elsewhere in the template.
 
 ## Notes
 
