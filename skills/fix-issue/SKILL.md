@@ -10,9 +10,11 @@ argument-hint: "<issue-number> [repository]"
 Orchestrates a bug fix from issue to PR by delegating to specialized skills:
 
 1. **`check-duplicates`** -- search for duplicate issues and existing fix PRs
-2. **`reproduce-issue`** -- fetch the issue, create a worktree, reproduce the bug, post results
+2. **`reproduce-issue`** -- fetch the issue, create a worktree, reproduce the bug, record a "before" video of the defect, post results
 3. **`create-implementation`** -- write a regression test, implement the fix, verify tests pass
-4. **`create-pr`** -- push the branch and open a pull request
+4. **`create-pr`** -- push the branch and open a pull request, pairing the before recording with a fresh "after" recording in a side-by-side section
+
+The before recording (and the manifest naming the demonstration command/URL) flows from `reproduce-issue` to `create-pr` via `/tmp/<owner>/<repo>/<issue-id>/`. `create-pr` replays the same command/URL on the fixed code so the two recordings are directly comparable.
 
 If duplicates are found or reproduction fails, the workflow stops at the relevant step.
 
@@ -45,11 +47,16 @@ Reproduced?
  Yes            No
   |              |
   v              v
-/create-         Stop
-implementation   (comment posted)
+Record before   Stop
+(video + manifest (comment posted)
+ to /tmp/<owner>/<repo>/<issue-id>/)
+        |
+        v
+/create-implementation
         |
         v
 /create-pr
+(captures after, pairs before/after)
         |
         v
 Done (PR ready for review)
@@ -86,6 +93,7 @@ This skill handles:
 - Creating a git worktree on a fix branch
 - Analyzing the codebase
 - Attempting reproduction
+- Recording a **before** video of the bug (asciinema for CLI, Playwright for web UI) and writing a manifest to `/tmp/<owner>/<repo>/<issue-id>/`
 - Posting reproduction results as a comment on the issue
 
 If the bug cannot be reproduced, `reproduce-issue` posts a comment and stops.
@@ -127,7 +135,7 @@ Invoke `create-pr` with the issue number and repository:
 /create-pr $REPO $ISSUE_NUMBER
 ```
 
-This skill handles pushing the branch and opening a structured PR.
+This skill handles pushing the branch and opening a structured PR. When the before recording from `reproduce-issue` is present (manifest at `/tmp/<owner>/<repo>/<issue-id>/proof-manifest.txt`), `create-pr` replays the same demonstration command/URL on the fixed code to capture an **after** recording, then embeds both in a Before / After section of the PR body. If the recording tools are unavailable or the surface is unclassifiable, the pair is skipped silently and the PR opens with the standard sections.
 
 ## Failure Modes
 
@@ -148,7 +156,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/refer
 ```
 /fix-issue 42 owner/myrepo
 ```
-Reproduces issue #42, implements null check fix with regression test, submits PR.
+Reproduces issue #42, records the crash (before), implements null check fix with regression test, captures the fixed behavior (after), and submits a PR with a Before / After visual section.
 
 **Scenario 2: Cannot reproduce**
 ```

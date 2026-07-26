@@ -1,7 +1,7 @@
 ---
 name: reproduce-issue
 description: Reproduce a bug reported in a GitHub issue by creating a worktree, analyzing the codebase, and attempting to trigger the bug.
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 
@@ -23,6 +23,7 @@ call `create-implementation` directly if the issue is already reproduced.
 - A GitHub issue number describing a bug
 - Git worktree support (`git worktree` available)
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there
+- For before/after visual proof (optional, best-effort): `asciinema` + renderer for CLI bugs, or Playwright for web UI bugs. If unavailable, the recording step is skipped silently.
 
 ### Skill attribution (GitHub)
 
@@ -48,9 +49,14 @@ Bug reproduced?
  Yes            No
   |              |
   v              v
-Post comment   Post comment
-(reproduced,   (unable to reproduce,
- ready to fix) ask for details)
+Record before   Post comment
+(if surface      (unable to reproduce,
+ classifiable)   ask for details)
+        |
+        v
+Post comment
+(reproduced,
+ ready to fix)
 ```
 
 ## Steps
@@ -125,7 +131,53 @@ Record the reproduction attempt:
 - Any differences from the reported behavior
 - Environment or version discrepancies
 
-### 5. Post reproduction results
+### 5. Record the before state (when reproduced)
+
+When the bug is reproduced, capture a recording of the buggy behavior so `create-pr` can pair it with an after-the-fix recording. This runs only on the bug-fix fast path and is best-effort: if the recording tools are unavailable or the surface cannot be classified, skip silently and proceed.
+
+All proof assets for this issue live under a per-repo, per-issue directory so they never collide with other work:
+
+```bash
+PROOF_DIR="/tmp/$REPO/$ISSUE_NUMBER"   # expands to /tmp/<owner>/<repo>/<issue-id>
+mkdir -p "$PROOF_DIR"
+```
+
+Classify the change surface from the reproduction (mirrors `create-pr`'s classification):
+
+- **CLI bug** (the reproduction runs a CLI entry point, command, or script): identify the single command that triggers the bug. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
+  - `RECORD_SLUG` = `before-bug`
+  - `RECORD_DIR` = `$PROOF_DIR`
+  - `RECORD_COMMAND` = the triggering command
+- **Web UI bug** (the reproduction loads a route or page): identify the route URL and the dev server command. Read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
+  - `RECORD_SLUG` = `before-bug`
+  - `RECORD_DIR` = `$PROOF_DIR`
+  - `RECORD_URL` = the route that exhibits the bug
+  - `RECORD_VIEWPORTS` = `1280x720`
+  - `RECORD_SERVER_CMD` = the dev server command
+- **Neither / not determinable**: skip the recording.
+
+The recording must show the bug manifesting (the error, crash, or wrong output). Re-record with `--overwrite` if the first take does not demonstrate the defect.
+
+After a recording is produced, write a manifest so `create-pr` can replay the exact same demonstration on the fixed code:
+
+```bash
+# CLI surface
+cat > "$PROOF_DIR/proof-manifest.txt" <<EOF
+surface: cli
+command: <the triggering command>
+EOF
+
+# Web UI surface
+cat > "$PROOF_DIR/proof-manifest.txt" <<EOF
+surface: web
+url: <the route URL>
+server_cmd: <the dev server command>
+EOF
+```
+
+The rendered before asset lands at `$PROOF_DIR/before-bug.gif` (or `.png` / `.svg`). If no asset was produced (tools absent or surface unclassifiable), do not write a manifest; `create-pr` will fall back to a single-asset proof.
+
+### 6. Post reproduction results
 
 #### If the bug is reproduced
 
@@ -140,6 +192,8 @@ Reproduced. Working on a fix.
 - <Exact steps that triggered the bug>
 - <Observed error or behavior>
 - <Any environment or version differences from the original report>
+
+**Before recording:** captured at `$PROOF_DIR/before-bug.*` (pairs with an after-the-fix recording in the PR). Omit this line if no recording was taken.
 
 ---
 
@@ -186,7 +240,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /reproduce-issue 42 owner/myrepo
 ```
-Fetches issue #42 (null pointer on login), creates worktree on `fix/42-null-pointer-login`, reproduces by sending a request with missing field, posts reproduction details on the issue. Ready for `create-implementation`.
+Fetches issue #42 (null pointer on login), creates worktree on `fix/42-null-pointer-login`, reproduces by sending a request with missing field, records the crash to `/tmp/<owner>/<repo>/42/before-bug.gif` with a manifest, posts reproduction details on the issue. Ready for `create-implementation`.
 
 **Scenario 2: Cannot reproduce**
 ```

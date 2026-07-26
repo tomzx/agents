@@ -137,9 +137,10 @@ Project context (invoke when establishing or revising project-level context that
 Bug fix fast path (entry: bugfix)
 
   /check-duplicates        Search for duplicate issues and existing fix PRs
-  /reproduce-issue         Bug report: create worktree, reproduce, post results
+  /reproduce-issue         Bug report: create worktree, reproduce, record "before" video, post results
   /fix-issue               Orchestrator: check-duplicates → reproduce-issue → create-implementation → create-pr
-                          (escalates to main flow at requirements if the fix is non-trivial)
+                           (create-pr pairs the before recording with an "after" recording)
+                           (escalates to main flow at requirements if the fix is non-trivial)
 
 Cross-cutting records (invoke at any point in any flow)
 
@@ -605,7 +606,7 @@ Each phase consumes output from the previous phase:
 | review-implementation | Code + spec + telemetry + observability | Findings → `review-implementation.md` |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings → `review-documentation.md` |
-| create-pr | Reviewed code + docs + issue | Pull request |
+| create-pr | Reviewed code + docs + issue | Pull request; for bug fixes, embeds paired before/after recordings when a before recording exists |
 | validate-pr | Pull request | Validation report: runtime proof of each claim, asciinema recordings for CLI changes |
 | verify-pr | Pull request + validation report | Verification report: claim-to-code traceability, code quality findings |
 | review-pr | Pull request | Code review findings (resolve before merge) |
@@ -613,9 +614,9 @@ Each phase consumes output from the previous phase:
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
 | deploy-pr | Merged PR | Deployed changes, smoke tests passed, rollback plan verified |
-| fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction, implementation, PR |
+| fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction (with before recording), implementation, PR (with after recording paired against before) |
 | check-duplicates | GitHub issue | Duplicate issues and existing fix PRs checked, results posted |
-| reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, results posted |
+| reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, before recording captured, results posted |
 | create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/N-<slug>.md` (`status: draft`) |
 | review-learnings | `.sdlc/knowledge/learnings/N-<slug>.md` | Findings; sets `status: complete` when resolved |
 | create-assumption | Any phase context | `.sdlc/knowledge/assumptions/N-<slug>.md` |
