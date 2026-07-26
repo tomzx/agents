@@ -204,6 +204,7 @@ When providing feedback:
 * Prioritize Feedback
 	* Clearly mark nitpicks and optional comments
 	* Use an approach such as [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119) where you indicate whether a change is a MUST, SHOULD, or MAY
+	* Prefix each finding with the Code Review Checklist section it maps to, splitting signal, section, and title with `/`, e.g. `### 🔴 MUST / Security & Data / Remove hardcoded API key`, so the table's status rows trace back to the findings
 	* Traffic light color emojis: 🔴 MUST, 🟡 SHOULD, 🟢 MAY
 	* Another emoji based option is [gitmoji](https://gitmoji.dev/)
 * Maintain Positive Tone
@@ -219,8 +220,74 @@ Put 🔴/🟢 at the top of the document to indicate the overall status of the r
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
+Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers surface at the top.
+
+Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
+
 When reviewing, write the response to `.sdlc/pull-requests/{PR_NUMBER}/review-pr.md` (resolving per `sdlc/references/shared.md`).
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
+
+### Example Output
+
+```
+# Review of PR #42: Add payment processing endpoint
+
+🟢 **Approved with minor suggestions**
+
+Reviewed SHA: `a1b2c3d`
+
+## Summary
+
+The PR implements the Stripe payment endpoint per the acceptance criteria
+in #37. Implementation is clean, well-tested, and follows existing patterns
+in `src/payments/`. One blocking issue plus two non-blocking suggestions below.
+
+## Checklist
+
+| Section | Status | Notes |
+|---|---|---|
+| Scope & Relevance | 🟢 | No unrelated changes |
+| Code Quality & Design | 🟢 | SOLID, naming, no duplication |
+| Testing & Coverage | 🟡 | Webhook signature verification untested |
+| Architecture & Structure | 🟢 | Follows existing `src/payments/` patterns |
+| Operational Concerns | 🟡 | No rate limiting on `POST /payments` |
+| Security & Data | 🔴 | Hardcoded test API key in `client.py` |
+| Documentation & Maintenance | 🟢 | No user-facing docs affected |
+
+## Findings
+
+### 🔴 MUST / Security & Data / Remove hardcoded test API key
+
+`src/payments/client.py:8` contains `sk_test_4eC39HqLy...`. Move it to an
+environment variable (`STRIPE_API_KEY`) and load via `os.environ`.
+Verified it is not in `.env.example` either, so add it there as well.
+
+### 🟡 SHOULD / Operational Concerns / Add rate limiting on the endpoint
+
+`src/payments/routes.py:24` exposes `POST /payments` without a rate limiter.
+A malicious client could flood charge attempts. Reuse the existing
+`@rate_limit` decorator from `src/api/middleware.py`:
+
+@rate_limit(limit=10, window=60)
+@router.post("/payments")
+async def create_payment(...): ...
+
+### 🟢 MAY / Code Quality & Design / Extract magic currency multiplier
+
+`src/payments/amount.py:15` uses `amount * 100` to convert dollars to cents.
+Consider `CENTS_PER_DOLLAR = 100` as a named constant for readability.
+
+## Coverage
+
+- Tests present: `tests/payments/test_routes.py` (8 cases, happy + error paths)
+- Missing: webhook signature verification not tested
+- CI status: passing
+
+## Outcome
+
+No blocking issues remain once the hardcoded key is removed. Rate limiting
+should be addressed before exposing this publicly.
+```
 
 ## Outcome
 
