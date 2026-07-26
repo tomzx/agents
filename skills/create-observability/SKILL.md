@@ -95,6 +95,15 @@ Metrics: `ws_connections_active` (gauge), `ws_messages_sent_total` (counter), `w
 Logging: INFO on connect/disconnect (with user_id), WARN on reconnect storm, ERROR on message delivery failure.
 Health check: readiness probe that verifies the WebSocket server can accept connections.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each alert is actionable, severity-tagged, and links a runbook
+- [ ] SLO/error-budget targets referenced from requirements where applicable
+
+Self-check the draft against the [`review-observability` checklist](../review-observability/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-observability` to audit the observability plan for completeness, actionability, and consistency before moving on.

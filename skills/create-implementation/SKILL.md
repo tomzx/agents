@@ -121,6 +121,7 @@ git rebase origin/main
 - [ ] Branch rebased on latest `main`
 - [ ] Task frontmatter updated: `status: done`, `completed_date: <today>`
 - [ ] `progress.md` Task Progress table updated
+- [ ] Self-check the change against the [`review-implementation` checklist](../review-implementation/SKILL.md) and fix what you can before requesting review
 
 ## Handling Blockers
 

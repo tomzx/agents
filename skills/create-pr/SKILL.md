@@ -266,6 +266,15 @@ Diff touches CLI code but `asciinema` is not installed. The visual-proof step is
 ```
 Branch is `fix/42-null-pointer-login`. `/tmp/<owner>/<repo>/42/proof-manifest.txt` exists (written earlier by `/reproduce-issue`), recording `surface: cli` with the command that triggered the crash. `create-pr` replays that same command on the fixed code via `/record-asciinema` into `/tmp/<owner>/<repo>/42/after-fix.gif`, uploads both `before-bug.gif` and `after-fix.gif` to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side.
 
+## Completion Checklist
+
+Before requesting review, confirm:
+
+- [ ] Issue linked (Closes vs Related to #N) with acceptance criteria mapped to coverage checkboxes
+- [ ] Visual proof embedded if captured, the section omitted entirely if not (no placeholder left)
+
+Self-check the PR against the [`review-pr` checklist](../review-pr/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.

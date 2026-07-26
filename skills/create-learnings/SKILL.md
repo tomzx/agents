@@ -47,6 +47,15 @@ What went well: daily standups kept everyone aligned.
 What didn't: unclear task definitions led to rework.
 Action item: run `/create-tasks-decomposition` before each sprint starts.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] "What could improve" entries identify root causes, not just symptoms
+- [ ] Action items are specific, owned, and dated
+
+Self-check the draft against the [`review-learnings` checklist](../review-learnings/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context.

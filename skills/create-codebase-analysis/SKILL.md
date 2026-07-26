@@ -68,6 +68,15 @@ The analysis shows the limiter is well-factored with a clean tenant key seam. Di
 Requirements ask for a brand-new export pipeline with no existing equivalent.
 The analysis records a greenfield note, names the single integration boundary (the queue it will read from), and stops.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Refactor/replace dispositions include migration, impact, and de-risking
+- [ ] Findings reference concrete code locations and the search entry points used
+
+Self-check the draft against the [`review-codebase-analysis` checklist](../review-codebase-analysis/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-codebase-analysis` to audit the analysis for coverage, accuracy, changeability rigor, and impact assessment before moving on.

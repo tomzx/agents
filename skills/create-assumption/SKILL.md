@@ -52,6 +52,15 @@ Confidence: Medium.
 Risk if wrong: multi-session onboarding requires persisting partial state, which is not currently designed.
 Validation: monitor drop-off in the first two weeks after launch.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Basis stated explicitly, or flagged as a guess with no basis
+- [ ] Validation plan has a concrete method and a target date
+
+Self-check the record against the [`review-assumption` checklist](../review-assumption/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context and writes a Markdown file.

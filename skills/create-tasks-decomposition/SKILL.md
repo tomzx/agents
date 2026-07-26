@@ -141,6 +141,15 @@ Critical path: 1 → 2 → 3 → 5 → 6 → 7 (its Mermaid graph is the example
 A task described as "implement the entire payment module" is XL.
 Break into: 1 payment intent `[M]`, 2 webhook handler `[M]`, 3 refund endpoint `[S]`, 4 idempotency `[S]`, 5 integration tests `[M]`.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] No XL tasks remain (each was broken down further)
+- [ ] Critical path computed by total effort and highlighted in the dependency graph
+
+Self-check the decomposition against the [`review-tasks-decomposition` checklist](../review-tasks-decomposition/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-tasks-decomposition` to audit granularity, completeness, and dependencies before moving on.

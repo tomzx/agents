@@ -52,6 +52,15 @@ Choosing a simple approach now and noting what was deferred.
 Decision title: "Use a flat file for config instead of a database."
 Consequence: revisit if config grows beyond 50 keys or requires per-user values.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] At least two options considered (including the chosen one), each with pros and cons
+- [ ] If it replaces an earlier decision, `/supersede-decision` was run (do not hand-edit the older status)
+
+Self-check the record against the [`review-decision` checklist](../review-decision/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context and writes a Markdown file.

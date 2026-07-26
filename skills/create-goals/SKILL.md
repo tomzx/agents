@@ -74,6 +74,15 @@ No baseline data exists for any key result.
 Define objectives and key results with targets, but mark each measurement method as "to be instrumented" and flag it as an open question until telemetry exists.
 Recommend running `/create-telemetry` on the next feature to close the gap.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each objective has 3-5 measurable key results that are outcomes, not outputs, plus an owner
+- [ ] KPIs (ongoing) kept separate from time-bound key results; non-goals stated
+
+Self-check the draft against the [`review-goals` checklist](../review-goals/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-goals` to audit the objectives for measurability, ownership, and alignment soundness before relying on them for prioritization.

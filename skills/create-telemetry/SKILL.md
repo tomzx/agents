@@ -80,6 +80,15 @@ Requirements describe an admin analytics dashboard.
 Success metrics: 80% of admins use it weekly, average session time 2-5 minutes (not too short = confused, not too long = struggling).
 Events: dashboard_viewed, filter_applied (with filter_type), export_clicked.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Success metrics measurable and time-bound, and counter metrics (signs of harm) defined too
+- [ ] Every event includes a `source` property and follows the `<entity>_<action>_<status>` naming pattern
+
+Self-check the draft against the [`review-telemetry` checklist](../review-telemetry/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-telemetry` to audit the telemetry plan for completeness, actionability, and consistency before moving on.

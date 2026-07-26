@@ -55,6 +55,15 @@ The recommendation is to reuse and extend it rather than write a new exporter.
 Requirements describe a domain-specific scheduler with no off-the-shelf fit.
 The survey recommends building, and records the data model and failure modes documented by two open-source schedulers as sources of information for the specification.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each candidate captured with license, maturity, and requirement coverage (FR/NFR) plus gaps
+- [ ] Adopt/extend/build recommendation tied to the requirements
+
+Self-check the draft against the [`review-existing-solutions` checklist](../review-existing-solutions/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-existing-solutions` to audit the survey for coverage, evaluation rigor, and a sound recommendation before moving on.

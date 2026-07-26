@@ -139,6 +139,15 @@ Wireframes cover the drop zone, the in-progress list with per-file progress, and
 The specification defines a webhook receiver with no user interface.
 The skill leaves the artifact unwritten and emits `verdict: skipped` so the pipeline continues to the next phase without a review.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each key component and screen enumerates interaction states (empty, loading, populated, error)
+- [ ] Accessibility requirements called out (keyboard, screen-reader labels, contrast, touch targets)
+
+Self-check the draft against the [`review-mockups` checklist](../review-mockups/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-mockups` to audit the mockups for coverage, usability, accessibility, consistency, and spec fidelity before moving on.

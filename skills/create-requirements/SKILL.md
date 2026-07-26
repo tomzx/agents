@@ -62,6 +62,14 @@ Fetch the issue, extract the described behavior, and produce a requirements docu
 User gives a vague description.
 List open questions and draft requirements for the parts that are clear.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each functional requirement has testable, scenario-based acceptance criteria that do not just restate the FR
+
+Self-check the draft against the [`review-requirements` checklist](../review-requirements/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.

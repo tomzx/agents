@@ -79,6 +79,14 @@ Spec defines the `password_reset_tokens` table, `POST /auth/reset-password` endp
 Requirements ask for async processing.
 Spec defines the job queue schema, worker interface, retry policy, and failure alerting sequence.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Data models and API contracts designed for forward compatibility (tolerate unknown fields/values, additive changes)
+
+Self-check the draft against the [`review-specifications` checklist](../review-specifications/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-specifications` to audit for ambiguities, inconsistencies, and gaps before moving on.

@@ -45,6 +45,14 @@ Plan: Phase 1 (DB schema + migrations), Phase 2 (API endpoints), Phase 3 (fronte
 **Scenario 2: High-risk external dependency**
 Plan includes a spike in Phase 1 to validate a third-party payment provider integration before committing to Phase 2 scope.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Telemetry and observability deliverables pulled into the plan as explicit work items
+
+Self-check the draft against the [`review-plan` checklist](../review-plan/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-plan` to audit for completeness, feasibility, and risk coverage before moving on.

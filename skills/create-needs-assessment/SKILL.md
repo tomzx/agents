@@ -70,6 +70,15 @@ Issue asks for a notification system. Investigation reveals the project already 
 **Scenario 4: Genuine need but weak evidence**
 Issue describes a problem that sounds real (slow onboarding for new developers) but no data or tickets back it up. Evidence rating is Weak. Verdict: Nice-to-have, with an open question asking the team to validate the pain before investing further.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Underlying problem stated (worked backward from any stated solution or feature)
+- [ ] Strategic alignment to `goals.md` checked, or flagged as an open question when it is absent
+
+Self-check the draft against the [`review-needs-assessment` checklist](../review-needs-assessment/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-needs-assessment` to audit the assessment for rigor, evidence quality, and soundness of the verdict.

@@ -76,6 +76,15 @@ Architecture describes an internal shared library.
 No user-facing service exists, so formal SLOs do not apply.
 Document this as out of scope and recommend measurement (test pass rate, release cadence) instead of availability SLOs.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Each SLO has an error budget and a policy for when it is exhausted
+- [ ] SLAs (if any) are looser than their corresponding SLOs
+
+Self-check the draft against the [`review-service-levels` checklist](../review-service-levels/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-service-levels` to audit the objectives for measurability, coverage, and policy soundness before relying on them.

@@ -45,6 +45,15 @@ Document `create-requirements`: tutorial (run your first requirements doc), how-
 **Scenario 2: Internal library**
 Document a cache abstraction: how-to guides for common cache patterns, full reference for every method, explanation of the eviction strategy chosen.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Only the Divio types this feature actually needs are written, not all four by default
+- [ ] Code examples run against the current codebase
+
+Self-check the draft against the [`review-documentation` checklist](../review-documentation/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context.

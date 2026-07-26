@@ -130,6 +130,15 @@ User specifies "this is urgent and important." Apply `urgent` and `important` la
 ```
 User provides a list of requirements. Convert each into a checklist item, then split them into **Must** (gates "done") and **Should** (deferrable). If most items land in Must, flag to the user that the issue may be too broad and should be split.
 
+## Completion Checklist
+
+Before finishing, confirm:
+
+- [ ] Duplicate search run before creating (no existing issue matches)
+- [ ] Time budget included only for private repos; Should section omitted when empty
+
+Self-check the issue against the [`review-issue` checklist](../review-issue/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Useful Commands Reference
 
 | Command | Description |

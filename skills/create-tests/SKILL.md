@@ -63,6 +63,14 @@ Edge cases: expired token, already-used token, invalid email.
 Spec defines a `POST /orders` endpoint.
 Write unit tests for input validation, integration tests for DB writes, E2E test for the full order placement flow, and failure tests for duplicate requests and DB errors.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Telemetry events and observability signals have assertions verifying they fire correctly
+
+Self-check the plan against the [`review-tests` checklist](../review-tests/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-tests` to audit coverage, correctness, and missing scenarios before moving on.

@@ -65,6 +65,15 @@ Requires WebSocket infrastructure not currently in the stack, high effort, signi
 User describes "migrate the entire platform to a different cloud provider in 2 weeks."
 Not operationally feasible given team size and timeline. Verdict: No-go.
 
+## Completion Checklist
+
+Before handing off to review, confirm:
+
+- [ ] Effort sized (S/M/L/XL), with conditions and risks listed for any "Feasible with conditions" verdict
+- [ ] Overall go/no-go stated, with No-go if any dimension is Not feasible
+
+Self-check the draft against the [`review-feasibility` checklist](../review-feasibility/SKILL.md) and fix what you can, so review finds less to flag.
+
 ## Next Step
 
 Run `/review-feasibility` to audit the assessment for completeness, risk coverage, and soundness of the go/no-go decision.
