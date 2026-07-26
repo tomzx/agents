@@ -1,6 +1,6 @@
 ---
 name: record-asciinema
-description: Record a terminal/CLI demonstration with asciinema, render it to an embeddable GIF (or SVG), and return the asset path. Reusable recording primitive used by validate-pr and create-pr.
+description: Record a terminal/CLI demonstration with asciinema, render it to an embeddable GIF (or SVG), and return the asset path. Reusable recording primitive used by validate-pr and validate-implementation.
 allowed-tools: Bash(asciinema:*, agg:*, asciicast2gif:*, svg-term:*, scripts/get-env:*), Read, Write, Glob
 argument-hint: "[<slug>] [-- <command...>]"
 ---

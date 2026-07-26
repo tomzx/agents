@@ -1,6 +1,6 @@
 ---
 name: fix-issue
-description: Orchestrate a bug fix from issue to PR by delegating to reproduce-issue, create-implementation, and create-pr.
+description: Orchestrate a bug fix from issue to PR by delegating to reproduce-issue, create-implementation, validate-implementation, and create-pr.
 allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
@@ -12,9 +12,10 @@ Orchestrates a bug fix from issue to PR by delegating to specialized skills:
 1. **`check-duplicates`** -- search for duplicate issues and existing fix PRs
 2. **`reproduce-issue`** -- fetch the issue, create a worktree, reproduce the bug, record a "before" video of the defect, post results
 3. **`create-implementation`** -- write a regression test, implement the fix, verify tests pass
-4. **`create-pr`** -- push the branch and open a pull request, pairing the before recording with a fresh "after" recording in a side-by-side section
+4. **`validate-implementation`** -- replay the before-command on the fixed code to capture a comparable "after" recording, then present the before/after pair for user sign-off before any PR is opened
+5. **`create-pr`** -- push the branch and open a pull request, embedding the pre-captured before/after pair in a side-by-side section
 
-The before recording (and the manifest naming the demonstration command/URL) flows from `reproduce-issue` to `create-pr` via `/tmp/<owner>/<repo>/<issue-id>/`. `create-pr` replays the same command/URL on the fixed code so the two recordings are directly comparable.
+The before recording (and the manifest naming the demonstration command/URL) flows from `reproduce-issue` to `validate-implementation` via `/tmp/<owner>/<repo>/<issue-id>/`. `validate-implementation` replays the same command/URL on the fixed code so the two recordings are directly comparable, then writes `captured-proof.json`, which `create-pr` consumes. Recording happens before PR creation, at human-review time, so the user can confirm the fix before it is posted.
 
 If duplicates are found or reproduction fails, the workflow stops at the relevant step.
 
@@ -55,8 +56,13 @@ Record before   Stop
 /create-implementation
         |
         v
+/validate-implementation
+(replays before-command on fixed code,
+ captures after, presents pair, gets sign-off)
+        |
+        v
 /create-pr
-(captures after, pairs before/after)
+(embeds pre-captured before/after pair)
         |
         v
 Done (PR ready for review)
@@ -99,7 +105,7 @@ This skill handles:
 If the bug cannot be reproduced, `reproduce-issue` posts a comment and stops.
 Do not proceed to step 3.
 
-After `reproduce-issue` creates the worktree, `.sdlc/state.yml` is initialized with `current_phase: reproduce`. Update it to `current_phase: implementation` before invoking `create-implementation`, and to `current_phase: pr` before invoking `create-pr`.
+After `reproduce-issue` creates the worktree, `.sdlc/state.yml` is initialized with `current_phase: reproduce`. Update it to `current_phase: implementation` before invoking `create-implementation`, to `current_phase: validate-implementation` before invoking `validate-implementation`, and to `current_phase: pr` before invoking `create-pr`.
 
 ### 3. Implement the fix
 
@@ -127,7 +133,23 @@ If the fix is non-trivial (e.g., requires design changes, schema migrations, mul
 /sdlc requirements
 ```
 
-### 4. Create the pull request
+### 4. Validate the fix on the branch
+
+Invoke `validate-implementation` with the issue number and repository:
+
+```
+/validate-implementation $REPO $ISSUE_NUMBER
+```
+
+This skill handles:
+- Detecting the before manifest at `/tmp/<owner>/<repo>/<issue-id>/proof-manifest.txt` (written by `reproduce-issue`)
+- Replaying the same demonstration command/URL on the fixed code to capture a comparable **after** recording
+- Writing `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (`mode: bugfix-pair`)
+- Presenting the before/after pair to the user for visual sign-off before any PR is opened
+
+If the user reports the fix is wrong or incomplete, do not proceed to `create-pr`; route back to `create-implementation`. If recording tools are unavailable, `validate-implementation` reports `tools-missing` and `create-pr` will open without inline proof.
+
+### 5. Create the pull request
 
 Invoke `create-pr` with the issue number and repository:
 
@@ -135,7 +157,7 @@ Invoke `create-pr` with the issue number and repository:
 /create-pr $REPO $ISSUE_NUMBER
 ```
 
-This skill handles pushing the branch and opening a structured PR. When the before recording from `reproduce-issue` is present (manifest at `/tmp/<owner>/<repo>/<issue-id>/proof-manifest.txt`), `create-pr` replays the same demonstration command/URL on the fixed code to capture an **after** recording, then embeds both in a Before / After section of the PR body. If the recording tools are unavailable or the surface is unclassifiable, the pair is skipped silently and the PR opens with the standard sections.
+This skill handles pushing the branch and opening a structured PR. It reads `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (written by `validate-implementation`) and embeds the listed before/after assets in a Before / After section of the PR body. If no manifest exists (tools were unavailable or the surface was unclassifiable), the pair is omitted and the PR opens with the standard sections. `create-pr` never captures recordings itself.
 
 ## Failure Modes
 
@@ -156,7 +178,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/refer
 ```
 /fix-issue 42 owner/myrepo
 ```
-Reproduces issue #42, records the crash (before), implements null check fix with regression test, captures the fixed behavior (after), and submits a PR with a Before / After visual section.
+Reproduces issue #42, records the crash (before), implements null check fix with regression test, validates the fix on the branch by capturing the after recording and getting user sign-off, then submits a PR embedding the Before / After visual section.
 
 **Scenario 2: Cannot reproduce**
 ```

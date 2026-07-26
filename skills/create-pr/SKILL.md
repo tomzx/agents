@@ -1,13 +1,13 @@
 ---
 name: create-pr
-description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Optionally captures a lightweight visual proof (CLI demo via record-asciinema, or web screenshot via record-playwright) and embeds it in the PR body. For bug fixes, pairs a before recording (from reproduce-issue) with an after recording in a side-by-side section.
-allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Glob, Grep
+description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Embeds visual proof that was captured beforehand by /validate-implementation (single asset, or a before/after pair for bug fixes) by reading the proof manifest; create-pr is a consumer and does not capture recordings itself. If no proof was captured, it omits the Visual proof section and suggests running /validate-implementation first.
+allowed-tools: Bash(gh:*, git:*, ghx:*, base64:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[repository] [issue-number]"
 ---
 
 # Create Pull Request
 
-Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. When the diff touches a CLI or web UI surface, it captures a single lightweight recording or screenshot and embeds it inline so reviewers see proof the moment the PR opens.
+Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens. It does not capture recordings itself; recording happens at human-review time, before the PR exists.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ Opens a GitHub pull request for the current branch with a structured description
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)
 - Tests passing locally before the PR is opened
-- For visual proof (optional): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the visual-proof step is skipped silently.
+- For visual proof (captured beforehand): run [`/validate-implementation`](../validate-implementation/SKILL.md) on the branch first. It records a CLI demo (via [`/record-asciinema`](../record-asciinema/SKILL.md)) or a web screenshot (via [`/record-playwright`](../record-playwright/SKILL.md)) and writes `$PROOF_DIR/captured-proof.json`. If that manifest is absent, `create-pr` omits the Visual proof section and suggests running `/validate-implementation` first (it never captures on its own).
 
 > **Note:** This skill uses `gh` (GitHub CLI) directly. For a Graphite-based workflow that diffs against the Graphite parent branch, use `/create-pr-description` instead.
 
@@ -45,25 +45,28 @@ Fetch issue       Skip AC
   +--------+--------+
            |
            v
-Bug-fix manifest present?
+Pre-captured proof? ($PROOF_DIR/captured-proof.json)
    /              \
  Yes               No
   |                 |
   v                 v
-Capture after    Classify diff
-(same cmd/URL    (CLI or web UI?)
- as before)         /          \
+Read manifest   Before-only state? (proof-manifest.txt
+(mode + assets)  exists, captured-proof.json absent)
+  |                 /          \
   |               Yes           No
   |                |            |
   |                v            v
-  |            Capture proof  Skip proof
-  |           (record-asciinema /
-  |            record-playwright)
-  |                |
-  +--------+-------+
+  |          Embed before      Omit Visual proof;
+  |          alone, note       suggest /validate-
+  |          after pending     implementation first
+  |                |            |
+  +--------+-------+------------+
            |
            v
-Draft PR description (embed proof; before/after if paired)
+Embed proof in description (single, or before/after pair)
+           |
+           v
+Upload resolved assets to branch
            |
            v
 gh pr create (draft if incomplete)
@@ -95,48 +98,42 @@ Assign reviewers (if known)
    Map each acceptance criterion to the changes in the diff.
    Note any ACs not yet addressed (to call out in the description).
 
-5. Capture visual proof (optional, best-effort). First detect whether this is a bug fix with a paired before/after recording, then fall back to a single representative asset.
+5. Resolve the visual proof to embed. `create-pr` consumes proof captured beforehand by [`/validate-implementation`](../validate-implementation/SKILL.md); it does not capture recordings itself. Resolve the proof directory and detect what is available:
 
-   Resolve the proof directory (per-repo, per-issue, so assets never collide with other work):
-   ```
+   ```bash
    REPO="${1:-$REPO}"
    ISSUE_NUMBER="${2:-$ISSUE_NUMBER}"
    PROOF_DIR="/tmp/$REPO/${ISSUE_NUMBER:-housekeeping}"   # /tmp/<owner>/<repo>/<issue-id>
-   mkdir -p "$PROOF_DIR" 2>/dev/null || true
    ```
 
-   **Bug-fix fast path (before/after):** Check for a before-recording manifest written by `reproduce-issue`:
-   ```
-   test -f "$PROOF_DIR/proof-manifest.txt"
-   ```
-   If present, read it to recover the surface and the demonstration command/URL used to capture the bug:
-   ```
-   cat "$PROOF_DIR/proof-manifest.txt"
-   ```
-   Then capture the matching **after** recording on the now-fixed code using the exact same command/URL, so the pair is directly comparable:
-   - `surface: cli` → read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with `RECORD_SLUG` = `after-fix`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_COMMAND` = the manifest's command.
-   - `surface: web` → read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `after-fix`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the manifest's url, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the manifest's server_cmd.
+   **Authoritative source — `captured-proof.json`** (written by `/validate-implementation`):
 
-   The before asset is the existing `$PROOF_DIR/before-bug.*`; the after asset is the freshly captured `$PROOF_DIR/after-fix.*`. Note both paths: step 6 uploads the pair and step 7 renders a Before / After section. If the after capture fails, fall back to embedding the before asset alone so the bug is still visible.
-
-   **Default (single asset):** With no manifest present, classify the change surface from the diff in step 3 and capture one representative asset:
-   - **CLI changes** (entry points, `cli/`, `cmd/`, argument parsing, `--help`): identify the CLI entry point from the codebase and pick one representative command that exercises the change. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
-     - `RECORD_SLUG` = `pr-demo`
-     - `RECORD_DIR` = `$PROOF_DIR`
-     - `RECORD_COMMAND` = the representative command
-   - **Web UI changes** (`src/pages`, routes, components, templates, CSS): identify the dev server command (e.g. `npm run dev`) and the changed route, then read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
-     - `RECORD_SLUG` = `pr-demo`
-     - `RECORD_DIR` = `$PROOF_DIR`
-     - `RECORD_URL` = the changed route
-     - `RECORD_VIEWPORTS` = `1280x720` (a single desktop shot is enough for the PR body)
-     - `RECORD_SERVER_CMD` = the dev server command, so the skill starts, waits, and tears it down itself
-   - **Neither / not determinable**: skip visual proof.
-
-   Whether one or two assets are captured, this is a representative proof, not a claim-by-claim demonstration (that is `/validate-pr`'s job). If a recording skill is unavailable or the entry point cannot be determined, skip silently and proceed without proof.
-
-6. Upload the captured asset(s) to the branch and note their raw URLs for the description:
+   ```bash
+   test -f "$PROOF_DIR/captured-proof.json"
    ```
-   for asset in "$PROOF_DIR"/before-bug.* "$PROOF_DIR"/*.gif "$PROOF_DIR"/*.png "$PROOF_DIR"/*.svg; do
+
+   If present, read it. It is authoritative for which assets to embed:
+
+   ```json
+   {
+     "captured_at": "<ISO>",
+     "surface": "cli" | "web" | "none",
+     "mode": "single" | "bugfix-pair" | "bugfix-before-only",
+     "assets": ["pr-demo.gif"] | ["before-bug.gif", "after-fix.gif"]
+   }
+   ```
+
+   Embed exactly the files listed in `assets` (resolved against `$PROOF_DIR`), in listed order. Render Before / After layout when `mode` is `bugfix-pair` (or `bugfix-before-only`, embedding just the before with a note that after is pending via `/validate-implementation`). Render the single-asset block when `mode` is `single`.
+
+   **Partial state — before only, no manifest yet:** If `captured-proof.json` is absent but `$PROOF_DIR/proof-manifest.txt` exists (reproduce-issue captured a before, but `/validate-implementation` has not yet produced the after), embed the existing `$PROOF_DIR/before-bug.*` alone with a note that the after recording is pending, and suggest running `/validate-implementation` to complete the pair.
+
+   **No proof captured:** If neither manifest exists, omit the Visual proof section entirely and note in the PR description (or in console output before creation) that `/validate-implementation` can capture proof. Do not attempt to capture here.
+
+   This is a representative proof, not a claim-by-claim demonstration (that is `/validate-pr`'s job).
+
+6. Upload the resolved asset(s) (from step 5) to the branch and note their raw URLs for the description. Upload only the assets chosen in step 5, not everything in `$PROOF_DIR`:
+   ```
+   for asset in "$PROOF_DIR"/<asset-from-step-5>; do
      [ -f "$asset" ] || continue
      gh api repos/$1/contents/.create-pr-proof/$(basename "$asset") \
        --method PUT \
@@ -145,7 +142,7 @@ Assign reviewers (if known)
        -f branch="$(git rev-parse --abbrev-ref HEAD)"
    done
    ```
-   Omit `--repo` if the repository can be inferred from the current working directory. For each uploaded asset, derive its raw URL as `https://raw.githubusercontent.com/$1/<branch>/.create-pr-proof/<basename>`.
+   When `captured-proof.json` is the source, iterate its `assets` list rather than a glob, so unrelated files in `$PROOF_DIR` are not uploaded. Omit `--repo` if the repository can be inferred from the current working directory. For each uploaded asset, derive its raw URL as `https://raw.githubusercontent.com/$1/<branch>/.create-pr-proof/<basename>`.
 
 7. Draft the PR description following the output format below, embedding the proof if one was captured. Do not line wrap the description; each paragraph/bullet should be a single long line.
 
@@ -183,7 +180,7 @@ Assign reviewers (if known)
 
 ![demo](raw-github-url-to-asset)
 
-*Captured at PR creation. Run `/validate-pr` for claim-by-claim validation. Omit this section entirely if no proof was captured.*
+*Captured beforehand by `/validate-implementation`. Run `/validate-pr` for claim-by-claim validation. Omit this section entirely if no proof was captured.*
 
 For a bug fix with a paired before/after recording, use the Before / After layout instead of the single-asset block above:
 
@@ -198,10 +195,10 @@ For a bug fix with a paired before/after recording, use the Before / After layou
 
 ![after-fix](raw-github-url-to-after-asset)
 
-*Before captured by `/reproduce-issue`; after captured at PR creation. Run `/validate-pr` for claim-by-claim validation.*
+*Before captured by `/reproduce-issue`; after captured by `/validate-implementation`. Run `/validate-pr` for claim-by-claim validation.*
 ```
 
-If only the before asset exists (after capture failed), keep the Before block and note that the after will be added on re-run. Omit the section entirely if no proof was captured.
+If only the before asset exists (after not yet captured), keep the Before block and note that the after will be added once `/validate-implementation` is run. Omit the section entirely if no proof was captured.
 
 # Acceptance criteria coverage
 
@@ -252,33 +249,33 @@ One AC not yet met. Opens as a draft PR so it is not accidentally merged.
 ```
 /create-pr owner/myrepo 130
 ```
-Diff touches `src/pages/dashboard.tsx`. Starts the dev server, captures a desktop screenshot of `/dashboard` via `/record-playwright`, uploads it to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately.
+`/validate-implementation` was run first and wrote `/tmp/<owner>/<repo>/130/captured-proof.json` listing `pr-demo-1280x720.png`. `create-pr` reads the manifest, uploads that PNG to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately. It does not start the dev server or capture anything itself.
 
-**Scenario 6: CLI PR where recording tools are absent**
+**Scenario 6: PR where no proof was captured**
 ```
 /create-pr owner/myrepo 130
 ```
-Diff touches CLI code but `asciinema` is not installed. The visual-proof step is skipped silently; the PR opens with the standard sections and no "Visual proof" section.
+No `$PROOF_DIR/captured-proof.json` exists (the user skipped `/validate-implementation`). `create-pr` omits the "Visual proof" section and notes that `/validate-implementation` can capture proof first. The PR opens with the standard sections.
 
 **Scenario 7: Bug-fix PR with paired before/after recordings**
 ```
 /create-pr owner/myrepo 42
 ```
-Branch is `fix/42-null-pointer-login`. `/tmp/<owner>/<repo>/42/proof-manifest.txt` exists (written earlier by `/reproduce-issue`), recording `surface: cli` with the command that triggered the crash. `create-pr` replays that same command on the fixed code via `/record-asciinema` into `/tmp/<owner>/<repo>/42/after-fix.gif`, uploads both `before-bug.gif` and `after-fix.gif` to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side.
+Branch is `fix/42-null-pointer-login`. `/validate-implementation` was run after the fix: it found `/tmp/<owner>/<repo>/42/proof-manifest.txt` (written earlier by `/reproduce-issue`, `surface: cli`), replayed that command on the fixed code into `after-fix.gif`, and wrote `captured-proof.json` with `mode: bugfix-pair` listing both `before-bug.gif` and `after-fix.gif`. `create-pr` reads the manifest, uploads both to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side.
 
 ## Completion Checklist
 
 Before requesting review, confirm:
 
 - [ ] Issue linked (Closes vs Related to #N) with acceptance criteria mapped to coverage checkboxes
-- [ ] Visual proof embedded if captured, the section omitted entirely if not (no placeholder left)
+- [ ] Visual proof embedded if `/validate-implementation` captured it, the section omitted entirely if not (no placeholder left)
 
 Self-check the PR against the [`review-pr` checklist](../review-pr/SKILL.md) and fix what you can, so review finds less to flag.
 
 ## Next Step
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
-Run `/validate-pr` for claim-by-claim runtime validation with per-claim recordings (the proof captured here is a single representative asset).
+Run `/validate-pr` for claim-by-claim runtime validation with per-claim recordings (the proof embedded here is a single representative asset captured by `/validate-implementation`).
 Close the loop with `/create-learnings` after the feature is merged.
 
 ## Useful Commands Reference

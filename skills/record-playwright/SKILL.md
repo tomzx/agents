@@ -1,6 +1,6 @@
 ---
 name: record-playwright
-description: Record a web UI demonstration with Playwright, capturing screenshots at one or more viewports and optionally a video clip, then return the asset paths. Reusable recording primitive used by validate-pr and create-pr.
+description: Record a web UI demonstration with Playwright, capturing screenshots at one or more viewports and optionally a video clip, then return the asset paths. Reusable recording primitive used by validate-pr and validate-implementation.
 allowed-tools: Bash(npx:*, npm:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Glob
 argument-hint: "[<slug>] [url]"
 ---
@@ -247,7 +247,7 @@ RECORD_VIDEO=1 RECORD_SCENARIO="fill #email with test@example.com, click #submit
 ```
 Writes a capture script that performs the steps, takes a full-page screenshot per viewport, and records a video clip.
 
-**Scenario 3: Start the server, capture, tear down (called by create-pr)**
+**Scenario 3: Start the server, capture, tear down (called by validate-implementation)**
 ```
 RECORD_SERVER_CMD="npm run dev" RECORD_VIEWPORTS="1280x720" \
 /record-playwright new-dashboard http://localhost:3000/dashboard

@@ -133,7 +133,7 @@ Record the reproduction attempt:
 
 ### 5. Record the before state (when reproduced)
 
-When the bug is reproduced, capture a recording of the buggy behavior so `create-pr` can pair it with an after-the-fix recording. This runs only on the bug-fix fast path and is best-effort: if the recording tools are unavailable or the surface cannot be classified, skip silently and proceed.
+When the bug is reproduced, capture a recording of the buggy behavior so `validate-implementation` can pair it with an after-the-fix recording before the PR is opened. This runs only on the bug-fix fast path and is best-effort: if the recording tools are unavailable or the surface cannot be classified, skip silently and proceed.
 
 All proof assets for this issue live under a per-repo, per-issue directory so they never collide with other work:
 
@@ -142,7 +142,7 @@ PROOF_DIR="/tmp/$REPO/$ISSUE_NUMBER"   # expands to /tmp/<owner>/<repo>/<issue-i
 mkdir -p "$PROOF_DIR"
 ```
 
-Classify the change surface from the reproduction (mirrors `create-pr`'s classification):
+Classify the change surface from the reproduction (mirrors `validate-implementation`'s classification):
 
 - **CLI bug** (the reproduction runs a CLI entry point, command, or script): identify the single command that triggers the bug. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
   - `RECORD_SLUG` = `before-bug`
@@ -158,7 +158,7 @@ Classify the change surface from the reproduction (mirrors `create-pr`'s classif
 
 The recording must show the bug manifesting (the error, crash, or wrong output). Re-record with `--overwrite` if the first take does not demonstrate the defect.
 
-After a recording is produced, write a manifest so `create-pr` can replay the exact same demonstration on the fixed code:
+After a recording is produced, write a manifest so `validate-implementation` can replay the exact same demonstration on the fixed code:
 
 ```bash
 # CLI surface
@@ -175,7 +175,7 @@ server_cmd: <the dev server command>
 EOF
 ```
 
-The rendered before asset lands at `$PROOF_DIR/before-bug.gif` (or `.png` / `.svg`). If no asset was produced (tools absent or surface unclassifiable), do not write a manifest; `create-pr` will fall back to a single-asset proof.
+The rendered before asset lands at `$PROOF_DIR/before-bug.gif` (or `.png` / `.svg`). If no asset was produced (tools absent or surface unclassifiable), do not write a manifest; `validate-implementation` will report `surface: none` / `tools-missing` and `create-pr` will omit proof.
 
 ### 6. Post reproduction results
 
@@ -193,7 +193,7 @@ Reproduced. Working on a fix.
 - <Observed error or behavior>
 - <Any environment or version differences from the original report>
 
-**Before recording:** captured at `$PROOF_DIR/before-bug.*` (pairs with an after-the-fix recording in the PR). Omit this line if no recording was taken.
+**Before recording:** captured at `$PROOF_DIR/before-bug.*` (pairs with an after-the-fix recording captured by `/validate-implementation` before the PR). Omit this line if no recording was taken.
 
 ---
 
@@ -257,5 +257,6 @@ Fetches issue #20, but the description lacks clear steps. The author is someone 
 ## Next Step
 
 If reproduced, continue with `create-implementation` to write the regression test and fix,
+then `validate-implementation` to capture the after recording and confirm the fix before opening a PR,
 then `create-pr` to submit the pull request.
 Or use `fix-issue` to orchestrate the remaining steps automatically.

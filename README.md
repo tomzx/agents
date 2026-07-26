@@ -130,6 +130,7 @@ The library is organized into thematic groups covering the full software develop
 |-------|---------|
 | `/create-implementation` | Implement a feature following the specification and plan. |
 | `/review-implementation` | Review implementation for correctness, quality, and spec alignment. |
+| `/validate-implementation` | Capture visual proof on the branch and get user sign-off before opening a PR. |
 | `/create-tests` | Create a test plan and test cases covering criteria and edge cases. |
 | `/review-tests` | Review a test suite for coverage, quality, and maintainability. |
 

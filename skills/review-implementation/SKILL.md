@@ -139,7 +139,7 @@ Variable `d` used instead of `discount_rate`.
 
 ## Next Step
 
-Once all 🔴 MUST findings are resolved, continue with `/create-documentation` then `/create-pr`.
+Once all 🔴 MUST findings are resolved, continue with `/create-documentation`, then `/validate-implementation` to capture visual proof and get user sign-off, then `/create-pr`.
 
 ## Useful Commands Reference
 

@@ -99,11 +99,14 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-implementation  Audit correctness, quality, security, spec alignment
           │
           ▼
-  /create-documentation   Divio-structured docs (tutorial/how-to/reference/explanation)
-  /review-documentation   Audit completeness, accuracy, clarity, structure
-          │
-          ▼
-   /create-pr              Open a PR: description, AC coverage, issue link, reviewers
+   /create-documentation   Divio-structured docs (tutorial/how-to/reference/explanation)
+   /review-documentation   Audit completeness, accuracy, clarity, structure
+           │
+           ▼
+   /validate-implementation Capture visual proof on the branch and get user sign-off before the PR (no-op for non-visual changes)
+           │
+           ▼
+    /create-pr              Open a PR: description, AC coverage, issue link, reviewers (embeds pre-captured proof)
    /validate-pr            Runtime validation: build, run, prove claims, record CLI demos
    /verify-pr              Static verification: claim-to-code traceability, code quality inspection
    /review-pr              Comprehensive code review of the PR
@@ -138,8 +141,9 @@ Bug fix fast path (entry: bugfix)
 
   /check-duplicates        Search for duplicate issues and existing fix PRs
   /reproduce-issue         Bug report: create worktree, reproduce, record "before" video, post results
-  /fix-issue               Orchestrator: check-duplicates → reproduce-issue → create-implementation → create-pr
-                           (create-pr pairs the before recording with an "after" recording)
+  /fix-issue               Orchestrator: check-duplicates → reproduce-issue → create-implementation → validate-implementation → create-pr
+                           (validate-implementation replays the reproduce-issue before-command on the fixed code
+                            to capture a comparable after recording; create-pr embeds the pair)
                            (escalates to main flow at requirements if the fix is non-trivial)
 
 Cross-cutting records (invoke at any point in any flow)
@@ -195,10 +199,10 @@ When in doubt, include more phases rather than fewer.
 | Scenario | Example | Path |
 |---|---|---|
 | **Bug fix** | Fix an off-by-one error, correct a typo in logic | `fix-issue` (dedicated fast path with worktree + reproduction) |
-| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
+| **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `validate-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
 | **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
-| **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
-| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
 | **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
 
 ### Rules for fast paths
@@ -208,7 +212,8 @@ When in doubt, include more phases rather than fewer.
 3. Skip requirements, specifications, plan, and tasks only when the change is well-understood and fits in a single commit.
 4. Include `review-implementation` when the fix is non-trivial or touches security-adjacent code.
 5. Include `create-tests` when the change affects behavior or could regress.
-6. Never skip CI verification before merging.
+6. Include `validate-implementation` before `create-pr` whenever the change has a CLI or web UI surface; it self-reports `surface: none` (a no-op) for config and documentation-only changes, which is why those fast paths omit it.
+7. Never skip CI verification before merging.
 
 ### Using fast paths
 
@@ -378,7 +383,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `tests` | A task decomposition ready for test design |
 | `implementation` | Tests ready; time to write code |
 | `documentation` | Implementation reviewed; code needs docs |
-| `pr` | Documentation done and ready to open a pull request |
+| `validate-implementation` | Docs done and ready to capture visual proof + get user sign-off before opening a PR (records a CLI demo or web screenshot on the branch; no-op for non-visual changes) |
+| `pr` | Visual proof captured (or skipped); ready to open a pull request |
 | `validate-pr` | PR is open and claims need runtime validation (build, run, record demos) |
 | `verify-pr` | PR claims validated at runtime, ready for static code inspection |
 | `handle-pr-ci` | PR has failing CI checks to fix |
@@ -436,7 +442,7 @@ If you commit/push manually, never `git add` these two paths.
 2. Determine the entry point: normalize `$1` to lowercase and check against the supported entry points. If a match is found, use it. If `$1` does not match any supported entry point (case-insensitive), do not attempt to infer the phase from the text. Instead, inform the user that the phase is not recognized and ask them to pick a valid entry point. If the entry point is `continue`, run the Automatic Resume flow instead of advancing through the pipeline.
 3. If the entry point is `status`, invoke the `sdlc-status` skill. Do not advance the pipeline or modify any artifacts.
 4. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
-5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `validate-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
 6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
@@ -606,7 +612,8 @@ Each phase consumes output from the previous phase:
 | review-implementation | Code + spec + telemetry + observability | Findings → `review-implementation.md` |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings → `review-documentation.md` |
-| create-pr | Reviewed code + docs + issue | Pull request; for bug fixes, embeds paired before/after recordings when a before recording exists |
+| validate-implementation | Implemented feature on the branch (+ optional `proof-manifest.txt` from reproduce-issue for bug fixes) | Visual proof captured on the branch + `$PROOF_DIR/captured-proof.json` manifest; user sign-off (or `surface: none` for non-visual changes) |
+| create-pr | Reviewed code + docs + issue + `captured-proof.json` (if any) | Pull request; embeds pre-captured proof (single asset, or before/after pair for bug fixes); never captures recordings itself |
 | validate-pr | Pull request | Validation report: runtime proof of each claim, asciinema recordings for CLI changes |
 | verify-pr | Pull request + validation report | Verification report: claim-to-code traceability, code quality findings |
 | review-pr | Pull request | Code review findings (resolve before merge) |
