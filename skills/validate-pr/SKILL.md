@@ -1,13 +1,13 @@
 ---
 name: validate-pr
-description: Checkout a PR's branch in a worktree, build it, run it, and validate every claim in the PR description through runtime proof. Records CLI demos with asciinema, renders to video, and attaches results to the PR.
-allowed-tools: Bash(gh:*, git:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+description: Checkout a PR's branch in a worktree, build it, run it, and validate every claim in the PR description through runtime proof. Records CLI demos (via record-asciinema) and web UI demos (via record-playwright), and attaches results to the PR.
+allowed-tools: Bash(gh:*, git:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
 # Validate Pull Request
 
-Checkout a PR's branch in a worktree, build, run, and prove every claim in the PR description through actual execution. For CLI changes, records demonstrations with asciinema, renders to GIF, and uploads. Posts a validation report to the PR.
+Checkout a PR's branch in a worktree, build, run, and prove every claim in the PR description through actual execution. For CLI changes, records demonstrations via `/record-asciinema` (rendered to GIF). For web UI changes, captures screenshots/video via `/record-playwright`. Uploads all assets and posts a validation report to the PR.
 
 This is runtime validation: "did you build the right thing?" Static code inspection is handled by `/verify-pr`.
 
@@ -17,8 +17,8 @@ This is runtime validation: "did you build the right thing?" Static code inspect
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
-- `asciinema` installed (for CLI changes)
-- `agg`, `asciicast2gif`, or `svg-term-cli` installed (for rendering .cast to video)
+- For CLI changes: `asciinema` plus a renderer (`agg` preferred). Provided by [`/record-asciinema`](../record-asciinema/SKILL.md).
+- For web UI changes: Playwright (Node or Python) with Chromium. Provided by [`/record-playwright`](../record-playwright/SKILL.md).
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there
 
 ### Skill attribution (GitHub)
@@ -49,16 +49,17 @@ Validate each    Post build failure, stop
 claim at runtime
    |
    v
-CLI changes detected?
-    /          \
-  Yes            No
-   |              |
-   v              v
-Record with     Compile
-asciinema       results
+Detect change surface
+   |
+   +--- CLI changes? ----> /record-asciinema per CLI claim
+   |
+   +--- Web UI changes? --> /record-playwright per UI claim
    |
    v
-Render .cast to GIF
+Collect assets (GIFs / PNGs / video)
+   |
+   v
+Upload assets to PR branch
    |
    v
 Post validation report + recordings
@@ -96,6 +97,7 @@ Analyze the PR description and extract runtime-validatable claims:
 - **Fix claims**: "Fixes bug where X happens", "Resolves issue with Y"
 - **Behavior claims**: "Now outputs X when Y", "Returns Z for input W"
 - **CLI claims**: "New flag `--flag`", "Command `foo bar` now supports X"
+- **Web UI claims**: "Adds a login page at /login", "New dashboard chart", "Renders X on mobile", "Button Y now disabled when Z"
 - **Performance claims**: "Reduces latency by X%", "Improves throughput"
 - **Test claims**: "Adds N tests for X", "Test coverage for Y"
 
@@ -150,7 +152,15 @@ For every parsed claim, prove or disprove it through execution.
 
 - Identify the CLI entry point from the codebase
 - Run the claimed command/flag and verify output
-- Use asciinema to record the demonstration (see Step 6)
+- Record the demonstration via `/record-asciinema` (see Step 6)
+
+#### Web UI claims
+
+- Identify the route/page the claim refers to from the codebase (router config, page components)
+- Start the dev server (or confirm it is running) and load the route
+- Verify the claimed element/behavior is present in the rendered page
+- Capture screenshots (and a video if the claim is about interaction) via `/record-playwright` (see Step 6)
+- Cover the viewports the claim names (mobile, desktop); if unspecified, capture both
 
 #### Fix claims
 
@@ -179,82 +189,51 @@ For each claim, record the result:
 | **Not validated** | Could not confirm (test couldn't run, ambiguous result) |
 | **Contradicted** | Runtime output contradicts the claim |
 
-### 6. Record CLI changes with asciinema
+### 6. Record demonstrations
 
-If the PR changes CLI code (commands, flags, output format, help text, etc.):
-
-1. Create a recordings directory:
+Create a recordings directory, then delegate each demonstration to the matching recording skill. Both skills are self-contained: read their `SKILL.md`, pass the inputs below, and collect the rendered asset paths.
 
 ```bash
 mkdir -p /tmp/validate-pr-$PR_NUMBER/recordings
 ```
 
-2. For each CLI claim, record a demonstration:
+#### CLI claims -> `/record-asciinema`
 
-```bash
-asciinema rec /tmp/validate-pr-$PR_NUMBER/recordings/<claim-slug>.cast \
-  --overwrite \
-  --command="<command to demonstrate>" \
-  --title="PR #$PR_NUMBER: <claim description>"
-```
+For each CLI claim, read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
 
-For multi-step demonstrations:
+- `RECORD_SLUG` = a slug for the claim (e.g. `verbose-flag`)
+- `RECORD_TITLE` = `PR #$PR_NUMBER: <claim description>`
+- `RECORD_DIR` = `/tmp/validate-pr-$PR_NUMBER/recordings`
+- `RECORD_COMMAND` = the command that demonstrates the claim
 
-```bash
-asciinema rec /tmp/validate-pr-$PR_NUMBER/recordings/<claim-slug>.cast \
-  --overwrite \
-  --title="PR #$PR_NUMBER: <claim description>"
-# Run the relevant CLI commands
-# Type exit or Ctrl-D when done
-```
+Collect the returned GIF/SVG/`.cast` path for each claim.
 
-3. Verify the recording matches the claim:
+#### Web UI claims -> `/record-playwright`
 
-```bash
-asciinema cat /tmp/validate-pr-$PR_NUMBER/recordings/<claim-slug>.cast
-```
+First ensure the dev server is running inside the worktree (start it in the background, e.g. `npm run dev`). Then for each web UI claim, read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
 
-### 7. Render .cast files to GIF
+- `RECORD_SLUG` = a slug for the claim (e.g. `login-page`)
+- `RECORD_URL` = the route the claim refers to (e.g. `http://localhost:3000/login`)
+- `RECORD_DIR` = `/tmp/validate-pr-$PR_NUMBER/recordings`
+- `RECORD_VIEWPORTS` = the viewports the claim names; default to desktop + mobile
+- `RECORD_SCENARIO` = the interaction steps to perform before capture (if the claim is about behavior)
+- `RECORD_VIDEO` = set if the claim is about an interaction/animation
 
-Convert each recording to GIF for GitHub embedding. Try tools in order:
+Collect the returned PNG/video paths for each claim. Kill the dev server before moving on.
+
+### 7. Upload assets and post validation report
+
+Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) to the PR branch so they can be referenced inline:
 
 ```bash
 RECORDINGS=/tmp/validate-pr-$PR_NUMBER/recordings
-
-# Try agg first (fastest, best quality)
-if command -v agg &>/dev/null; then
-  for cast in $RECORDINGS/*.cast; do
-    slug=$(basename "$cast" .cast)
-    agg "$cast" "$RECORDINGS/${slug}.gif"
-  done
-
-# Fall back to asciicast2gif
-elif command -v asciicast2gif &>/dev/null; then
-  for cast in $RECORDINGS/*.cast; do
-    slug=$(basename "$cast" .cast)
-    asciicast2gif "$cast" "$RECORDINGS/${slug}.gif"
-  done
-
-# Last resort: svg-term
-elif command -v svg-term &>/dev/null; then
-  for cast in $RECORDINGS/*.cast; do
-    slug=$(basename "$cast" .cast)
-    svg-term --in "$cast" --out "$RECORDINGS/${slug}.svg" --window
-  done
-fi
-```
-
-### 8. Upload recordings and post validation report
-
-Upload GIFs to the PR branch so they can be referenced inline:
-
-```bash
-for gif in /tmp/validate-pr-$PR_NUMBER/recordings/*.gif; do
-  filename=$(basename "$gif")
+for asset in $RECORDINGS/*.gif $RECORDINGS/*.png $RECORDINGS/*.svg $RECORDINGS/*.webm $RECORDINGS/*.cast; do
+  [ -f "$asset" ] || continue
+  filename=$(basename "$asset")
   gh api repos/$REPO/contents/.validate-pr/$filename \
     --method PUT \
     -f message="Add demo: $filename" \
-    -f content="$(base64 -w 0 "$gif")" \
+    -f content="$(base64 -w 0 "$asset")" \
     -f branch="$HEAD_BRANCH"
 done
 ```
@@ -280,17 +259,17 @@ BODY="$(cat <<'EOF'
 ### Claims
 
 #### 1. "<claim text>"
-- **Type**: feature / fix / behavior / CLI / test / performance
+- **Type**: feature / fix / behavior / CLI / web UI / test / performance
 - **Status**: Validated / Partially validated / Not validated / Contradicted
 - **Evidence**: <what was run, what output was observed>
-- **Recording**: ![demo](raw-github-url-to-gif) *(CLI claims only)*
+- **Recording**: ![demo](raw-github-url-to-asset) *(CLI and web UI claims)*
 
 #### 2. "<claim text>"
 ...
 
-### CLI Demonstrations
+### Demonstrations
 
-<embedded GIFs or links>
+<embedded GIFs (CLI) / screenshots + video (web UI) / links>
 
 </details>
 
@@ -304,7 +283,7 @@ gh pr comment $PR_NUMBER --repo $REPO --body "${BODY}
 ${FOOTER}"
 ```
 
-### 9. Clean up
+### 8. Clean up
 
 After posting results, offer to clean up:
 
@@ -320,8 +299,10 @@ rm -rf /tmp/validate-pr-$PR_NUMBER
 | **No verifiable claims in PR description** | Post comment asking author to list specific claims, stop |
 | **Worktree creation fails** | Fall back to a regular checkout |
 | **Build fails** | Post build failure with error output, stop |
-| **asciinema not available** | Validate CLI claims by capturing stdout/stderr as text, skip recording |
-| **No rendering tool available** | Upload raw .cast files with playback instructions |
+| **asciinema not available** | `/record-asciinema` returns nothing; capture CLI stdout/stderr as text, skip the GIF |
+| **Playwright/Chromium not available** | `/record-playwright` returns nothing; describe the web UI change in text, skip the screenshot |
+| **Dev server won't start** | Skip web UI capture; note in the report and validate via unit tests where possible |
+| **No rendering tool available** | Upload raw `.cast` files with playback instructions |
 | **Upload fails** | Include command output as text in the comment |
 
 ## Example Usage
@@ -330,15 +311,21 @@ rm -rf /tmp/validate-pr-$PR_NUMBER
 ```
 /validate-pr 42 owner/myrepo
 ```
-PR #42 adds `--verbose` flag and `export` command. Creates worktree, builds, runs `tool --verbose` and `tool export`, records both with asciinema, renders to GIF, uploads and posts validation report.
+PR #42 adds `--verbose` flag and `export` command. Creates worktree, builds, runs `tool --verbose` and `tool export`, records both via `/record-asciinema`, uploads GIFs and posts validation report.
 
-**Scenario 2: Bug fix PR**
+**Scenario 2: Feature PR with web UI changes**
+```
+/validate-pr 77 owner/myrepo
+```
+PR #77 adds a login page at `/login` with a mobile layout. Creates worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and posts a validation report with the images embedded.
+
+**Scenario 3: Bug fix PR**
 ```
 /validate-pr 88
 ```
 PR #88 fixes a null pointer on empty email field. Reproduces the crash scenario, confirms it no longer crashes, runs regression test. Posts validation report.
 
-**Scenario 3: Build fails**
+**Scenario 4: Build fails**
 ```
 /validate-pr 15
 ```

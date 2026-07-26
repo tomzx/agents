@@ -1,13 +1,13 @@
 ---
 name: create-pr
-description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment.
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Glob, Grep
+description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Optionally captures a lightweight visual proof (CLI demo via record-asciinema, or web screenshot via record-playwright) and embeds it in the PR body.
+allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[repository] [issue-number]"
 ---
 
 # Create Pull Request
 
-Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers.
+Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. When the diff touches a CLI or web UI surface, it captures a single lightweight recording or screenshot and embeds it inline so reviewers see proof the moment the PR opens.
 
 ## Prerequisites
 
@@ -17,6 +17,7 @@ Opens a GitHub pull request for the current branch with a structured description
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)
 - Tests passing locally before the PR is opened
+- For visual proof (optional): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the visual-proof step is skipped silently.
 
 > **Note:** This skill uses `gh` (GitHub CLI) directly. For a Graphite-based workflow that diffs against the Graphite parent branch, use `/create-pr-description` instead.
 
@@ -44,7 +45,19 @@ Fetch issue       Skip AC
   +--------+--------+
            |
            v
-Draft PR description
+Diff touches CLI or web UI?
+   /              \
+ Yes               No
+  |                 |
+  v                 v
+Capture proof   Skip proof
+(record-asciinema /
+ record-playwright)
+  |                 |
+  +--------+--------+
+           |
+           v
+Draft PR description (embed proof if any)
            |
            v
 gh pr create (draft if incomplete)
@@ -76,9 +89,37 @@ Assign reviewers (if known)
    Map each acceptance criterion to the changes in the diff.
    Note any ACs not yet addressed (to call out in the description).
 
-5. Draft the PR description following the output format below. Do not line wrap the description; each paragraph/bullet should be a single long line.
+5. Capture a lightweight visual proof (optional, best-effort). Using the diff from step 3, classify the change surface:
+   - **CLI changes** (entry points, `cli/`, `cmd/`, argument parsing, `--help`): identify the CLI entry point from the codebase and pick one representative command that exercises the change. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
+     - `RECORD_SLUG` = `pr-demo`
+     - `RECORD_DIR` = `/tmp/create-pr-proof`
+     - `RECORD_COMMAND` = the representative command
+   - **Web UI changes** (`src/pages`, routes, components, templates, CSS): identify the dev server command (e.g. `npm run dev`) and the changed route, then read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
+     - `RECORD_SLUG` = `pr-demo`
+     - `RECORD_DIR` = `/tmp/create-pr-proof`
+     - `RECORD_URL` = the changed route
+     - `RECORD_VIEWPORTS` = `1280x720` (a single desktop shot is enough for the PR body)
+     - `RECORD_SERVER_CMD` = the dev server command, so the skill starts, waits, and tears it down itself
+   - **Neither / not determinable**: skip visual proof.
 
-6. Create the PR. Use `--draft` if any acceptance criteria are unmet:
+   This step captures a single representative asset, not a claim-by-claim demonstration (that is `/validate-pr`'s job). If the recording skill is unavailable or the entry point cannot be determined, skip silently and proceed without proof.
+
+6. If step 5 produced an asset, upload it to the branch and note its raw URL for the description:
+   ```
+   asset=$(ls /tmp/create-pr-proof/*.gif /tmp/create-pr-proof/*.png /tmp/create-pr-proof/*.svg 2>/dev/null | head -1)
+   if [ -n "$asset" ]; then
+     gh api repos/$1/contents/.create-pr-proof/$(basename "$asset") \
+       --method PUT \
+       -f message="Add visual proof" \
+       -f content="$(base64 -w 0 "$asset")" \
+       -f branch="$(git rev-parse --abbrev-ref HEAD)"
+   fi
+   ```
+   Omit `--repo` if the repository can be inferred from the current working directory.
+
+7. Draft the PR description following the output format below, embedding the proof if one was captured. Do not line wrap the description; each paragraph/bullet should be a single long line.
+
+8. Create the PR. Use `--draft` if any acceptance criteria are unmet:
    ```
    gh pr create --repo $1 --title "<title>" --body "$(cat <<'EOF'
    <description>
@@ -87,7 +128,7 @@ Assign reviewers (if known)
    ```
    Omit `--repo` if the repository can be inferred from the current working directory.
 
-7. If reviewer GitHub handles are known from context, assign them:
+9. If reviewer GitHub handles are known from context, assign them:
    ```
    gh pr edit <pr-number> --add-reviewer <handle>
    ```
@@ -107,6 +148,12 @@ Assign reviewers (if known)
 
 1. <Step to verify the change works>
 2. <Step for an edge case or error path>
+
+# Visual proof
+
+![demo](raw-github-url-to-asset)
+
+*Captured at PR creation. Run `/validate-pr` for claim-by-claim validation. Omit this section entirely if no proof was captured.*
 
 # Acceptance criteria coverage
 
@@ -153,9 +200,22 @@ No issue provided. Creates PR with What/Why/How-to-test sections; omits AC cover
 ```
 One AC not yet met. Opens as a draft PR so it is not accidentally merged.
 
+**Scenario 5: Web UI PR with embedded visual proof**
+```
+/create-pr owner/myrepo 130
+```
+Diff touches `src/pages/dashboard.tsx`. Starts the dev server, captures a desktop screenshot of `/dashboard` via `/record-playwright`, uploads it to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately.
+
+**Scenario 6: CLI PR where recording tools are absent**
+```
+/create-pr owner/myrepo 130
+```
+Diff touches CLI code but `asciinema` is not installed. The visual-proof step is skipped silently; the PR opens with the standard sections and no "Visual proof" section.
+
 ## Next Step
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
+Run `/validate-pr` for claim-by-claim runtime validation with per-claim recordings (the proof captured here is a single representative asset).
 Close the loop with `/create-learnings` after the feature is merged.
 
 ## Useful Commands Reference
@@ -167,3 +227,4 @@ Close the loop with `/create-learnings` after the feature is merged.
 | `ghx issue view <number> --repo <owner/repo>` | Fetch issue details (cached) |
 | `gh pr create --repo <repo> --title "..." --body "..." [--draft]` | Open the pull request |
 | `gh pr edit <number> --add-reviewer <handle>` | Assign a reviewer after creation |
+| `gh api repos/<repo>/contents/<path> --method PUT -f content="$(base64 -w 0 <asset>)"` | Upload a visual-proof asset to the branch |

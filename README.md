@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-176-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-179-green" alt="Skill count">
 </p>
 
 ## What
@@ -150,6 +150,8 @@ The library is organized into thematic groups covering the full software develop
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
 | `/validate-pr` | Checkout, build, run, and validate claims via runtime proof. |
 | `/verify-pr` | Static code inspection after runtime validation. |
+| `/record-asciinema` | Record a terminal/CLI demo with asciinema and render to GIF/SVG. |
+| `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
 | `/ghx` | Browse issues and PRs with local disk caching, and post inline review comments, thread replies, and stashes. |
 | `/github-post-attribution` | Format attribution footers for skill-generated posts. |
