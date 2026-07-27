@@ -209,5 +209,6 @@ Same as scenario 1, but `implemented` findings post their evidence comment on th
 ## Notes
 
 - Default mode is report-only so a batch run never spams comments. Use `--post` once the report is reviewed.
+- Repeated runs are safe: `check-issue-status` checks for its own prior comment marker before posting and edits in place when the code has moved, so even `--post` runs do not repost an already-flagged issue.
 - The orchestrator does not inspect code itself; it delegates to `check-issue-status`. A local checkout of the target repo is required for any per-issue verdict.
 - For a single issue, skip this orchestrator and call `/check-issue-status <number> [repository]` directly.

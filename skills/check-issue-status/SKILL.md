@@ -111,7 +111,32 @@ Combine the per-claim statuses:
 
 For a bug, `implemented` means the bug is already fixed (the code already does the desired behavior, so the issue is likely stale); `not-implemented` means the bug is still present and the issue is live.
 
-### 7. Report
+### 7. Check for a prior status comment
+
+This skill must not spam an issue with repeated "already addressed" comments. Before posting, capture the code commit being analyzed and look for a prior status comment from this skill:
+
+```bash
+CODE_SHA=$(git rev-parse --short HEAD)
+
+gh api repos/$REPO/issues/$ISSUE_NUMBER/comments \
+  --jq '[.[] | select(.body | test("<!-- check-issue-status:"))] | last | {id: .id, body: .body}'
+```
+
+A posted comment carries a hidden marker of the form `<!-- check-issue-status:<verdict>:<code-sha> -->`. From the prior comment (if any), extract `PRIOR_VERDICT`, `PRIOR_CODE_SHA`, and the comment `id`.
+
+- No prior marker: proceed to step 8 and post normally when the verdict is `implemented`.
+- Prior marker with `PRIOR_VERDICT = implemented` and `PRIOR_CODE_SHA = CODE_SHA`: the finding is unchanged. Skip posting and report "already flagged as implemented (code unchanged since)".
+- Prior marker with `PRIOR_VERDICT = implemented` and a different `PRIOR_CODE_SHA`: the finding still stands or has changed. If the new verdict is still `implemented`, edit the existing comment in place (using its `id`) to refresh the evidence and marker rather than posting a new one. If the new verdict is `not-implemented` (the fix was reverted), edit the prior comment to note it is no longer current.
+- Prior marker with a non-implemented verdict: ignore it; non-implemented verdicts do not normally post.
+
+Edit a prior comment in place via:
+
+```bash
+gh api --method PATCH repos/$REPO/issues/comments/$COMMENT_ID \
+  -F body="<refreshed body with updated marker and footer>"
+```
+
+### 8. Report
 
 Present the findings in this form:
 
@@ -132,14 +157,15 @@ Then act by verdict:
 
 | Verdict | Action |
 |---|---|
-| `implemented` | Suggest closing the issue. Optionally post a comment with the proof and the attribution footer. Do not start work. |
+| `implemented` | Suggest closing the issue. Post a comment idempotently (per step 7) with the proof and the attribution footer. Do not start work. |
 | `partial` | Report what exists and what is missing so the user can narrow the issue or proceed. Do not post unless asked. |
 | `not-implemented` | Report clear to work on. Do not post a comment. |
 
-When posting, link the strongest piece of evidence:
+When posting, link the strongest piece of evidence. Resolve `CODE_SHA`, `SKILL_FILE_URL`, and `SKILL_SHORT_SHA` to their actual values before constructing the command (they are literal inside the quoted heredoc):
 
 ```bash
 gh issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
+<!-- check-issue-status:implemented:CODE_SHA -->
 This appears to already be addressed in the code.
 
 **Evidence:**
@@ -162,6 +188,7 @@ EOF
 | **Working directory is not a checkout of `$REPO`** | Warn the user and stop |
 | **Code area found but a claim needs runtime proof** | Run one targeted test; if undecided, mark Partially met and defer to `reproduce-issue` |
 | **Issue is neither a feature nor a bug** | Classify as "other", verify the desired end state, proceed |
+| **Prior `implemented` comment already on the issue** | Compare stored code SHA; skip if unchanged, edit in place if code moved (step 7) |
 
 ## Outcome
 
