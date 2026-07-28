@@ -1,15 +1,15 @@
 ---
 name: verify-pr
-description: Static code inspection of a PR after runtime validation passes. Checks code quality, correctness, architecture alignment, and claim-to-code traceability without building or executing.
+description: Static code inspection of a PR after runtime validation passes. Checks code quality, correctness, architecture alignment, and acceptance-criteria-to-code traceability without building or executing.
 allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
 # Verify Pull Request
 
-Static code inspection of a PR that has already passed runtime validation via `/validate-pr`. Checks that the implementation is well-constructed: correct abstractions, no dead code, proper error handling, test quality, and architectural fit.
+Static code inspection of a PR that has already passed runtime validation via `/validate-pr`. Checks that the implementation is well-constructed and that it actually satisfies the linked issue's acceptance criteria: correct abstractions, no dead code, proper error handling, test quality, and architectural fit.
 
-This answers "did you build the thing right?" Runtime proof is handled by `/validate-pr`.
+This answers "did you build the thing right, and does it implement what was asked?" Runtime proof is handled by `/validate-pr`.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ This answers "did you build the thing right?" Runtime proof is handled by `/vali
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - PR number (`$1`) identifying an open pull request
-- Ideally, `/validate-pr` has already been run and claims are confirmed at runtime
+- Ideally, `/validate-pr` has already been run and acceptance criteria are confirmed met at runtime
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there
 
 ### Skill attribution (GitHub)
@@ -27,15 +27,19 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 ## Workflow
 
 ```
-Fetch PR metadata + diff ($1)
+Fetch PR metadata + diff + linked issue(s) ($1)
+         |
+         v
+Parse acceptance criteria from issue(s)
++ claims from PR description, build coverage map
          |
          v
 Read validation report (if exists)
          |
          v
 Static inspection
- (claims, code quality,
-  architecture, tests)
+ (criteria-to-code traceability,
+  code quality, architecture, tests)
          |
          v
 Post verification report
@@ -43,10 +47,10 @@ Post verification report
 
 ## Steps
 
-### 1. Fetch PR metadata and diff
+### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
-ghx pr view $PR_NUMBER --repo $REPO --comments --refresh
+gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 ```bash
@@ -56,34 +60,61 @@ gh pr diff $PR_NUMBER --repo $REPO
 Extract:
 - PR title and description with claims
 - List of changed files and diff stats
+- Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - Any prior validation report from `/validate-pr`
 
-### 2. Check validation prerequisites
+#### 1a. Resolve and fetch linked issue(s)
 
-If `/validate-pr` has been run, read its comment on the PR to understand which claims were validated, partially validated, or contradicted. Focus verification on validated claims to confirm the code backing them is sound.
+Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references.
 
-If `/validate-pr` has not been run, note this in the report and proceed with verification against the PR description claims.
+For each linked issue number, fetch its full body:
 
-### 3. Claim-to-code traceability
+```bash
+gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
+```
 
-For each claim in the PR description, trace it to the specific code changes:
+### 2. Parse acceptance criteria and build the coverage map
 
-- Identify the exact files and functions that implement each claim
+Apply the same parsing as `/validate-pr` Step 2:
+
+- Extract acceptance criteria from the linked issue's `# Acceptance Criteria` section (`## Must` and `## Should` checklist items). If the issue does not use the structured format, infer requirements from the body and note that in the report.
+- Parse claims from the PR description as secondary hints.
+- Build a coverage map: each criterion mapped (or unmapped) to PR claims, plus any unmapped claims flagged as out of scope.
+
+If no linked issue can be resolved, or none yields parseable criteria, post a comment asking the author to link an issue with acceptance criteria and stop. Do not verify PR claims in a vacuum.
+
+### 3. Check validation prerequisites
+
+If `/validate-pr` has been run, read its comment on the PR to understand which acceptance criteria were validated, partially validated, or contradicted at runtime. Focus verification on criteria confirmed at runtime to confirm the code backing them is sound, and pay extra attention to any criteria `/validate-pr` could not confirm.
+
+If `/validate-pr` has not been run, note this in the report. Verification can still establish criteria-to-code traceability statically, but it is not a substitute for runtime proof.
+
+### 4. Criteria-to-code traceability
+
+For each acceptance criterion from the coverage map, trace it to the specific code changes that implement it:
+
+- Identify the exact files and functions that implement each criterion
 - Verify the implementation path is reachable (no dead code, no unused entry points)
 - Check that imports and wiring connect the pieces correctly
-- Verify no claim depends on code that was not included in the PR
+- Verify no criterion depends on code that was not included in the PR
+
+A criterion with no code backing it is a **gap**, regardless of whether a PR claim references it. Conversely, code that implements no criterion is out of scope and should be called out (see Step 5).
+
+Use the mapped PR claim(s) as a starting pointer, but confirm the trace against the criterion itself, not just the claim.
 
 Record a mapping of:
 
-| Claim | File(s) | Function(s)/Class(es) | Line(s) |
-|-------|---------|----------------------|---------|
+| Criterion (priority) | Source issue | Claim(s) | File(s) | Function(s)/Class(es) | Line(s) | Status |
+|---|---|---|---|---|---|---|
 
-### 4. Code quality inspection
+Where Status is **Traced** (code backs the criterion) or **Gap** (no implementing code found).
+
+### 5. Code quality inspection
 
 #### Scope and relevance
 
-- Are there changes unrelated to the PR's stated purpose?
-- Should unrelated changes be split into separate PRs?
+- Do the changes stay within the scope of the linked issue's acceptance criteria?
+- Are there changes that implement no acceptance criterion (out of scope) and should be split into separate PRs?
 
 #### Design and correctness
 
@@ -111,7 +142,7 @@ Record a mapping of:
 - Parameterized queries to prevent injection?
 - Authentication/authorization checks where needed?
 
-### 5. Architecture and structure
+### 6. Architecture and structure
 
 - Are new files in the right directories with appropriate names?
 - Are new dependencies justified and versions pinned?
@@ -120,22 +151,23 @@ Record a mapping of:
 - Are contracts and persisted data forward compatible (unknown fields tolerated, unknown enum values handled, additive-only changes, versioning strategy)?
 - Do any design decisions look like one-way doors that should be reconsidered?
 
-### 6. Test quality
+### 7. Test quality
 
-- Do tests exist for the new code?
+- Do tests exist for the code backing each acceptance criterion?
 - Do tests cover edge cases and error scenarios, not just happy paths?
 - Are test names descriptive of what they test?
 - Do tests test behavior rather than implementation details?
-- Are there tests that would catch regressions for fix claims?
+- For each **Must** criterion, is there a test that would fail if the criterion were not met?
+- Are there tests that would catch regressions for fix criteria?
 
-### 7. Documentation
+### 8. Documentation
 
 - Are public APIs documented?
 - Does README or user-facing documentation need updates?
 - Are breaking changes documented?
 - Are complex algorithms or business logic commented where needed?
 
-### 8. Post verification report
+### 9. Post verification report
 
 ```bash
 BODY="$(cat <<'EOF'
@@ -145,7 +177,7 @@ BODY="$(cat <<'EOF'
 
 | Area | Status |
 |------|--------|
-| Claim traceability | Complete / Gaps found |
+| Criteria traceability | Complete / Gaps found |
 | Code quality | Sound / Issues found |
 | Architecture | Aligned / Concerns |
 | Tests | Adequate / Gaps |
@@ -155,11 +187,15 @@ BODY="$(cat <<'EOF'
 <details>
 <summary>Details</summary>
 
-### Claim Traceability
+### Criteria Coverage
 
-| Claim | Location | Status |
-|-------|----------|--------|
-| "<claim>" | `file.py:42` | Traced / Gap |
+| Criterion (priority) | Issue | Traced to | Status |
+|---|---|---|---|
+| "<criterion>" (Must) | #N | `file.py:42` | Traced / Gap |
+
+### Unmapped PR claims (out of scope relative to issue)
+
+- "<claim>" — no acceptance criterion maps to this
 
 ### Findings
 
@@ -192,7 +228,8 @@ ${FOOTER}"
 
 | Mode | Response |
 |------|----------|
-| **PR has no description or claims** | Post comment noting missing description, stop |
+| **No linked issue or no parseable acceptance criteria** | Post comment asking author to link an issue with acceptance criteria, stop |
+| **PR has no description or claims** | Proceed; criteria drive verification, claims are optional hints. Note the absence of claims in the report |
 | **Large diff (>1000 lines)** | Focus on entry points and public API changes, note that full review is impractical |
 
 ## Example Usage
@@ -202,19 +239,25 @@ ${FOOTER}"
 /validate-pr 42
 /verify-pr 42
 ```
-PR #42 passed runtime validation. Verification traces each claim to code, finds a missing error handler and a TODO that should be resolved. Posts findings.
+PR #42 passed runtime validation against the linked issue's criteria. Verification traces each criterion to code, finds a missing error handler and a TODO that should be resolved. Posts findings.
 
 **Scenario 2: Without prior validation**
 ```
 /verify-pr 55
 ```
-No validation report found. Notes this in the report, verifies claims against code statically. Finds dead code and a backward-incompatible API change. Posts findings.
+No validation report found. Notes this in the report, traces each acceptance criterion to code statically. Finds dead code and a backward-incompatible API change. Posts findings.
 
 **Scenario 3: Clean PR**
 ```
 /verify-pr 88
 ```
-PR #88 is a focused bug fix. All claims trace cleanly, tests are adequate, no quality issues. Posts clean report.
+PR #88 is a focused bug fix. All criteria trace cleanly to code, tests are adequate, no quality issues. Posts clean report.
+
+**Scenario 4: Out-of-scope PR**
+```
+/verify-pr 91
+```
+PR #91 implements a PR claim that no acceptance criterion covers, and leaves one Must criterion unaddressed. Verification flags the unmapped claim as out of scope and the criterion as a gap. Posts findings.
 
 ## Next Step
 
