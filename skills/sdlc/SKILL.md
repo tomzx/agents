@@ -134,6 +134,8 @@ Project context (invoke when establishing or revising project-level context that
 
   /create-goals          Define objectives, key results, and KPIs the project aligns to
   /review-goals          Audit measurability, ownership, alignment, focus
+  /create-roadmap        Sequence initiatives across Now/Next/Later horizons, aligned to goals
+  /review-roadmap        Audit alignment, sequencing, focus, horizon discipline, currency
   /create-service-levels  Define SLOs, SLIs, SLAs, and error budgets for the service
   /review-service-levels  Audit measurability, coverage, error-budget policy, alignment
 
@@ -239,6 +241,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 ├── context/
 │   ├── project-overview.md        # Project goals, scope, key stakeholders
 │   ├── goals.md                   # Objectives, key results, KPIs (optional, via /create-goals)
+│   ├── roadmap.md                 # Initiatives sequenced Now/Next/Later, aligned to goals (optional, via /create-roadmap)
 │   ├── service-levels.md         # SLOs, SLIs, SLAs, error budgets (optional, via /create-service-levels)
 │   ├── architecture.md            # Architecture decisions and patterns
 │   ├── conventions.md             # Naming, structure, coding standards

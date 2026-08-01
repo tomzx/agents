@@ -36,6 +36,7 @@ The context files are:
 - `architecture.md` — system topology, components, data flow
 - `conventions.md` — naming, structure, and coding standards (the source of style rules)
 - `vocabulary.md` — domain terms, technical terms, abbreviations
+- `roadmap.md` (optional) — initiatives sequenced across Now/Next/Later horizons, aligned to goals
 - `service-levels.md` (optional) — service-level objectives, indicators, agreements, and error budgets
 
 Conventions found in `conventions.md` (for example, documentation formatting, one-sentence-per-line rules) apply to every document produced during the pipeline.
@@ -264,7 +265,7 @@ Rules:
 - The file follows the same `SDLC_DIR` read/write resolution as the artifact it accompanies, and is committed to the working branch by the runner's `commit-sdlc.sh`.
 - `backpropagate-sdlc` and `sync-sdlc` may regress an approved findings file to `verdict: changes-requested`, recording the drift in the body, when they detect the reviewed artifact has drifted from the code. The forward pipeline then resyncs the artifact via revision mode (see below) and the matching `review-*` skill restores `approved` once the drift is resolved.
 
-Context-level review skills (`review-goals`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md` and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
+Context-level review skills (`review-goals`, `review-roadmap`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md`, `.sdlc/context/review-roadmap.md`, and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
 
 ## Revision Mode (create-* skills)
 
