@@ -439,6 +439,43 @@ features/*/progress.md
 
 If you commit/push manually, never `git add` these two paths.
 
+## SDLC Telemetry
+
+The orchestrator records one telemetry event per phase as it runs, so over time you can analyze where your SDLC time goes and surface bottlenecks. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or alter the pipeline. Wrap the call so a non-zero exit is ignored.
+
+The bundled recorder `scripts/sdlc-telemetry.py` (PEP 723 inline metadata, so `uv` provisions `structlog` on the fly) writes events to a single **cross-repository**, local-only SQLite database:
+
+| Where it lives | Resolver (first match wins) |
+|---|---|
+| Database path | `--db PATH` arg, then `$SDLC_TELEMETRY_DB`, then `$XDG_DATA_HOME/sdlc/telemetry.db` (default `~/.local/share/sdlc/telemetry.db`) |
+| Repository (`owner/repo`) | `--repo` arg, then `$REPO` (automation runner), then `git remote get-url origin` parsed |
+| Issue number | `--issue` arg, then `$ISSUE_NUMBER` (automation runner) |
+
+Each event stores: UTC timestamp, step name, `owner/repo`, issue number, and an optional `$SDLC_SESSION_ID`/`cwd`.
+
+### Recording an event
+
+```bash
+# Record one phase event. --repo is auto-detected from git; pass --issue when known.
+uv run <skill_dir>/scripts/sdlc-telemetry.py record --step <sub-skill-name> --issue <number> -q
+```
+
+`<skill_dir>` is this skill's directory (the `sdlc` skill). Use the sub-skill name verbatim as `--step` (e.g. `create-implementation`, `review-pr`, `merge-pr`). Pass the current `github_ref` issue number as `--issue`; omit it when no issue applies (e.g. `p`-prefixed features, setup/maintenance flows). `-q` suppresses the confirmation log on stderr.
+
+### Analyzing
+
+```bash
+uv run <skill_dir>/scripts/sdlc-telemetry.py summary            # counts by step/repo + avg time-to-reach each step
+uv run <skill_dir>/scripts/sdlc-telemetry.py summary --repo owner/repo
+uv run <skill_dir>/scripts/sdlc-telemetry.py recent --limit 20  # last N events
+```
+
+The `summary` "average time to reach each step" column (computed from each issue's first event) is the bottleneck signal: steps that consistently take long to reach after the pipeline starts are the ones to investigate.
+
+### Coverage
+
+Telemetry is recorded by the orchestrator at every phase transition, which covers all `/sdlc <entry>` runs and fast paths. An individual skill invoked directly (e.g. `/create-implementation`) may also call the recorder with its own name as `--step` for fuller coverage. The database is plain SQLite, so query it directly with `sqlite3` for custom analyses.
+
 ## Steps
 
 1. Read `.sdlc/state.yml` if it exists. Use its values as defaults for `current_phase`, `github_ref`, and `feature` unless the user provides explicit arguments.
@@ -453,11 +490,12 @@ If you commit/push manually, never `git add` these two paths.
 10. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
 11. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
 12. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
-13. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-14. When all review findings are resolved, move to the next phase.
-15. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
-16. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
-17. After learnings are captured and reviewed, the cycle is complete.
+13. **As each phase is triggered, record a telemetry event** (best-effort, never blocking) per [SDLC Telemetry](#sdlc-telemetry). One event per sub-skill execution, using the sub-skill name as the step and the current `github_ref` issue number when available.
+14. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+15. When all review findings are resolved, move to the next phase.
+16. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
+17. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
+18. After learnings are captured and reviewed, the cycle is complete.
 
 ### Status Report (entry: `status`)
 
