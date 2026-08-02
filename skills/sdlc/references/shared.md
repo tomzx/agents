@@ -25,6 +25,43 @@ This rule applies however the successor was reached:
 If a successor needs to commit, push, or open a PR and its skill is not yet loaded, load it first, then follow its workflow.
 Do not start the successor's commit, push, or PR actions and load the skill only afterward.
 
+## SDLC Telemetry
+
+Every SDLC skill records one telemetry event when it executes, so over time you can analyze where your SDLC time goes and surface bottlenecks. This applies to every `create-*`/`review-*` pipeline skill, the setup skills, the maintenance skills, and the knowledge-record skills. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or alter the skill's work. Ignore a non-zero exit from the recorder.
+
+The orchestrator skill (`sdlc`) does **not** record on its own. Each phase it delegates to records its own execution when loaded, so a pipeline run produces exactly one event per phase with no double-counting.
+
+The bundled recorder lives in the `sdlc` skill at `scripts/sdlc-telemetry.py` (PEP 723 inline metadata, so `uv` provisions `structlog` on the fly). It writes events to a single **cross-repository**, local-only SQLite database:
+
+| What | Resolver (first match wins) |
+|---|---|
+| Database path | `--db PATH` arg, then `$SDLC_TELEMETRY_DB`, then `$XDG_DATA_HOME/sdlc/telemetry.db` (default `~/.local/share/sdlc/telemetry.db`) |
+| Repository (`owner/repo`) | `--repo` arg, then `$REPO` (automation runner), then `git remote get-url origin` parsed |
+| Issue number | `--issue` arg, then `$ISSUE_NUMBER` (automation runner), then the feature frontmatter `issue` / `github_ref` when the skill has one in scope |
+
+Each event stores: UTC timestamp, step name, `owner/repo`, issue number, and an optional `$SDLC_SESSION_ID`/`cwd`.
+
+### When a skill records
+
+Record once, as the first action after the skill loads and before doing its real work, using the skill's own name verbatim as `--step`. Pass the issue number when one is in scope.
+
+```bash
+# --repo is auto-detected from git; pass --issue when the skill has one in scope.
+uv run <skill_dir>/scripts/sdlc-telemetry.py record --step <skill-name> --issue <number> -q
+```
+
+`<skill_dir>` is the `sdlc` skill's directory (the skill whose `references/shared.md` this is), so `<skill_dir>/scripts/sdlc-telemetry.py` resolves to this file's sibling script. Use the skill's own name as `--step` (e.g. `create-implementation`, `review-pr`, `merge-pr`, `sync-sdlc`). Omit `--issue` when no issue applies (e.g. `p`-prefixed features, setup/maintenance flows). `-q` suppresses the confirmation log on stderr.
+
+### Analyzing
+
+```bash
+uv run <skill_dir>/scripts/sdlc-telemetry.py summary            # counts by step/repo + avg time-to-reach each step
+uv run <skill_dir>/scripts/sdlc-telemetry.py summary --repo owner/repo
+uv run <skill_dir>/scripts/sdlc-telemetry.py recent --limit 20  # last N events
+```
+
+The `summary` "average time to reach each step" column (computed from each issue's first event) is the bottleneck signal: steps that consistently take long to reach after the pipeline starts are the ones to investigate. The database is plain SQLite, so query it directly with `sqlite3` for custom analyses.
+
 ## Project context files
 
 Before producing a document, read any files present under `.sdlc/context/` and apply the artifact style rules found there to the output.
