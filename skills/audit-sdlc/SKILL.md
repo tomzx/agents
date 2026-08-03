@@ -10,6 +10,8 @@ Orchestrates multiple audit skills against the project and produces a unified fi
 
 Runs audit skills that scan code, dependencies, and infrastructure. Does not modify any files. Safe to run at any time.
 
+The audit skills map to the [ISO/IEC 25010 software quality model](https://en.wikipedia.org/wiki/ISO/IEC_25010). `audit-sdlc` is the coordinator for that model: it runs whichever per-characteristic skills exist and produces the unified quality report. See [ISO/IEC 25010 Quality Model Mapping](#isoiec-25010-quality-model-mapping) below for which characteristics are covered today and which are planned gaps.
+
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
@@ -57,6 +59,23 @@ Monitor production health and surface runtime issues.
 | `observe-production` | Current SLO status, error rates, latency, throughput |
 | `audit-observability` | Missing logging, metrics, tracing, and alerting |
 
+## ISO/IEC 25010 Quality Model Mapping
+
+There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and `audit-sdlc` composes them. Run the full sweep with the `25010` scope, or target one characteristic by name.
+
+| 25010 Characteristic | Skill | Scope | Notes |
+|---|---|---|---|
+| Functional suitability | `audit-functional-suitability` | `functional-suitability` | Completeness, correctness, appropriateness. Cross-checks requirements vs code. |
+| Performance efficiency | `audit-performance-efficiency` | `performance-efficiency` | Time behavior, resource utilization, capacity. |
+| Compatibility | `audit-compatibility` | `compatibility` | Co-existence, interoperability. |
+| Usability | `audit-usability` | `usability` | Recognizability, learnability, operability, user error protection, accessibility. (CLI/API/web surface.) |
+| Reliability | `audit-reliability` | `reliability` | Maturity, availability, fault tolerance, recoverability (design-side). `observe-production` + `audit-observability` cover the runtime/monitoring side. |
+| Security | `audit-security` | `security` | Confidentiality, integrity, availability, accountability, authenticity. |
+| Maintainability | `audit-maintainability` | `maintainability` | Modularity, reusability, analyzability, modifiability, testability. Computes coupling/cycles/layering and aggregates the `find-*` family. |
+| Portability | `audit-portability` | `portability` | Adaptability, installability, replaceability. |
+
+**Design principle:** each characteristic is its own narrow `audit-*` skill, so each can run at its own cadence (e.g., security weekly, portability quarterly) and `audit-sdlc` dedups overlapping findings when the full sweep runs. The `find-*` family remains the per-function scanner layer that `audit-maintainability` (and `improve-codebase`) builds on; `audit-dependencies` and `audit-observability` remain standalone specialized audits invoked alongside the characteristic sweep.
+
 ## Scopes
 
 The `$1` argument controls which skills run. Defaults to `diagnose` if not specified.
@@ -68,8 +87,16 @@ The `$1` argument controls which skills run. Defaults to `diagnose` if not speci
 | `harden` | `find-complexity-hotspots`, `find-type-gaps`, `find-coverage-gaps` |
 | `clean` | `find-dead-code`, `find-code-duplication` |
 | `observe` | `observe-production`, `audit-observability` |
-| `security` | `audit-security`, `audit-dependencies` |
 | `quality` | `find-complexity-hotspots`, `find-coverage-gaps`, `find-dead-code` |
+| `25010` | Full ISO/IEC 25010 sweep: runs all eight characteristic audits below (dedups overlapping findings). See the mapping table above. |
+| `functional-suitability` | `audit-functional-suitability` |
+| `performance-efficiency` | `audit-performance-efficiency` |
+| `compatibility` | `audit-compatibility` |
+| `usability` | `audit-usability` |
+| `reliability` | `audit-reliability` (design-side; `observe-production` + `audit-observability` cover runtime) |
+| `security` | `audit-security` |
+| `maintainability` | `audit-maintainability` (aggregates the `find-*` family + coupling/cycles/layering) |
+| `portability` | `audit-portability` |
 | Comma-separated | Specific skills, e.g. `audit-security,find-dead-code` |
 
 ## Steps

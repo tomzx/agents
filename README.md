@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-183-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-191-green" alt="Skill count">
 </p>
 
 ## What
@@ -69,6 +69,7 @@ The library is organized into thematic groups covering the full software develop
 
 | Skill | Purpose |
 |-------|---------|
+| `/identify-feature-opportunities` | Analyze the software surface and signals to generate and rank new feature opportunities (bottom-up discovery feeding roadmap). |
 | `/create-goals` | Define project objectives, key results, and KPIs the project aligns to. |
 | `/review-goals` | Review goals for measurability, ownership, alignment, and focus. |
 | `/create-roadmap` | Sequence initiatives across Now/Next/Later horizons, aligned to goals. |
@@ -158,6 +159,7 @@ The library is organized into thematic groups covering the full software develop
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
 | `/ghx` | Browse issues and PRs with local disk caching, and post inline review comments, thread replies, and stashes. |
 | `/github-post-attribution` | Format attribution footers for skill-generated posts. |
+| `/attach-assets` | Upload files to a dedicated orphan branch and embed them in an issue or PR comment or description, keeping sensitive content off the default branch. |
 | `/pr-review-send` | Send review comments to GitHub. |
 
 ### Documentation & Writing
@@ -216,7 +218,14 @@ The library is organized into thematic groups covering the full software develop
 | `/audit-security` | Scan for code-level security vulnerabilities. |
 | `/audit-observability` | Identify missing logging, metrics, tracing, and alerting. |
 | `/audit-attention` | Audit time split between compounding and depreciating activities. |
-| `/audit-sdlc` | Run multiple audits and produce a unified findings report. |
+| `/audit-sdlc` | Run multiple audits organized by the ISO/IEC 25010 quality model and produce a unified findings report. |
+| `/audit-functional-suitability` | ISO/IEC 25010 functional suitability: completeness, correctness, appropriateness. |
+| `/audit-performance-efficiency` | ISO/IEC 25010 performance efficiency: time behavior, resource utilization, capacity. |
+| `/audit-compatibility` | ISO/IEC 25010 compatibility: co-existence and interoperability. |
+| `/audit-usability` | ISO/IEC 25010 usability: learnability, operability, user error protection, accessibility. |
+| `/audit-reliability` | ISO/IEC 25010 reliability: fault tolerance, recoverability, availability (design-side). |
+| `/audit-maintainability` | ISO/IEC 25010 maintainability: coupling, cycles, layering, plus an aggregated find-* scorecard. |
+| `/audit-portability` | ISO/IEC 25010 portability: adaptability, installability, replaceability. |
 | `/analyze-git-churn` | Identify high-churn files from git history. |
 | `/find-code-duplication` | Find copy-pasted blocks and near-duplicate logic. |
 | `/find-complexity-hotspots` | Find high cyclomatic complexity and deep nesting. |

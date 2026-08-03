@@ -132,6 +132,7 @@ Setup (run once per project, no dependencies on other flows)
 
 Project context (invoke when establishing or revising project-level context that features align to)
 
+  /identify-feature-opportunities  Generate and rank new feature opportunities from the software surface and signals (bottom-up discovery feeding roadmap)
   /create-goals          Define objectives, key results, and KPIs the project aligns to
   /review-goals          Audit measurability, ownership, alignment, focus
   /create-roadmap        Sequence initiatives across Now/Next/Later horizons, aligned to goals
