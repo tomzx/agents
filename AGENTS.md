@@ -3,6 +3,7 @@
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
 * Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing
+* When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
 # Python
 * Use uv for package management

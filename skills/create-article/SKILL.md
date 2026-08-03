@@ -13,7 +13,7 @@ Produces a high-quality article from a target audience definition and a set of r
 - **Relevant sources**: URLs, file paths, or inline content to draw from (research papers, blog posts, docs, notes, etc.)
 - **Topic** (optional): If not inferable from sources, state the article topic explicitly
 
-If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill.
+If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill. If you decide not to run it, say so and give your reasoning before proceeding, so the user can course-correct.
 
 ## Steps
 
