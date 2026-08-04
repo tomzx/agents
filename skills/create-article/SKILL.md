@@ -1,6 +1,6 @@
 ---
 name: create-article
-description: Write a high-quality article given a target audience and relevant sources. Produces a structured, well-researched article tailored to the audience's knowledge level and interests.
+description: Write, update, or revise a high-quality article given a target audience and relevant sources. Use when the user wants to write a new article, update or revise an existing article (to keep tone, structure, and style consistent with prior writing), or improve an article's research, clarity, or flow. Produces a structured, well-researched article tailored to the audience's knowledge level and interests.
 ---
 
 # Write Article
