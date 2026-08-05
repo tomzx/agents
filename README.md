@@ -65,6 +65,47 @@ The library is organized into thematic groups covering the full software develop
 | `/sync-sdlc` | Analyze code and reconcile it with the `.sdlc/` directory. |
 | `/update-sdlc-templates` | Update `.sdlc/templates/` with the latest canonical practices. |
 
+### PDLC Pipeline (product lifecycle orchestration)
+
+Wraps SDLC: decides whether and what to build (discovery, validation, strategy, definition), hands the how off to SDLC, then closes the loop with launch and measurement. Artifacts live under `.pdlc/`; every phase ends in a proceed/pivot/kill gate.
+
+Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skills** bundled under the `pdlc` skill at `skills/pdlc/skills/<name>/SKILL.md` (not discovered as slash commands); the orchestrator loads each by reading its file. They are listed below for reference.
+
+| Skill | Purpose |
+|-------|---------|
+| `/pdlc` | Run the full product lifecycle loop, from discovery through measurement, with gates at every phase. (Only this one is a slash command.) |
+| `pdlc-status` *(internal)* | Display a progress dashboard for initiatives from `.pdlc/` directory data. |
+| `initialize-pdlc-directory` *(internal)* | Bootstrap the `.pdlc/` directory structure and populate templates. |
+| `sync-pdlc` *(internal)* | Reconcile `.pdlc/` with current product reality; heal structure and detect drift. |
+| `discover-problems` *(internal)* | Synthesize JTBD, interviews, and signals into solution-agnostic problem statements. |
+| `research-market` *(internal)* | Size the market, map trends, segments, and timing. |
+| `analyze-competition` *(internal)* | Map the competitive landscape and positioning gaps. |
+| `frame-opportunities` *(internal)* | Build a scored opportunity-solution tree; feeds the Discover gate. |
+| `map-assumptions` *(internal)* | List hypotheses and risks ranked by leverage. |
+| `design-experiment` *(internal)* | Design the cheapest decisive test for the riskiest assumptions. |
+| `run-experiment` *(internal)* | Execute the test and record a proceed/kill verdict against the pre-set threshold. |
+| `define-vision` *(internal)* | Define product vision, target customer, and positioning. |
+| `set-goals` *(internal)* | Define OKRs, success metrics, and mandatory guardrail metrics. |
+| `build-roadmap` *(internal)* | Sequence initiatives across Now/Next/Later, aligned to goals. |
+| `prioritize` *(internal)* | Rank the backlog with a transparent framework (RICE / WSJF). |
+| `write-prd` *(internal)* | Write a PRD: problem, outcomes, success criteria, non-goals. |
+| `define-acceptance` *(internal)* | Produce the acceptance contract that is the seam between PDLC and SDLC. |
+| `prototype-ux` *(internal)* | Wireframes/prototype plus a lightweight usability test. |
+| `plan-launch` *(internal)* | Launch readiness checklist, timeline, channels, rollback plan. |
+| `craft-messaging` *(internal)* | Value prop, messaging house, and audience narratives. |
+| `enable-teams` *(internal)* | Sales playbook, support runbook, internal enablement. |
+| `set-pricing` *(internal)* | Pricing model, packaging, and tiers anchored to willingness-to-pay. |
+| `spec-analytics` *(internal)* | Specify events, funnels, dashboards, and guardrails (guardrail-first). |
+| `review-metrics` *(internal)* | Read actuals vs goals; produce a health report. |
+| `synthesize-feedback` *(internal)* | Aggregate qualitative signal; feeds the iterate/sunset gate. |
+| `run-retrospective` *(internal)* | Capture keep/stop/start; turn experience into durable knowledge. |
+| `sunset-product` *(internal)* | Plan end-of-life: migration, comms, ramp-down. |
+| `make-decision` *(internal)* | The gate mechanism — one reusable decision record at every transition. |
+| `kill-initiative` *(internal)* | Explicitly stop an initiative and reallocate capacity. |
+| `brief-stakeholders` *(internal)* | Exec summary, status update, or stakeholder map. |
+| `audit-outcomes` *(internal)* | Trace shipped outcomes back to the original problem and metrics (PDLC backpropagation). |
+| `manage-portfolio` *(internal)* | Assess health and balance across multiple initiatives. |
+
 ### Strategy & Goals
 
 | Skill | Purpose |
