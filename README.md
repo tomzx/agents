@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-191-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-200-green" alt="Skill count">
 </p>
 
 ## What
@@ -116,6 +116,17 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/create-roadmap` | Sequence initiatives across Now/Next/Later horizons, aligned to goals. |
 | `/review-roadmap` | Review a roadmap for alignment, sequencing, focus, horizon discipline, and currency. |
 
+### Problem Discovery
+
+| Skill | Purpose |
+|-------|---------|
+| `/create-problem-framing` | Articulate a problem from a vague concern before proposing any solution. |
+| `/review-problem-framing` | Review a problem framing for articulation, coverage, and scope discipline. |
+| `/create-domain-model` | Model the problem domain (entities, relationships, glossary, invariants). |
+| `/review-domain-model` | Review a domain model for coverage, vocabulary, and invariant validity. |
+| `/create-evidence` | Gather and analyze data to validate or quantify a problem. |
+| `/review-evidence` | Review an evidence brief for coverage, rigor, and confidence calibration. |
+
 ### Issue & Requirements
 
 | Skill | Purpose |
@@ -131,6 +142,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/check-duplicates` | Check for duplicate issues and existing fix PRs. |
 | `/check-issue-status` | Determine whether an issue is already addressed in the code (features or bugs, any format). |
 | `/check-issues-status` | Batch-check a repository, a user's issues, or a query for ones already addressed in the code. |
+| `/trace-issues` | Build a traceability matrix tracing each issue to its PRs and to the code, and verify intents are still addressed in the current code. |
 | `/check-linked-pr` | Detect a PR someone else linked to the current issue; offer continue, stop, or review. |
 | `/triage-issue` | Classify and label a single GitHub issue. |
 | `/triage-issues` | Classify and label incoming GitHub issues. |
@@ -300,6 +312,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 
 | Skill | Purpose |
 |-------|---------|
+| `/post-slack-message` | Send a message to a Slack channel, with review-by-default and `--yes` for immediate send. |
 | `/slack-kb-channel` | Build a channel knowledge base for a given month. |
 | `/slack-kb-individual` | Collect conversations a person participated in. |
 | `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |
