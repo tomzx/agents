@@ -99,9 +99,10 @@ Works for both initial bootstrapping and periodic sync.
    - Derive branching conventions from visible branch names or documented workflow.
 
 10. Reconcile and write `.sdlc/context/vocabulary.md` using the same compare-and-update approach, applying the migration summary where relevant.
-   - Extract domain-specific terms, technical terms, and acronyms from the codebase.
-   - Look at class names, function names, variable names, config keys, API routes, comments, and documentation for term candidates.
-   - If you cannot determine enough terms, add a note that the vocabulary needs manual completion.
+    - Extract domain-specific terms, technical terms, and acronyms from the codebase.
+    - Look at class names, function names, variable names, config keys, API routes, comments, and documentation for term candidates.
+    - Sort terms alphabetically by the first column within each table (Domain Terms, Technical Terms, Acronyms and Abbreviations).
+    - If you cannot determine enough terms, add a note that the vocabulary needs manual completion.
 
 11. Identify the major features or subsystems of the project.
     A feature is a coherent unit of functionality visible to users or operators, not an internal module or utility.
