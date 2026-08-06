@@ -18,6 +18,7 @@ Frames the day before deep work: confirm priorities, first focus block, and bloc
 - `NOTES_DIR` set (via `scripts/get-env NOTES_DIR`)
 - Optional: `{BASE_DIR}/goals.md`, `{BASE_DIR}/team-goals.md`
 - Optional: `{BASE_DIR}/{YEAR}/{MONTH}/{TODAY}.standup.md` (from end-of-day-summary, written as "next workday" standup)
+- Optional: `SEND_DAILY_SLACK` set (via `scripts/get-env SEND_DAILY_SLACK`; truthy values `1`, `true`, `yes` enable Slack posting)
 
 ## Steps
 
@@ -61,3 +62,28 @@ date: {TODAY}
 
 - **end-of-day-summary** writes `{TODAY}.standup.md` the prior evening (as the next workday file). Start-day consumes that file when present.
 - Do not duplicate the GitHub or Slack pipelines from end-of-day-summary here.
+
+## Post update to Slack
+
+As the final step, check whether `SEND_DAILY_SLACK` is set (via `scripts/get-env SEND_DAILY_SLACK`). Only post when it resolves to a truthy value (`1`, `true`, `yes`). If unset or empty, skip this step and inform the user that the Slack update was skipped.
+
+When enabled, post a brief summary to the `tom-rochette-updates` channel using the **post-slack-message** skill:
+
+```bash
+uv run post_slack_message.py --channel C0BE3BM97B7 "<summary>"
+```
+
+Format the message as a short brief of the top 3 outcomes and first focus block. Use Slack mrkdwn formatting (e.g. `*bold*`, line breaks with `\n`). Example:
+
+```
+*Start of day - {TODAY}*
+
+*Top 3 outcomes:*
+1. <outcome 1>
+2. <outcome 2>
+3. <outcome 3>
+
+*First focus:* <first 60-90 min task>
+```
+
+Report the posted permalink back to the user.
