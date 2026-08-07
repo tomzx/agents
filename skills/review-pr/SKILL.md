@@ -1,7 +1,7 @@
 ---
 name: review-pr
 description: Conduct a comprehensive code review of a GitHub pull request.
-allowed-tools: Bash(gh:*, ghx:*, git:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
@@ -15,6 +15,10 @@ Conducts a comprehensive code review of a GitHub pull request, covering pre-revi
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - PR number (`$1`) identifying an open pull request
+
+### Skill attribution (GitHub)
+
+Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `review-pr`.
 
 ## Workflow
 
@@ -37,6 +41,10 @@ Fetch PR metadata + comments ($1)
             v
   Write review-pr.md
   (create or update)
+            |
+            v
+  Post review file
+  as PR comment
 ```
 
 ## Setup
@@ -46,6 +54,11 @@ Fetch PR information by piping the raw `ghx` output directly to a file (do not g
 mkdir -p ".sdlc/pull-requests/{PR_NUMBER}"
 ghx pr view $1 --repo <owner>/<repository> --comments --refresh > ".sdlc/pull-requests/{PR_NUMBER}/gh-pr-view.md"
 ```
+
+Extract:
+- `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`)
+- `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
 
 ## Pre-Review Checklist
 
@@ -225,11 +238,13 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
 When reviewing, write the response to `.sdlc/pull-requests/{PR_NUMBER}/review-pr.md` (resolving per `sdlc/references/shared.md`).
+Start the file with the marker `<!-- review-pr:HEAD_COMMIT -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA.
 If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
 
 ### Example Output
 
 ```
+<!-- review-pr:a1b2c3d -->
 # Review of PR #42: Add payment processing endpoint
 
 🟢 **Approved with minor suggestions**
@@ -289,6 +304,19 @@ No blocking issues remain once the hardcoded key is removed. Rate limiting
 should be addressed before exposing this publicly.
 ```
 
+### Post the review as a PR comment
+
+After writing `review-pr.md`, run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `.sdlc/pull-requests/$PR_NUMBER/review-pr.md`.
+
+If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- review-pr:HEAD_COMMIT -->` marker.
+
+```bash
+FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/review-pr.md)
+
+${FOOTER}"
+```
+
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
@@ -325,3 +353,4 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 |---|---|
 | `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
 | `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
+| `gh pr comment <pr-number> --repo <owner>/<repo> --body "..."` | Post review summary comment to the PR |

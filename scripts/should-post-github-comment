@@ -1,0 +1,81 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "pyyaml",
+# ]
+# ///
+"""Check whether GitHub comments should be posted for a given PR.
+
+Exit code 0 means post (true), 1 means do not post (false).
+
+Usage:
+    scripts/should-post-github-comment --repo owner/repo --author username
+
+Conditions (all must pass to post):
+  1. post_github_comments in config is not false
+  2. Repository owner not in excluded_owners
+  3. Repository not in excluded_repos
+  4. PR author not in excluded_authors
+
+Configuration is read from ~/.sdlc/config.yaml:
+    post_github_comments: true
+    excluded_owners:   [some-company, some-org]
+    excluded_repos:    [owner/repo, other-org/big-repo]
+    excluded_authors:  [dependabot, renovate]
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+import yaml
+
+CONFIG_PATH = Path.home() / ".sdlc" / "config.yaml"
+
+
+def load_config(path: Path) -> dict:
+    """Load configuration from a YAML file."""
+    if not path.is_file():
+        return {}
+    return yaml.safe_load(path.read_text()) or {}
+
+
+def should_post(repo: str, author: str, config: dict) -> bool:
+    """Return True if commenting is allowed for the given repo and author."""
+    if config.get("post_github_comments", True) is False:
+        return False
+
+    parts = repo.split("/")
+    owner = parts[0].lower() if parts else ""
+
+    excluded_owners = [str(v).lower() for v in config.get("excluded_owners", [])]
+    excluded_repos = [str(v).lower() for v in config.get("excluded_repos", [])]
+    excluded_authors = [str(v).lower() for v in config.get("excluded_authors", [])]
+
+    if owner in excluded_owners:
+        return False
+    if repo.lower() in excluded_repos:
+        return False
+    if author.lower() in excluded_authors:
+        return False
+
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Check whether GitHub comments should be posted.",
+    )
+    parser.add_argument("--repo", required=True, help="Repository in owner/repo format")
+    parser.add_argument("--author", required=True, help="PR author username")
+    args = parser.parse_args()
+
+    config = load_config(CONFIG_PATH)
+    return 0 if should_post(args.repo, args.author, config) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

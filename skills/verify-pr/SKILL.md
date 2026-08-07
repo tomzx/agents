@@ -1,7 +1,7 @@
 ---
 name: verify-pr
 description: Static code inspection of a PR after runtime validation passes. Checks code quality, correctness, architecture alignment, and acceptance-criteria-to-code traceability without building or executing.
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -50,7 +50,7 @@ Post verification report
 ### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
+gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 ```bash
@@ -59,6 +59,9 @@ gh pr diff $PR_NUMBER --repo $REPO
 
 Extract:
 - PR title and description with claims
+- `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
+- `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - Any prior validation report from `/validate-pr`
@@ -169,11 +172,16 @@ Where Status is **Traced** (code backs the criterion) or **Gap** (no implementin
 
 ### 9. Post verification report
 
+Write the report to a file:
+
 ```bash
 BODY="$(cat <<'EOF'
+<!-- verify-pr:HEAD_COMMIT -->
 ## Verification Report
 
 ### Summary
+
+Verified commit: SHORT_SHA
 
 | Area | Status |
 |------|--------|
@@ -218,8 +226,20 @@ BODY="$(cat <<'EOF'
 
 EOF
 )"
+
+mkdir -p ".sdlc/pull-requests/$PR_NUMBER"
+printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/verify-pr.md"
+```
+
+### Post the verification report as a PR comment
+
+Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the report is already saved to `.sdlc/pull-requests/$PR_NUMBER/verify-pr.md`.
+
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
+
+```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "${BODY}
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/verify-pr.md)
 
 ${FOOTER}"
 ```

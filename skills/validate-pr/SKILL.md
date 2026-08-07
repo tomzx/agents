@@ -1,7 +1,7 @@
 ---
 name: validate-pr
 description: Checkout a PR's branch in a worktree, build it, run it, and validate that the linked issue's acceptance criteria are actually met through runtime proof. Cross-references PR claims against issue criteria, records CLI demos (via record-asciinema) and web UI demos (via record-playwright), and posts a coverage report to the PR.
-allowed-tools: Bash(gh:*, git:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -86,12 +86,15 @@ Clean up worktree
 ### 1. Fetch PR metadata and linked issue(s)
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
+gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 Extract:
 - PR title and description (body)
 - Head branch name (`headRefName`)
+- `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
+- `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - Base branch name (`baseRefName`)
 - List of changed files
 - Diff stats
@@ -295,15 +298,18 @@ for asset in $RECORDINGS/*.gif $RECORDINGS/*.png $RECORDINGS/*.svg $RECORDINGS/*
 done
 ```
 
-Then post the validation report:
+Write the report to a file:
 
 ```bash
 BODY="$(cat <<'EOF'
+<!-- validate-pr:HEAD_COMMIT -->
 ## Validation Report
 
 ### Summary
 
 Issue(s): #N
+
+Validated commit: SHORT_SHA
 
 | Status | Must | Should |
 |--------|------|--------|
@@ -338,8 +344,20 @@ Issue(s): #N
 
 EOF
 )"
+
+mkdir -p ".sdlc/pull-requests/$PR_NUMBER"
+printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/validate-pr.md"
+```
+
+### Post the validation report as a PR comment
+
+Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting.
+
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- validate-pr:HEAD_COMMIT -->` marker.
+
+```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "${BODY}
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/validate-pr.md)
 
 ${FOOTER}"
 ```

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-200-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-201-green" alt="Skill count">
 </p>
 
 ## What
@@ -200,6 +200,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
+| `/review-requested-prs` | Orchestrate full reviews (validate, verify, review) across review-requested PRs or by PR URL. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-feedback` | Respond to developer comments, implement or explain, then push. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |

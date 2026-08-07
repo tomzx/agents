@@ -1,0 +1,24 @@
+# SDLC configuration (~/.sdlc/config.yaml)
+#
+# Copy this file to ~/.sdlc/config.yaml and customize.
+# Read by scripts/should-post-github-comment to decide whether
+# validate-pr, verify-pr, and review-pr should post comments to GitHub.
+
+# Global kill switch. Set to false to suppress all GitHub comment posting.
+# Default is true when the key is absent.
+post_github_comments: true
+
+# Repository owners whose PRs should never receive automated comments.
+excluded_owners:
+  # - some-company
+  # - some-org
+
+# Specific repositories (owner/repo) to exclude.
+excluded_repos:
+  # - owner/repo
+  # - other-org/big-repo
+
+# PR authors whose PRs should never receive automated comments.
+excluded_authors:
+  # - dependabot
+  # - renovate
