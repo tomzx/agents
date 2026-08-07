@@ -11,6 +11,10 @@ Record a terminal demonstration with `asciinema`, render the `.cast` to a GIF (o
 
 This is the recording primitive for CLI changes. For web UI changes, use `/record-playwright`.
 
+## Recording principle: show commands
+
+Always display the commands being run in the recording so viewers can see what was executed and reproduce it. Hide commands only when it is appropriate for the purpose of the demo (e.g. focusing purely on output, or a polished marketing-style demo where the command is irrelevant). When in doubt, show the command.
+
 ## Prerequisites
 
 - `asciinema` installed
@@ -74,16 +78,16 @@ If absent, stop and signal the caller to fall back to capturing stdout/stderr as
 
 ### 3. Record the demonstration
 
-For a single-shot command:
+For a single-shot command, echo the command first so it appears in the recording (see the recording principle above). Omit the echo only when hiding the command is appropriate for the demo:
 
 ```bash
 asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
   --overwrite \
-  --command="$RECORD_COMMAND" \
+  --command="echo '$ $RECORD_COMMAND' && $RECORD_COMMAND" \
   --title="$RECORD_TITLE"
 ```
 
-For a multi-step interactive demo:
+For a multi-step interactive demo, commands are visible by default since they are typed into the shell. Keep them visible unless hiding is appropriate for the demo:
 
 ```bash
 asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \

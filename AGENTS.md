@@ -26,6 +26,11 @@
 * If `repositories/{owner}/{repository}/AGENTS.md` exists, read and apply it together with these base instructions.
 * For forks, symlink `repositories/{fork-owner}/{repository}` to the upstream `repositories/{owner}/{repository}` so both resolve to the same instructions.
 
+# Per-machine instructions
+* Some machines carry local overrides that should not be shared (e.g. employer-specific conventions).
+* Find the skills library root by resolving the real path of this AGENTS.md (follow symlinks), then look in its `machines/` directory, which is a sibling of `skills/`.
+* `machines/*/` profiles are gitignored and exist only on the current machine. Read and apply every `machines/*/AGENTS.md` that is present, together with these base instructions.
+
 # GitHub CLI
 * Prefer `ghx` over `gh` for listing, searching, and viewing issues and PRs, and for getting and posting comments (inline, line-range, thread replies, issue and PR comments).
 * Fall back to `gh` only when `ghx` does not support the needed operation (e.g. `gh search repos` for repository search).

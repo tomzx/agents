@@ -49,6 +49,8 @@ uv run <skill_dir>/scripts/sdlc-status.py <path-to-.sdlc> -o status-report.html
 # Omit -o (or pass "-") to write the HTML to stdout instead of a file.
 ```
 
+`status-report.html` is a generated artifact that must never be committed. `/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`; if you are writing to a file in a repo that has not run either skill, ensure the entry exists manually.
+
 The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the richest dashboard ensure `progress.md` exists. If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
 
 ### Manual text-based report

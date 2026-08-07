@@ -48,9 +48,21 @@ If `uv tool install` isn't desired, run it in place with
 
 Credentials are loaded in this order:
 
-1. Environment variables: `SLACK_TOKEN` (and optional `SLACK_COOKIE` for
+1. A `.env` file in the current working directory, if present. Source it before
+   invoking `slack-cached` so the variables become real environment variables:
+   ```bash
+   if [[ -f .env ]]; then
+     set -a
+     source .env
+     set +a
+   fi
+   ```
+   The file uses `KEY=VALUE` lines (same keys as below). Existing environment
+   variables always win over `.env` values, so explicit exports or CI secrets
+   are never overridden.
+2. Environment variables: `SLACK_TOKEN` (and optional `SLACK_COOKIE` for
    xoxc/web-client tokens).
-2. A config file at `$XDG_CONFIG_HOME/slack-cached/config`
+3. A config file at `$XDG_CONFIG_HOME/slack-cached/config`
    (defaults to `~/.config/slack-cached/config`).
    It uses a simple `KEY=VALUE` format:
    ```

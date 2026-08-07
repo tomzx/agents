@@ -313,7 +313,9 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 
 | Skill | Purpose |
 |-------|---------|
+| `/slackx` | Cache and read Slack threads, channel history, users, and channels via the `slack-cached` CLI. |
 | `/post-slack-message` | Send a message to a Slack channel, with review-by-default and `--yes` for immediate send. |
+| `/slack-resolve-threads` | Triage open Slack threads, mark resolved ones with a checkmark reaction. |
 | `/slack-kb-channel` | Build a channel knowledge base for a given month. |
 | `/slack-kb-individual` | Collect conversations a person participated in. |
 | `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |
@@ -372,6 +374,7 @@ In addition to skills, the repository includes an `AGENTS.md` (symlinked as `CLA
 
 - [opencode](https://opencode.ai) (or Claude Code) to discover and run the skills.
 - [gh CLI](https://cli.github.com) and [ghx](https://github.com/TomzxCode/ghx) for the GitHub issue and PR skills.
+- [slack-cached](https://github.com/TomzxCode/slackx) for the Slack thread/channel skills.
 - A Unix-like shell (Linux or macOS) for the shell-based skills; Windows works via WSL.
 - Optional API credentials for Slack, Google Workspace, and arXiv skills (see `.env.example`).
 

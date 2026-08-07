@@ -438,7 +438,9 @@ state.yml
 features/*/progress.md
 ```
 
-If you commit/push manually, never `git add` these two paths.
+`status-report.html` (the generated output of `/sdlc-status`) is also local-only. `/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`.
+
+If you commit/push manually, never `git add` these paths or `status-report.html`.
 
 ## Steps
 
