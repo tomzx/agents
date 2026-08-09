@@ -65,6 +65,7 @@ Works for both initial bootstrapping and periodic sync.
    - What is in scope and explicitly out of scope?
    - What are the key technical and business constraints?
    - What major components exist and how do they relate?
+   - What are the core domain entities and their relationships?
    - How does data flow through the system?
    - What infrastructure is in use (CI, hosting, observability)?
    - What naming, directory, coding, commit, and branching conventions are followed?
@@ -92,7 +93,8 @@ Works for both initial bootstrapping and periodic sync.
 
 8. Reconcile and write `.sdlc/context/architecture.md` using the same compare-and-update approach, applying the migration summary where relevant.
    - Include a component table and describe the data flow based on what you read.
-   - Use a simple ASCII diagram if the topology is non-trivial.
+   - Include an **Entity Relationship Diagram** section using a Mermaid `erDiagram` block. Identify the core domain entities from the codebase (data models, database tables, key abstractions, config schemas) and their relationships. Include key attributes for each entity.
+   - Use Mermaid diagrams for the system overview and data flow if the topology is non-trivial.
 
 9. Reconcile and write `.sdlc/context/conventions.md` using the same compare-and-update approach, applying the migration summary where relevant.
    - Derive naming conventions from existing file names, variable names, function names, and class names.

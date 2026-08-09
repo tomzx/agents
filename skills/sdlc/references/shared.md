@@ -70,7 +70,7 @@ The context files are:
 
 - `project-overview.md` — project goals, scope, stakeholders
 - `goals.md` — project objectives, key results, and KPIs
-- `architecture.md` — system topology, components, data flow
+- `architecture.md` — system topology, components, entity relationship diagram, data flow
 - `conventions.md` — naming, structure, and coding standards (the source of style rules)
 - `vocabulary.md` — domain terms, technical terms, abbreviations
 - `roadmap.md` (optional) — initiatives sequenced across Now/Next/Later horizons, aligned to goals
