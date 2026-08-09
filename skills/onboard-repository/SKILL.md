@@ -76,7 +76,7 @@ Report the limitation and continue with the remaining phases.
 
 Run `/sync-sdlc` (passing `$1` if provided).
 
-This creates the `.sdlc/` directory tree (if absent) and populates context files with real content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, and feature directories with `requirements.md` and `specification.md`.
+This creates the `.sdlc/` directory tree (if absent) and populates context files with real content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml` (if the project uses a database), and feature directories with `requirements.md` and `specification.md`.
 
 If `.sdlc/` already exists, report what is already present and skip to verifying completeness.
 If any context file still contains `<…>` placeholders, fill them in from the codebase.
@@ -208,7 +208,7 @@ Skip this phase if no GitHub remote is configured.
 
 ### Phase 1: SDLC Bootstrap
 - .sdlc/ structure: created / already existed
-- Context files populated: project-overview.md, architecture.md, conventions.md
+- Context files populated: project-overview.md, architecture.md, conventions.md, schema.dbml (if applicable)
 - Features identified: N
 - Items requiring manual review: N
 

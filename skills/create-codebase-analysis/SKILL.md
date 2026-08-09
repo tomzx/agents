@@ -19,7 +19,7 @@ This skill goes deeper into the internal architecture you are about to modify: i
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/existing-solutions.md` (optional): carry forward any internal reuse candidates it already identified so they are not re-discovered
-- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`) for project-level context
+- Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`, `schema.dbml`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
 ## Steps
