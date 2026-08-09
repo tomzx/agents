@@ -93,7 +93,9 @@ Works for both initial bootstrapping and periodic sync.
    - Database signals: migration files or directories (`migrations/`, `alembic/`, `db/migrate/`, `prisma/migrations/`), ORM model definitions (SQLAlchemy models, Django models, Prisma schema, ActiveRecord models, GORM definitions, TypeORM entities, Drizzle schemas), SQL schema files (`schema.sql`, `init.sql`, `*.sql` in a migrations directory), or database configuration files (`database.yml`, `prisma/schema.prisma`, `alembic.ini`, `drizzle.config.ts`)
    - Existing documentation under `docs/` if present
    - `CLAUDE.md` or `.claude/` for project-specific conventions already captured
-   - Open or recently closed GitHub issues (`gh issue list --limit 20`) if the project has a remote
+    - Open or recently closed GitHub issues (`gh issue list --limit 20`) if the project has a remote
+
+    **Parallelize context file reconciliation.** Steps 7–14 below each reconcile an independent context file and share no dependencies. Dispatch one subagent per file using the `Task` tool (`subagent_type: "general"`), passing the codebase analysis from step 6, the migration summary from step 3, the existing file content (if any), and the template structure. Each subagent starts with a fresh context, so its prompt must be fully self-contained. Collect all results for the sync report. If the `Task` tool is unavailable, process the files sequentially as written.
 
 7. Reconcile and write `.sdlc/context/project-overview.md`.
    - If the file does not exist: create it using the project-overview template, populate with real content derived from the codebase.
@@ -157,6 +159,8 @@ Works for both initial bootstrapping and periodic sync.
     - **Existing features**: identified in the codebase and present in `.sdlc/features/`.
     - **Orphaned features**: present in `.sdlc/features/` but not identified in the codebase scan.
 
+    **Process features in parallel.** Steps 17–18 below process new and existing features independently with no cross-feature dependencies. Dispatch one subagent per feature using the `Task` tool (`subagent_type: "general"`), passing the feature's type (new or existing), its source files, test files, and documentation evidence from step 15, the codebase analysis from step 6, and the existing artifacts (for existing features). Each subagent starts with a fresh context, so its prompt must be fully self-contained. Collect all results and merge into the sync report. Process orphaned features (step 19) inline since they require only flagging, no file writes. If the `Task` tool is unavailable, process all features sequentially as written.
+
 17. For each **new feature**:
     a. Create a directory `.sdlc/features/p<seq>-<slug>/` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Features discovered from the codebase during reconciliation have no associated issue, so they are created as **pending** features with a `p`-prefixed sequence id (the next unused `p<seq>`, e.g. `p1`, `p2`), to be promoted to placeholder issues later. `<slug>` is a kebab-case name derived from the feature name.
     b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Since these features were reverse-engineered from existing code, set frontmatter `status: done` on both — they document already-implemented functionality, not work yet to be done.
@@ -193,7 +197,7 @@ Works for both initial bootstrapping and periodic sync.
     b. Flag it in the report as potentially removed from the codebase.
     c. The user should review and either update the feature's scope or remove the `.sdlc/features/` directory manually.
 
-20. **Promote pending features** (only when `--create-issues` is set).
+20. **Promote pending features** (only when `--create-issues` is set). This step remains sequential: each promotion renames a feature directory and rewrites `FEAT-p<seq>` cross-references across all feature directories, so each must complete before the next begins.
     a. If the SDLC store resolves to `SDLC_DIR`-only (no in-repo `.sdlc/`), skip promotion and record a warning: the repo appears to be third-party, so creating issues there is inappropriate.
     b. Otherwise, list every `p`-prefixed directory under `.sdlc/features/` (pending features with no GitHub issue yet).
     c. For each, invoke `/create-placeholder-issue <feature>` (pass the feature id, e.g. `FEAT-p1`). That skill creates a placeholder issue, renames the directory to the issue number, and rewrites every `FEAT-p<seq>` cross-reference.
