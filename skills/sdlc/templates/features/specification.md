@@ -11,7 +11,7 @@ status: draft
 
 ## Architecture
 
-<ASCII diagram or description showing components and their relationships.>
+<Mermaid diagram or description showing components and their relationships.>
 
 ## Data Models
 
