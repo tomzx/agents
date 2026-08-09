@@ -245,7 +245,11 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   ├── roadmap.md                 # Initiatives sequenced Now/Next/Later, aligned to goals (optional, via /create-roadmap)
 │   ├── service-levels.md         # SLOs, SLIs, SLAs, error budgets (optional, via /create-service-levels)
 │   ├── architecture.md            # Architecture decisions and patterns
+│   ├── schema.dbml                # Database schema in DBML format (present when the project uses a database)
 │   ├── conventions.md             # Naming, structure, coding standards
+│   ├── infrastructure.md          # Technology stack, dev tooling, CI/CD, environments, deployment
+│   ├── observability.md           # Monitoring stack, instrumentation, alerting, dashboards (optional)
+│   ├── telemetry.md               # Analytics platform, event conventions, taxonomy, privacy (optional)
 │   └── vocabulary.md              # Domain and technical terms
 ├── state.yml                      # Orchestrator run state (local-only, gitignored)
 ├── features/
@@ -452,7 +456,7 @@ If you commit/push manually, never `git add` these paths or `status-report.html`
 6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
-9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
+9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 10. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
 11. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
 12. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
@@ -580,7 +584,7 @@ Each phase consumes output from the previous phase:
 
 | Phase | Input | Output |
 |---|---|---|
-| sync-sdlc | Existing project root (`.sdlc/` created if absent) | Updated `.sdlc/` with context files, new feature directories, drift report for existing features, SDLC anchor in `AGENTS.md` |
+| sync-sdlc | Existing project root (`.sdlc/` created if absent) | Updated `.sdlc/` with context files, database schema in DBML (if the project uses a database), new feature directories, drift report for existing features, SDLC anchor in `AGENTS.md` |
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated + SDLC anchor in `AGENTS.md` |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |

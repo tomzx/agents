@@ -74,6 +74,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    - `architecture.md`
    - `conventions.md`
    - `vocabulary.md`
+   - `infrastructure.md`
 
 8. **Write the SDLC anchor** to the repo's primary agent-instruction file, per `sdlc/references/shared.md` (AGENTS.md SDLC anchor). This injects a short, marker-delimited `## SDLC` section into `AGENTS.md` (falling back to `CLAUDE.md` if that is what the project uses, or creating `AGENTS.md` if neither exists) so future agent sessions know `.sdlc/` exists and where to find context. The block is idempotent: create it if absent, replace its delimited content if the markers already exist, and never touch content outside the markers. Note the target file and whether it was created, updated, or skipped (read-only) in the report.
 
@@ -104,7 +105,8 @@ Next steps:
 3. Fill in `.sdlc/context/architecture.md` with the system topology.
 4. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
 5. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
-6. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
+6. Fill in `.sdlc/context/infrastructure.md` with the technology stack, development tooling, environments, and deployment procedures.
+7. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
    Run `/update-sdlc-templates` later to pull in upstream improvements while preserving your edits.
 ```
 
