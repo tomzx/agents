@@ -30,7 +30,10 @@
 #         changes-requested -> create-requirements (revise)
 #       ... existing-solutions, codebase-analysis, feasibility ...
 #       [create-specifications]     -> review-specifications
-#         -> spec-approved + create-mockups
+#         -> spec-approved + create-lifecycle
+#       [create-lifecycle]          -> review-lifecycle
+#         approved  -> lifecycle-approved + create-mockups
+#         skipped   -> lifecycle-approved + create-mockups (no resource lifecycle)
 #       [create-mockups]            -> review-mockups
 #         approved  -> mockups-approved + create-telemetry
 #         skipped   -> mockups-approved + create-telemetry (no UI surface)
@@ -141,6 +144,9 @@ labels:
   - name: llmaw:create-specifications
     description: Run create-specifications (draft or revise)
     color: FBCA04
+  - name: llmaw:create-lifecycle
+    description: Run create-lifecycle (draft or revise; skips if no resource lifecycle)
+    color: FBCA04
   - name: llmaw:create-mockups
     description: Run create-mockups (draft or revise; skips if no UI surface)
     color: FBCA04
@@ -182,6 +188,9 @@ labels:
   - name: llmaw:review-specifications
     description: Specification drafted; awaiting review
     color: FBCA04
+  - name: llmaw:review-lifecycle
+    description: Lifecycle document drafted; awaiting review
+    color: FBCA04
   - name: llmaw:review-mockups
     description: Mockups drafted; awaiting review
     color: FBCA04
@@ -218,7 +227,10 @@ labels:
     description: Feasibility approved; ready for specification
     color: 0E8A16
   - name: llmaw:spec-approved
-    description: Specification approved; ready for mockups
+    description: Specification approved; ready for lifecycle
+    color: 5319E7
+  - name: llmaw:lifecycle-approved
+    description: Lifecycle approved (or skipped, no resource lifecycle); ready for mockups
     color: 5319E7
   - name: llmaw:mockups-approved
     description: Mockups approved (or skipped, no UI surface); ready for telemetry
@@ -423,10 +435,34 @@ flows:
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review specification"]
           - labels: { remove: [llmaw:review-specifications] }
           - on_outcome:
-              approved:          { labels: { add: [llmaw:spec-approved, llmaw:create-mockups] } }
+              approved:          { labels: { add: [llmaw:spec-approved, llmaw:create-lifecycle] } }
               changes-requested: { labels: { add: [llmaw:create-specifications] }, comment: "Specification has findings to address; revising.", post_reason: true }
               rejected:          { close: true, comment: "Closing: specification rejected.", post_reason: true }
               _:                 { labels: { add: [llmaw:needs-human] }, comment: "Specification review produced no verdict." }
+
+      - id: feat-lifecycle-create
+        when: { event: issues, action: labeled, label: llmaw:create-lifecycle }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          - skill: create-lifecycle
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft lifecycle document"]
+          - labels: { remove: [llmaw:create-lifecycle] }
+          - on_outcome:
+              approved: { labels: { add: [llmaw:review-lifecycle] } }
+              skipped:  { labels: { add: [llmaw:lifecycle-approved, llmaw:create-mockups] }, comment: "No resource lifecycle; lifecycle skipped.", post_reason: true }
+              _:        { labels: { add: [llmaw:needs-human] }, comment: "Lifecycle document produced no verdict; needs review." }
+      - id: feat-lifecycle-review
+        when: { event: issues, action: labeled, label: llmaw:review-lifecycle }
+        run:
+          - shell: .github/llmaw/scripts/ensure-branch.sh
+          - skill: review-lifecycle
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "review lifecycle document"]
+          - labels: { remove: [llmaw:review-lifecycle] }
+          - on_outcome:
+              approved:          { labels: { add: [llmaw:lifecycle-approved, llmaw:create-mockups] } }
+              changes-requested: { labels: { add: [llmaw:create-lifecycle] }, comment: "Lifecycle document has findings to address; revising.", post_reason: true }
+              rejected:          { close: true, comment: "Closing: lifecycle document rejected.", post_reason: true }
+              _:                 { labels: { add: [llmaw:needs-human] }, comment: "Lifecycle review produced no verdict." }
 
       - id: feat-mockups-create
         when: { event: issues, action: labeled, label: llmaw:create-mockups }

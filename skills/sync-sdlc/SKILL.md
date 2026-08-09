@@ -54,7 +54,7 @@ Works for both initial bootstrapping and periodic sync.
 
 5. Read existing `.sdlc/` content to establish the current state. Resolve each path via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); treat the union of both locations as the current state, with the repo copy winning on conflict:
    - List all directories under `.sdlc/features/` (and the mirror's `features/` if set) to identify tracked features.
-   - Read each existing feature's `requirements.md` and `specification.md` if present (from whichever location holds them).
+   - Read each existing feature's `requirements.md`, `specification.md`, and `lifecycle.md` if present (from whichever location holds them).
     - Read `.sdlc/context/project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`, `infrastructure.md`, `schema.dbml`, `observability.md`, and `telemetry.md` if they exist (from whichever location holds them).
    - Note which context files and feature artifacts are present vs. missing.
 
@@ -187,10 +187,11 @@ Works for both initial bootstrapping and periodic sync.
     c. Compare the fresh analysis with the existing files.
     d. If the existing `requirements.md` is missing functional requirements that the code clearly implements, or contains requirements that no longer match the code, produce a drift report entry listing the discrepancies. Do **not** overwrite the existing file; instead, if `review-requirements.md` exists with `verdict: approved`, regress it to `verdict: changes-requested` and append a `## Sync drift: <date>` section to its body describing the discrepancies, so the forward pipeline resyncs and re-reviews it.
     e. If the existing `specification.md` has drifted from the code, regress `review-specification.md` the same way and add a drift report entry.
-    f. If the existing files match the codebase analysis, note it as "in sync" in the report.
-     g. Reconcile `progress.md`. If it does not exist, create it following the same logic as step 17g. If it exists but `current_phase` predates implementation (e.g., `specification`, `plan`, or earlier) while the code is already implemented, update `current_phase` to `complete` and adjust the Pipeline Status table accordingly. Never downgrade a `current_phase` that already reflects completion or a later stage.
-     h. Reconcile `tests.md`. If test files covering this feature exist in the codebase but `tests.md` does not, create it following step 17f. If `tests.md` already exists, compare its documented test cases against the actual test code and, for any discrepancies, regress `review-tests.md` to `changes-requested` with a `## Sync drift: <date>` body the same way.
-    i. If `requirements.md` or `specification.md` have frontmatter `status: draft` but the feature is already implemented, update `status` to `done`.
+    f. If the existing `lifecycle.md` has drifted from the code (states or transitions no longer match what the code implements), regress `review-lifecycle.md` the same way and add a drift report entry.
+    g. If the existing files match the codebase analysis, note it as "in sync" in the report.
+     h. Reconcile `progress.md`. If it does not exist, create it following the same logic as step 17g. If it exists but `current_phase` predates implementation (e.g., `specification`, `plan`, or earlier) while the code is already implemented, update `current_phase` to `complete` and adjust the Pipeline Status table accordingly. Never downgrade a `current_phase` that already reflects completion or a later stage.
+     i. Reconcile `tests.md`. If test files covering this feature exist in the codebase but `tests.md` does not, create it following step 17f. If `tests.md` already exists, compare its documented test cases against the actual test code and, for any discrepancies, regress `review-tests.md` to `changes-requested` with a `## Sync drift: <date>` body the same way.
+    j. If `requirements.md`, `specification.md`, or `lifecycle.md` have frontmatter `status: draft` but the feature is already implemented, update `status` to `done`.
 
 19. For each **orphaned feature**:
     a. Do not delete or modify any files.

@@ -14,6 +14,7 @@ Produces working code that passes tests and meets all acceptance criteria.
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - A task description, specification, or plan provided in context or as `$1`
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): implement state machines, transition guards, invariants, and retention policies alongside feature code
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): implement analytics events and telemetry alongside feature code
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): implement logging, metrics, tracing, and health checks alongside feature code
 - Access to the codebase for reading and editing
@@ -48,18 +49,19 @@ All acceptance criteria met?
 
 ## Steps
 
-1. Read the task, specification, acceptance criteria, telemetry plan, and observability plan (if present).
+1. Read the task, specification, acceptance criteria, lifecycle document, telemetry plan, and observability plan (if present).
 2. Set the task frontmatter `status: in-progress` in the corresponding `.sdlc/features/N-<slug>/tasks/N-<slug>.md` file.
 3. Update the Task Progress table in `progress.md` to reflect the in-progress status.
 4. Set up a feature branch (see Branching Strategy below).
 5. Explore the codebase to understand existing patterns, naming conventions, and architecture.
 6. Identify which files need to be created or modified.
 7. Implement the changes in small increments, verifying each step with tests.
-8. If a telemetry plan exists, implement analytics events and telemetry as part of each relevant code change.
-9. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
-9. Ensure all acceptance criteria are met.
-10. Check for code quality issues (naming, duplication, dead code).
-11. Run the full test suite and confirm it passes.
+8. If a lifecycle document exists, implement state machines, transition guards, invariants, and retention policies as part of each relevant code change.
+9. If a telemetry plan exists, implement analytics events and telemetry as part of each relevant code change.
+10. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
+11. Ensure all acceptance criteria are met.
+12. Check for code quality issues (naming, duplication, dead code).
+13. Run the full test suite and confirm it passes.
 
 ## Branching Strategy
 
@@ -111,6 +113,7 @@ git rebase origin/main
 
 - [ ] Working on a feature branch (not `main`)
 - [ ] All acceptance criteria satisfied
+- [ ] State machines, transition guards, invariants, and retention policies implemented per lifecycle document (if present)
 - [ ] Analytics events implemented per telemetry plan (if present)
 - [ ] Logging, metrics, tracing, and health checks implemented per observability plan (if present)
 - [ ] Tests written and passing

@@ -15,11 +15,12 @@ Without this step, features ship without instrumentation, making it impossible t
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): track state transitions as analytics events to measure flow through lifecycle stages
 - `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing acceptance criteria)
 
 ## Steps
 
-1. Read the specification and requirements documents.
+1. Read the specification, lifecycle document (if present), and requirements documents.
 2. Identify the key user flows and system interactions from the specification.
 3. For each flow, determine what events should be tracked to measure adoption, completion, and failure.
 4. Define success metrics that answer: "How do we know this feature is successful?"

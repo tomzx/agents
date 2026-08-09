@@ -15,12 +15,13 @@ Without this step, features ship blind: outages go undetected, root causes take 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): monitor state transitions, invariant violations, and retention cleanup as part of observability
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): align observability with business metrics already defined
 - `.sdlc/features/N-<slug>/requirements.md` (optional, for cross-referencing NFRs like latency and availability targets)
 
 ## Steps
 
-1. Read the specification, telemetry plan (if present), and requirements.
+1. Read the specification, lifecycle document (if present), telemetry plan (if present), and requirements.
 2. Identify the critical paths and failure modes from the specification.
 3. For each critical path, determine what log entries are needed for debugging.
 4. Define service-level metrics (counters, histograms, gauges) that reflect system health.

@@ -43,6 +43,7 @@ This skill does exactly that, and it is the only skill that builds a full tracea
 | Requirements drift | requirements.md lists an acceptance criterion with no matching AC in tests | Requirements ↔ Tests |
 | Telemetry gap | telemetry.md defines an event never emitted by the code | Telemetry ↔ Code |
 | Observability gap | observability.md defines a metric or alert the code never produces | Observability ↔ Code |
+| Lifecycle drift | lifecycle.md documents a state or transition the code no longer implements, or the code has states not documented | Lifecycle ↔ Code |
 | Doc drift | documentation describes a parameter the code no longer accepts | Docs ↔ Code |
 | ID corruption | A cross-reference like `FEAT-1-FR-7` points to nothing | ID Integrity |
 | Review gap | specification.md has no approved review while tasks are `done` | Review-approval monotonicity |
@@ -60,8 +61,9 @@ Ground truth (start here)
   plan.md
       │  Pass 3: Tasks ↔ Plan
       ▼
-  specification.md  ←─ telemetry.md, observability.md
+  specification.md  ←─ lifecycle.md, telemetry.md, observability.md
       │  Pass 3b: Telemetry/Observability ↔ Spec
+      │  Pass 3c: Lifecycle ↔ Spec
       │  Pass 4: Plan ↔ Specification
       ▼
   requirements.md (FR-N, NFR-N, ACs)
@@ -121,6 +123,7 @@ For each target feature directory, read every artifact that exists and skip the 
 ├── codebase-analysis.md
 ├── feasibility.md
 ├── specification.md
+├── lifecycle.md
 ├── telemetry.md
 ├── observability.md
 ├── plan.md
@@ -171,6 +174,13 @@ The passes, in execution order:
 
 - Every event in `telemetry.md` maps to a spec behavior (forward link) and is emitted by code (ground-truth check). Unemitted events are findings.
 - Every metric, log, trace, and alert in `observability.md` maps to a spec behavior and is produced by code.
+
+#### Pass 3c: Lifecycle ↔ Specification
+
+- Every state and transition in `lifecycle.md` maps to a spec data model field or API contract (forward link). Lifecycle states with no spec backing are findings.
+- Every spec data model that implies a state machine or lifecycle has corresponding states and transitions documented in `lifecycle.md` (reverse link). Undocumented lifecycles are findings.
+- Every transition in `lifecycle.md` traces to code that implements it (ground-truth check). Transitions with no code are orphan upstream findings.
+- Every state transition the code implements that is not in `lifecycle.md` is an orphan downstream finding.
 
 #### Pass 4: Plan ↔ Specification
 
@@ -263,8 +273,8 @@ status: complete
 
 ## Consistency Status
 
-| Feature | Code↔Tests | Tasks↔Plan | Spec↔Req | Req↔Issue | Telemetry | Observability | Docs | IDs | Status |
-|---|---|---|---|---|---|---|---|---|---|
+| Feature | Code↔Tests | Tasks↔Plan | Spec↔Req | Req↔Issue | Telemetry | Observability | Lifecycle | Docs | IDs | Status |
+|---|---|---|---|---|---|---|---|---|---|---|
 | FEAT-1-<slug> | in sync / drift | ... | ... | ... | ... | ... | ... | clean / broken | monotonic / inverted |
 
 ## Traceability Matrix (per feature)

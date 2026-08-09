@@ -279,6 +279,7 @@ The `<artifact>` stem matches the primary artifact the skill reviews:
 | `codebase-analysis.md` | `review-codebase-analysis.md` |
 | `feasibility.md` | `review-feasibility.md` |
 | `specification.md` | `review-specification.md` |
+| `lifecycle.md` | `review-lifecycle.md` |
 | `mockups.md` | `review-mockups.md` |
 | `telemetry.md` | `review-telemetry.md` |
 | `observability.md` | `review-observability.md` |

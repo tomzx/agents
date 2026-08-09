@@ -14,6 +14,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - Code to review provided in context, as file paths to read, or as a diff
 - Specification or acceptance criteria (optional, improves alignment check)
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): verify state machines, transition guards, invariants, and retention policies are implemented correctly
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): verify analytics events are implemented correctly
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): verify logging, metrics, tracing, and health checks are implemented correctly
 
@@ -60,6 +61,8 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Does the implementation match the API contract (field names, types, status codes)?
 - Are all specified behaviors implemented?
 - Are there behaviors implemented that are not in the spec (scope creep)?
+- If a lifecycle document exists, are all states, transitions, guard conditions, and invariants implemented correctly?
+- If a lifecycle document exists, are retention and expiry policies enforced as specified?
 - If a telemetry plan exists, are all analytics events emitted at the right locations with correct properties?
 - If an observability plan exists, are all metrics, logs, traces, and health checks implemented per the plan?
 

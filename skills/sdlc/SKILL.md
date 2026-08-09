@@ -69,6 +69,10 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-specifications  Audit for ambiguities, inconsistencies, gaps
           │
           ▼
+  /create-lifecycle       Document resource states, transitions, invariants, retention (resource lifecycle features; skip if no lifecycle)
+  /review-lifecycle       Audit completeness, consistency, spec alignment, transition correctness
+          │
+          ▼
   /create-mockups        Define UI wireframes, screens, states, and flows (UI features; skip if no UI surface)
   /review-mockups        Audit coverage, usability, accessibility, consistency, spec fidelity
           │
@@ -261,6 +265,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── codebase-analysis.md
 │       ├── feasibility.md
 │       ├── specification.md
+│       ├── lifecycle.md
 │       ├── mockups.md
 │       ├── telemetry.md
 │       ├── observability.md
@@ -276,6 +281,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── codebase-analysis.md
 │   │   ├── feasibility.md
 │   │   ├── specification.md
+│   │   ├── lifecycle.md
 │   │   ├── mockups.md
 │   │   ├── telemetry.md
 │   │   ├── observability.md
@@ -382,7 +388,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `codebase-analysis` | Approved requirements (and existing-solutions survey) ready to analyze the internal code/architecture the feature will touch |
 | `feasibility` | Requirements, existing solutions, and codebase analysis ready for viability assessment |
 | `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
-| `mockups` | An approved specification ready to define the UI wireframes, screens, and interaction states (UI features) |
+| `lifecycle` | An approved specification ready to document how resources evolve over time (resource lifecycle features) |
+| `mockups` | An approved specification (and lifecycle document if produced) ready to define the UI wireframes, screens, and interaction states (UI features) |
 | `telemetry` | A specification ready to define how feature usage will be measured |
 | `observability` | A specification ready to define how feature health will be monitored |
 | `plan` | A specification (and telemetry/observability plans) ready for planning |
@@ -605,20 +612,22 @@ Each phase consumes output from the previous phase:
 | review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings → `review-feasibility.md` (verdict `approved`/`rejected`) |
 | create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) |
 | review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings → `review-specifications.md` |
-| create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`); skipped (no artifact) when the feature has no UI surface |
+| create-lifecycle | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/lifecycle.md` (`status: draft`); skipped (no artifact) when the feature manages no resources with a lifecycle |
+| review-lifecycle | `.sdlc/features/N-<slug>/lifecycle.md` | Findings → `review-lifecycle.md` |
+| create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`); skipped (no artifact) when the feature has no UI surface |
 | review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings → `review-mockups.md` |
-| create-telemetry | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
+| create-telemetry | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
 | review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings → `review-telemetry.md` |
-| create-observability | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
+| create-observability | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
 | review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings → `review-observability.md` |
-| create-plan | `.sdlc/features/N-<slug>/specification.md` + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
+| create-plan | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings → `review-plan.md` |
 | publish-plan | `.sdlc/features/N-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
 | create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
 | review-tasks-decomposition | `.sdlc/features/N-<slug>/tasks/` (all task files) | Findings → `review-tasks.md`; on approval sets each task `status: pending`; populates Task Progress table in `progress.md` |
-| create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
+| create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings → `review-tests.md` |
-| create-implementation | `.sdlc/features/N-<slug>/tasks/` + `specification.md` + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
+| create-implementation | `.sdlc/features/N-<slug>/tasks/` + `specification.md` + `lifecycle.md` (if produced) + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
 | review-implementation | Code + spec + telemetry + observability | Findings → `review-implementation.md` |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings → `review-documentation.md` |

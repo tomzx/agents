@@ -172,6 +172,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 |-------|---------|
 | `/create-specifications` | Create a technical specification from requirements. |
 | `/review-specifications` | Review a specification for ambiguities and missing information. |
+| `/create-lifecycle` | Document how resources evolve over time (states, transitions, invariants, retention). |
+| `/review-lifecycle` | Review a lifecycle document for completeness, consistency, and spec alignment. |
 | `/create-mockups` | Create UI wireframes, screens, states, and flows from a specification. |
 | `/review-mockups` | Review mockups for coverage, usability, accessibility, and spec fidelity. |
 | `/create-plan` | Create an implementation plan with phases, milestones, and risks. |
@@ -357,6 +359,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/directory-to-spec` | Create a spec directory for code in the current directory. |
 | `/sync-repository` | Keep SDLC, code, tests, and docs consistent. |
 | `/worktrunk` | Guidance for Worktrunk CLI -- worktree management and hooks. |
+| `/write-cli` | Read, create, update, sync, comment on, and delete Write.quick documents via the `write-cli` CLI. |
 | `/gws-pull-transcripts` | Pull Google Meet transcripts from Google Drive. |
 | `/vacation-handoff` | Generate a handoff covering deadlines and in-flight work. |
 

@@ -14,13 +14,14 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/requirements.md` and `.sdlc/features/N-<slug>/specification.md` (both must have passed review with findings verdict `approved`), or documents provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): include test cases that verify state transitions, guard conditions, invariants, and retention policies
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include test cases that verify analytics events are emitted correctly
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include test cases that verify metrics, logs, and traces are emitted correctly
 - Information about the testing stack (if available)
 
 ## Steps
 
-1. Read the requirements, specification, telemetry plan, and observability plan (if present).
+1. Read the requirements, specification, lifecycle document, telemetry plan, and observability plan (if present).
 2. List all acceptance criteria that need to be verified.
 3. For each acceptance criterion, write at least one test case.
 4. For each analytics event in the telemetry plan, write a test case verifying the event is emitted with correct properties.

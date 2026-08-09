@@ -119,7 +119,7 @@ Report under Implementability.
 
 ## Next Step
 
-Once the findings verdict is `approved`, continue with `/create-plan`.
+Once the findings verdict is `approved`, continue with `/create-lifecycle`.
 
 ## Useful Commands Reference
 

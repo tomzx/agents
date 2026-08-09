@@ -13,13 +13,14 @@ Produces a structured implementation plan from a specification or requirements d
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/specification.md` (must have passed review with findings verdict `approved`), or a specification/requirements document provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/lifecycle.md` (optional, if a lifecycle document was produced): include state machine implementation, invariant enforcement, and retention policy work as deliverables in the plan
 - `.sdlc/features/N-<slug>/telemetry.md` (optional, if a telemetry plan was produced): include analytics instrumentation as deliverables in the plan
 - `.sdlc/features/N-<slug>/observability.md` (optional, if an observability plan was produced): include logging, metrics, tracing, and alerting as deliverables in the plan
 - Team size and velocity context (if available)
 
 ## Steps
 
-1. Read the specification or requirements, and the telemetry and observability plans if present.
+1. Read the specification or requirements, and the lifecycle, telemetry, and observability plans if present.
 2. Identify all units of work and group them into logical phases.
 3. Define phase goals (milestones) and their success criteria.
 4. Map dependencies between phases and external factors.

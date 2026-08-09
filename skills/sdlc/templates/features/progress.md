@@ -29,6 +29,8 @@ last_updated: "<YYYY-MM-DD>"
 | Planning & Feasibility | review-feasibility | — |
 | Design | create-specifications | — |
 | Design | review-specifications | — |
+| Design | create-lifecycle | — |
+| Design | review-lifecycle | — |
 | Design | create-plan | — |
 | Design | review-plan | — |
 | Design | publish-plan | — |
