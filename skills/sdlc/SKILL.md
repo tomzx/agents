@@ -155,6 +155,8 @@ Bug fix fast path (entry: bugfix)
 
 Cross-cutting records (invoke at any point in any flow)
 
+  /create-domain-model    Model an unfamiliar domain (entities, relationships, glossary, invariants) as a one-off
+  /review-domain-model    Audit entity coverage, relationship correctness, vocabulary, invariants, boundaries
   /create-assumption      Record an assumption with basis, risk, and validation plan
   /review-assumption      Audit specificity, basis quality, risk, validation adequacy
   /create-decision        Record an architectural/implementation decision with context
@@ -645,6 +647,8 @@ Each phase consumes output from the previous phase:
 | reproduce-issue | GitHub issue describing a bug | Worktree created, reproduction attempted, before recording captured, results posted |
 | create-learnings | Completed feature/sprint | `.sdlc/knowledge/learnings/N-<slug>.md` (`status: draft`) |
 | review-learnings | `.sdlc/knowledge/learnings/N-<slug>.md` | Findings; sets `status: complete` when resolved |
+| create-domain-model | Any phase context (typically design/specification) | Domain model document (`status: draft`) |
+| review-domain-model | Domain model document | Findings → `review-domain-model.md` |
 | create-assumption | Any phase context | `.sdlc/knowledge/assumptions/N-<slug>.md` |
 | review-assumption | `.sdlc/knowledge/assumptions/N-<slug>.md` | Findings (improve basis, risk, validation) |
 | create-decision | Any phase context | `.sdlc/knowledge/decisions/N-<slug>.md` |

@@ -116,16 +116,12 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/create-roadmap` | Sequence initiatives across Now/Next/Later horizons, aligned to goals. |
 | `/review-roadmap` | Review a roadmap for alignment, sequencing, focus, horizon discipline, and currency. |
 
-### Problem Discovery
+### Domain Modeling
 
 | Skill | Purpose |
 |-------|---------|
-| `/create-problem-framing` | Articulate a problem from a vague concern before proposing any solution. |
-| `/review-problem-framing` | Review a problem framing for articulation, coverage, and scope discipline. |
-| `/create-domain-model` | Model the problem domain (entities, relationships, glossary, invariants). |
+| `/create-domain-model` | Model an unfamiliar domain (entities, relationships, glossary, invariants) as a one-off. |
 | `/review-domain-model` | Review a domain model for coverage, vocabulary, and invariant validity. |
-| `/create-evidence` | Gather and analyze data to validate or quantify a problem. |
-| `/review-evidence` | Review an evidence brief for coverage, rigor, and confidence calibration. |
 
 ### Issue & Requirements
 
