@@ -310,6 +310,36 @@ Rules:
 
 Context-level review skills (`review-goals`, `review-roadmap`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md`, `.sdlc/context/review-roadmap.md`, and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
 
+## PR Review Reports (validate-pr / verify-pr / review-pr)
+
+PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The canonical shared record is the **GitHub comment** each skill posts; the local file is the reviewer's personal copy and the body `cat`-ed into that comment.
+
+### Location
+
+```
+$HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
+```
+
+- `{owner}/{repository}` is `$REPO` (interactively, derive it from `git remote get-url origin`; under the automation runner it is provided, see Automation runner environment).
+- `{PR_NUMBER}` is the pull-request number.
+- Define once per skill run: `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"`, then `mkdir -p "$PR_REVIEW_DIR"`.
+
+### Files
+
+| Skill | File |
+|---|---|
+| `validate-pr` | `validate-pr.$SHORT_SHA.md` |
+| `verify-pr` | `verify-pr.$SHORT_SHA.md` |
+| `review-pr` | `review-pr.$SHORT_SHA.md`, plus `gh-pr-view.md` (raw PR cache) |
+
+`$SHORT_SHA` is the first 7 characters of the PR head commit, so each reviewed commit gets its own report.
+
+### What this store is and is not
+
+- It is a **user-global** store under `$HOME`, outside any reviewed repo. It survives worktree creation/removal and never produces untracked files in someone else's clone.
+- Despite the `.sdlc` name, it is **unrelated to the project `.sdlc/` tree and the `SDLC_DIR` mirror**: it is not governed by `SDLC_DIR` read/write resolution, is **not** committed by the automation runner's `commit-sdlc.sh`, and is **not** mirrored.
+- Cross-run/cross-machine persistence depends on `$HOME` persisting. `review-pr` globs this directory for prior `review-pr.*.md` to summarize what changed since the last review; where `$HOME` does not persist (e.g. an ephemeral CI runner) it degrades gracefully to a fresh review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, not these files, so it is unaffected by this location.
+
 ## Revision Mode (create-* skills)
 
 A `create-*` skill may be re-invoked after its artifact was returned with `changes-requested`. Before drafting, detect whether a revision is in progress:

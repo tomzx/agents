@@ -227,19 +227,22 @@ Verified commit: SHORT_SHA
 EOF
 )"
 
-mkdir -p ".sdlc/pull-requests/$PR_NUMBER"
-printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md"
+# Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
+# (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
+PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+mkdir -p "$PR_REVIEW_DIR"
+printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
 ```
 
 ### Post the verification report as a PR comment
 
-Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the report is already saved to `.sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md`.
+Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md)
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md")
 
 ${FOOTER}"
 ```
