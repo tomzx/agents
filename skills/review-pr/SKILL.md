@@ -39,7 +39,7 @@ Fetch PR metadata + comments ($1)
   (feature / bug fix / DB / API?)
             |
             v
-  Write review-pr.md
+  Write review-pr.$SHORT_SHA.md
   (create or update)
             |
             v
@@ -237,9 +237,10 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-When reviewing, write the response to `.sdlc/pull-requests/{PR_NUMBER}/review-pr.md` (resolving per `sdlc/references/shared.md`).
+When reviewing, write the response to `.sdlc/pull-requests/{PR_NUMBER}/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
 Start the file with the marker `<!-- review-pr:HEAD_COMMIT -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA.
-If a file already exists, update the file with the new information and tell me what changes have been made since the last review.
+If a file already exists for this `$SHORT_SHA`, update the file with the new information and tell me what changes have been made since the last review.
+If reviewing a new `$SHORT_SHA`, create a new file. To find the baseline for the "what changed" summary, glob `.sdlc/pull-requests/{PR_NUMBER}/review-pr.*.md` (excluding `review-pr.$SHORT_SHA.md`), read the reviewed SHA from each filename (the segment between `review-pr.` and `.md`), and select the one whose commit is the most recent ancestor of the current `$SHORT_SHA` (compare with `git merge-base --is-ancestor`); fall back to the newest by file mtime if no ancestor is found. Read that file to summarize what has changed since that review.
 
 ### Example Output
 
@@ -306,13 +307,13 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-After writing `review-pr.md`, run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `.sdlc/pull-requests/$PR_NUMBER/review-pr.md`.
+After writing `review-pr.$SHORT_SHA.md`, run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `.sdlc/pull-requests/$PR_NUMBER/review-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- review-pr:HEAD_COMMIT -->` marker.
 
 ```bash
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/review-pr.md)
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/review-pr.$SHORT_SHA.md)
 
 ${FOOTER}"
 ```
@@ -345,7 +346,7 @@ PR fixes a null pointer. Review confirms the fix addresses the root cause (not j
 ```
 /review-pr 55
 ```
-`review-pr.md` already exists from a previous run. Update the file and summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
+`review-pr.<previous-sha>.md` already exists from a previous run on an earlier commit. Create `review-pr.<new-sha>.md`, read the previous file to summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
 
 ## Useful Commands Reference
 

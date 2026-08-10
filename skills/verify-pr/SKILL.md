@@ -228,18 +228,18 @@ EOF
 )"
 
 mkdir -p ".sdlc/pull-requests/$PR_NUMBER"
-printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/verify-pr.md"
+printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md"
 ```
 
 ### Post the verification report as a PR comment
 
-Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the report is already saved to `.sdlc/pull-requests/$PR_NUMBER/verify-pr.md`.
+Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the report is already saved to `.sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/verify-pr.md)
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/verify-pr.$SHORT_SHA.md)
 
 ${FOOTER}"
 ```

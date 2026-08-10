@@ -346,7 +346,7 @@ EOF
 )"
 
 mkdir -p ".sdlc/pull-requests/$PR_NUMBER"
-printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/validate-pr.md"
+printf '%s\n' "${BODY}" > ".sdlc/pull-requests/$PR_NUMBER/validate-pr.$SHORT_SHA.md"
 ```
 
 ### Post the validation report as a PR comment
@@ -357,7 +357,7 @@ If it exits 0, post the report file as a comment on the PR. The file already con
 
 ```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/validate-pr.md)
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat .sdlc/pull-requests/$PR_NUMBER/validate-pr.$SHORT_SHA.md)
 
 ${FOOTER}"
 ```
