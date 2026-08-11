@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: Conduct a comprehensive code review of a GitHub pull request.
+description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role).
 allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
 # Review Pull Request
 
-Conducts a comprehensive code review of a GitHub pull request, covering pre-review setup, code quality, testing, security, architecture, and operational concerns. Writes findings to a structured markdown file.
+Answers the **craft** question: "is this code well-built?" Covers code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Writes findings to a structured markdown file.
 
 ## Prerequisites
 
@@ -63,26 +63,27 @@ Extract:
 
 ## Pre-Review Checklist
 
-Before diving into the code, verify:
+This skill is static code-craft review. It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role). Establish context, then review craft.
 
-* Build & Tests
-	* Verify that the build/tests pass
+Before diving into the code:
+
+* Prior reports
+	* If `/verify-pr` has run, read its conformance report and treat the build/criteria status as settled; do not rebuild or re-litigate conformance here
 * PR Metadata
 	* Read the PR title and description - is it clear and complete?
-	* Verify that the PR links to an issue for traceability purposes
-		* If missing, request the author to link an issue
 	* Is the change size appropriate for what is implemented?
 * Understanding the Objective
-	* Read the linked issue title and description (use `gh` to pull issue details)
-	* Understand the feature and associated requirements that are supposed to be implemented
-	* For bug fixes: understand the root cause being addressed
+	* Read the linked issue title and description (use `gh` to pull issue details) for context only
+	* Understand what the PR is meant to do, so craft findings can be weighed against intent
 
 ## Code Review Checklist
 
 ### Scope & Relevance
 
-* Identify changes irrelevant to the PR
-	* Are there unrelated formatting changes, refactorings, or fixes?
+Change hygiene only. Whether a change serves an acceptance criterion is a conformance question for `/verify-pr`; whether it serves the real need is a validation question for `/validate-pr`. Here, focus on:
+
+* Changes that obscure or distract from the actual work
+	* Unrelated formatting changes, drive-by refactorings, or unrelated fixes mixed in
 	* Should these be split into separate PRs for clarity?
 	* Do irrelevant changes obscure the actual changes being reviewed?
 
@@ -106,9 +107,10 @@ Before diving into the code, verify:
 
 ### Testing & Coverage
 
+Review tests as code artifacts for quality. Whether a test proves a specific acceptance criterion is `/verify-pr`'s conformance concern.
+
 * Test Existence
-	* Check code contains tests
-	* Is all the new code covered by those tests?
+	* Is the new code accompanied by tests?
 * Test Quality
 	* Do tests cover edge cases and error scenarios?
 	* Are test names descriptive of what they're testing?
@@ -184,16 +186,18 @@ Before diving into the code, verify:
 
 ### New Features
 
-* Verify code implements the desired feature and that the requirements are completed
 * Are feature flags considered for gradual rollout?
 * Is the UX/UI accessible and responsive?
 * Are user-facing error messages clear and helpful?
 
+(Whether the feature meets its requirements is `/verify-pr`'s conformance verdict.)
+
 ### Bug Fixes
 
-* Verify that the fix is applied at the right location and will not "fix the symptoms, not the cause"
-* Does the fix address the root cause?
-* Is there a test that would have caught this bug?
+* Is the fix localized to the right place, or does it fan out unnecessary change?
+* Is the new or changed test code well-written (clear, behavior-focused)?
+
+(Root cause vs. symptom is `/validate-pr`'s call; a regression test that proves the fix is `/verify-pr`'s.)
 
 ### Database Changes
 
@@ -335,13 +339,13 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /review-pr 42
 ```
-PR adds a payment processing endpoint. Review verifies implementation matches the linked issue's acceptance criteria, checks for missing test coverage, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit.
+PR adds a payment processing endpoint. Review checks code quality and architecture, notes test-quality gaps, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit. (Conformance to the acceptance criteria is `/verify-pr`'s verdict.)
 
 **Scenario 2: Bug fix PR**
 ```
 /review-pr 88
 ```
-PR fixes a null pointer. Review confirms the fix addresses the root cause (not just a symptom), verifies a regression test is included, and marks 🟢 ready to merge.
+PR fixes a null pointer. Review checks that the change is localized and the new test is well-written, and marks 🟢 ready to merge. (Root cause vs. symptom is `/validate-pr`'s call; a regression test proving the fix is `/verify-pr`'s.)
 
 **Scenario 3: Re-review after changes**
 ```

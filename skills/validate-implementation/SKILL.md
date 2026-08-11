@@ -11,7 +11,7 @@ Captures visual proof that the implemented feature works, on the current working
 
 This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../create-pr/SKILL.md), which is a pure consumer: `create-pr` detects the proof this skill writes and embeds it, but no longer captures recordings itself. Recording happens here, at human-review time, not inside PR creation.
 
-`/validate-pr` is a different, later step: it validates the claims of an **already-open** PR claim-by-claim. This skill validates the **implementation** on the branch with a single representative asset, before the PR exists.
+`/verify-pr` is a different, later step: it verifies each acceptance criterion of an **already-open** PR by building and running it. (`/validate-pr`, also later, judges whether the PR targets the right product.) This skill validates the **implementation** on the branch with a single representative asset, before the PR exists.
 
 ## Prerequisites
 
@@ -117,7 +117,7 @@ With no manifest present, capture one representative asset for the classified su
 - **Web UI** → identify the dev server command (e.g. `npm run dev`) and the changed route. Read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the changed route, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the dev server command.
 - **none** → skip capture. Report that the change has no CLI or web surface to record and stop. This is not an error; it signals `create-pr` to omit the Visual proof section.
 
-This is a representative proof, not a claim-by-claim demonstration (that is `/validate-pr`'s job).
+This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
 
 ### 3. Write the proof manifest
 
@@ -216,4 +216,4 @@ GIF is captured, but on review the user notices the export omits the header row.
 
 Once the user confirms the proof, run `/create-pr`. `create-pr` detects `$PROOF_DIR/captured-proof.json`, uploads the listed assets to the branch, and embeds them in a Visual proof section. It does not capture anything itself.
 
-After the PR is open, run `/validate-pr` for claim-by-claim runtime validation with per-claim recordings, then `/verify-pr` for static code inspection.
+After the PR is open, run `/validate-pr` to confirm the PR builds the right product, then `/verify-pr` for claim-by-claim conformance proof with per-criterion recordings.

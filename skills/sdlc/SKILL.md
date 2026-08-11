@@ -111,8 +111,8 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
            │
            ▼
     /create-pr              Open a PR: description, AC coverage, issue link, reviewers (embeds pre-captured proof)
-   /validate-pr            Runtime validation: build, run, prove claims, record CLI demos
-   /verify-pr              Static verification: claim-to-code traceability, code quality inspection
+    /validate-pr            Needs alignment: is the PR the right product; are the criteria sound
+    /verify-pr              Conformance: criteria-to-code traceability + runtime proof per criterion
    /review-pr              Comprehensive code review of the PR
   /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
   /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
@@ -402,8 +402,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `documentation` | Implementation reviewed; code needs docs |
 | `validate-implementation` | Docs done and ready to capture visual proof + get user sign-off before opening a PR (records a CLI demo or web screenshot on the branch; no-op for non-visual changes) |
 | `pr` | Visual proof captured (or skipped); ready to open a pull request |
-| `validate-pr` | PR is open and claims need runtime validation (build, run, record demos) |
-| `verify-pr` | PR claims validated at runtime, ready for static code inspection |
+| `validate-pr` | PR is open; judge whether it builds the right product before spending a build |
+| `verify-pr` | Right product confirmed; verify conformance to the acceptance criteria (traceability + runtime proof) |
 | `handle-pr-ci` | PR has failing CI checks to fix |
 | `handle-pr-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
@@ -635,8 +635,8 @@ Each phase consumes output from the previous phase:
 | review-documentation | Documentation | Findings → `review-documentation.md` |
 | validate-implementation | Implemented feature on the branch (+ optional `proof-manifest.txt` from reproduce-issue for bug fixes) | Visual proof captured on the branch + `$PROOF_DIR/captured-proof.json` manifest; user sign-off (or `surface: none` for non-visual changes) |
 | create-pr | Reviewed code + docs + issue + `captured-proof.json` (if any) | Pull request; embeds pre-captured proof (single asset, or before/after pair for bug fixes); never captures recordings itself |
-| validate-pr | Pull request | Validation report: runtime proof of each claim, asciinema recordings for CLI changes |
-| verify-pr | Pull request + validation report | Verification report: claim-to-code traceability, code quality findings |
+| validate-pr | Pull request | Validation report: verdict on whether the PR builds the right product; needs/criteria/scope findings |
+| verify-pr | Pull request | Conformance report: criteria-to-code traceability + runtime proof per criterion (asciinema/Playwright recordings) |
 | review-pr | Pull request | Code review findings (resolve before merge) |
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |

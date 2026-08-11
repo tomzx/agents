@@ -151,7 +151,7 @@ For each PR that needs processing, invoke the stale skills in order. Each skill 
 
 Process PRs sequentially. Each sub-skill checks out the PR branch in a worktree, runs its analysis, and posts a comment with the commit SHA marker.
 
-If a step fails (e.g. build failure in validate-pr, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run subsequent steps for that PR. Record the failure in the summary.
+If a step fails (e.g. build failure in verify-pr, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run subsequent steps for that PR. Record the failure in the summary. Treat a blocking verdict from any step the same way: a **Wrong thing** verdict from `validate-pr` (the target is the wrong product) should halt the pipeline before `verify-pr` spends a build, since verifying conformance to a wrong spec is wasted effort.
 
 ### 6. Report summary
 
@@ -203,11 +203,11 @@ All PRs have markers matching their HEAD commit for all three skills. Reports al
 ```
 A PR has no validate-pr, verify-pr, or review-pr comments at all. Runs all three in sequence.
 
-**Scenario 7: validate-pr fails**
+**Scenario 7: validate-pr returns Wrong thing**
 ```
 /review-requested-prs https://github.com/acme/api/pull/15
 ```
-validate-pr fails because the build is broken. It posts a comment reporting the build failure. verify-pr and review-pr are not run. Summary shows "Failed at validate (build error)".
+validate-pr judges the PR to be the wrong product (the need is not addressed). It posts its Wrong-thing verdict. verify-pr and review-pr are not run, because verifying conformance to, or the craft of, the wrong target is wasted effort. Summary shows "Stopped at validate (wrong product)".
 
 **Scenario 8: Mixed URL and repo arguments**
 ```
@@ -229,6 +229,6 @@ Processes PR #42 in acme/api explicitly, plus searches acme/web-app for review-r
 | Skill | Relationship |
 |---|---|
 | `quick-pr-reviews` | Lightweight counterpart: runs `quick-pr-review` (auto-approve) on changed PRs. Use this skill when you need rapid unblocking, not deep review. |
-| `validate-pr` | Runtime validation sub-skill (build, run, prove acceptance criteria). |
-| `verify-pr` | Static code inspection sub-skill (criteria-to-code traceability, quality). |
-| `review-pr` | Comprehensive code review sub-skill (quality, architecture, security). |
+| `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
+| `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
+| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). |

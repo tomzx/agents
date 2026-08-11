@@ -283,7 +283,7 @@ Falls back to sequential processing in the current session, same resolution rule
 | `handle-pr-ci` | Fixes failing CI on a single PR. This skill fixes merge conflicts (a different blocker) across all of the user's PRs, in parallel. |
 | `merge-pr` | Merges a PR after approvals and CI are green. Run this first to clear conflicts, then `merge-pr`. |
 | `quick-pr-reviews` | Same batch-over-my-PRs shape, but for reviewing PRs others asked you to review. This is the analog for unblocking your own PRs. |
-| `reproduce-issue` / `validate-pr` | Establish the worktree naming and reuse conventions this skill follows. |
+| `reproduce-issue` / `verify-pr` | Establish the worktree naming and reuse conventions this skill follows. |
 | `improve-codebase` | Same "discover verification commands, run before pushing" safety pattern. |
 | `worktrunk` | Documents the parallel sub-agent worktree pattern (`wt switch --create <branch> --no-cd --no-hooks`, then hand each sub-agent its path) this skill generalizes with plain `git worktree`. |
 

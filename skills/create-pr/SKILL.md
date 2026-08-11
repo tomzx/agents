@@ -129,7 +129,7 @@ Assign reviewers (if known)
 
    **No proof captured:** If neither manifest exists, omit the Visual proof section entirely and note in the PR description (or in console output before creation) that `/validate-implementation` can capture proof. Do not attempt to capture here.
 
-   This is a representative proof, not a claim-by-claim demonstration (that is `/validate-pr`'s job).
+    This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
 
 6. Upload the resolved asset(s) (from step 5) to the branch and note their raw URLs for the description. Upload only the assets chosen in step 5, not everything in `$PROOF_DIR`:
    ```
@@ -180,7 +180,7 @@ Assign reviewers (if known)
 
 ![demo](raw-github-url-to-asset)
 
-*Captured beforehand by `/validate-implementation`. Run `/validate-pr` for claim-by-claim validation. Omit this section entirely if no proof was captured.*
+*Captured beforehand by `/validate-implementation`. Run `/verify-pr` for claim-by-claim conformance proof. Omit this section entirely if no proof was captured.*
 
 For a bug fix with a paired before/after recording, use the Before / After layout instead of the single-asset block above:
 
@@ -195,7 +195,7 @@ For a bug fix with a paired before/after recording, use the Before / After layou
 
 ![after-fix](raw-github-url-to-after-asset)
 
-*Before captured by `/reproduce-issue`; after captured by `/validate-implementation`. Run `/validate-pr` for claim-by-claim validation.*
+*Before captured by `/reproduce-issue`; after captured by `/validate-implementation`. Run `/verify-pr` for claim-by-claim conformance proof.*
 ```
 
 If only the before asset exists (after not yet captured), keep the Before block and note that the after will be added once `/validate-implementation` is run. Omit the section entirely if no proof was captured.
@@ -275,7 +275,7 @@ Self-check the PR against the [`review-pr` checklist](../review-pr/SKILL.md) and
 ## Next Step
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
-Run `/validate-pr` for claim-by-claim runtime validation with per-claim recordings (the proof embedded here is a single representative asset captured by `/validate-implementation`).
+Run `/validate-pr` to confirm the PR builds the right product, then `/verify-pr` for claim-by-claim conformance proof with per-criterion recordings (the proof embedded here is a single representative asset captured by `/validate-implementation`).
 Close the loop with `/create-learnings` after the feature is merged.
 
 ## Useful Commands Reference

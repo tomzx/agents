@@ -1,25 +1,24 @@
 ---
 name: validate-pr
-description: Checkout a PR's branch in a worktree, build it, run it, and validate that the linked issue's acceptance criteria are actually met through runtime proof. Cross-references PR claims against issue criteria, records CLI demos (via record-asciinema) and web UI demos (via record-playwright), and posts a coverage report to the PR.
-allowed-tools: Bash(gh:*, git:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
+description: Judge whether a PR builds the right product. Recovers the customer need behind the linked issue, then checks whether the acceptance criteria and the implemented behavior actually serve that need. Catches "faithfully built the wrong spec", symptom-not-cause fixes, and scope drift. No build or runtime execution (that is verify-pr's conformance role).
+allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
 # Validate Pull Request
 
-Checkout a PR's branch in a worktree, build, run, and prove that the linked issue's acceptance criteria are met through actual execution. The acceptance criteria from the linked issue drive validation. Claims in the PR description are cross-referenced against those criteria: every criterion must be validated, and claims that don't map to any criterion are flagged as out of scope. For CLI changes, records demonstrations via `/record-asciinema` (rendered to GIF). For web UI changes, captures screenshots/video via `/record-playwright`. Uploads all assets and posts a coverage report to the PR.
+Answers the **validation** question: "Are we building the right product?" Given the linked issue, recover the underlying customer need (the problem being solved, the "why"), then judge whether the acceptance criteria and the implemented behavior actually serve that need.
 
-This is runtime validation: "did you build the right thing, and does it satisfy what was asked?" Static code inspection is handled by `/verify-pr`.
+This is the only review step that can catch a PR which faithfully implements its specification but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, that is `/review-pr`'s job.
+
+The cheap, build-free nature of this step is intentional: it runs first as an early gate. If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
-- `git worktree` available
-- For CLI changes: `asciinema` plus a renderer (`agg` preferred). Provided by [`/record-asciinema`](../record-asciinema/SKILL.md).
-- For web UI changes: Playwright (Node or Python) with Chromium. Provided by [`/record-playwright`](../record-playwright/SKILL.md).
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there. Of particular interest: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These reveal the intended outcomes the PR should serve.
 
 ### Skill attribution (GitHub)
 
@@ -29,86 +28,56 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 
 ```
 Fetch PR metadata + diff + linked issue(s) ($1)
-         |
-         v
-Parse acceptance criteria from issue(s)
-+ claims from PR description
-         |
-         v
-Build coverage map (criteria <-> claims)
-         |
-         v
-Linked issue w/ acceptance criteria?
-    /          \
-   Yes           No
-    |             |
-    v             v
-Create git       Post comment: link an issue
-worktree          or list criteria, stop
-on PR branch
-    |
-    v
-Install dependencies / build
-    |
-    v
-Build succeeded?
+          |
+          v
+Recover the customer need from the issue
+(problem, stakeholder, desired outcome)
+          |
+          v
+Build the triple map: need <-> criteria <-> implemented behavior
+          |
+          v
+Recoverable need?
    /          \
   Yes           No
    |             |
    v             v
-Validate each   Post build failure, stop
-acceptance criterion
-at runtime (criteria
-gate, claims give hints)
-    |
-    v
-Detect change surface
-    |
-    +--- CLI changes? ----> /record-asciinema per criterion
-    |
-    +--- Web UI changes? --> /record-playwright per criterion
-    |
-    v
-Collect assets (GIFs / PNGs / video)
-    |
-    v
-Upload assets to PR branch
-    |
-    v
-Post coverage report + recordings
-    |
-    v
-Clean up worktree
+Assess the three   Post comment: cannot
+alignments         determine the need, stop
+(need-fit, criteria-
+soundness, scope)
+   |
+   v
+Render validation verdict
+(Right / Partially right / Wrong / Inconclusive)
+   |
+   v
+Post validation report
 ```
 
 ## Steps
 
-### 1. Fetch PR metadata and linked issue(s)
+### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
 gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
-Extract:
-- PR title and description (body)
-- Head branch name (`headRefName`)
-- `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
-- `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
-- `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
-- Base branch name (`baseRefName`)
-- List of changed files
-- Diff stats
-- Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
-
-Also fetch the full diff to identify changed modules and entry points:
-
 ```bash
 gh pr diff $PR_NUMBER --repo $REPO
 ```
 
+Extract:
+- PR title and description (body)
+- `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
+- `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
+- List of changed files and diff stats
+- Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
+
 #### 1a. Resolve and fetch linked issue(s)
 
-Use the `closingIssuesReferences` from the PR metadata as the authoritative source of linked issues. If it is empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references (in that order of priority).
+Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references (in that order of priority).
 
 For each linked issue number, fetch its full body:
 
@@ -116,187 +85,79 @@ For each linked issue number, fetch its full body:
 gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
 ```
 
-Keep the issue bodies for Step 2. If no linked issue can be resolved, see the "No linked issue" failure mode (Step 2) rather than silently falling back to PR claims alone.
+### 2. Recover the customer need
 
-### 2. Parse acceptance criteria from the issue(s) and build the coverage map
+This step distinguishes validation from verification. The acceptance criteria state *what* the solution must do; the need states *why* it must do it, the problem the customer actually has. Recover the need from the issue, not the criteria.
 
-The linked issue's acceptance criteria are the validation target. PR description claims are secondary: they tell you how the author says the work was done, but the criteria decide what counts as met.
+From each linked issue body, extract:
 
-#### 2a. Extract acceptance criteria from the linked issue(s)
+- **The problem**: the pain or situation the customer faces, in the customer's terms (look at the issue title, the opening motivation, "As a ... I want ... so that ..." user stories, reproduction steps for bugs).
+- **The stakeholder / user**: whose problem this is. A PR that solves the right problem for the wrong user is a validation miss.
+- **The desired outcome**: what changes for the customer once this is solved, the goal, not the mechanism.
+- **The proposed solution (the spec)**: the acceptance criteria and any described approach. This is the *how*, and it may or may not be the right way to meet the need.
 
-For each linked issue body, look for the structured acceptance criteria produced by [`/create-issue`](../create-issue/SKILL.md):
+Augment the need from project context when available:
+- `.sdlc/context/project-overview.md` and `goals.md` for intended outcomes and objectives the PR should advance.
+- `.sdlc/context/vocabulary.md` to read the problem in the right domain language.
 
-- An `# Acceptance Criteria` heading followed by `## Must` and (optionally) `## Should` subsections, each containing `- [ ]` checklist items.
+If the issue is a bug report, the need is the underlying problem that produces the bug, and a key validation question is whether the bug is a symptom of a deeper cause.
 
-Parse every checklist item into a criterion record:
+Record the recovered need as a short statement (or a few), tagged with its stakeholder and desired outcome.
 
-- The criterion text (quoted verbatim from the issue)
-- Its priority: **Must** (gates "done") or **Should** (deferrable)
-- The source issue number
+### 3. Build the triple map
 
-**Must** criteria are the validation gate. **Should** criteria are validated if the PR addresses them but do not block success on their own.
+Relate three layers and look for gaps between them:
 
-If the linked issue does not use the structured format, extract requirements from whatever is present (a `## Requirements` section, numbered requirement lists, the issue body prose). Convert each into a criterion with priority **Must** unless the text clearly marks it deferrable, and note in the report that the criteria were inferred rather than structured.
-
-If multiple issues are linked, merge their criteria, preserving the source issue number on each.
-
-If no linked issue was resolved in Step 1, or none of the linked issues yield any parseable criteria, post a comment asking the author to link an issue with acceptance criteria (or to list the criteria explicitly) and stop. Do not validate PR claims in a vacuum.
-
-#### 2b. Parse claims from the PR description
-
-Analyze the PR description and extract runtime-validatable claims (the same categories as before: feature, fix, behavior, CLI, web UI, performance, test). For each claim, record the claim text and type.
-
-Claims are hints, not the gate. They help you pick what to run and what to record, and they surface work the author did that may be out of scope for the issue.
-
-#### 2c. Build the coverage map
-
-Cross-reference each acceptance criterion against the PR claims:
-
-| Criterion state | Meaning |
+| Layer | Source |
 |---|---|
-| **Mapped** | At least one PR claim speaks to this criterion |
-| **Unmapped (gap)** | No PR claim addresses this criterion. Still attempt to validate it from the diff and codebase, and flag the gap in the report. |
+| **Need** | Recovered in Step 2 |
+| **Criteria** | Parsed from the issue's acceptance criteria (`## Must` / `## Should` checklists, or inferred requirements) |
+| **Implemented behavior** | Inferred from the diff (what the PR actually changes in the product) |
 
-Also track **Unmapped claims**: PR claims that do not correspond to any acceptance criterion. These are flagged as out of scope relative to the issue.
+For each need, record which criteria and which implemented behaviors serve it. For each criterion and each implemented behavior, record which need (if any) it serves.
 
-The output of this step is a list of validation targets, one per acceptance criterion, each carrying:
-- The criterion text and priority
-- The mapped PR claim(s), if any
-- The runtime test to perform (command to run, output to expect, exit code, route to load, etc.) derived primarily from the criterion, refined by the mapped claim(s) and the diff
+Three categories of gap matter:
 
-**Must** criteria with no mapped claim and no derivable runtime test are recorded as "Not validated, no path to verify" and called out in the report.
+- **Unmet need**: a recovered need that no criterion and no implemented behavior addresses.
+- **Orphan work**: a criterion or implemented behavior that serves no recovered need (solutionizing beyond the problem, gold-plating, or scope creep).
+- **Need/criteria mismatch**: the criteria describe a solution that would not satisfy the need even if perfectly implemented (the spec itself is the wrong target).
 
-### 3. Create a git worktree on the PR branch
+### 4. Assess alignment
 
-```bash
-git fetch origin $HEAD_BRANCH
-WORKTREE_NAME=$(basename $(pwd))-validate-pr-$PR_NUMBER
-git worktree add ../$WORKTREE_NAME origin/$HEAD_BRANCH
-```
+#### 4a. Need fit (the core validation question)
 
-All subsequent work happens inside the worktree directory.
+Does the implemented behavior, as inferred from the diff, actually solve the customer's problem and produce the desired outcome? This is judged against the **need**, not the criteria. A PR can satisfy every criterion and still miss the need.
 
-If worktree creation fails, fall back to:
+For bug fixes specifically, determine whether the change addresses the **root cause** of the reported problem or merely suppresses the **symptom**. Fixes that paper over a symptom are validation failures even when the reported error disappears.
 
-```bash
-git fetch origin $HEAD_BRANCH
-git checkout origin/$HEAD_BRANCH
-```
+#### 4b. Criteria soundness
 
-### 4. Install dependencies and build
+Do the acceptance criteria actually serve the recovered need?
 
-Detect the project type and install/build:
+- Are there needs with no covering criterion? The criteria under-specify the problem.
+- Are there criteria that serve no need? They over-constrain the solution or import assumptions that belong to a different problem.
+- Do the criteria over-prescribe the *how* when the need is about the *what*, locking the implementation into a mechanism that may not be the right way to meet the need?
 
-```bash
-ls package.json Cargo.toml pyproject.toml go.mod Makefile 2>/dev/null
-```
+Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); flagging unsound criteria here is a validation contribution.
 
-Follow the project's standard install and build process. Check `.sdlc/context/` for project-specific build instructions if available.
+#### 4c. Scope
 
-If the build fails, post a comment reporting the build failure with the error output and stop. Do not attempt to fix build issues.
+- **Over-building (gold-plating)**: implemented behavior beyond any need or criterion.
+- **Under-building**: a need left unaddressed by both criteria and implementation.
+- **Scope creep**: changes that belong to a different problem and should be split out.
 
-### 5. Validate each acceptance criterion at runtime
+### 5. Render the validation verdict
 
-For every acceptance criterion, prove or disprove that the PR meets it through execution. The criterion's nature (refined by any mapped claim) determines the method. **Must** criteria must all be validated for the issue to count as resolved.
+| Verdict | When |
+|---|---|
+| **Right thing** | The implemented behavior and criteria serve the real need; no unmet need, no meaningful orphan work |
+| **Partially right** | The core need is addressed but with gaps: an unmet secondary need, some orphan work, or criteria that partly miss the point |
+| **Wrong thing** | The target itself is wrong: the need is not addressed, or the spec solves the wrong problem, or a fix treats the symptom not the cause |
+| **Inconclusive** | The need could not be recovered from the issue (see failure modes) |
 
-#### Behavior criteria
+A **Wrong thing** verdict is the most valuable output of this skill: it means the PR should not proceed to verification or review until the target is corrected, regardless of how well it is built.
 
-- Write a small script or test that exercises the behavior the criterion requires
-- Run it and verify the output matches what the criterion specifies
-- If the mapped claim references an existing test, run that specific test
-- Capture stdout/stderr and exit code as evidence
-
-#### CLI criteria
-
-- Identify the CLI entry point from the codebase
-- Run the command/flag the criterion requires and verify output
-- Record the demonstration via `/record-asciinema` (see Step 6)
-
-#### Web UI criteria
-
-- Identify the route/page the criterion refers to from the codebase (router config, page components)
-- Start the dev server (or confirm it is running) and load the route
-- Verify the element/behavior the criterion requires is present in the rendered page
-- Capture screenshots (and a video if the criterion is about interaction) via `/record-playwright` (see Step 6)
-- Cover the viewports the criterion names (mobile, desktop); if unspecified, capture both
-
-#### Fix criteria
-
-- Reproduce the original bug scenario described in the issue on this branch
-- Verify the fix prevents the reported behavior
-- If the PR includes a regression test, run it
-
-#### Test criteria
-
-- Run the referenced tests
-- Verify they pass
-- Verify the test count matches what the criterion requires
-
-#### Performance criteria
-
-- Run any benchmarks referenced in the criterion or PR
-- Compare results against the baseline if provided
-- Note whether the methodology is sound
-
-For each criterion, record the result:
-
-| Status | Meaning |
-|--------|---------|
-| **Validated** | Runtime execution confirms the criterion is met |
-| **Partially validated** | Mostly met but has caveats |
-| **Not validated** | Could not confirm (test couldn't run, ambiguous result, no path to verify) |
-| **Contradicted** | Runtime output shows the criterion is not met |
-
-A **Must** criterion that is Not validated or Contradicted means the issue is not resolved by this PR. Say so explicitly in the report.
-
-### 6. Record demonstrations
-
-Create a recordings directory, then delegate each demonstration to the matching recording skill. Both skills are self-contained: read their `SKILL.md`, pass the inputs below, and collect the rendered asset paths.
-
-```bash
-mkdir -p /tmp/validate-pr-$PR_NUMBER/recordings
-```
-
-#### CLI criteria -> `/record-asciinema`
-
-For each CLI criterion, read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with:
-
-- `RECORD_SLUG` = a slug for the criterion (e.g. `verbose-flag`)
-- `RECORD_TITLE` = `PR #$PR_NUMBER: <criterion description>`
-- `RECORD_DIR` = `/tmp/validate-pr-$PR_NUMBER/recordings`
-- `RECORD_COMMAND` = the command that demonstrates the criterion is met
-
-Collect the returned GIF/SVG/`.cast` path for each criterion.
-
-#### Web UI criteria -> `/record-playwright`
-
-First ensure the dev server is running inside the worktree (start it in the background, e.g. `npm run dev`). Then for each web UI criterion, read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
-
-- `RECORD_SLUG` = a slug for the criterion (e.g. `login-page`)
-- `RECORD_URL` = the route the criterion refers to (e.g. `http://localhost:3000/login`)
-- `RECORD_DIR` = `/tmp/validate-pr-$PR_NUMBER/recordings`
-- `RECORD_VIEWPORTS` = the viewports the criterion names; default to desktop + mobile
-- `RECORD_SCENARIO` = the interaction steps to perform before capture (if the criterion is about behavior)
-- `RECORD_VIDEO` = set if the criterion is about an interaction/animation
-
-Collect the returned PNG/video paths for each criterion. Kill the dev server before moving on.
-
-### 7. Upload assets and post validation report
-
-Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) to the PR branch so they can be referenced inline:
-
-```bash
-RECORDINGS=/tmp/validate-pr-$PR_NUMBER/recordings
-for asset in $RECORDINGS/*.gif $RECORDINGS/*.png $RECORDINGS/*.svg $RECORDINGS/*.webm $RECORDINGS/*.cast; do
-  [ -f "$asset" ] || continue
-  filename=$(basename "$asset")
-  gh api repos/$REPO/contents/.validate-pr/$filename \
-    --method PUT \
-    -f message="Add demo: $filename" \
-    -f content="$(base64 -w 0 "$asset")" \
-    -f branch="$HEAD_BRANCH"
-done
-```
+### 6. Post the validation report
 
 Write the report to a file:
 
@@ -308,35 +169,33 @@ BODY="$(cat <<'EOF'
 ### Summary
 
 Issue(s): #N
-
 Validated commit: SHORT_SHA
 
-| Status | Must | Should |
-|--------|------|--------|
-| Validated | N | N |
-| Partially validated | N | N |
-| Not validated | N | N |
-| Contradicted | N | N |
+**Verdict:** Right thing / Partially right / Wrong thing / Inconclusive
 
-**Issue resolved:** Yes / No *(No if any Must criterion is Not validated or Contradicted)*
+**Recovered need:** <one-line statement of the customer problem and desired outcome>
+**Stakeholder:** <who the customer/user is>
 
 <details>
 <summary>Details</summary>
 
-### Criteria coverage
+### Need <-> criteria <-> implementation
 
-| # | Criterion | Priority | Status | Mapped claim | Evidence |
-|---|---|---|---|---|---|
-| 1 | "<criterion text>" | Must | Validated | "<claim>" | <what was run, observed output> |
-| 2 | "<criterion text>" | Must | Not validated | — | <reason> |
+| Need | Served by criteria? | Served by implementation? | Notes |
+|---|---|---|---|
+| "<need>" | Yes / No / Partly | Yes / No / Partly | <observation> |
 
-### Unmapped PR claims (out of scope relative to issue)
+### Findings
 
-- "<claim text>" — no acceptance criterion maps to this
+#### Finding 1: <title>
+- **Severity**: Blocks (wrong target) / Should address / Nitpick
+- **Layer**: Need fit / Criteria soundness / Scope
+- **Description**: <what is wrong relative to the need>
+- **Suggestion**: <what would align the work with the need>
 
-### Demonstrations
+### Notes
 
-<embedded GIFs (CLI) / screenshots + video (web UI) / links, one per criterion>
+<Any additional observations, including criteria-soundness notes for verify-pr>
 
 </details>
 
@@ -354,7 +213,7 @@ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
 
 ### Post the validation report as a PR comment
 
-Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting.
+Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- validate-pr:HEAD_COMMIT -->` marker.
 
@@ -365,61 +224,47 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.
 ${FOOTER}"
 ```
 
-### 8. Clean up
-
-After posting results, offer to clean up:
-
-```bash
-git worktree remove ../$WORKTREE_NAME
-rm -rf /tmp/validate-pr-$PR_NUMBER
-```
-
 ## Failure Modes
 
 | Mode | Response |
 |------|----------|
-| **No linked issue, or no parseable acceptance criteria** | Post comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not validate PR claims in a vacuum |
-| **PR description has no claims** | Proceed; criteria drive validation, claims are optional hints. Note the absence of claims in the report |
-| **Worktree creation fails** | Fall back to a regular checkout |
-| **Build fails** | Post build failure with error output, stop |
-| **asciinema not available** | `/record-asciinema` returns nothing; capture CLI stdout/stderr as text, skip the GIF |
-| **Playwright/Chromium not available** | `/record-playwright` returns nothing; describe the web UI change in text, skip the screenshot |
-| **Dev server won't start** | Skip web UI capture; note in the report and validate via unit tests where possible |
-| **No rendering tool available** | Upload raw `.cast` files with playback instructions |
-| **Upload fails** | Include command output as text in the comment |
+| **No linked issue** | Post comment asking author to link an issue describing the problem and the need, stop. Validation needs a problem statement; do not invent one from the diff alone |
+| **Linked issue has no recoverable need** (e.g. pure refactor request with no customer problem) | Render verdict `Inconclusive`, note that no customer need could be recovered, and suggest the issue state the problem it solves. Do not fabricate a need |
+| **PR description has no added context** | Proceed; the issue is the primary source of the need, the PR body is secondary |
+| **Large diff (>1000 lines)** | Focus on the entry points and user-visible behavior changes to judge need fit; note that full assessment is impractical |
 
 ## Example Usage
 
-**Scenario 1: Feature PR with CLI changes**
+**Scenario 1: Right thing, well targeted**
 ```
 /validate-pr 42 owner/myrepo
 ```
-PR #42 is linked to issue #31 whose Must criteria require a `--verbose` flag and an `export` command. Creates worktree, builds, runs `tool --verbose` and `tool export` against those criteria, records both via `/record-asciinema`, uploads GIFs and posts a coverage report.
+Issue #31 asks for faster report generation because users wait minutes for exports. The criteria specify a streaming export path and the diff implements it. The need (responsive exports) is served by both criteria and implementation. Verdict: Right thing.
 
-**Scenario 2: Feature PR with web UI changes**
-```
-/validate-pr 77 owner/myrepo
-```
-PR #77 is linked to an issue requiring a login page at `/login` with a mobile layout. Creates worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and posts a coverage report with the images embedded.
-
-**Scenario 3: Bug fix PR**
+**Scenario 2: Wrong thing, symptom not cause**
 ```
 /validate-pr 88
 ```
-PR #88 is linked to a bug report whose Must criterion is "no null pointer on empty email field". Reproduces the crash scenario, confirms it no longer crashes, runs regression test. Posts coverage report.
+Issue #80 reports crashes on empty email input. The diff wraps the field access in a null check at the call site, satisfying the criterion "no crash on empty email". But the recovered need is robust input handling, and the root cause (unvalidated input entering the domain layer) is unaddressed, the same class of crash will recur elsewhere. Verdict: Wrong thing (treats symptom, not cause).
 
-**Scenario 4: Out-of-scope PR**
+**Scenario 3: Partially right, scope drift**
+```
+/validate-pr 77
+```
+Issue #50 needs a login page. The PR adds the login page (serves the need) but also ships a settings redesign no need or criterion mentions. Verdict: Partially right, with an orphan-work finding recommending the settings work be split out.
+
+**Scenario 4: Wrong thing, spec solves the wrong problem**
 ```
 /validate-pr 90
 ```
-PR #90 implements a `--quiet` flag the author claims, but no acceptance criterion covers it, and one Must criterion is left unmet. Validation flags the claim as out of scope and the criterion as Contradicted, and reports the issue as not resolved.
+Issue #60's need is "stop users from accidentally deleting projects". The criteria and the diff implement an undo timer on deletion. Validation judges that an undo timer does serve the need, but a prior criterion locks the implementation into a specific mechanism that conflicts with the team's soft-delete architecture, the spec over-prescribes the how. Verdict: Partially right with a criteria-soundness finding.
 
-**Scenario 5: Build fails**
+**Scenario 5: Inconclusive**
 ```
 /validate-pr 15
 ```
-PR #15 fails to build due to missing dependency. Posts build error as comment and stops.
+The linked issue is a one-line "refactor the auth module" with no stated problem or outcome. No customer need can be recovered. Verdict: Inconclusive, with a comment asking the author to state the problem the refactor solves.
 
 ## Next Step
 
-After validation passes, use `/verify-pr` for static code inspection, or `/review-pr` for a comprehensive code review.
+If the verdict is Right thing (or Partially right with non-blocking findings), proceed to `/verify-pr` to confirm the implementation conforms to the acceptance criteria (static traceability plus runtime proof), then `/review-pr` for code-craft review. If the verdict is Wrong thing, stop and correct the target before further review.

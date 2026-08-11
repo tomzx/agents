@@ -204,8 +204,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
-| `/validate-pr` | Checkout, build, run, and validate claims via runtime proof. |
-| `/verify-pr` | Static code inspection after runtime validation. |
+| `/validate-pr` | Judge whether the PR builds the right product (needs alignment, criteria soundness, scope). |
+| `/verify-pr` | Verify conformance to acceptance criteria: traceability plus runtime proof (build, run, record demos). |
 | `/record-asciinema` | Record a terminal/CLI demo with asciinema and render to GIF/SVG. |
 | `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
