@@ -1,7 +1,7 @@
 ---
 name: validate-pr
 description: Judge whether a PR builds the right product. Recovers the customer need behind the linked issue, then checks whether the acceptance criteria and the implemented behavior actually serve that need. Catches "faithfully built the wrong spec", symptom-not-cause fixes, and scope drift. No build or runtime execution (that is verify-pr's conformance role).
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*, scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, ../../scripts/get-env:*, ../../scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -213,7 +213,7 @@ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
 
 ### Post the validation report as a PR comment
 
-Run `scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`.
+Run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- validate-pr:HEAD_COMMIT -->` marker.
 
