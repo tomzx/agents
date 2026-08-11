@@ -100,6 +100,7 @@ Extract:
 - Head branch name (`headRefName`), base branch name (`baseRefName`)
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
+- `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
 
 #### 1a. Resolve and fetch linked issue(s)
 
@@ -167,18 +168,14 @@ Where Static status is **Traced** (code backs the criterion) or **Gap** (no impl
 
 ```bash
 git fetch origin $HEAD_BRANCH
-WORKTREE_NAME=$(basename $(pwd))-verify-pr-$PR_NUMBER
-git worktree add ../$WORKTREE_NAME origin/$HEAD_BRANCH
+WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+mkdir -p /tmp/sdlc/$REPO
+git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
 ```
 
 All subsequent work happens inside the worktree directory.
 
-If worktree creation fails, fall back to:
-
-```bash
-git fetch origin $HEAD_BRANCH
-git checkout origin/$HEAD_BRANCH
-```
+If worktree creation fails, stop.
 
 ### 5. Install dependencies and build
 
@@ -365,7 +362,7 @@ ${FOOTER}"
 After posting results, clean up:
 
 ```bash
-git worktree remove ../$WORKTREE_NAME
+git worktree remove $WORKTREE_DIR
 rm -rf /tmp/verify-pr-$PR_NUMBER
 ```
 
@@ -375,7 +372,7 @@ rm -rf /tmp/verify-pr-$PR_NUMBER
 |------|----------|
 | **No linked issue, or no parseable acceptance criteria** | Post comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims in a vacuum |
 | **PR description has no claims** | Proceed; criteria drive verification, claims are optional hints. Note the absence of claims in the report |
-| **Worktree creation fails** | Fall back to a regular checkout |
+| **Worktree creation fails** | Stop |
 | **Build fails** | Post build failure with error output, stop |
 | **asciinema not available** | `/record-asciinema` returns nothing; capture CLI stdout/stderr as text, skip the GIF |
 | **Playwright/Chromium not available** | `/record-playwright` returns nothing; describe the web UI change in text, skip the screenshot |

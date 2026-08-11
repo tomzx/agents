@@ -14,6 +14,7 @@ Answers the **craft** question: "is this code well-built?" Covers code quality, 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
+- `git worktree` available
 - PR number (`$1`) identifying an open pull request
 
 ### Skill attribution (GitHub)
@@ -24,6 +25,9 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 
 ```
 Fetch PR metadata + comments ($1)
+            |
+            v
+  Create git worktree on PR branch
             |
             v
   Pre-Review Checklist
@@ -60,6 +64,28 @@ Extract:
 - `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
 - `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
+- `HEAD_BRANCH`: the PR's head branch name (`headRefName`)
+
+```bash
+gh pr view $1 --repo "$REPO" --json headRefName --jq '.headRefName'
+```
+
+```bash
+ISSUE_NUMBER=$(gh pr view $1 --repo "$REPO" --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
+```
+
+Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context:
+
+```bash
+git fetch origin $HEAD_BRANCH
+WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+mkdir -p /tmp/sdlc/$REPO
+git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+```
+
+All subsequent code reading happens inside the worktree directory.
+
+If worktree creation fails, stop.
 
 ## Pre-Review Checklist
 
@@ -323,6 +349,12 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.$S
 ${FOOTER}"
 ```
 
+### Clean up
+
+```bash
+git worktree remove $WORKTREE_DIR
+```
+
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
@@ -360,3 +392,5 @@ PR fixes a null pointer. Review checks that the change is localized and the new 
 | `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
 | `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
 | `gh pr comment <pr-number> --repo <owner>/<repo> --body "..."` | Post review summary comment to the PR |
+| `git worktree add /tmp/sdlc/<owner>/<repo>/<issue> origin/<branch>` | Create a worktree on the PR branch for code reading |
+| `git worktree remove /tmp/sdlc/<owner>/<repo>/<issue>` | Clean up the worktree after review |

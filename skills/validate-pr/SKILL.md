@@ -18,6 +18,7 @@ The cheap, build-free nature of this step is intentional: it runs first as an ea
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
+- `git worktree` available
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there. Of particular interest: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These reveal the intended outcomes the PR should serve.
 
 ### Skill attribution (GitHub)
@@ -28,6 +29,9 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 
 ```
 Fetch PR metadata + diff + linked issue(s) ($1)
+          |
+          v
+Create git worktree on PR branch
           |
           v
 Recover the customer need from the issue
@@ -72,8 +76,10 @@ Extract:
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
+- `HEAD_BRANCH`: the `headRefName` (PR branch name)
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
+- `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
 
 #### 1a. Resolve and fetch linked issue(s)
 
@@ -84,6 +90,19 @@ For each linked issue number, fetch its full body:
 ```bash
 gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
 ```
+
+### 1b. Create a git worktree on the PR branch
+
+```bash
+git fetch origin $HEAD_BRANCH
+WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+mkdir -p /tmp/sdlc/$REPO
+git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+```
+
+All subsequent code reading happens inside the worktree directory.
+
+If worktree creation fails, stop.
 
 ### 2. Recover the customer need
 
@@ -112,7 +131,7 @@ Relate three layers and look for gaps between them:
 |---|---|
 | **Need** | Recovered in Step 2 |
 | **Criteria** | Parsed from the issue's acceptance criteria (`## Must` / `## Should` checklists, or inferred requirements) |
-| **Implemented behavior** | Inferred from the diff (what the PR actually changes in the product) |
+| **Implemented behavior** | Inferred from the diff and code read in the worktree (what the PR actually changes in the product) |
 
 For each need, record which criteria and which implemented behaviors serve it. For each criterion and each implemented behavior, record which need (if any) it serves.
 
@@ -224,6 +243,12 @@ gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.
 ${FOOTER}"
 ```
 
+### 7. Clean up
+
+```bash
+git worktree remove $WORKTREE_DIR
+```
+
 ## Failure Modes
 
 | Mode | Response |
@@ -232,6 +257,7 @@ ${FOOTER}"
 | **Linked issue has no recoverable need** (e.g. pure refactor request with no customer problem) | Render verdict `Inconclusive`, note that no customer need could be recovered, and suggest the issue state the problem it solves. Do not fabricate a need |
 | **PR description has no added context** | Proceed; the issue is the primary source of the need, the PR body is secondary |
 | **Large diff (>1000 lines)** | Focus on the entry points and user-visible behavior changes to judge need fit; note that full assessment is impractical |
+| **Worktree creation fails** | Stop |
 
 ## Example Usage
 
