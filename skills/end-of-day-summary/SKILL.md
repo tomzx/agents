@@ -114,6 +114,8 @@ Write to `{BASE_DIR}/{YEAR}/{MONTH}/{NEXT_WORKDAY}.standup.md` (max 5 bullet poi
 # Thanks
 ```
 
+Do not include PR review as a line in the standup.
+
 ## Example Usage
 
 **Scenario 1: Regular weekday**
