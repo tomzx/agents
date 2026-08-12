@@ -310,6 +310,6 @@ Discovers 5 unique skills in teammate's directory that cover workflows you also 
 
 **Scenario 3: Upgrade your skills after pulling upstream changes**
 ```
-/compare-skills ~/.claude/skills ~/.opencode/skills
+/compare-skills ~/.agents/skills ~/.opencode/skills
 ```
 Finds that the upstream `.opencode/skills` has improved output formatting and added error handling sections. Prioritizes which improvements to backport.

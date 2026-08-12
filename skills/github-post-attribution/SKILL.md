@@ -21,7 +21,7 @@ Skills that post content to GitHub should append a small footer: link to the **i
 
 `REPO_ROOT` = the directory that contains `skills/` (the agents checkout). The path to this file is always known from the `Read` call that loaded it. Use it directly -- no additional filesystem exploration needed.
 
-Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.claude/skills → ~/src/agents/skills`) and capture all values in one call:
+Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.agents/skills → ~/src/agents/skills`) and capture all values in one call:
 
 ```bash
 SKILL_MD_DIR=$(dirname "$(readlink -f /path/to/this/SKILL.md)")

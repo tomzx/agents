@@ -144,7 +144,7 @@ git worktree add "$WORKDIR" "pr-$PR"
 
 ### 5. Discover verification commands once
 
-Discover the project's test, lint, and typecheck commands the way `improve-codebase` does: `AGENTS.md` / `CLAUDE.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`). Record the resolved command strings. These are identical for every worktree (same repo), so they are discovered once and passed into every sub-agent prompt.
+Discover the project's test, lint, and typecheck commands the way `improve-codebase` does: `AGENTS.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`). Record the resolved command strings. These are identical for every worktree (same repo), so they are discovered once and passed into every sub-agent prompt.
 
 If no verification command can be found, still dispatch but pass `VERIFY_COMMANDS=()` and set `NO_VERIFY=true` in each prompt so sub-agents resolve without verification and default to `--dry-run` behavior for their PR (commit locally, do not push) unless the user opted in.
 

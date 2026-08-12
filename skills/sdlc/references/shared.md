@@ -91,8 +91,7 @@ So a future agent session knows the project tracks work under `.sdlc/`, every pr
 The anchor is written to the repo's primary agent-instruction file, resolved in this order:
 
 1. `AGENTS.md` in the project root, if it exists.
-2. Otherwise `CLAUDE.md` in the project root, if it exists (projects that standardized on Claude).
-3. Otherwise, create `AGENTS.md` in the project root.
+2. Otherwise, create `AGENTS.md` in the project root.
 
 Only one file ever holds the anchor. It is a repo-level concern: write it to the repository, never to the `SDLC_DIR` mirror, because it must be visible to any agent that opens the repo. If the target file is read-only or absent and cannot be created, skip the write and note it in the report.
 

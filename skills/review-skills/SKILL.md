@@ -36,8 +36,8 @@ Otherwise, locate the active skill directory by checking in order:
 
 1. `.opencode/skills/` in the current repository root
 2. `~/.opencode/skills/`
-3. `.claude/skills/` in the current repository root
-4. `~/.claude/skills/`
+3. `.agents/skills/` in the current repository root
+4. `~/.agents/skills/`
 
 If none exist, report the error and stop.
 
@@ -312,7 +312,7 @@ Scans `.opencode/skills/`, finds 3 broken references where skills were renamed, 
 
 **Scenario 2: Audit a specific directory**
 ```
-/review-skills ~/.claude/skills
+/review-skills ~/.agents/skills
 ```
 Scans the user's Claude skills directory, finds a near-duplicate pair (`start-day` vs `start-morning`) and an orphaned skill `old-deploy` that is no longer referenced.
 

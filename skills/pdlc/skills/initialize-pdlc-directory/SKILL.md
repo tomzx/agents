@@ -46,7 +46,7 @@ Already-existing files are never overwritten — safe to run on a project that h
    - `goals.md`
    - `roadmap.md`
    - `vocabulary.md`
-7. **Write the PDLC anchor** to the repo's primary agent-instruction file, per `pdlc/references/shared.md` (AGENTS.md PDLC anchor). This injects a short, marker-delimited `## PDLC` section into `AGENTS.md` (falling back to `CLAUDE.md`, or creating `AGENTS.md` if neither exists). The block is idempotent: create if absent, replace its delimited content if the markers exist, never touch content outside the markers. Note the target file and whether it was created, updated, or skipped in the report.
+7. **Write the PDLC anchor** to the repo's primary agent-instruction file, per `pdlc/references/shared.md` (AGENTS.md PDLC anchor). This injects a short, marker-delimited `## PDLC` section into `AGENTS.md` (creating `AGENTS.md` if it doesn't exist). The block is idempotent: create if absent, replace its delimited content if the markers exist, never touch content outside the markers. Note the target file and whether it was created, updated, or skipped in the report.
 8. Report what was created and what was skipped (already existed). When `PDLC_DIR` is set, note whether each path was written to the repo, the mirror, or both.
 
 ## Output Format

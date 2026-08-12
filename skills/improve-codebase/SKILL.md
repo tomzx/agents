@@ -98,7 +98,7 @@ Flags:
 
 Before changing anything, discover how this project verifies itself. Order of preference:
 
-1. **`AGENTS.md` / `CLAUDE.md`** — read it for documented test, lint, typecheck, and format commands. These are authoritative.
+1. **`AGENTS.md`** — read it for documented test, lint, typecheck, and format commands. These are authoritative.
 2. **Language manifests:**
    - `package.json` → `scripts.test`, `scripts.lint`, `scripts.format`, `scripts.typecheck`
    - `pyproject.toml` → `[tool.pytest]`, ruff/mypy config; commands like `uv run pytest`, `uv run ruff`, `uv run mypy`

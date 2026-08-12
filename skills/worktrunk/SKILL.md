@@ -281,7 +281,7 @@ zellij run -- wt switch --create <branch-name> -x <agent-cli> -- '<task descript
 **Requirements** (all must be true):
 - User explicitly requests spawning/handoff
 - User is in a supported multiplexer (tmux or Zellij)
-- The user's project instructions (`CLAUDE.md` or `AGENTS.md`) or an explicit prompt authorize this pattern
+- The user's project instructions (`AGENTS.md`) or an explicit prompt authorize this pattern
 
 **Do not use this pattern** for normal worktree operations.
 
