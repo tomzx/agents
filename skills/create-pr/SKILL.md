@@ -1,13 +1,13 @@
 ---
 name: create-pr
-description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Embeds visual proof that was captured beforehand by /validate-implementation (single asset, or a before/after pair for bug fixes) by reading the proof manifest; create-pr is a consumer and does not capture recordings itself. If no proof was captured, it omits the Visual proof section and suggests running /validate-implementation first.
+description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Embeds visual proof that was captured beforehand by /validate-implementation (single asset, or a before/after pair for bug fixes) by reading the proof manifest; create-pr is a consumer and does not capture recordings itself. If no proof was captured, it omits the Visual proof section and suggests running /validate-implementation first. By default does NOT create the PR on GitHub; it drafts the description and shows it for review. Pass --post to create the PR, upload assets, and assign reviewers.
 allowed-tools: Bash(gh:*, git:*, ghx:*, base64:*, scripts/get-env:*), Read, Write, Glob, Grep
-argument-hint: "[repository] [issue-number]"
+argument-hint: "[repository] [issue-number] [--post]"
 ---
 
 # Create Pull Request
 
-Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens. It does not capture recordings itself; recording happens at human-review time, before the PR exists.
+Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. By default, it drafts the PR description and shows it without creating the PR; pass `--post` to create the PR on GitHub, upload visual-proof assets, and assign reviewers. It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens. It does not capture recordings itself; recording happens at human-review time, before the PR exists.
 
 ## Prerequisites
 
@@ -64,15 +64,21 @@ Read manifest   Before-only state? (proof-manifest.txt
            |
            v
 Embed proof in description (single, or before/after pair)
-           |
-           v
-Upload resolved assets to branch
-           |
-           v
-gh pr create (draft if incomplete)
-           |
-           v
-Assign reviewers (if known)
+            |
+            v
+     --post flag set?
+      /          \
+    No            Yes
+     |             |
+     v             v
+Show draft    Upload resolved
+to user,      assets to branch
+stop           |
+               v
+          gh pr create (draft if incomplete)
+               |
+               v
+          Assign reviewers (if known)
 ```
 
 ## Steps
@@ -131,7 +137,7 @@ Assign reviewers (if known)
 
     This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
 
-6. Upload the resolved asset(s) (from step 5) to the branch and note their raw URLs for the description. Upload only the assets chosen in step 5, not everything in `$PROOF_DIR`:
+6. If `--post` is set, upload the resolved asset(s) (from step 5) to the branch and note their raw URLs for the description. Upload only the assets chosen in step 5, not everything in `$PROOF_DIR`. Skip this step if `--post` is not set (the draft description will reference local file paths instead):
    ```
    for asset in "$PROOF_DIR"/<asset-from-step-5>; do
      [ -f "$asset" ] || continue
@@ -144,9 +150,9 @@ Assign reviewers (if known)
    ```
    When `captured-proof.json` is the source, iterate its `assets` list rather than a glob, so unrelated files in `$PROOF_DIR` are not uploaded. Omit `--repo` if the repository can be inferred from the current working directory. For each uploaded asset, derive its raw URL as `https://raw.githubusercontent.com/$1/<branch>/.create-pr-proof/<basename>`.
 
-7. Draft the PR description following the output format below, embedding the proof if one was captured. Do not line wrap the description; each paragraph/bullet should be a single long line.
+7. Draft the PR description following the output format below, embedding the proof if one was captured. Do not line wrap the description; each paragraph/bullet should be a single long line. If `--post` is not set, present the draft description to the user and stop (do not create the PR).
 
-8. Create the PR. Use `--draft` if any acceptance criteria are unmet:
+8. If `--post` is set, create the PR. Use `--draft` if any acceptance criteria are unmet:
    ```
    gh pr create --repo $1 --title "<title>" --body "$(cat <<'EOF'
    <description>
@@ -155,7 +161,7 @@ Assign reviewers (if known)
    ```
    Omit `--repo` if the repository can be inferred from the current working directory.
 
-9. If reviewer GitHub handles are known from context, assign them:
+9. If `--post` is set and reviewer GitHub handles are known from context, assign them:
    ```
    gh pr edit <pr-number> --add-reviewer <handle>
    ```
@@ -173,8 +179,10 @@ Assign reviewers (if known)
 
 # How to test
 
-1. <Step to verify the change works>
-2. <Step for an edge case or error path>
+<Manual verification steps only. Exclude anything already covered by CI (lint, typecheck, unit tests, integration tests, build, etc.) since reviewers can see those results automated. Focus on steps that require human judgment or manual interaction.>
+
+1. <Step to manually verify the change works>
+2. <Step for a manual edge case or error path>
 
 # Visual proof
 
@@ -223,45 +231,45 @@ Use `Closes #N` to auto-close the issue on merge. Use `Related to #N` if the PR 
 
 **Scenario 1: Feature PR linked to an issue**
 ```
-/create-pr owner/myrepo 42
+/create-pr owner/myrepo 42 --post
 ```
-Diffs branch, fetches issue #42, maps all 4 ACs to changes, creates PR with "Closes #42" and requests reviewers.
+Diffs branch, fetches issue #42, maps all 4 ACs to changes, creates PR with "Closes #42" and requests reviewers. Without `--post`, drafts the description and shows it without creating the PR.
 
 **Scenario 2: PR covering only part of an issue**
 ```
-/create-pr owner/myrepo 88
+/create-pr owner/myrepo 88 --post
 ```
-Issue has 5 ACs; this branch addresses 3. Creates a ready-for-review PR, marks the 2 unmet ACs as unchecked with a note, uses "Related to #88".
+Issue has 5 ACs; this branch addresses 3. Creates a ready-for-review PR, marks the 2 unmet ACs as unchecked with a note, uses "Related to #88". Without `--post`, drafts the description and shows it without creating the PR.
 
 **Scenario 3: Housekeeping PR without an issue**
 ```
-/create-pr
+/create-pr --post
 ```
-No issue provided. Creates PR with What/Why/How-to-test sections; omits AC coverage and References sections.
+No issue provided. Creates PR with What/Why/How-to-test sections; omits AC coverage and References sections. Without `--post`, drafts the description and shows it without creating the PR.
 
 **Scenario 4: Incomplete implementation**
 ```
-/create-pr owner/myrepo 100
+/create-pr owner/myrepo 100 --post
 ```
-One AC not yet met. Opens as a draft PR so it is not accidentally merged.
+One AC not yet met. Opens as a draft PR so it is not accidentally merged. Without `--post`, drafts the description and shows it without creating the PR.
 
 **Scenario 5: Web UI PR with embedded visual proof**
 ```
-/create-pr owner/myrepo 130
+/create-pr owner/myrepo 130 --post
 ```
-`/validate-implementation` was run first and wrote `/tmp/<owner>/<repo>/130/captured-proof.json` listing `pr-demo-1280x720.png`. `create-pr` reads the manifest, uploads that PNG to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately. It does not start the dev server or capture anything itself.
+`/validate-implementation` was run first and wrote `/tmp/<owner>/<repo>/130/captured-proof.json` listing `pr-demo-1280x720.png`. `create-pr` reads the manifest, uploads that PNG to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately. It does not start the dev server or capture anything itself. Without `--post`, drafts the description with local file references without uploading or creating the PR.
 
 **Scenario 6: PR where no proof was captured**
 ```
-/create-pr owner/myrepo 130
+/create-pr owner/myrepo 130 --post
 ```
-No `$PROOF_DIR/captured-proof.json` exists (the user skipped `/validate-implementation`). `create-pr` omits the "Visual proof" section and notes that `/validate-implementation` can capture proof first. The PR opens with the standard sections.
+No `$PROOF_DIR/captured-proof.json` exists (the user skipped `/validate-implementation`). `create-pr` omits the "Visual proof" section and notes that `/validate-implementation` can capture proof first. The PR opens with the standard sections. Without `--post`, drafts the description and shows it without creating the PR.
 
 **Scenario 7: Bug-fix PR with paired before/after recordings**
 ```
-/create-pr owner/myrepo 42
+/create-pr owner/myrepo 42 --post
 ```
-Branch is `fix/42-null-pointer-login`. `/validate-implementation` was run after the fix: it found `/tmp/<owner>/<repo>/42/proof-manifest.txt` (written earlier by `/reproduce-issue`, `surface: cli`), replayed that command on the fixed code into `after-fix.gif`, and wrote `captured-proof.json` with `mode: bugfix-pair` listing both `before-bug.gif` and `after-fix.gif`. `create-pr` reads the manifest, uploads both to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side.
+Branch is `fix/42-null-pointer-login`. `/validate-implementation` was run after the fix: it found `/tmp/<owner>/<repo>/42/proof-manifest.txt` (written earlier by `/reproduce-issue`, `surface: cli`), replayed that command on the fixed code into `after-fix.gif`, and wrote `captured-proof.json` with `mode: bugfix-pair` listing both `before-bug.gif` and `after-fix.gif`. `create-pr` reads the manifest, uploads both to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side. Without `--post`, drafts the description with local file references without uploading or creating the PR.
 
 ## Completion Checklist
 

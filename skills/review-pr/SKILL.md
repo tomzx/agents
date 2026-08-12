@@ -1,8 +1,8 @@
 ---
 name: review-pr
-description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role).
+description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role). By default does NOT post to GitHub; pass --post to post the review as a PR comment.
 allowed-tools: Bash(gh:*, ghx:*, git:*, ../../scripts/get-env:*, ../../scripts/should-post-github-comment:*), Read, Write, Glob, Grep
-argument-hint: "<pr-number>"
+argument-hint: "<pr-number> [--post]"
 ---
 
 # Review Pull Request
@@ -45,10 +45,11 @@ Fetch PR metadata + comments ($1)
             v
   Write review-pr.$SHORT_SHA.md
   (create or update)
-            |
-            v
+             |
+             v
   Post review file
   as PR comment
+  (--post to enable)
 ```
 
 ## Setup
@@ -141,6 +142,9 @@ Review tests as code artifacts for quality. Whether a test proves a specific acc
 	* Do tests cover edge cases and error scenarios?
 	* Are test names descriptive of what they're testing?
 	* Are tests testing behavior rather than implementation details?
+* Manual Testing
+	* What manual testing was done to confirm the change works as intended (described in the PR, comments, or linked issue)?
+	* Do the manual checks cover the key user-facing scenarios, or only the happy path?
 
 ### Architecture & Structure
 
@@ -268,6 +272,8 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
+Include a Coverage section listing what tests exist, what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), what is missing, and the CI status.
+
 When reviewing, write the response to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
 Start the file with the marker `<!-- review-pr:HEAD_COMMIT -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA.
 If a file already exists for this `$SHORT_SHA`, update the file with the new information and tell me what changes have been made since the last review.
@@ -327,6 +333,7 @@ Consider `CENTS_PER_DOLLAR = 100` as a named constant for readability.
 ## Coverage
 
 - Tests present: `tests/payments/test_routes.py` (8 cases, happy + error paths)
+- Manual testing: author tested Stripe checkout flow end-to-end, verified webhook delivery and retry behavior
 - Missing: webhook signature verification not tested
 - CI status: passing
 
@@ -338,7 +345,9 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-After writing `review-pr.$SHORT_SHA.md`, run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
+By default, the review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` and NOT posted to GitHub. To post it, pass `--post` to the skill.
+
+After writing `review-pr.$SHORT_SHA.md`, run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR" [--post]`. The `--post` flag is included when the user passed `--post` to this skill. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- review-pr:HEAD_COMMIT -->` marker.
 

@@ -10,10 +10,14 @@
 Exit code 0 means post (true), 1 means do not post (false).
 
 Usage:
-    scripts/should-post-github-comment --repo owner/repo --author username
+    scripts/should-post-github-comment --repo owner/repo --author username [--post]
 
-Conditions (all must pass to post):
-  1. post_github_comments in config is not false
+Default is to NOT post. To enable posting, either:
+  - Pass --post on the command line (per-invocation override), or
+  - Set post_github_comments: true in ~/.sdlc/config.yaml (persistent opt-in)
+
+Conditions (all must pass to post, unless --post is given):
+  1. --post flag is present, OR post_github_comments in config is true
   2. Repository owner not in excluded_owners
   3. Repository not in excluded_repos
   4. PR author not in excluded_authors
@@ -43,9 +47,12 @@ def load_config(path: Path) -> dict:
     return yaml.safe_load(path.read_text()) or {}
 
 
-def should_post(repo: str, author: str, config: dict) -> bool:
+def should_post(repo: str, author: str, config: dict, force: bool = False) -> bool:
     """Return True if commenting is allowed for the given repo and author."""
-    if config.get("post_github_comments", True) is False:
+    if force:
+        return True
+
+    if config.get("post_github_comments", False) is not True:
         return False
 
     parts = repo.split("/")
@@ -59,10 +66,7 @@ def should_post(repo: str, author: str, config: dict) -> bool:
         return False
     if repo.lower() in excluded_repos:
         return False
-    if author.lower() in excluded_authors:
-        return False
-
-    return True
+    return author.lower() not in excluded_authors
 
 
 def main() -> int:
@@ -71,10 +75,15 @@ def main() -> int:
     )
     parser.add_argument("--repo", required=True, help="Repository in owner/repo format")
     parser.add_argument("--author", required=True, help="PR author username")
+    parser.add_argument(
+        "--post",
+        action="store_true",
+        help="Override: always post regardless of config (per-invocation opt-in)",
+    )
     args = parser.parse_args()
 
     config = load_config(CONFIG_PATH)
-    return 0 if should_post(args.repo, args.author, config) else 1
+    return 0 if should_post(args.repo, args.author, config, force=args.post) else 1
 
 
 if __name__ == "__main__":

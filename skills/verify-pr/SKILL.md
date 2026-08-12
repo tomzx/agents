@@ -1,8 +1,8 @@
 ---
 name: verify-pr
-description: Verify that a PR conforms to its specified requirements (acceptance criteria). Combines static criteria-to-code traceability with runtime execution that proves each criterion by building and running the PR. Records CLI demos (asciinema) and web UI captures (Playwright). Does not judge code craft (that is review-pr) or whether the target is the right product (that is validate-pr).
+description: Verify that a PR conforms to its specified requirements (acceptance criteria). Combines static criteria-to-code traceability with runtime execution that proves each criterion by building and running the PR. Records CLI demos (asciinema) and web UI captures (Playwright). Does not judge code craft (that is review-pr) or whether the target is the right product (that is validate-pr). By default does NOT post to GitHub; pass --post to post the conformance report as a PR comment.
 allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ../../scripts/get-env:*, ../../scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
-argument-hint: "<pr-number> [repository]"
+argument-hint: "<pr-number> [repository] [--post]"
 ---
 
 # Verify Pull Request
@@ -74,9 +74,9 @@ Collect assets (GIFs / PNGs / video)
 Upload assets to PR branch
    |
    v
-Post conformance report (traceability + runtime evidence)
-   |
-   v
+Write the conformance report (traceability + runtime evidence)
+    |
+    v
 Clean up worktree
 ```
 
@@ -274,7 +274,7 @@ First ensure the dev server is running inside the worktree (start it in the back
 
 Collect the returned PNG/video paths for each criterion. Kill the dev server before moving on.
 
-### 8. Upload assets and post the conformance report
+### 8. Upload assets and write the conformance report
 
 Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) to the PR branch so they can be referenced inline:
 
@@ -346,7 +346,9 @@ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
 
 ### Post the conformance report as a PR comment
 
-Run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
+By default, the report is saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md` and NOT posted to GitHub. To post it, pass `--post` to the skill.
+
+Run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR" [--post]`. The `--post` flag is included when the user passed `--post` to this skill. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
 
@@ -370,10 +372,10 @@ rm -rf /tmp/verify-pr-$PR_NUMBER
 
 | Mode | Response |
 |------|----------|
-| **No linked issue, or no parseable acceptance criteria** | Post comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims in a vacuum |
+| **No linked issue, or no parseable acceptance criteria** | Save a comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims in a vacuum |
 | **PR description has no claims** | Proceed; criteria drive verification, claims are optional hints. Note the absence of claims in the report |
 | **Worktree creation fails** | Stop |
-| **Build fails** | Post build failure with error output, stop |
+| **Build fails** | Save build failure as a report file, stop |
 | **asciinema not available** | `/record-asciinema` returns nothing; capture CLI stdout/stderr as text, skip the GIF |
 | **Playwright/Chromium not available** | `/record-playwright` returns nothing; describe the web UI change in text, skip the screenshot |
 | **Dev server won't start** | Skip web UI capture; note in the report and verify via unit tests where possible. Criteria that needed the server become Conforms (static only) if traced, else Not verified |
@@ -387,13 +389,13 @@ rm -rf /tmp/verify-pr-$PR_NUMBER
 ```
 /verify-pr 42 owner/myrepo
 ```
-PR #42 is linked to issue #31 whose Must criteria require a `--verbose` flag and an `export` command. Traces both criteria to code, creates a worktree, builds, runs `tool --verbose` and `tool export`, records both via `/record-asciinema`, uploads GIFs and posts a conformance report. All Must criteria Conform.
+PR #42 is linked to issue #31 whose Must criteria require a `--verbose` flag and an `export` command. Traces both criteria to code, creates a worktree, builds, runs `tool --verbose` and `tool export`, records both via `/record-asciinema`, uploads GIFs and saves a conformance report. All Must criteria Conform. Use `--post` to also post the report as a PR comment.
 
 **Scenario 2: Feature PR with web UI changes**
 ```
 /verify-pr 77 owner/myrepo
 ```
-PR #77 is linked to an issue requiring a login page at `/login` with a mobile layout. Traces the criterion to the page component, creates a worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and posts a conformance report with the images embedded.
+PR #77 is linked to an issue requiring a login page at `/login` with a mobile layout. Traces the criterion to the page component, creates a worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and saves a conformance report with the images embedded. Use `--post` to also post the report as a PR comment.
 
 **Scenario 3: Bug fix PR, nonconforming**
 ```
@@ -411,7 +413,7 @@ PR #90 implements a `--quiet` flag the author claims, but no acceptance criterio
 ```
 /verify-pr 15
 ```
-PR #15 fails to build due to missing dependency. Posts build error as comment and stops.
+PR #15 fails to build due to missing dependency. Saves build error as a report file and stops.
 
 ## Next Step
 

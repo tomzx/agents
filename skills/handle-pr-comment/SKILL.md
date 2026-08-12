@@ -1,12 +1,12 @@
 ---
 name: handle-pr-comment
-description: Reply to a comment on a GitHub pull request, implementing changes if appropriate, using the codebase and comment history as context.
-argument-hint: "<pr-url>"
+description: Reply to a comment on a GitHub pull request, implementing changes if appropriate, using the codebase and comment history as context. By default does NOT push commits or post comments to GitHub; pass --post to push and post.
+argument-hint: "<pr-url> [--post]"
 ---
 
 # Handle PR Comment
 
-Evaluates a comment on a GitHub pull request and responds appropriately - either implementing the requested change and pushing it, or posting a reply explaining why the change will not be made.
+Evaluates a comment on a GitHub pull request and responds appropriately, either implementing the requested change or drafting a reply explaining why the change will not be made. By default, it implements changes locally and drafts the reply without pushing or posting; pass `--post` to push commits and post the reply comment to GitHub.
 
 ## Prerequisites
 
@@ -38,13 +38,18 @@ Fetch PR metadata + comment history
         +------+--------+
                |
                v
-     Present to user for approval
-         /          \
-     Approved      Rejected
-        |              |
-        v              v
-  Commit + push      Skip
-  (or post reply)
+   Present to user for approval
+       /          \
+   Approved      Rejected
+      |              |
+      v              v
+ --post?         Skip
+  / \
+ No  Yes
+  |   |
+  v   v
+ Stop Commit + push
+      (or post reply)
 ```
 
 ## Steps
@@ -63,8 +68,10 @@ Fetch PR metadata + comment history
 6. If not actionable: draft a reply explaining the rejection.
 7. Present reasoning to the user for approval.
 8. On approval:
-   - For code changes: commit and push to the PR branch.
-   - For rejections: post the reply comment via `ghx` with the **Skill attribution** footer on the comment body.
+   - If `--post` is set:
+     - For code changes: commit and push to the PR branch.
+     - For rejections: post the reply comment via `ghx` with the **Skill attribution** footer on the comment body.
+   - If `--post` is not set: present the prepared changes or drafted reply to the user without pushing or posting.
 
 ## Example Usage
 

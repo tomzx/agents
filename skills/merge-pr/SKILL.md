@@ -1,12 +1,12 @@
 ---
 name: merge-pr
-description: Check that a pull request is approved and CI is passing, then merge it and clean up the branch.
-argument-hint: "<pr-number>"
+description: Check that a pull request is approved and CI is passing, then merge it and clean up the branch. By default does NOT merge on GitHub; it reports the merge readiness status. Pass --post to merge, delete the branch, and close the linked issue.
+argument-hint: "<pr-number> [--post]"
 ---
 
 # Merge PR
 
-Verifies that a pull request has the required approvals and passing CI checks, then merges it and cleans up the branch.
+Verifies that a pull request has the required approvals and passing CI checks. By default, reports the merge readiness status without merging. Pass `--post` to merge, delete the branch, and close the linked issue.
 
 ## Prerequisites
 
@@ -27,20 +27,29 @@ Fetch PR status ($1)
    Yes           No
     |             |
     v             v
-CI checks      Report missing
-passing?       approvals, stop
-   /    \
- Yes     No
-  |       |
-  v       v
-Merge   /handle-pr-ci
-PR      (fix, then re-check)
-  |
-  v
-Delete remote branch
-  |
-  v
-Confirm issue closed
+  CI checks      Report missing
+ passing?       approvals, stop
+    /    \
+  Yes     No
+   |       |
+   v       v
+ Report   /handle-pr-ci
+ merge    (fix, then re-check)
+ readiness
+   |
+   v
+ --post set?
+  /         \
+ No          Yes
+  |            |
+  v            v
+ Stop      Merge PR
+           |
+           v
+          Delete remote branch
+           |
+           v
+          Confirm issue closed
 ```
 
 ## Steps
@@ -54,7 +63,7 @@ Confirm issue closed
 
 3. Check CI: confirm all required status checks are passing. If any are failing or pending, invoke `/handle-pr-ci $1` to diagnose and fix before continuing.
 
-4. Present the merge summary to the user (PR title, approvals, checks) and ask for confirmation.
+4. Present the merge summary to the user (PR title, approvals, checks). If `--post` is not set, report the merge readiness status and stop. If `--post` is set, proceed to merge.
 
 5. On confirmation, merge the PR:
    ```
@@ -78,9 +87,9 @@ Confirm issue closed
 
 **Scenario 1: Clean PR ready to merge**
 ```
-/merge-pr 42
+/merge-pr 42 --post
 ```
-PR has 2 approvals, all CI checks green. Present summary, confirm with user, squash-merge, delete branch, confirm issue closed.
+PR has 2 approvals, all CI checks green. Present summary, squash-merge, delete branch, confirm issue closed. Without `--post`, reports readiness status without merging.
 
 **Scenario 2: Missing approval**
 ```

@@ -311,7 +311,7 @@ Context-level review skills (`review-goals`, `review-roadmap`, `review-service-l
 
 ## PR Review Reports (validate-pr / verify-pr / review-pr)
 
-PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The canonical shared record is the **GitHub comment** each skill posts; the local file is the reviewer's personal copy and the body `cat`-ed into that comment.
+PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The local file is the reviewer's personal copy. Posting it as a GitHub comment is opt-in: pass `--post` to the skill (or set `post_github_comments: true` in `~/.sdlc/config.yaml`) to share the report on the PR.
 
 ### Location
 

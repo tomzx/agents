@@ -223,7 +223,7 @@ Build the PR description from the committed changes plus the issue-rated finding
 Unless `--dry-run` or `--no-pr`:
 
 1. Push the branch.
-2. Open a PR with title `chore(codebase-improvement): <YYYY-MM-DD>` using `/create-pr` conventions, labeled `codebase-improvement` (and the `--label` value), targeting the default branch.
+2. Open a PR with title `chore(codebase-improvement): <YYYY-MM-DD>` using `/create-pr --post` conventions, labeled `codebase-improvement` (and the `--label` value), targeting the default branch.
 3. If `--create-issues` was passed, file one issue per `issue`-rated critical/high finding via `/create-issue`, and link them from the PR body.
 
 For `--dry-run`, write the full report to `.sdlc/improvement-dryrun-<YYYY-MM-DD>.md` and print it. For `--no-pr`, leave the local branch in place and print instructions to review and push.

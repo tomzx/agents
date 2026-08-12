@@ -1,8 +1,8 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit.
+description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit. By default the sub-skills do NOT post to GitHub; pass --post to post review comments.
 allowed-tools: Bash(gh:*, ghx:*)
-argument-hint: "[pr-url ... | owner/repo ...]"
+argument-hint: "[pr-url ... | owner/repo ...] [--post]"
 ---
 
 # Review Requested PRs
@@ -129,27 +129,35 @@ Rationale: if validate-pr is stale, the downstream skills must also re-run becau
 
 ### 5. Run stale review steps
 
-For each PR that needs processing, invoke the stale skills in order. Each skill receives the PR number and repository:
+For each PR that needs processing, dispatch each stale skill as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Append `--post` to each command when the user passed `--post` to this orchestrator.
+
+Use the `general` subagent type for all three steps.
 
 #### validate-pr
 
+Dispatch a subagent with this exact prompt:
+
 ```
-/validate-pr {PR} {REPO}
+Run the validate-pr skill: /validate-pr {PR} {REPO} [--post]
 ```
 
 #### verify-pr
 
+Dispatch a subagent with this exact prompt:
+
 ```
-/verify-pr {PR} {REPO}
+Run the verify-pr skill: /verify-pr {PR} {REPO} [--post]
 ```
 
 #### review-pr
 
+Dispatch a subagent with this exact prompt:
+
 ```
-/review-pr {PR} {REPO}
+Run the review-pr skill: /review-pr {PR} {REPO} [--post]
 ```
 
-Process PRs sequentially. Each sub-skill checks out the PR branch in a worktree, runs its analysis, and posts a comment with the commit SHA marker.
+Process PRs in parallel by dispatching one subagent per PR in a single message with multiple Task tool calls. Each PR is independent, so all PRs run concurrently. Within a PR, steps run sequentially (validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize steps within a single PR, because each step may halt the pipeline. Each sub-skill checks out the PR branch in a worktree, runs its analysis, and posts a comment with the commit SHA marker.
 
 If a step fails (e.g. build failure in verify-pr, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run subsequent steps for that PR. Record the failure in the summary. Treat a blocking verdict from any step the same way: a **Wrong thing** verdict from `validate-pr` (the target is the wrong product) should halt the pipeline before `verify-pr` spends a build, since verifying conformance to a wrong spec is wasted effort.
 

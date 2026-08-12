@@ -1,11 +1,11 @@
 ---
 name: pr-review-send
-description: Send PR review comments to GitHub using the pr-comment script.
+description: Send PR review comments to GitHub using the pr-comment script. By default does NOT post to GitHub; pass --post to send comments.
 ---
 
 # Send PR Review Comments
 
-Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository.
+Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository. By default, it composes the comments and shows them for review without posting; pass `--post` to actually send them to GitHub.
 
 ## Prerequisites
 
@@ -24,31 +24,33 @@ Before each `pr-comment.py` invocation, read [`github-post-attribution/SKILL.md`
    ```
    cd $HOME/repos/git/personal-automation
    ```
-2. Post a review comment (`--comment` includes main text plus **Skill attribution** footer):
+2. Compose each review comment (including the **Skill attribution** footer). If `--post` is not set, present the comments to the user and stop without posting.
+3. If `--post` is set, post a review comment (`--comment` includes main text plus **Skill attribution** footer):
    ```
    uv run $HOME/repos/git/personal-automation/others/pr-comment.py <owner>/<repo> <pr-number> \
      --file <path/to/file.py> \
      --line <line-number> \
      --comment "<comment text>"
    ```
-3. Repeat for each additional comment on different files or lines.
+4. Repeat for each additional comment on different files or lines.
 
 ## Example Usage
 
 **Scenario 1: Comment on a specific line**
 ```
-uv run $HOME/repos/git/personal-automation/others/pr-comment.py owner/myrepo 123 \
+/pr-review-send --post owner/myrepo 123 \
   --file src/main.py \
   --line 42 \
   --comment "This function should handle the case where input is None."
 ```
+Posts the comment to PR #123 on `src/main.py` line 42. Without `--post`, composes the comment and shows it without posting.
 
 **Scenario 2: Multiple comments on different files**
-Run the command once per comment location, varying `--file` and `--line` for each.
+Run the command once per comment location, varying `--file` and `--line` for each. Use `--post` to send all comments to GitHub.
 
 **Scenario 3: Comment on a migration file**
 ```
-uv run $HOME/repos/git/personal-automation/others/pr-comment.py owner/api 88 \
+/pr-review-send --post owner/api 88 \
   --file migrations/0042_add_index.sql \
   --line 5 \
   --comment "Consider adding a concurrent index to avoid table locking."
