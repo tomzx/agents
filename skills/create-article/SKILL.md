@@ -44,6 +44,12 @@ If sources are not yet gathered, run `/research-article` first to discover the s
   Keep technical terms where they are the precise and expected choice; the goal is to avoid uncommon
   or showy words, not to lose precision. Calibrate this to the audience: write simpler for general
   readers, and allow more domain terms for expert readers.
+- **Name the referent**: Avoid bare referential words like "this", "that", "these", and "those" when
+  the referent could be ambiguous, since they force the reader to backtrack and resolve what is meant.
+  Prefer naming the thing directly. For example, write "the parser fails on nested generics" rather
+  than "this fails on nested generics", or "that approach trades latency for throughput" rather than
+  "that trades latency for throughput". Referential words are acceptable when the referent is
+  unambiguous and immediately adjacent, or when repeating the noun would be clunky.
 
 ## Audience Calibration
 
