@@ -1,8 +1,8 @@
 ---
 name: review-pr
-description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role). By default does NOT post to GitHub; pass --post to post the review as a PR comment.
-allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-github-comment:*), Read, Write, Glob, Grep
-argument-hint: "<pr-number> [--post]"
+description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role).
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+argument-hint: "<pr-number>"
 ---
 
 # Review Pull Request
@@ -47,9 +47,9 @@ Fetch PR metadata + comments ($1)
   (create or update)
              |
              v
-  Post review file
-  as PR comment
-  (--post to enable)
+   Post review file
+   as PR comment
+   (gated by should-post-to-github)
 ```
 
 ## Setup
@@ -345,9 +345,9 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-By default, the review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` and NOT posted to GitHub. To post it, pass `--post` to the skill.
+The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`. Posting it as a PR comment is decided by `should-post-to-github`.
 
-After writing `review-pr.$SHORT_SHA.md`, run `~/.agents/scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR" [--post]`. The `--post` flag is included when the user passed `--post` to this skill. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
+After writing `review-pr.$SHORT_SHA.md`, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- review-pr:HEAD_COMMIT -->` marker.
 

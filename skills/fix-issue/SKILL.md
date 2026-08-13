@@ -61,7 +61,7 @@ Record before   Stop
  captures after, presents pair, gets sign-off)
         |
         v
-/create-pr --post
+/create-pr
 (embeds pre-captured before/after pair)
         |
         v
@@ -151,13 +151,13 @@ If the user reports the fix is wrong or incomplete, do not proceed to `create-pr
 
 ### 5. Create the pull request
 
-Invoke `create-pr` with the issue number and repository. Pass `--post` to actually create the PR on GitHub; without it, `create-pr` drafts the description without creating the PR:
+Invoke `create-pr` with the issue number and repository. `create-pr` decides whether to create the PR on GitHub via the `should-post-to-github` script; otherwise it drafts the description:
 
 ```
-/create-pr $REPO $ISSUE_NUMBER --post
+/create-pr $REPO $ISSUE_NUMBER
 ```
 
-This skill handles pushing the branch and opening a structured PR. It reads `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (written by `validate-implementation`) and embeds the listed before/after assets in a Before / After section of the PR body. If no manifest exists (tools were unavailable or the surface was unclassifiable), the pair is omitted and the PR opens with the standard sections. `create-pr` never captures recordings itself. Without `--post`, it drafts the PR description and shows it for review without creating the PR.
+This skill handles pushing the branch and opening a structured PR. It reads `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (written by `validate-implementation`) and embeds the listed before/after assets in a Before / After section of the PR body. If no manifest exists (tools were unavailable or the surface was unclassifiable), the pair is omitted and the PR opens with the standard sections. `create-pr` never captures recordings itself. If `should-post-to-github` disables posting, it drafts the PR description and shows it for review without creating the PR.
 
 ## Failure Modes
 

@@ -1,8 +1,9 @@
 # SDLC configuration (~/.sdlc/config.yaml)
 #
 # Copy this file to ~/.sdlc/config.yaml and customize.
-# Read by ~/.agents/scripts/should-post-github-comment to decide whether
-# validate-pr, verify-pr, and review-pr should post comments to GitHub.
+# Read by ~/.agents/scripts/should-post-to-github to decide whether
+# skills may post content to GitHub (PR creation, PR description updates,
+# comments, reviews). Git write operations (push, merge, deploy) are not gated.
 
 # Global kill switch. Set to false to suppress all GitHub comment posting.
 # Default is true when the key is absent.

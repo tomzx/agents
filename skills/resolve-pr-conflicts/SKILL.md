@@ -1,19 +1,19 @@
 ---
 name: resolve-pr-conflicts
-description: Scan a repository for the current user's open pull requests that have merge conflicts, then resolve each one IN PARALLEL by fanning out to a separate agent session per PR. Each session reuses an existing git worktree or creates a new one, fixes the conflicts, verifies, and pushes. By default does NOT push or post comments to GitHub; pass --post to push and comment. Use when the user says /resolve-pr-conflicts, "fix merge conflicts", "resolve PR conflicts", "my PRs have conflicts", "unblock my PRs", or wants to bulk-resolve merge conflicts on their own pull requests in parallel.
-argument-hint: "[owner/repo] [--post] [--dry-run] [--limit N] [--concurrency N]"
+description: Scan a repository for the current user's open pull requests that have merge conflicts, then resolve each one IN PARALLEL by fanning out to a separate agent session per PR. Each session reuses an existing git worktree or creates a new one, fixes the conflicts, verifies, and pushes. Use when the user says /resolve-pr-conflicts, "fix merge conflicts", "resolve PR conflicts", "my PRs have conflicts", "unblock my PRs", or wants to bulk-resolve merge conflicts on their own pull requests in parallel.
+argument-hint: "[owner/repo] [--dry-run] [--limit N] [--concurrency N]"
 ---
 
 # Resolve PR Conflicts
 
-Finds every open pull request authored by the current user in a repository that has merge conflicts, then resolves each one **in parallel**. By default, each sub-agent resolves and verifies locally without pushing or posting comments; pass `--post` to push the resolution and post a comment on each PR. The skill is split into two roles:
+Finds every open pull request authored by the current user in a repository that has merge conflicts, then resolves each one **in parallel**. The skill is split into two roles:
 
 - **Orchestrator (this session):** scans the repo, detects which of the user's PRs have conflicts, prepares one worktree per conflicting PR (reusing an existing one when present), discovers the project's verification commands once, then fans out to one sub-agent session per PR and aggregates the results.
 - **Sub-agent (one per PR, concurrent):** works inside its assigned worktree, merges the base branch, resolves the conflict markers, runs verification, pushes, and posts a comment.
 
 Because the PRs are independent, fixing them in separate concurrent sessions is dramatically faster than sequential resolution. Each sub-agent owns a distinct worktree and a distinct head branch, so there are no filesystem or git-push races.
 
-Designed to be safe to run unattended: by default it resolves and verifies without pushing. Ambiguous conflicts and PRs that fail verification are aborted and reported by that PR's sub-agent, never pushed.
+Designed to be safe to run unattended: ambiguous conflicts and PRs that fail verification are aborted and reported by that PR's sub-agent, never pushed.
 
 ## Prerequisites
 
@@ -32,8 +32,7 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 ## Arguments and Flags
 
 - `$1` (optional): target repository in `owner/repo` form. If omitted, resolved from `gh repo set-default --view`, then from the `origin` remote of the current directory.
-- `--post`: each sub-agent resolves, verifies, pushes, and posts a comment. Without this flag, sub-agents resolve and verify locally but do NOT push or comment.
-- `--dry-run`: alias for the default no-post behavior (kept for backward compatibility). Each sub-agent resolves and verifies locally but does NOT push or comment. Worktrees are left for review.
+- `--dry-run`: each sub-agent resolves and verifies locally, but does NOT push and does NOT post a comment. Worktrees are left for review.
 - `--limit N`: maximum number of PRs to scan for conflicts (default `50`). Caps API calls.
 - `--concurrency N`: maximum sub-agents running at once (default `5`). The orchestrator launches in batches of this size.
 
@@ -147,7 +146,7 @@ git worktree add "$WORKDIR" "pr-$PR"
 
 Discover the project's test, lint, and typecheck commands the way `improve-codebase` does: `AGENTS.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`). Record the resolved command strings. These are identical for every worktree (same repo), so they are discovered once and passed into every sub-agent prompt.
 
-If no verification command can be found, still dispatch but pass `VERIFY_COMMANDS=()` and set `NO_VERIFY=true` in each prompt so sub-agents resolve without verification and do not push (default no-post behavior) unless the user passed `--post`.
+If no verification command can be found, still dispatch but pass `VERIFY_COMMANDS=()` and set `NO_VERIFY=true` in each prompt so sub-agents resolve without verification and default to `--dry-run` behavior for their PR (commit locally, do not push) unless the user opted in.
 
 ### 6. Fan out: launch one sub-agent per task, concurrently
 
@@ -167,7 +166,7 @@ Worktree:     {WORKDIR}        (absolute path; cd here first)
 Head branch:  {HEAD_REF}       (push back here)
 Base branch:  {BASE_REF}
 Fork PR:      {FORK}           (if true, push to git@github.com:{HEAD_REPO_OWNER}/{HEAD_REPO}.git)
-Post:         {POST}           (true: push and comment; false: resolve and verify only)
+Dry run:      {DRY_RUN}        (true: do not push, do not comment)
 Verify cmds:  {VERIFY_COMMANDS}  (e.g. "uv run ruff check .", "uv run pytest -q")
                (empty means no verification available)
 
@@ -189,16 +188,15 @@ Steps:
    - green  -> continue
    - red    -> run `git merge --abort`, return verdict "verify-failed" with output
 7. Commit the merge: git commit --no-edit
-8. If POST is true:
-      - push: git push origin {HEAD_REF}
-        (fork: git push git@github.com:{HEAD_REPO_OWNER}/{HEAD_REPO}.git {LOCAL_BRANCH}:{HEAD_REF})
-      - post a short comment via gh pr comment {PR} --repo {REPO} with the list of
-        resolved files and the resolve-pr-conflicts attribution footer
-        (see skills/github-post-attribution/SKILL.md). Never force-push.
-    If POST is false: commit the merge locally but do NOT push or comment.
+8. Unless DRY_RUN is true:
+     - push: git push origin {HEAD_REF}
+       (fork: git push git@github.com:{HEAD_REPO_OWNER}/{HEAD_REPO}.git {LOCAL_BRANCH}:{HEAD_REF})
+     - post a short comment via gh pr comment {PR} --repo {REPO} with the list of
+       resolved files and the resolve-pr-conflicts attribution footer
+       (see skills/github-post-attribution/SKILL.md). Never force-push.
 9. Return EXACTLY one line in this format, nothing else:
-    VERDICT <status> | PR #{PR} | <short note>
-    where <status> is one of: pushed, resolved-local, needs-manual, verify-failed, aborted, no-verify
+   VERDICT <status> | PR #{PR} | <short note>
+   where <status> is one of: pushed, needs-manual, verify-failed, aborted, no-verify
 ```
 
 Sub-agents must stay inside their assigned `WORKDIR` and must not create or remove worktrees (the orchestrator owns worktree lifecycle).
@@ -213,7 +211,6 @@ Collect each sub-agent's `VERDICT ...` line. Print a summary table:
 | #88 | Refactor cache layer | Needs-manual (semantic conflict in cache.py) |
 | #55 | Bump deps | Verify-failed (pytest) |
 | #77 | Docs tweak | Skipped (mergeable unknown) |
-| #99 | Fix typo | Resolved-local (2 files, use --post to push) |
 
 Include any PRs skipped during orchestration (worktree setup failed, mergeable unknown).
 
@@ -243,17 +240,11 @@ If sub-agent dispatch is unavailable (no Task tool, or the user passes `--sequen
 
 ## Example Usage
 
-**Scenario 1: Parallel unblock (with --post)**
-```
-/resolve-pr-conflicts --post
-```
-Scans the current repo. 4 of my 8 open PRs have conflicts. The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once). Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed). Summary table printed. Wall-clock is roughly the slowest single PR, not the sum.
-
-**Scenario 2: Default (no push, no comment)**
+**Scenario 1: Parallel unblock (default)**
 ```
 /resolve-pr-conflicts
 ```
-Same scan, but sub-agents resolve and verify locally without pushing or commenting. Review the worktrees, then re-run with `--post` to push.
+Scans the current repo. 4 of my 8 open PRs have conflicts. The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once). Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed). Summary table printed. Wall-clock is roughly the slowest single PR, not the sum.
 
 **Scenario 2: Scoped to a specific repo, bounded parallelism**
 ```
@@ -261,11 +252,11 @@ Same scan, but sub-agents resolve and verify locally without pushing or commenti
 ```
 9 conflicting PRs. Orchestrator creates 9 worktrees, launches sub-agents in batches of 3.
 
-**Scenario 3: Dry run (explicit, same as default)**
+**Scenario 3: Dry run before trusting it**
 ```
 /resolve-pr-conflicts --dry-run
 ```
-Each sub-agent resolves and verifies but commits locally without pushing or commenting. Review the worktrees before a real run with `--post`.
+Each sub-agent resolves and verifies but commits locally without pushing or commenting. Review the worktrees before a real run.
 
 **Scenario 4: Reuses existing worktrees**
 ```

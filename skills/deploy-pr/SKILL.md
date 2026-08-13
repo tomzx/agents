@@ -1,12 +1,12 @@
 ---
 name: deploy-pr
-description: Deploy merged changes to the target environment, run smoke tests, and verify the rollback plan. By default does NOT deploy; it produces a deployment plan and verifies rollback readiness. Pass --post to execute the deployment and run smoke tests.
-argument-hint: "<pr-number or merge-sha> [--post]"
+description: Deploy merged changes to the target environment, run smoke tests, and verify the rollback plan.
+argument-hint: "<pr-number or merge-sha>"
 ---
 
 # Deploy PR
 
-Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists. By default, produces a deployment plan and verifies rollback readiness without deploying. Pass `--post` to execute the deployment, run smoke tests, and verify health. Bridges the gap between merging code and having it running in production.
+Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists. Bridges the gap between merging code and having it running in production.
 
 ## Prerequisites
 
@@ -31,26 +31,21 @@ Fetch merged PR details ($1)
    Yes          No
     |            |
     v            v
-  --post?      Document rollback
-   / \         procedure first,
-  No  Yes      then proceed
-   |   |
-   v   v
- Report  Execute
- plan    deployment
-         |
-         v
-        Run smoke tests
-         /         \
-       Pass         Fail
-        |            |
-        v            v
-       Verify      Execute rollback
-       health      Report failure
-        |            |
-        v            v
-       Report      Stop, investigate
-       success
+  Execute     Document rollback
+  deployment  procedure first,
+    |         then proceed
+    v
+  Run smoke tests
+     /         \
+   Pass         Fail
+    |            |
+    v            v
+  Verify      Execute rollback
+  health      Report failure
+    |            |
+    v            v
+  Report      Stop, investigate
+  success
 ```
 
 ## Steps
@@ -72,7 +67,7 @@ Fetch merged PR details ($1)
    - Database migration rollback if applicable
    If no rollback plan exists, document one before proceeding.
 
-4. If `--post` is not set, present the deployment plan (target environment, rollback plan, smoke test checklist) and stop. If `--post` is set, execute the deployment using the project's CI/CD pipeline or deployment scripts:
+4. Execute the deployment using the project's CI/CD pipeline or deployment scripts:
    ```
    gh workflow run deploy.yml --ref main -f environment=<target>
    ```
@@ -126,19 +121,19 @@ Fetch merged PR details ($1)
 
 **Scenario 1: Standard production deploy**
 ```
-/deploy-pr 42 --post
+/deploy-pr 42
 ```
-PR #42 was merged to main. Deploy to production via CI/CD pipeline, run smoke tests, confirm healthy. Without `--post`, produces the deployment plan without deploying.
+PR #42 was merged to main. Deploy to production via CI/CD pipeline, run smoke tests, confirm healthy.
 
 **Scenario 2: Staging deploy first**
 ```
-/deploy-pr 88 --post
+/deploy-pr 88
 ```
-Deploy PR #88 to staging first, run smoke tests, then promote to production if all checks pass. Without `--post`, produces the deployment plan without deploying.
+Deploy PR #88 to staging first, run smoke tests, then promote to production if all checks pass.
 
 **Scenario 3: Rollback needed**
 ```
-/deploy-pr 55 --post
+/deploy-pr 55
 ```
 Smoke tests reveal a 500 error on the checkout flow. Roll back to the previous deployment, confirm system health, report the failure.
 

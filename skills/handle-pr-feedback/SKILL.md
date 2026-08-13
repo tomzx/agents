@@ -1,12 +1,13 @@
 ---
 name: handle-pr-feedback
-description: Review and respond to developer comments on a GitHub pull request, implementing valid feedback or explaining rejections, then push changes. By default does NOT push or post replies to GitHub; pass --post to push and post.
-argument-hint: "<pr-number> [--post]"
+description: Review and respond to developer comments on a GitHub pull request, implementing valid feedback or explaining rejections, then push changes.
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/should-post-to-github:*), Read, Edit, Glob, Grep
+argument-hint: "<pr-number>"
 ---
 
 # Handle PR Feedback
 
-Reviews and responds to all developer comments on a GitHub pull request, implementing valid feedback or explaining rejections with clear justification. By default, it implements changes locally and drafts replies without pushing or posting; pass `--post` to push changes and post replies to GitHub.
+Reviews and responds to all developer comments on a GitHub pull request, implementing valid feedback or explaining rejections with clear justification. On user approval it commits and pushes changes; whether replies are posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
 
 ## Prerequisites
 
@@ -38,20 +39,17 @@ Fetch PR comments ($1)
   Approved     Rejected
      |             |
      v             v
- Implement       Skip
- changes
-     |
-     v
- --post?
-  / \
- No  Yes
-  |   |
-  v   v
- Stop Commit + push
+  Implement       Skip
+  changes
       |
       v
-    Reply to each comment thread
-    with outcome (ghx)
+  Commit + push
+  (always on approval)
+      |
+      v
+     Reply to each comment thread
+     with outcome (ghx), only if
+     should-post-to-github allows
 ```
 
 ## Steps
@@ -63,17 +61,16 @@ Fetch PR comments ($1)
 2. For each comment, evaluate whether it is appropriate and actionable.
 3. Present the evaluation and proposed action (implement or reject with explanation) to the user for approval.
 4. For actionable comments that the user approved: implement the requested changes in the codebase.
-5. If `--post` is set, commit and push the changes:
+5. Commit and push the changes (push is not gated):
    ```
    git add -A && git commit -m "<message>"
    git push
    ```
-   If `--post` is not set, present the changes to the user without pushing.
-6. If `--post` is set, reply to each comment thread with the outcome using `ghx`. For actionable comments where changes were implemented: reply with a brief summary and a link to the commit (e.g., "Done: added null guard for `user` in abc1234."). For non-actionable comments: reply with the rejection explanation. Use the thread IDs from step 1:
+6. Decide whether to post replies: get the PR author (`gh pr view $1 --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, reply to each comment thread with the outcome using `ghx`. For actionable comments where changes were implemented: reply with a brief summary and a link to the commit (e.g., "Done: added null guard for `user` in abc1234."). For non-actionable comments: reply with the rejection explanation. Use the thread IDs from step 1:
    ```
    ghx pr comment $1 --reply-thread <thread-id> --body "<outcome summary>"
    ```
-   Append the **Skill attribution** footer to each reply.
+   Append the **Skill attribution** footer to each reply. If the script exits 1, present the drafted replies to the user without posting.
 
 ## Example Usage
 

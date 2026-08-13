@@ -501,7 +501,7 @@ When the guard finds a competing PR the user has not already dismissed, present 
 |---|---|
 | **Continue** | The PR number is appended to `linked_prs_acknowledged` in `.sdlc/state.yml`; the guard will not re-prompt for it. Proceed with the current phase. |
 | **Stop** | Pause the pipeline pending the external PR. Record the dependency (PR number, author) in `progress.md` and leave the pipeline resumable. |
-| **Review** | Run `/review-pr <pr-number> [--post]` (pass `--post` to post the review comment). If it approves, stop the flow and depend on the external PR. If it requests changes or rejects, acknowledge the PR and continue the current flow. |
+| **Review** | Run `/review-pr <pr-number>` (it posts the review comment unless `should-post-to-github` disables posting). If it approves, stop the flow and depend on the external PR. If it requests changes or rejects, acknowledge the PR and continue the current flow. |
 
 Because dismissed PR numbers persist in `state.yml`, running the guard at every phase transition stays low-noise: it only surfaces genuinely new competing PRs.
 
@@ -671,8 +671,8 @@ When the pipeline reaches a phase that would commit, push, or open a PR:
 
 1. Complete all non-destructive work for that phase (write code, update artifacts, run tests, run type-check and lint).
 2. Stop and report what was done and what the next action would be.
-3. Wait for the user to explicitly say to commit, push, or create the PR (e.g. pass `--post` to the skill).
+3. Wait for the user to explicitly say to commit, push, or create the PR.
 
 This applies to all entry points and fast paths, including `bugfix`.
 
-The following skills default to NOT posting to GitHub; pass `--post` to create, merge, deploy, or post comments: `create-pr`, `merge-pr`, `deploy-pr`, `validate-pr`, `verify-pr`, `review-pr`.
+GitHub content writes (PR creation, PR description updates, comments, reviews) are gated by the `should-post-to-github` script (`~/.sdlc/config.yaml`), which `create-pr`, `validate-pr`, `verify-pr`, and `review-pr` consult. Git write operations (push, merge, deploy) are not gated by that script.

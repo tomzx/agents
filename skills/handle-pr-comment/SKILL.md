@@ -1,12 +1,13 @@
 ---
 name: handle-pr-comment
-description: Reply to a comment on a GitHub pull request, implementing changes if appropriate, using the codebase and comment history as context. By default does NOT push commits or post comments to GitHub; pass --post to push and post.
-argument-hint: "<pr-url> [--post]"
+description: Reply to a comment on a GitHub pull request, implementing changes if appropriate, using the codebase and comment history as context.
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/should-post-to-github:*), Read, Edit, Glob, Grep
+argument-hint: "<pr-url>"
 ---
 
 # Handle PR Comment
 
-Evaluates a comment on a GitHub pull request and responds appropriately, either implementing the requested change or drafting a reply explaining why the change will not be made. By default, it implements changes locally and drafts the reply without pushing or posting; pass `--post` to push commits and post the reply comment to GitHub.
+Evaluates a comment on a GitHub pull request and responds appropriately, either implementing the requested change or drafting a reply explaining why the change will not be made. On user approval it commits and pushes code changes; whether the reply comment is posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise the drafted reply is shown without posting.
 
 ## Prerequisites
 
@@ -43,13 +44,11 @@ Fetch PR metadata + comment history
    Approved      Rejected
       |              |
       v              v
- --post?         Skip
-  / \
- No  Yes
-  |   |
-  v   v
- Stop Commit + push
-      (or post reply)
+  Commit +       Skip
+  push
+  (always on approval);
+  post reply only if
+  should-post-to-github allows
 ```
 
 ## Steps
@@ -68,10 +67,8 @@ Fetch PR metadata + comment history
 6. If not actionable: draft a reply explaining the rejection.
 7. Present reasoning to the user for approval.
 8. On approval:
-   - If `--post` is set:
-     - For code changes: commit and push to the PR branch.
-     - For rejections: post the reply comment via `ghx` with the **Skill attribution** footer on the comment body.
-   - If `--post` is not set: present the prepared changes or drafted reply to the user without pushing or posting.
+   - For code changes: commit and push to the PR branch (push is not gated).
+   - For posting a reply comment: get the PR author (`gh pr view <pr-number> --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, post the reply via `ghx` with the **Skill attribution** footer on the comment body. If it exits 1, present the drafted reply to the user without posting.
 
 ## Example Usage
 

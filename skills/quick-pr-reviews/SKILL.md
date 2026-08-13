@@ -1,8 +1,8 @@
 ---
 name: quick-pr-reviews
-description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations or repositories (owner/repo). By default the sub-skill does NOT post to GitHub; pass --post to post and approve.
+description: Check all PRs where you are a requested reviewer for new commits and run quick-pr-review on each one that has changed since last reviewed. Optionally filter to specific organizations or repositories (owner/repo).
 allowed-tools: Bash(gh:*, ghx:*)
-argument-hint: "[org1 org2 ... | owner/repo1 owner/repo2 ...] [--post]"
+argument-hint: "[org1 org2 ... | owner/repo1 owner/repo2 ...]"
 ---
 
 # Quick PR Reviews
@@ -103,10 +103,10 @@ Extract `COMMENT_COMMIT` from the marker line `<!-- quick-pr-review:COMMIT_SHA -
 For each PR that needs review, invoke:
 
 ```
-/quick-pr-review {REPO} {PR} [--post]
+/quick-pr-review {REPO} {PR}
 ```
 
-Pass `--post` when the user passed `--post` to this orchestrator. Process PRs sequentially to avoid rate limiting.
+Process PRs sequentially to avoid rate limiting.
 
 ### 4. Report summary
 

@@ -5,19 +5,21 @@
 #     "pyyaml",
 # ]
 # ///
-"""Check whether GitHub comments should be posted for a given PR.
+"""Check whether content should be posted to GitHub for a given PR.
 
-Exit code 0 means post (true), 1 means do not post (false).
+Prints "post" to stdout and exits 0 when posting is allowed, or prints
+"do not post" and exits 1 when it is not. Agents should follow the printed
+verdict (the exit code mirrors it for scripting).
 
 Usage:
-    scripts/should-post-github-comment --repo owner/repo --author username [--post]
+    scripts/should-post-to-github --repo owner/repo --author username
 
-Default is to NOT post. To enable posting, either:
-  - Pass --post on the command line (per-invocation override), or
-  - Set post_github_comments: true in ~/.sdlc/config.yaml (persistent opt-in)
+This is the single decision point for whether a skill may post content to
+GitHub (PR creation, PR description updates, comments, reviews). Git write
+operations such as push are not gated by this script.
 
-Conditions (all must pass to post, unless --post is given):
-  1. --post flag is present, OR post_github_comments in config is true
+Conditions (all must pass to post):
+  1. post_github_comments in config is not false
   2. Repository owner not in excluded_owners
   3. Repository not in excluded_repos
   4. PR author not in excluded_authors
@@ -47,12 +49,9 @@ def load_config(path: Path) -> dict:
     return yaml.safe_load(path.read_text()) or {}
 
 
-def should_post(repo: str, author: str, config: dict, force: bool = False) -> bool:
+def should_post(repo: str, author: str, config: dict) -> bool:
     """Return True if commenting is allowed for the given repo and author."""
-    if force:
-        return True
-
-    if config.get("post_github_comments", False) is not True:
+    if config.get("post_github_comments", True) is False:
         return False
 
     parts = repo.split("/")
@@ -66,24 +65,24 @@ def should_post(repo: str, author: str, config: dict, force: bool = False) -> bo
         return False
     if repo.lower() in excluded_repos:
         return False
-    return author.lower() not in excluded_authors
+    if author.lower() in excluded_authors:
+        return False
+
+    return True
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check whether GitHub comments should be posted.",
+        description="Check whether content should be posted to GitHub.",
     )
     parser.add_argument("--repo", required=True, help="Repository in owner/repo format")
     parser.add_argument("--author", required=True, help="PR author username")
-    parser.add_argument(
-        "--post",
-        action="store_true",
-        help="Override: always post regardless of config (per-invocation opt-in)",
-    )
     args = parser.parse_args()
 
     config = load_config(CONFIG_PATH)
-    return 0 if should_post(args.repo, args.author, config, force=args.post) else 1
+    allowed = should_post(args.repo, args.author, config)
+    print("post" if allowed else "do not post")
+    return 0 if allowed else 1
 
 
 if __name__ == "__main__":

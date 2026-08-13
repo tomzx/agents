@@ -95,7 +95,7 @@ When one or more competing PRs are found, ask the user which action to take (the
 |---|---|
 | **Continue** | Add the PR number(s) to `linked_prs_acknowledged` in `.sdlc/state.yml` so the guard does not re-prompt for them, then proceed with the current flow. Emit `verdict: continue`. |
 | **Stop** | Stop the SDLC flow. Record in `.sdlc/features/N-<slug>/progress.md` that the flow paused pending an external PR (include the PR number and author). Leave the pipeline resumable. Emit `verdict: stop`. |
-| **Review** | Invoke `/review-pr <pr-number> [--post]` against the chosen PR (pass `--post` to post the review comment). Based on its verdict: if `approved`, stop the flow and depend on the external PR (record the dependency in `progress.md` and `state.yml`, emit `verdict: depend`); if `changes-requested` or `rejected`, add the PR to `linked_prs_acknowledged` and offer to continue the current flow (emit `verdict: continue`). |
+| **Review** | Invoke `/review-pr <pr-number>` against the chosen PR (it posts the review comment unless `should-post-to-github` disables posting). Based on its verdict: if `approved`, stop the flow and depend on the external PR (record the dependency in `progress.md` and `state.yml`, emit `verdict: depend`); if `changes-requested` or `rejected`, add the PR to `linked_prs_acknowledged` and offer to continue the current flow (emit `verdict: continue`). |
 
 When multiple competing PRs exist, default the Review option to the most relevant one (the open, non-draft PR that most directly addresses the issue's acceptance criteria) but let the user pick which to review.
 

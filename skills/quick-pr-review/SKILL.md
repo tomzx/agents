@@ -1,8 +1,8 @@
 ---
 name: quick-pr-review
-description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes. By default does NOT post comments or approve on GitHub; pass --post to post the review comment and approve.
-allowed-tools: Bash(gh:*, ghx:*, git:*, say), Read
-argument-hint: "<owner/repo> <pr-number> [--post]"
+description: Rapidly review and approve a GitHub pull request to unblock others. Approves unless there are significant risks or significant public interface changes.
+allowed-tools: Bash(gh:*, ghx:*, git:*, say, ~/.agents/scripts/should-post-to-github:*), Read
+argument-hint: "<owner/repo> <pr-number>"
 ---
 
 # Quick PR Review
@@ -10,7 +10,7 @@ argument-hint: "<owner/repo> <pr-number> [--post]"
 Rapidly reviews a GitHub pull request and prepares an approval decision to unblock others.
 Creates or updates a single review comment per PR, keyed to the latest commit.
 Approves automatically unless there are significant risks or significant public interface changes (removals, breaking changes, or substantial new API surface).
-By default, it runs all checks, composes the review comment, and saves it locally without posting to GitHub or approving; pass `--post` to post the comment and approve on GitHub.
+Whether the review comment is posted to GitHub (and the PR approved) is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`); when posting is disabled the comment is composed and saved locally without posting or approving.
 
 ## Prerequisites
 
@@ -341,7 +341,7 @@ git -C ~/.quick-pr-review commit -m "Review {REPO}: PR #$2 @ {SHORT_SHA}"
 
 ### 7. Create or update the comment
 
-If `--post` is not set, skip this step (the comment body is already saved locally in step 6).
+Run `~/.agents/scripts/should-post-to-github --repo "{REPO}" --author "{PR_AUTHOR}"`. If it exits 1, skip this step (the comment body is already saved locally in step 6).
 
 **If no existing comment:**
 ```bash
@@ -357,7 +357,7 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 
 ### 8. Approve or not
 
-If `--post` is not set, skip this step (report the approval decision to the user without executing it on GitHub).
+Only run the approval when step 7's `should-post-to-github` check exited 0 (posting allowed). If it exited 1, report the approval decision to the user without executing it on GitHub.
 
 **If `MANUAL_APPROVAL_ORG == true`** (owner is `Shopify` or `shop`): **never approve automatically**, regardless of check results.
 Post/update the comment as normal, then leave the approval to the user.
@@ -397,21 +397,21 @@ This records the review outcome and observations in `~/.developer-trust/{PR_AUTH
 ## Output
 
 Report to the user:
-- Whether the comment would be created or updated (or was created/updated if `--post` was set)
+- Whether the comment would be created or updated (or was created/updated if posting was allowed)
 - The short commit SHA reviewed
-- Whether the PR would be approved or not, and why (or was approved if `--post` was set)
+- Whether the PR would be approved or not, and why (or was approved if posting was allowed)
 - Whether the trust profile was created or updated (and at which path)
 
 ### Notify the user when their review is needed
 
-If the PR was **not approved** (including when it was withheld because the owner is a manual-approval organization such as `Shopify` or `shop`), or `--post` was not set so the review is pending the user's action, or you otherwise need the user to personally review the PR (e.g., ambiguous risk, policy judgment), speak a short audible alert on macOS so they notice even if the chat is in the background:
+If the PR was **not approved** (including when it was withheld because the owner is a manual-approval organization such as `Shopify` or `shop`), or posting was disabled so the review is pending the user's action, or you otherwise need the user to personally review the PR (e.g., ambiguous risk, policy judgment), speak a short audible alert on macOS so they notice even if the chat is in the background:
 
 ```bash
 say "{REPO} #{PR_NUMBER} needs your review"
 ```
 
 Use exactly that wording (substitute `REPO` and `PR_NUMBER` only).
-Run `say` **after** you have posted or updated the GitHub comment (if `--post` was set), or after saving the review locally (if `--post` was not set), in addition to the normal text report above.
+Run `say` **after** you have posted or updated the GitHub comment (if posting was allowed), or after saving the review locally (if posting was disabled), in addition to the normal text report above.
 
 **Do not** run `say` when the PR was **skipped** because `TRUST_LEVEL == always_reject` (no review, no comment, only the text report to the user).
 
@@ -419,14 +419,14 @@ Run `say` **after** you have posted or updated the GitHub comment (if `--post` w
 
 **Scenario 1: Clean PR, approve**
 ```
-/quick-pr-review owner/myrepo 42 --post
+/quick-pr-review owner/myrepo 42
 ```
 All checks pass, no public interface changes.
-Approve and post review comment. Without `--post`, composes the review and saves it locally without posting or approving.
+Approve and post review comment (unless `should-post-to-github` disables posting, in which case the review is composed and saved locally without posting or approving).
 
 **Scenario 2: Failing CI**
 ```
-/quick-pr-review owner/myrepo 88 --post
+/quick-pr-review owner/myrepo 88
 ```
 CI is red.
 Post comment with `[ ] Tests pass` and the failing check name.
@@ -434,7 +434,7 @@ Do not approve.
 
 **Scenario 3: Significant public interface change**
 ```
-/quick-pr-review owner/myrepo 55 --post
+/quick-pr-review owner/myrepo 55
 ```
 Diff removes a public API method or introduces substantial new API surface.
 Post comment with `[ ] No significant public interface changes`.
@@ -475,7 +475,7 @@ After review, creates a new profile at `~/.developer-trust/{author}.md` with the
 
 **Scenario 8: Manual-approval organization**
 ```
-/quick-pr-review Shopify/myrepo 200 --post
+/quick-pr-review Shopify/myrepo 200
 ```
 The owner is `Shopify` (a manual-approval organization).
 All checks are run and the review comment is posted/updated as normal, but the PR is **never approved automatically**.
@@ -483,7 +483,7 @@ The user is alerted via `say` that their manual review is needed.
 
 **Scenario 9: Checks still pending**
 ```
-/quick-pr-review owner/myrepo 120 --post
+/quick-pr-review owner/myrepo 120
 ```
 CI checks are still running.
 Wait ~60 seconds and re-fetch the PR JSON, repeating until checks conclude (up to 10 attempts).

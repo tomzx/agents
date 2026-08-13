@@ -1,12 +1,12 @@
 ---
 name: handle-pr-ci
-description: Diagnose failing CI checks on a GitHub pull request, fix the root cause, push, and confirm CI passes. By default does NOT push to GitHub; pass --post to push fixes and monitor CI.
-argument-hint: "<pr-number> [--post]"
+description: Diagnose failing CI checks on a GitHub pull request, fix the root cause, push, and confirm CI passes.
+argument-hint: "<pr-number>"
 ---
 
 # Handle PR CI
 
-Fetches failing CI check logs for a pull request, diagnoses the root cause of each failure, and implements fixes. By default, it implements fixes locally without pushing; pass `--post` to push, monitor CI, and confirm all checks pass.
+Fetches failing CI check logs for a pull request, diagnoses the root cause of each failure, implements fixes, pushes, and confirms all checks pass.
 
 ## Prerequisites
 
@@ -36,29 +36,24 @@ Diagnose root cause
 Implement fix
     |
     v
- Present fix to user for approval
-      /         \
-  Approved     Rejected
-     |             |
-     v             v
-  --post?        Stop
-   / \
-  No  Yes
-   |   |
-   v   v
- Stop Commit + push
-      |
-      v
-    Monitor CI re-run
-      |
-      v
-    All checks green?
-     /      \
-   Yes       No
-    |         |
-    v         v
-   Done     Loop back to
-            fetch logs
+Present fix to user for approval
+     /         \
+ Approved     Rejected
+    |             |
+    v             v
+Commit + push   Stop
+    |
+    v
+Monitor CI re-run
+    |
+    v
+All checks green?
+   /      \
+ Yes       No
+  |         |
+  v         v
+Done     Loop back to
+         fetch logs
 ```
 
 ## Steps
@@ -83,20 +78,19 @@ Implement fix
 
 6. Present the diagnosis and proposed fix to the user for approval before committing.
 
-7. On approval, if `--post` is set, commit and push:
+7. On approval, commit and push:
    ```
    git add <changed files>
    git commit -m "<fix description>"
    git push
    ```
-   If `--post` is not set, present the fix to the user without pushing.
 
-8. If `--post` is set, monitor the CI re-run until checks complete:
+8. Monitor the CI re-run until checks complete:
    ```
    gh pr checks $1 --watch
    ```
 
-9. If `--post` is set and checks pass, report success. If new failures appear, loop back to step 3. If `--post` is not set, report the diagnosis and fix without pushing.
+9. If checks pass, report success. If new failures appear, loop back to step 3.
 
 ## Example Usage
 
