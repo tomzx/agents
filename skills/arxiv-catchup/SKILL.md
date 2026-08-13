@@ -62,8 +62,8 @@ Parse the HTML to collect links from New submissions and Cross-lists only. In th
 Extract links following the pattern `/html/{arxiv_id}`:
 
 ```bash
-grep -oP '(?<=href=")[^"]*' /tmp/arxiv_catchup.html \
-  | grep '^/html/' \
+rg -oP '(?<=href=")[^"]*' /tmp/arxiv_catchup.html \
+  | rg '^/html/' \
   | sed 's|^/html/|https://arxiv.org/html/|' \
   | sort -u
 ```
@@ -71,7 +71,7 @@ grep -oP '(?<=href=")[^"]*' /tmp/arxiv_catchup.html \
 If that yields nothing, also try the absolute-URL form:
 
 ```bash
-grep -oP 'https://arxiv\.org/html/[^\s"<>]+' /tmp/arxiv_catchup.html | sort -u
+rg -oP 'https://arxiv\.org/html/[^\s"<>]+' /tmp/arxiv_catchup.html | sort -u
 ```
 
 Collect the deduplicated list. If the list is still empty after both attempts, report that no HTML-version links were found and stop.

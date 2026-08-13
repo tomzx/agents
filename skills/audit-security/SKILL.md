@@ -15,7 +15,7 @@ Scans your own code for vulnerabilities — distinct from `/audit-dependencies` 
 
 - Working directory is the root of the repository
 - Optional: `$1` — path to limit the scan (defaults to `.`)
-- Language-specific tools (degrades to grep heuristics if unavailable):
+- Language-specific tools (degrades to rg heuristics if unavailable):
   - Any language: `semgrep` (`pip install semgrep` or `brew install semgrep`)
   - Secrets: `trufflehog` (`pip install trufflehog`) or `gitleaks` (`brew install gitleaks`)
   - Python: `bandit` (`uv tool install bandit`)
@@ -63,18 +63,18 @@ cat .gitleaks-report.json 2>/dev/null | python3 -c "import json,sys; [print(f['R
 trufflehog filesystem ${1:-.} --json 2>/dev/null | head -50
 ```
 
-**grep fallback:**
+**rg fallback:**
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" --include="*.env*" \
-  -iE "(password|secret|api_key|apikey|token|private_key)\s*=\s*['\"][^'\"]{8,}" \
-  ${1:-.} | grep -v "test\|spec\|mock\|example\|placeholder\|your_" | head -30
+rg -n -i --hidden "(password|secret|api_key|apikey|token|private_key)\s*=\s*['\"][^'\"]{8,}" \
+  -g '*.py' -g '*.js' -g '*.ts' -g '*.go' -g '*.env*' \
+  ${1:-.} | rg -v "test|spec|mock|example|placeholder|your_" | head -30
 ```
 
 Also check for secrets accidentally committed in config files:
 ```
-grep -rn --include="*.yaml" --include="*.yml" --include="*.json" --include="*.toml" \
-  -iE "(password|secret|token|key)\s*:\s*['\"]?[A-Za-z0-9+/]{16,}" \
-  ${1:-.} | grep -v "test\|example\|template" | head -20
+rg -n -i "(password|secret|token|key)\s*:\s*['\"]?[A-Za-z0-9+/]{16,}" \
+  -g '*.{yaml,yml,json,toml}' \
+  ${1:-.} | rg -v "test|example|template" | head -20
 ```
 
 ### 3. Run Language-Specific Scanners
@@ -105,23 +105,20 @@ semgrep --config=p/owasp-top-ten --config=p/secrets --json --output .semgrep-owa
 
 **SQL injection:**
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
-  -E '(execute|query|cursor\.execute|db\.query)\s*\(\s*[f"'"'"']|\.format\s*\(' \
-  ${1:-.} | grep -i "select\|insert\|update\|delete\|where" | head -20
+rg -n '(execute|query|cursor\.execute|db\.query)\s*\(\s*[f"'"'"']|\.format\s*\(' \
+  -g '*.{py,js,ts,go}' ${1:-.} | rg -i "select|insert|update|delete|where" | head -20
 ```
 
 **Command injection:**
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -E "(os\.system|subprocess\.(call|run|Popen)|exec\(|eval\(|child_process)" \
-  ${1:-.} | grep -v "shell=False\|#" | head -20
+rg -n "(os\.system|subprocess\.(call|run|Popen)|exec\(|eval\(|child_process)" \
+  -g '*.{py,js,ts}' ${1:-.} | rg -v "shell=False|#" | head -20
 ```
 
 **Insecure deserialization:**
 ```
-grep -rn --include="*.py" \
-  -E "(pickle\.loads|yaml\.load\s*\([^,)]+\)|eval\s*\(|exec\s*\()" \
-  ${1:-.} | grep -v "yaml\.safe_load\|#" | head -20
+rg -n "(pickle\.loads|yaml\.load\s*\([^,)]+\)|eval\s*\(|exec\s*\()" \
+  -g '*.py' ${1:-.} | rg -v "yaml\.safe_load|#" | head -20
 ```
 
 ### 5. Check Authentication and Authorization
@@ -130,50 +127,43 @@ Find route/endpoint definitions and check for missing auth decorators:
 
 **Python (Flask/FastAPI):**
 ```
-grep -rn --include="*.py" -B2 \
-  -E "@(app|router)\.(get|post|put|delete|patch)\(" \
-  ${1:-.} | grep -v "login_required\|current_user\|Depends\|authenticate\|#" | head -30
+rg -n -B2 "@(app|router)\.(get|post|put|delete|patch)\(" \
+  -g '*.py' ${1:-.} | rg -v "login_required|current_user|Depends|authenticate|#" | head -30
 ```
 
 **Express (JavaScript):**
 ```
-grep -rn --include="*.js" --include="*.ts" -B3 \
-  -E "router\.(get|post|put|delete|patch)\(" \
-  ${1:-.} | grep -v "auth\|middleware\|protect\|verify\|#" | head -30
+rg -n -B3 "router\.(get|post|put|delete|patch)\(" \
+  -g '*.{js,ts}' ${1:-.} | rg -v "auth|middleware|protect|verify|#" | head -30
 ```
 
 ### 6. Check for Sensitive Data in Logs
 
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
-  -iE "(log|logger|print|console\.log)\s*\(.*?(password|token|secret|credit_card|ssn|api_key)" \
-  ${1:-.} | grep -v "test\|spec\|#" | head -20
+rg -n -i "(log|logger|print|console\.log)\s*\(.*?(password|token|secret|credit_card|ssn|api_key)" \
+  -g '*.{py,js,ts,go}' ${1:-.} | rg -v "test|spec|#" | head -20
 ```
 
 ### 7. Check Cryptography
 
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -iE "(md5|sha1|des\b|rc4|random\(\)|Math\.random)" \
-  ${1:-.} | grep -v "test\|comment\|#\|//" | head -20
+rg -n -i "(md5|sha1|des\b|rc4|random\(\)|Math\.random)" \
+  -g '*.{py,js,ts}' ${1:-.} | rg -v "test|comment|#|//" | head -20
 ```
 
 ### 8. Check Security Configuration
 
 ```
 # Debug mode enabled
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -E "DEBUG\s*=\s*True|debug\s*:\s*true" ${1:-.} | grep -v "test\|spec" | head -10
+rg -n "DEBUG\s*=\s*True|debug\s*:\s*true" -g '*.{py,js,ts}' ${1:-.} | rg -v "test|spec" | head -10
 
 # Permissive CORS
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -iE "allow_origins\s*=\s*\[?\s*['\"]?\*|cors\s*\(\s*\{.*origin.*\*" \
-  ${1:-.} | head -10
+rg -n -i "allow_origins\s*=\s*\[?\s*['\"]?\*|cors\s*\(\s*\{.*origin.*\*" \
+  -g '*.{py,js,ts}' ${1:-.} | head -10
 
 # SSL verification disabled
-grep -rn --include="*.py" \
-  -E "verify\s*=\s*False|ssl_verify\s*=\s*False" \
-  ${1:-.} | grep -v "test\|#" | head -10
+rg -n "verify\s*=\s*False|ssl_verify\s*=\s*False" \
+  -g '*.py' ${1:-.} | rg -v "test|#" | head -10
 ```
 
 ### 9. Deduplicate and Prioritize
@@ -197,7 +187,7 @@ Rank by severity using CVSS-inspired categories: Critical > High > Medium > Low.
 - 🔴 High findings: N
 - 🟡 Medium findings: N
 - 🟢 Low findings: N
-- Tools used: <semgrep / bandit / gosec / grep heuristics>
+- Tools used: <semgrep / bandit / gosec / rg heuristics>
 
 ## Critical & High Findings
 

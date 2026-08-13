@@ -76,29 +76,29 @@ cpd --minimum-tokens 50 --dir ${1:-.} --language python 2>/dev/null | head -60
 **pylint similarity (Python fallback):**
 ```
 python3 -m pylint ${1:-.} --disable=all --enable=similarities \
-  --min-similarity-lines=5 2>/dev/null | grep -A5 "Similar lines"
+  --min-similarity-lines=5 2>/dev/null | rg -A5 "Similar lines"
 ```
 
 ### 3. Heuristic Detection (no tools required)
 
 Find files with identical or near-identical function signatures:
 ```
-grep -rh --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
-  -E "^(def |function |func |async function )" ${1:-.} | \
+rg --no-filename "^(def |function |func |async function )" \
+  -g '*.{py,js,ts,go}' ${1:-.} | \
   sort | uniq -d | head -20
 ```
 
 Find repeated import blocks (often signals copy-pasted module scaffolding):
 ```
-grep -rh --include="*.py" "^from \|^import " ${1:-.} | \
+rg --no-filename "^from |^import " -g '*.py' ${1:-.} | \
   sort | uniq -c | sort -rn | awk '$1 > 3' | head -20
 ```
 
 Find repeated error-handling patterns:
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -A3 "except Exception\|catch (err\|catch (error" ${1:-.} | \
-  grep -v "^--$" | sort | uniq -c | sort -rn | head -20
+rg -n -A3 "except Exception|catch \(err|catch \(error" \
+  -g '*.{py,js,ts}' ${1:-.} | \
+  rg -v "^--$" | sort | uniq -c | sort -rn | head -20
 ```
 
 ### 4. Cross-Reference with Churn

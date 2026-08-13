@@ -45,9 +45,9 @@ If no `.sdlc/`, record "no requirements corpus" and rely on code-honesty signals
 Find places where the code admits it is incomplete:
 
 ```
-grep -rEn "TODO|FIXME|XXX|HACK|NotImplemented|not implemented|raise NotImplemented|501 Not Implemented|stub|placeholder|coming soon" \
-  --include="*.py" --include="*.ts" --include="*.js" --include="*.go" --include="*.rs" --include="*.java" . \
-  | grep -v -E "test|_test|spec|vendor|node_modules|\.venv"
+rg -n "TODO|FIXME|XXX|HACK|NotImplemented|not implemented|raise NotImplemented|501 Not Implemented|stub|placeholder|coming soon" \
+  -g '*.{py,ts,js,go,rs,java}' . \
+  | rg -v "test|_test|spec|vendor|node_modules|\.venv"
 ```
 
 Each marker is a completeness finding (the code states it is not done).
@@ -57,7 +57,7 @@ Each marker is a completeness finding (the code states it is not done).
 For each functional requirement, search the code for evidence of implementation (keywords from the requirement). Requirements with no evidence are completeness gaps.
 
 ```
-grep -rEn "<requirement keyword>" --include="*.py" .
+rg -n "<requirement keyword>" -g '*.py' .
 ```
 
 ### 4. Correctness signals
@@ -68,15 +68,15 @@ grep -rEn "<requirement keyword>" --include="*.py" .
   ```
 - Skipped / disabled / expected-fail tests:
   ```
-  grep -rEn "pytest.mark.skip|@skip|@Ignore|xfail|\.skip\(|test\.todo|it.skip|describe.skip" --include="*.py" --include="*.ts" --include="*.js" .
+  rg -n "pytest.mark.skip|@skip|@Ignore|xfail|\.skip\(|test\.todo|it.skip|describe.skip" -g '*.{py,ts,js}' .
   ```
 - Assertion-free tests (tests with no assert/expect):
   ```
-  grep -rL "assert\|expect\|should" --include="test_*.py" --include="*_test.*" .
+  rg --files-without-match "assert|expect|should" -g 'test_*.py' -g '*_test.*' .
   ```
 - Silent no-ops: empty exception handlers and functions that return without acting:
   ```
-  grep -rEnzB1 "except[^:]*:\s*\n\s*(pass|continue|\.\.\.)" --include="*.py" .
+  rg -n -U -B1 "except[^:]*:\s*\n\s*(pass|continue|\.\.\.)" -g '*.py' .
   ```
 
 ### 5. Appropriateness spot-check
@@ -162,6 +162,6 @@ Falls back to code-honesty markers and bug issues. Recommends running `/sync-sdl
 
 | Command | Description |
 |---|---|
-| `grep -rEn "TODO\|FIXME\|NotImplemented\|stub\|501" --include="*.py" .` | Code-honesty markers |
-| `grep -rEn "pytest.mark.skip\|xfail\|@skip\|@Ignore" .` | Disabled tests |
+| `rg -n "TODO\|FIXME\|NotImplemented\|stub\|501" -g '*.py' .` | Code-honesty markers |
+| `rg -n "pytest.mark.skip\|xfail\|@skip\|@Ignore" .` | Disabled tests |
 | `gh search issues --repo <repo> --state open --label bug` | Open correctness bugs |

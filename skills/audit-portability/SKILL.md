@@ -32,33 +32,33 @@ This is the **Portability** characteristic of the [ISO/IEC 25010](https://en.wik
 
 Hardcoded absolute paths and OS-specific locations:
 ```
-grep -rEn "/usr/|/var/|/tmp/|/etc/|/opt/|C:\\\\|/home/|/Users/" --include="*.py" --include="*.ts" --include="*.js" --include="*.go" . \
-  | grep -v -E "test|spec|example|docs|README|node_modules|\.venv"
+rg -n "/usr/|/var/|/tmp/|/etc/|/opt/|C:\\\\|/home/|/Users/" -g '*.{py,ts,js,go}' . \
+  | rg -v "test|spec|example|docs|README|node_modules|\.venv"
 ```
 Hardcoded hostnames and IPs:
 ```
-grep -rEn "https?://[a-zA-Z0-9.-]+|\\b[0-9]{1,3}(\\.[0-9]{1,3}){3}\\b" --include="*.py" --include="*.ts" --include="*.js" . \
-  | grep -v -E "localhost|0\.0\.0\.0|example\.com|test|spec|127\.0\.0\.1"
+rg -n "https?://[a-zA-Z0-9.-]+|\\b[0-9]{1,3}(\\.[0-9]{1,3}){3}\\b" -g '*.{py,ts,js}' . \
+  | rg -v "localhost|0\.0\.0\.0|example\.com|test|spec|127\.0\.0\.1"
 ```
 OS-specific code and shell calls without abstraction:
 ```
-grep -rEn "os\.name|platform\.|sys\.platform|subprocess\.(run|call|Popen)\(|os\.system\(" --include="*.py" .
-grep -rEn "shelljs|execSync|child_process" --include="*.ts" --include="*.js" .
+rg -n "os\.name|platform\.|sys\.platform|subprocess\.(run|call|Popen)\(|os\.system\(" -g '*.py' .
+rg -n "shelljs|execSync|child_process" -g '*.{ts,js}' .
 ```
 
 ### 2. Adaptability: 12-factor config
 
 Configuration baked into code rather than environment. Flag hardcoded credentials, connection strings, feature toggles, and tuning constants that should be env/config:
 ```
-grep -rEn "(password|secret|token|api_key|apikey|connection_string|dsn|url)\s*[:=]\s*['\"][^'\"]+['\"]" --include="*.py" --include="*.ts" --include="*.js" . \
-  | grep -v -E "test|spec|example|os\.environ|getenv|process\.env|config\.|settings\."
+rg -n "(password|secret|token|api_key|apikey|connection_string|dsn|url)\s*[:=]\s*['\"][^'\"]+['\"]" -g '*.{py,ts,js}' . \
+  | rg -v "test|spec|example|os\.environ|getenv|process\.env|config\.|settings\."
 ```
 
 ### 3. Adaptability: platform-specific dependencies
 
 Native/C-extension and platform-bound deps that block cross-platform or cross-arch:
 ```
-grep -rEn "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dylib|\.dll|\.so|\.dylib" --include="*.py" --include="*.ts" --include="*.js" --include="*.go" .
+rg -n "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dylib|\.dll|\.so|\.dylib" -g '*.{py,ts,js,go}' .
 ```
 (Flag, don't condemn: some are intentional. Record the platform assumption.)
 
@@ -70,11 +70,11 @@ grep -rEn "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dyl
   ```
 - Install/setup docs:
   ```
-  ls INSTALL* GETTING_STARTED* 2>/dev/null; grep -rEn "^## (Install|Setup|Getting Started)" README.md 2>/dev/null
+  ls INSTALL* GETTING_STARTED* 2>/dev/null; rg -n "^## (Install|Setup|Getting Started)" README.md 2>/dev/null
   ```
 - Package manifest declares the runtime/version (engines, requires-python, go version):
   ```
-  grep -rEn "requires-python|engines|go [0-9]" pyproject.toml package.json go.mod 2>/dev/null
+  rg -n "requires-python|engines|go [0-9]" pyproject.toml package.json go.mod 2>/dev/null
   ```
 - Deps over-pinned (blocks install in a different resolved environment) or under-pinned (pulls a breaking major): coordinate with `audit-compatibility`.
 
@@ -82,7 +82,7 @@ grep -rEn "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dyl
 
 Direct, scattered use of a cloud/provider SDK with no abstraction layer (every call site couples to that provider):
 ```
-grep -rEn "boto3\.|aws_|google\.cloud|azure\.|firebase\.|stripe\.|twilio\.|s3\.|dynamodb|cloudsql" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "boto3\.|aws_|google\.cloud|azure\.|firebase\.|stripe\.|twilio\.|s3\.|dynamodb|cloudsql" -g '*.{py,ts,js}' .
 ```
 Count distinct call sites per provider. A provider used directly across many modules is lock-in; one used behind a single interface/adaptor is fine.
 
@@ -91,7 +91,7 @@ Count distinct call sites per provider. A provider used directly across many mod
 Can data be exported in a standard format, and is there a documented schema/API to migrate off?
 ```
 ls openapi.yaml openapi.json schema.* 2>/dev/null
-grep -rEn "export|dump|backup|csv|json|parquet" --include="*.py" --include="*.ts" --include="*.js" . | grep -iE "endpoint|route|command|cli"
+rg -n "export|dump|backup|csv|json|parquet" -g '*.{py,ts,js}' . | rg -i "endpoint|route|command|cli"
 ```
 Proprietary/unversioned storage formats are replaceability findings.
 
@@ -183,7 +183,7 @@ Surfaces hardcoded paths, credentials, and missing install tooling that block ot
 
 | Command | Description |
 |---|---|
-| `grep -rEn "/usr/\|/tmp/\|/var/\|C:\\\\" --include="*.py" .` | Hardcoded absolute paths |
-| `grep -rEn "(password\|secret\|token\|dsn)\s*[:=]\s*['\"]" --include="*.py" . \| grep -v "os\.environ\|getenv"` | Config baked into code |
-| `grep -rEn "boto3\.\|google\.cloud\|azure\.\|stripe\." --include="*.py" .` | Direct cloud/provider SDK usage |
+| `rg -n "/usr/\|/tmp/\|/var/\|C:\\\\" -g '*.py' .` | Hardcoded absolute paths |
+| `rg -n "(password\|secret\|token\|dsn)\s*[:=]\s*['\"]" -g '*.py' . \| rg -v "os\.environ\|getenv"` | Config baked into code |
+| `rg -n "boto3\.\|google\.cloud\|azure\.\|stripe\." -g '*.py' .` | Direct cloud/provider SDK usage |
 | `ls Dockerfile docker-compose.yml Containerfile 2>/dev/null` | Containerization present |

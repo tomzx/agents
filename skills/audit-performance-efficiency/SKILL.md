@@ -34,42 +34,42 @@ This is the **Performance efficiency** characteristic of the [ISO/IEC 25010](htt
 From `architecture.md` and route/endpoint discovery, identify request handlers, batch jobs, and data-access layers. These are where performance findings are most severe.
 
 ```
-grep -rEn "@(app|router|api|blueprint)\.(get|post|put|delete|patch|route)" --include="*.py" .
-grep -rEn "(get|post|put|delete|patch|use|all)\(['\"]" --include="*.ts" --include="*.js" .
+rg -n "@(app|router|api|blueprint)\.(get|post|put|delete|patch|route)" -g '*.py' .
+rg -n "(get|post|put|delete|patch|use|all)\(['\"]" -g '*.{ts,js}' .
 ```
 
 ### 2. Query and data-access antipatterns (time behavior)
 
 N+1 / queries-in-loops:
 ```
-grep -rEnB3 "for .+ in .+:" --include="*.py" . | grep -E "\.(get|filter|find|first|all|execute|query|load)\("
+rg -n -B3 "for .+ in .+:" -g '*.py' . | rg "\.(get|filter|find|first|all|execute|query|load)\("
 ```
 Full-table loads without limits:
 ```
-grep -rEn "\.all\(\)|\.fetchall\(\)|SELECT \*|objects\.all|\.findAll\(" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "\.all\(\)|\.fetchall\(\)|SELECT \*|objects\.all|\.findAll\(" -g '*.{py,ts,js}' .
 ```
 Unbatched writes inside loops:
 ```
-grep -rEn "(\.save\(|\.insert\(|\.create\(|\.add\(|\.commit\(|db\.)" --include="*.py" . 
+rg -n "(\.save\(|\.insert\(|\.create\(|\.add\(|\.commit\(|db\.)" -g '*.py' .
 ```
 
 ### 3. Blocking operations in hot paths (time behavior)
 
 Synchronous sleeps and blocking I/O inside handlers/tasks:
 ```
-grep -rEn "time\.sleep|Thread\.sleep|asyncio\.sleep\([0-9]" --include="*.py" --include="*.java" .
-grep -rEn "requests\.(get|post)|urllib\.request|open\(|subprocess\.(run|call|Popen)" --include="*.py" --path "*handler*" .
+rg -n "time\.sleep|Thread\.sleep|asyncio\.sleep\([0-9]" -g '*.{py,java}' .
+rg -n "requests\.(get|post)|urllib\.request|open\(|subprocess\.(run|call|Popen)" -g '*handler*.py' .
 ```
 Synchronous calls inside async contexts:
 ```
-grep -rEnB2 "requests\.|urllib|time\.sleep|blocking" --include="*.py" . | grep -A2 "async def"
+rg -n -B2 "requests\.|urllib|time\.sleep|blocking" -g '*.py' . | rg -A2 "async def"
 ```
 
 ### 4. Algorithmic complexity (time behavior)
 
 Nested loops over the same or growing collections:
 ```
-grep -rEn "for .+ in" --include="*.py" . | wc -l   # then inspect files with high loop density
+rg -n "for .+ in" -g '*.py' . | wc -l   # then inspect files with high loop density
 ```
 Recursion without memoization on paths that recompute. Flag recursive functions lacking a cache/decorator.
 
@@ -77,22 +77,22 @@ Recursion without memoization on paths that recompute. Flag recursive functions 
 
 Unbounded growth:
 ```
-grep -rEn "global |_cache|_buffer|_history|_queue = \[\]| = \{\}" --include="*.py" . | grep -v "clear\|maxlen\|maxsize"
+rg -n "global |_cache|_buffer|_history|_queue = \[\]| = \{\}" -g '*.py' . | rg -v "clear|maxlen|maxsize"
 ```
 Unclosed resources:
 ```
-grep -rEn "open\(|connect\(|cursor\(|Client\(" --include="*.py" . | grep -v "with \|contextlib\|__enter__"
+rg -n "open\(|connect\(|cursor\(|Client\(" -g '*.py' . | rg -v "with |contextlib|__enter__"
 ```
 Large allocations in loops:
 ```
-grep -rEnB1 "\[\]|list\(|dict\(|\.append" --include="*.py" . | grep -B1 "for .+ in"
+rg -n -B1 "\[\]|list\(|dict\(|\.append" -g '*.py' . | rg -B1 "for .+ in"
 ```
 
 ### 6. Capacity and backpressure
 
 Missing pagination on list endpoints (endpoints returning collections with no `limit`/`offset`/`page`):
 ```
-grep -rEn "(list|all|search|index)" --include="*.py" --include="*.ts" . | grep -iv "limit\|offset\|page\|paginate\|cursor"
+rg -n "(list|all|search|index)" -g '*.{py,ts}' . | rg -iv "limit|offset|page|paginate|cursor"
 ```
 Missing rate limiting on public endpoints; unbounded queues (`queue.Queue()` / channels without a bound); hardcoded worker counts.
 
@@ -101,8 +101,8 @@ Missing rate limiting on public endpoints; unbounded queues (`queue.Queue()` / c
 Cross-reference query filters against schema/migrations. Columns used in `.filter()`, `WHERE`, or join conditions that lack an index are capacity findings.
 
 ```
-grep -rEn "\.filter\(|WHERE |\.where\(" --include="*.py" --include="*.sql" .
-grep -rEn "create_index|Index\(|indexed=True|db_index" --include="*.py" --include="*.sql" .
+rg -n "\.filter\(|WHERE |\.where\(" -g '*.{py,sql}' .
+rg -n "create_index|Index\(|indexed=True|db_index" -g '*.{py,sql}' .
 ```
 
 ### 8. Existing benchmarks
@@ -176,7 +176,7 @@ Classify by severity and print. Do not modify files.
 
 | Command | Description |
 |---|---|
-| `grep -rEnB3 "for .+ in" --include="*.py" . \| grep "\.(get\|filter\|find)\("` | N+1 query detection |
-| `grep -rEn "\.all\(\)\|SELECT \*\|fetchall\(\)" --include="*.py" .` | Full-table loads |
-| `grep -rEn "time\.sleep\|Thread\.sleep" --include="*.py" --include="*.java" .` | Blocking sleeps |
-| `grep -rEn "open\(\|connect\(" --include="*.py" . \| grep -v "with "` | Unclosed resources |
+| `rg -n -B3 "for .+ in" -g '*.py' . \| rg "\.(get\|filter\|find)\("` | N+1 query detection |
+| `rg -n "\.all\(\)\|SELECT \*\|fetchall\(\)" -g '*.py' .` | Full-table loads |
+| `rg -n "time\.sleep\|Thread\.sleep" -g '*.{py,java}' .` | Blocking sleeps |
+| `rg -n "open\(\|connect\(" -g '*.py' . \| rg -v "with "` | Unclosed resources |

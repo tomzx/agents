@@ -19,7 +19,7 @@ Identifies the most complex code in the codebase — by cyclomatic complexity, f
   - Python: `radon` (`uv tool install radon` or `pip install radon`)
   - JavaScript/TypeScript: `complexity-report` or `eslint` with `complexity` rule
   - Go: `gocyclo` (`go install github.com/fzipp/gocyclo@latest`)
-  - Generic fallback: line-count and nesting-depth heuristics via `grep`/`awk`
+  - Generic fallback: line-count and nesting-depth heuristics via `rg`/`awk`
 
 ## Metrics
 
@@ -62,13 +62,13 @@ gocyclo -over 10 ${1:-.}
 
 **JavaScript/TypeScript — eslint:**
 ```
-npx eslint ${1:-.} --rule '{"complexity": ["warn", 10]}' --format compact 2>/dev/null | grep complexity
+npx eslint ${1:-.} --rule '{"complexity": ["warn", 10]}' --format compact 2>/dev/null | rg complexity
 ```
 
 **Generic fallback (any language) — count `if`/`for`/`while`/`case` per function block:**
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
-  -E '^\s*(if|elif|else|for|while|case|catch|&&|\|\|)' ${1:-.} | \
+rg -n '^\s*(if|elif|else|for|while|case|catch|&&|\|\|)' \
+  -g '*.{py,js,ts,go}' ${1:-.} | \
   awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
 ```
 
@@ -78,7 +78,7 @@ Find long functions using language-appropriate patterns:
 
 **Python:**
 ```
-grep -rn --include="*.py" -n "^\s*def " ${1:-.} | \
+rg -n "^\s*def " -g '*.py' ${1:-.} | \
   awk -F: '{print $1, $2}' | \
   awk 'NR>1 && file==$1 {print file, prev_line, $2-prev_line} {file=$1; prev_line=$2}' | \
   awk '$3 >= 50 {print $3, $1, $2}' | sort -rn | head -20
@@ -96,8 +96,8 @@ awk '/^(def |function |func |public |private |protected )/{if(start && NR-start>
 Detect excessive indentation as a proxy for nesting:
 
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
-  -P "^\t{4,}|^ {16,}" ${1:-.} | \
+rg -n "^\t{4,}|^ {16,}" \
+  -g '*.{py,js,ts,go}' ${1:-.} | \
   awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
 ```
 
@@ -105,7 +105,7 @@ grep -rn --include="*.py" --include="*.js" --include="*.ts" --include="*.go" \
 
 ```
 find ${1:-.} -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.go" \) \
-  -exec wc -l {} + | sort -rn | grep -v total | head -20
+  -exec wc -l {} + | sort -rn | rg -v total | head -20
 ```
 
 ### 6. Rank and Deduplicate

@@ -55,7 +55,7 @@ npx vitest run --coverage 2>/dev/null
 
 **Go:**
 ```
-go test -coverprofile=coverage.out ./... 2>/dev/null && go tool cover -func=coverage.out | grep -v "100.0%" | sort -k3 -n | head -30
+go test -coverprofile=coverage.out ./... 2>/dev/null && go tool cover -func=coverage.out | rg -v "100.0%" | sort -k3 -n | head -30
 ```
 
 **Rust:**

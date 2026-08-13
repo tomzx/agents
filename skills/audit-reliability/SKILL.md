@@ -33,22 +33,22 @@ This is the **Reliability** characteristic of the [ISO/IEC 25010](https://en.wik
 
 Bare/over-broad exception handlers that swallow errors:
 ```
-grep -rEnA2 "except\s*:|except\s+(Exception|BaseException)\s*:" --include="*.py" . | grep -E "pass|continue|\.\.\.|return None|return \[\]"
+rg -n -A2 "except\s*:|except\s+(Exception|BaseException)\s*:" -g '*.py' . | rg "pass|continue|\.\.\.|return None|return \[\]"
 ```
 ```
-grep -rEn "catch\s*\(\s*\)\s*\{|catch\s*\{" --include="*.ts" --include="*.js" --include="*.java" .
+rg -n "catch\s*\(\s*\)\s*\{|catch\s*\{" -g '*.{ts,js,java}' .
 ```
 Logged-but-swallowed errors (caught, logged, then treated as success):
 ```
-grep -rEnB1 -A3 "except" --include="*.py" . | grep -E "logger.*\.(info|debug)|console\.(log|debug)"
+rg -n -B1 -A3 "except" -g '*.py' . | rg "logger.*\.(info|debug)|console\.(log|debug)"
 ```
 
 ### 2. Fault tolerance on external calls
 
 Network/external calls without a timeout:
 ```
-grep -rEn "requests\.(get|post|put|delete|patch|head)\(|urlopen|httpx\.(get|post)|fetch\(|axios\.|grpc\.|boto3|psycopg|redis\.|kafka" \
-  --include="*.py" --include="*.ts" --include="*.js" . | grep -v "timeout"
+rg -n "requests\.(get|post|put|delete|patch|head)\(|urlopen|httpx\.(get|post)|fetch\(|axios\.|grpc\.|boto3|psycopg|redis\.|kafka" \
+  -g '*.{py,ts,js}' . | rg -v "timeout"
 ```
 External calls without retry/backoff (look for absence of `retry`, `tenacity`, `backoff`, `resilience4j`, `polly` around call sites).
 
@@ -58,17 +58,17 @@ External dependencies used directly (no circuit breaker / bulkhead) — flag hot
 
 Stateful singletons assumed unique:
 ```
-grep -rEn "^\s*class\s+\w+.*:\s*$" --include="*.py" . | head; grep -rEn "= \w+\(\)\s*$|_instance|__new__|Singleton" --include="*.py" .
+rg -n "^\s*class\s+\w+.*:\s*$" -g '*.py' . | head; rg -n "= \w+\(\)\s*$|_instance|__new__|Singleton" -g '*.py' .
 ```
 Health/readiness endpoints:
 ```
-grep -rEn "/healthz|/readyz|/health|/livez|/readiness|actuator/health" --include="*.py" --include="*.ts" --include="*.js" --include="*.java" .
+rg -n "/healthz|/readyz|/health|/livez|/readiness|actuator/health" -g '*.{py,ts,js,java}' .
 ```
 If none found and the service is server-side, flag missing health checks.
 
 Graceful shutdown: signal handling and in-flight draining:
 ```
-grep -rEn "signal\.|SIGTERM|SIGINT|atexit|on_shutdown|lifespan|graceful" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "signal\.|SIGTERM|SIGINT|atexit|on_shutdown|lifespan|graceful" -g '*.{py,ts,js}' .
 ```
 Server-side code with no signal/shutdown handling cannot drain in-flight work on deploy.
 
@@ -76,11 +76,11 @@ Server-side code with no signal/shutdown handling cannot drain in-flight work on
 
 Non-idempotent writes (create-on-each-call without an idempotency key or natural key):
 ```
-grep -rEn "\.create\(|\.insert\(|INSERT INTO|\.save\(|POST" --include="*.py" --include="*.sql" . | grep -v "idempot\|unique\|ON CONFLICT\|upsert"
+rg -n "\.create\(|\.insert\(|INSERT INTO|\.save\(|POST" -g '*.{py,sql}' . | rg -v "idempot|unique|ON CONFLICT|upsert"
 ```
 Multi-step writes without a transaction boundary:
 ```
-grep -rEnB3 -A3 "\.save\(|\.commit\(|INSERT|UPDATE|DELETE" --include="*.py" . | grep -v "transaction\|atomic\|begin\|with .*transaction\|@Transactional"
+rg -n -B3 -A3 "\.save\(|\.commit\(|INSERT|UPDATE|DELETE" -g '*.py' . | rg -v "transaction|atomic|begin|with .*transaction|@Transactional"
 ```
 Background jobs without a delivery semantic (at-least-once vs at-most-once) — flag queues/jobs without a dedup or ack mechanism.
 
@@ -88,7 +88,7 @@ Background jobs without a delivery semantic (at-least-once vs at-most-once) — 
 
 Writes that buffer in memory without persistence (ack before durable write):
 ```
-grep -rEn "append\(|\.put\(|enqueue|publish" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "append\(|\.put\(|enqueue|publish" -g '*.{py,ts,js}' .
 ```
 Cache treated as source of truth (reads from cache with no fallback/repopulate on miss that persists).
 
@@ -180,7 +180,7 @@ Surfaces the single-instance assumptions (hardcoded singletons, in-memory state)
 
 | Command | Description |
 |---|---|
-| `grep -rEnA2 "except\s*:\|except Exception:" --include="*.py" . \| grep "pass\|\.\.\."` | Swallowed exceptions |
-| `grep -rEn "requests\.(get\|post)\(\|fetch\(" --include="*.py" --include="*.ts" . \| grep -v timeout` | External calls without timeout |
-| `grep -rEn "/healthz\|/readyz\|actuator/health" .` | Health endpoints |
-| `grep -rEn "atomic\|@Transactional\|with .*transaction\|ON CONFLICT"` | Transaction/idempotency markers |
+| `rg -n -A2 "except\s*:\|except Exception:" -g '*.py' . \| rg "pass\|\.\.\."` | Swallowed exceptions |
+| `rg -n "requests\.(get\|post)\(\|fetch\(" -g '*.{py,ts}' . \| rg -v timeout` | External calls without timeout |
+| `rg -n "/healthz\|/readyz\|actuator/health" .` | Health endpoints |
+| `rg -n "atomic\|@Transactional\|with .*transaction\|ON CONFLICT"` | Transaction/idempotency markers |

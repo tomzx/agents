@@ -53,7 +53,7 @@ The `find-*` skills are per-function or per-file scanners (complexity, coverage,
 For the primary language, collect module-level imports to build a directed graph (module → imported module).
 
 ```
-grep -rEn "^import |^from .* import |^const .* = require\(|^import .* from " --include="*.py" --include="*.ts" --include="*.js" --include="*.go" .
+rg -n "^import |^from .* import |^const .* = require\(|^import .* from " -g '*.{py,ts,js,go}' .
 ```
 
 Keep imports that resolve to internal modules (drop stdlib and third-party).
@@ -72,7 +72,7 @@ Detect cycles in the internal import graph. A cycle means a change in any member
 
 For Python, a quick check:
 ```
-grep -rEn "^from \." --include="*.py" . | sort
+rg -n "^from \." -g '*.py' . | sort
 ```
 Then trace relative-import chains for cycles. For JS/TS, map `import ... from "./..."` chains. Flag any cycle found.
 
@@ -81,7 +81,7 @@ Then trace relative-import chains for cycles. For JS/TS, map `import ... from ".
 If `.sdlc/context/architecture.md` declares layers (e.g., `api → service → repository`, or "UI must not import DB"), check actual imports against the rules. Every import that crosses a forbidden direction is a finding.
 
 ```
-grep -rEn "import" --include="*.py" . | grep -E "api.*model|model.*api|ui.*db|db.*ui"
+rg -n "import" -g '*.py' . | rg "api.*model|model.*api|ui.*db|db.*ui"
 ```
 
 If no layering rules are declared, skip this step and recommend documenting them in `architecture.md`.
@@ -205,7 +205,7 @@ Identifies the God modules and cycles that should be the refactor targets.
 
 | Command | Description |
 |---|---|
-| `grep -rEn "^import \|^from .* import " --include="*.py" .` | Build the Python import graph |
-| `grep -rEn "^import .* from " --include="*.ts" --include="*.js" .` | Build the JS/TS import graph |
+| `rg -n "^import \|^from .* import " -g '*.py' .` | Build the Python import graph |
+| `rg -n "^import .* from " -g '*.{ts,js}' .` | Build the JS/TS import graph |
 | `wc -l $(find . -name "*.py") \| sort -rn \| head` | LOC by file (God module detection) |
-| `grep -rEn "^from \." --include="*.py" . \| sort` | Relative imports (cycle seed) |
+| `rg -n "^from \." -g '*.py' . \| sort` | Relative imports (cycle seed) |

@@ -30,9 +30,8 @@ Scans the codebase and running services for missing or insufficient observabilit
 
 2. Detect which observability libraries and frameworks are already in use:
    ```
-   grep -rn --include="*.py" --include="*.ts" --include="*.js" --include="*.go" \
-     -iE "(structlog|logging|logger|prometheus|datadog|opentelemetry|otel|jaeger|zipkin|sentry)" \
-     ${1:-.} | head -40
+   rg -n -i "(structlog|logging|logger|prometheus|datadog|opentelemetry|otel|jaeger|zipkin|sentry)" \
+     -g '*.{py,ts,js,go}' ${1:-.} | head -40
    ```
 
 3. Audit **logging** coverage:
@@ -42,9 +41,8 @@ Scans the codebase and running services for missing or insufficient observabilit
    - Is structured logging used consistently?
    - Are log levels appropriate (not everything at INFO/DEBUG)?
    ```
-   grep -rn --include="*.py" --include="*.ts" --include="*.js" --include="*.go" \
-     -iE "(except|catch|error|raise|throw)" \
-     ${1:-.} | grep -v "log\|logger\|sentry\|capture" | head -30
+   rg -n -i "(except|catch|error|raise|throw)" \
+     -g '*.{py,ts,js,go}' ${1:-.} | rg -v "log|logger|sentry|capture" | head -30
    ```
    Flag error handlers that swallow exceptions without logging.
 
@@ -55,9 +53,8 @@ Scans the codebase and running services for missing or insufficient observabilit
    - Are business metrics tracked (orders placed, emails sent, jobs completed)?
    - Are resource metrics available (CPU, memory, disk, connections)?
    ```
-   grep -rn --include="*.py" --include="*.ts" --include="*.js" --include="*.go" \
-     -iE "(counter|histogram|gauge|summary|metric|observe|inc\(|time\()" \
-     ${1:-.} | head -30
+   rg -n -i "(counter|histogram|gauge|summary|metric|observe|inc\(|time\()" \
+     -g '*.{py,ts,js,go}' ${1:-.} | head -30
    ```
    Identify endpoints and services with no metrics instrumentation.
 
@@ -67,9 +64,8 @@ Scans the codebase and running services for missing or insufficient observabilit
    - Are database calls and external HTTP calls included in traces?
    - Are spans created for significant operations?
    ```
-   grep -rn --include="*.py" --include="*.ts" --include="*.js" --include="*.go" \
-     -iE "(trace_id|span_id|opentelemetry|otel|tracer|start_span|propagat)" \
-     ${1:-.} | head -30
+   rg -n -i "(trace_id|span_id|opentelemetry|otel|tracer|start_span|propagat)" \
+     -g '*.{py,ts,js,go}' ${1:-.} | head -30
    ```
 
 6. Audit **alerting** coverage:
@@ -80,7 +76,7 @@ Scans the codebase and running services for missing or insufficient observabilit
    - Look for alert configuration files:
    ```
    find ${1:-.} -type f \( -name "alerts*" -o -name "alerting*" -o -name "slo*" -o -name "rules*" \) \
-     | grep -v node_modules | grep -v .git | head -20
+     | rg -v node_modules | rg -v .git | head -20
    ```
 
 7. Rank gaps by risk:
@@ -173,7 +169,7 @@ To check current production health, run `/observe-production`.
 
 | Command | Description |
 |---|---|
-| `grep -rn "structlog\|logging\|logger" --include="*.py" . | head -30` | Find logging usage in Python |
-| `grep -rn "prometheus\|metrics\|Counter\|Histogram" --include="*.py" . | head -30` | Find metrics instrumentation |
-| `grep -rn "opentelemetry\|otel\|trace" --include="*.py" . | head -30` | Find tracing setup |
+| `rg -n "structlog\|logging\|logger" -g '*.py' . | head -30` | Find logging usage in Python |
+| `rg -n "prometheus\|metrics\|Counter\|Histogram" -g '*.py' . | head -30` | Find metrics instrumentation |
+| `rg -n "opentelemetry\|otel\|trace" -g '*.py' . | head -30` | Find tracing setup |
 | `find . -name "alerts*" -o -name "slo*" -o -name "rules*"` | Find alert configuration files |

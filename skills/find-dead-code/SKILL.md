@@ -66,49 +66,49 @@ deadcode -test ./...
 
 Unused imports:
 ```
-grep -rn --include="*.py" "^import \|^from .* import" ${1:-.} | \
+rg -n "^import |^from .* import" -g '*.py' ${1:-.} | \
   awk '{print $NF, FILENAME}' | sort | uniq > /tmp/imported.txt
 # Cross-reference with actual usage — report imports that appear only once (the import line itself)
 ```
 
 Functions defined but never called (rough signal):
 ```
-grep -rn --include="*.py" "^def \|^    def " ${1:-.} | \
+rg -n "^def |^    def " -g '*.py' ${1:-.} | \
   sed 's/.*def \([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/' | \
   while read fn; do
-    count=$(grep -r "$fn" ${1:-.} | wc -l)
+    count=$(rg "$fn" ${1:-.} | wc -l)
     [ "$count" -le 1 ] && echo "$count $fn"
   done | sort -n | head -30
 ```
 
 Always-true/false feature flags:
 ```
-grep -rn --include="*.py" --include="*.js" --include="*.ts" \
-  -E "(if|when|enabled)\s*\(?\s*(True|true|False|false)\s*\)?" ${1:-.} | head -20
+rg -n "(if|when|enabled)\s*\(?\s*(True|true|False|false)\s*\)?" \
+  -g '*.{py,js,ts}' ${1:-.} | head -20
 ```
 
 ### 3. Find Unreachable Code
 
 ```
-grep -rn --include="*.py" --include="*.go" --include="*.js" --include="*.ts" \
-  -A1 -E "^\s*(return|raise|exit|panic|os\.Exit)" ${1:-.} | \
-  grep -v "^--$" | grep -v -E "(return|raise|exit|panic)" | \
-  grep -v "^\s*$" | head -30
+rg -n -A1 "^\s*(return|raise|exit|panic|os\.Exit)" \
+  -g '*.{py,go,js,ts}' ${1:-.} | \
+  rg -v "^--$" | rg -v "(return|raise|exit|panic)" | \
+  rg -v "^\s*$" | head -30
 ```
 
 ### 4. Scan Config Files for Orphaned Keys
 
 Find all config keys:
 ```
-grep -rn --include="*.yaml" --include="*.yml" --include="*.toml" --include="*.env*" \
-  -E "^[a-zA-Z_][a-zA-Z0-9_]*\s*[:=]" ${1:-.} | \
+rg -n --hidden "^[a-zA-Z_][a-zA-Z0-9_]*\s*[:=]" \
+  -g '*.yaml' -g '*.yml' -g '*.toml' -g '*.env*' ${1:-.} | \
   sed 's/.*:\s*\([a-zA-Z_][a-zA-Z0-9_]*\)\s*[:=].*/\1/' | sort -u > /tmp/config_keys.txt
 ```
 
 Cross-reference against source reads:
 ```
 while read key; do
-  count=$(grep -r "\"$key\"\|'$key'\|\b$key\b" --include="*.py" --include="*.js" --include="*.ts" --include="*.go" ${1:-.} | wc -l)
+  count=$(rg "\"$key\"|'$key'|\b$key\b" -g '*.py' -g '*.js' -g '*.ts' -g '*.go' ${1:-.} | wc -l)
   [ "$count" -eq 0 ] && echo "$key"
 done < /tmp/config_keys.txt
 ```
@@ -195,4 +195,4 @@ Confirms that two helper functions in the payments module are no longer called a
 | `vulture . --min-confidence 80 --sort-by-size` | Python dead code, sorted by size of dead symbol |
 | `npx knip` | JS/TS unused exports, dependencies, and files |
 | `deadcode -test ./...` | Go unreachable functions |
-| `grep -rn "def " . \| wc -l` | Count total function definitions |
+| `rg -n "def " . \| wc -l` | Count total function definitions |

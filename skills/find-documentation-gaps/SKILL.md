@@ -17,8 +17,8 @@ Identifies public-facing code — functions, classes, modules, CLI commands, RES
 - Optional: `$1` — path to limit the scan (defaults to `.`)
 - Optional language-specific tools:
   - Python: `interrogate` (`uv tool install interrogate`) for docstring coverage
-  - JavaScript/TypeScript: `typedoc` or `jsdoc` comment detection via grep
-  - Go: `golint` or grep for unexported godoc
+  - JavaScript/TypeScript: `typedoc` or `jsdoc` comment detection via rg
+  - Go: `golint` or rg for unexported godoc
 
 ## What Counts as a Documentation Gap
 
@@ -49,7 +49,7 @@ interrogate ${1:-.} -v --ignore-init-method --ignore-magic --ignore-private 2>/d
 ```
 Flag any module, class, or function with `MISSING` in the output.
 
-**Python — grep fallback:**
+**Python — rg fallback:**
 ```
 # Find public functions/classes with no immediately following docstring
 python3 -c "
@@ -73,14 +73,14 @@ for root, dirs, files in os.walk('${1:-.}'):
 
 **JavaScript/TypeScript — find exported functions without JSDoc:**
 ```
-grep -rn --include="*.ts" --include="*.js" -B1 "^export " ${1:-.} | \
-  grep -v "/\*\*" | grep "^export " | head -30
+rg -n -B1 "^export " -g '*.{ts,js}' ${1:-.} | \
+  rg -v "/\*\*" | rg "^export " | head -30
 ```
 
 **Go — find exported functions without godoc:**
 ```
-grep -rn --include="*.go" -B1 "^func [A-Z]" ${1:-.} | \
-  grep -v "^--$" | \
+rg -n -B1 "^func [A-Z]" -g '*.go' ${1:-.} | \
+  rg -v "^--$" | \
   awk '/^func [A-Z]/{if(prev !~ /^\/\//) print FILENAME, $0} {prev=$0}' | head -30
 ```
 
@@ -88,50 +88,50 @@ grep -rn --include="*.go" -B1 "^func [A-Z]" ${1:-.} | \
 
 **Click / Typer (Python):**
 ```
-grep -rn --include="*.py" -A3 "@.*\.command\|@app\.command\|@click\.command" ${1:-.} | \
-  grep -v 'help=' | grep -v "#" | grep "@" | head -20
+rg -n -A3 "@.*\.command|@app\.command|@click\.command" -g '*.py' ${1:-.} | \
+  rg -v 'help=' | rg -v "#" | rg "@" | head -20
 ```
 
 **argparse:**
 ```
-grep -rn --include="*.py" "add_parser\|add_argument" ${1:-.} | grep -v "help=" | head -20
+rg -n "add_parser|add_argument" -g '*.py' ${1:-.} | rg -v "help=" | head -20
 ```
 
 **Go cobra:**
 ```
-grep -rn --include="*.go" -A5 "cobra.Command{" ${1:-.} | grep -v "Short:\|Long:\|Use:" | grep "cobra.Command{" | head -10
+rg -n -A5 "cobra.Command{" -g '*.go' ${1:-.} | rg -v "Short:|Long:|Use:" | rg "cobra.Command{" | head -10
 ```
 
 ### 4. Find Undocumented API Endpoints
 
 **FastAPI / Flask (Python):**
 ```
-grep -rn --include="*.py" -B2 "@.*\.(get|post|put|delete|patch)\(" ${1:-.} | \
-  grep -v '"""' | grep -v "#" | grep "@" | head -20
+rg -n -B2 "@.*\.(get|post|put|delete|patch)\(" -g '*.py' ${1:-.} | \
+  rg -v '"""' | rg -v "#" | rg "@" | head -20
 ```
 
 **Express (JavaScript):**
 ```
-grep -rn --include="*.js" --include="*.ts" -B2 "router\.\(get\|post\|put\|delete\|patch\)" ${1:-.} | \
-  grep -v "/\*\*\|//" | grep "router\." | head -20
+rg -n -B2 "router\.(get|post|put|delete|patch)" -g '*.{js,ts}' ${1:-.} | \
+  rg -v "/\*\*|//" | rg "router\." | head -20
 ```
 
 **Go net/http or gin:**
 ```
-grep -rn --include="*.go" -B2 "HandleFunc\|\.GET\|\.POST\|\.PUT\|\.DELETE" ${1:-.} | \
-  grep -v "^--$\|//" | grep "HandleFunc\|\.GET\|\.POST" | head -20
+rg -n -B2 "HandleFunc|\.GET|\.POST|\.PUT|\.DELETE" -g '*.go' ${1:-.} | \
+  rg -v "^--$|//" | rg "HandleFunc|\.GET|\.POST" | head -20
 ```
 
 ### 5. Find Undocumented Config Keys and Env Variables
 
 ```
 # Keys in .env.example or config files
-grep -rh --include=".env*" --include="*.env" -E "^[A-Z_]+=.*" ${1:-.} | \
+rg --no-filename --hidden "^[A-Z_]+=.*" -g '.env*' -g '*.env' ${1:-.} | \
   sed 's/=.*//' | sort -u > /tmp/env_keys.txt
 
 # Check which appear in README or docs
 while read key; do
-  found=$(grep -rl "$key" README* docs/ 2>/dev/null | wc -l)
+  found=$(rg -l "$key" README* docs/ 2>/dev/null | wc -l)
   [ "$found" -eq 0 ] && echo "UNDOCUMENTED: $key"
 done < /tmp/env_keys.txt
 ```
@@ -142,12 +142,12 @@ Find docs that reference symbols no longer present in the codebase:
 
 ```
 # Extract function/class names mentioned in docs
-grep -roh --include="*.md" --include="*.rst" '`[a-zA-Z_][a-zA-Z0-9_.]*`' docs/ README* 2>/dev/null | \
+rg -o --no-filename '`[a-zA-Z_][a-zA-Z0-9_.]*`' -g '*.md' -g '*.rst' docs/ README* 2>/dev/null | \
   sed 's/.*:`\(.*\)`/\1/' | sort -u > /tmp/doc_symbols.txt
 
 # Check which no longer exist in source
 while read sym; do
-  found=$(grep -r "\b$sym\b" ${1:-.} --include="*.py" --include="*.ts" --include="*.go" 2>/dev/null | grep -v "\.md:" | wc -l)
+  found=$(rg "\b$sym\b" -g '*.py' -g '*.ts' -g '*.go' ${1:-.} 2>/dev/null | rg -v "\.md:" | wc -l)
   [ "$found" -eq 0 ] && echo "STALE REF: $sym"
 done < /tmp/doc_symbols.txt | head -20
 ```
@@ -267,6 +267,6 @@ All API endpoints are documented but 4 new CLI flags added last sprint have no h
 |---------|-------------|
 | `interrogate . -v --ignore-private` | Python docstring coverage report |
 | `interrogate . --fail-under 80` | Fail if coverage below 80% (CI use) |
-| `grep -rn "^export " --include="*.ts"` | Find all TypeScript exports |
-| `grep -rn "^func [A-Z]" --include="*.go"` | Find all exported Go functions |
-| `grep -rn "add_argument" --include="*.py" \| grep -v "help="` | argparse args missing help text |
+| `rg -n "^export " -g '*.ts'` | Find all TypeScript exports |
+| `rg -n "^func [A-Z]" -g '*.go'` | Find all exported Go functions |
+| `rg -n "add_argument" -g '*.py' \| rg -v "help="` | argparse args missing help text |

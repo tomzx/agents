@@ -35,8 +35,8 @@ This is the **Usability** characteristic of the [ISO/IEC 25010](https://en.wikip
 ### 1. Identify the surface
 
 ```
-grep -rEn "argparse|click\.command|typer|cobra\.Command|@app\.command|yargs|commander" --include="*.py" --include="*.ts" --include="*.js" --include="*.go" .
-grep -rEn "@(app|router)\.(get|post|put|delete|patch|route)" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "argparse|click\.command|typer|cobra\.Command|@app\.command|yargs|commander" -g '*.{py,ts,js,go}' .
+rg -n "@(app|router)\.(get|post|put|delete|patch|route)" -g '*.{py,ts,js}' .
 ls src/components app/templates templates 2>/dev/null
 ```
 
@@ -46,12 +46,12 @@ Record which surfaces exist. If none, report "no usability surface" and stop.
 
 - CLI: does every command have help? Missing `-h`/`--help` or empty help strings:
   ```
-  grep -rEn "add_parser|@click|@app\.command|add_argument" --include="*.py" . | grep -v "help="
+   rg -n "add_parser|@click|@app\.command|add_argument" -g '*.py' . | rg -v "help="
   ```
 - API: is there an OpenAPI spec or documented endpoints?
   ```
   ls openapi.yaml openapi.json swagger.* 2>/dev/null
-  grep -rEn "FastAPI|apispec|flask-restx|springdoc" --include="*.py" --include="*.java" .
+   rg -n "FastAPI|apispec|flask-restx|springdoc" -g '*.{py,java}' .
   ```
 - README states what the software does (first heading + first paragraph).
 
@@ -65,7 +65,7 @@ Record which surfaces exist. If none, report "no usability surface" and stop.
 
 - `--version` support:
   ```
-  grep -rEn "version|--version|show_version" --include="*.py" --include="*.ts" --include="*.js" --include="*.go" .
+   rg -n "version|--version|show_version" -g '*.{py,ts,js,go}' .
   ```
 - Exit codes: handlers that `sys.exit(0)` on error, or exit non-zero without a reason; inconsistent exit codes across commands.
 - Defaults: required arguments that could have safe defaults; dangerous operations without a dry-run.
@@ -75,21 +75,21 @@ Record which surfaces exist. If none, report "no usability surface" and stop.
 - Input validation present on user-facing inputs (see `audit-compatibility` step 6 for overlap; here focus on the *message* quality).
 - Error messages that are actionable: flag bare `raise Exception("...")`, `print("error")`, `console.error` without a remediation hint.
   ```
-  grep -rEn "raise (Exception|ValueError|RuntimeError)\(['\"]" --include="*.py" .
-  grep -rEn "console\.error\(|print\(['\"]?(error|Error|ERROR)" --include="*.ts" --include="*.js" .
+   rg -n "raise (Exception|ValueError|RuntimeError)\(['\"]" -g '*.py' .
+   rg -n "console\.error\(|print\(['\"]?(error|Error|ERROR)" -g '*.{ts,js}' .
   ```
 - Destructive operations (`delete`, `drop`, `purge`, `rm`, `reset`) without a confirmation or a `--force`/`--yes` gate:
   ```
-  grep -rEn "delete|drop|purge|remove|reset|destroy|rm -" --include="*.py" --include="*.ts" --include="*.js" . | grep -v "confirm\|--force\|--yes\|-y\|dry.run\|test"
+   rg -n "delete|drop|purge|remove|reset|destroy|rm -" -g '*.{py,ts,js}' . | rg -v "confirm|--force|--yes|-y|dry.run|test"
   ```
 
 ### 6. Accessibility (web surface only)
 
 Static-checkable subset:
 ```
-grep -rEn "<img" --include="*.html" --include="*.jsx" --include="*.tsx" --include="*.vue" . | grep -v "alt="
-grep -rEn "<input" --include="*.html" --include="*.jsx" --include="*.tsx" . | grep -v -E "id=|aria-label|<label"
-grep -rEn "onclick=|onClick=" --include="*.html" --include="*.jsx" --include="*.tsx" . 
+rg -n "<img" -g '*.{html,jsx,tsx,vue}' . | rg -v "alt="
+rg -n "<input" -g '*.{html,jsx,tsx}' . | rg -v "id=|aria-label|<label"
+rg -n "onclick=|onClick=" -g '*.{html,jsx,tsx}' .
 ```
 Flag images without `alt`, inputs without an associated label, click-only handlers with no keyboard equivalent.
 
@@ -174,7 +174,7 @@ Classify by severity and print. Note that some usability issues (contrast, copy 
 
 | Command | Description |
 |---|---|
-| `grep -rEn "argparse\|click\.command\|@app\.command" --include="*.py" . \| grep -v "help="` | Commands missing help |
-| `grep -rEn "raise (Exception\|ValueError)\(['\"]" --include="*.py" .` | Low-quality error messages |
-| `grep -rEn "delete\|drop\|purge\|reset" --include="*.py" . \| grep -v "confirm\|--force"` | Unguarded destructive ops |
-| `grep -rEn "<img" --include="*.html" --include="*.tsx" . \| grep -v "alt="` | Images missing alt text |
+| `rg -n "argparse\|click\.command\|@app\.command" -g '*.py' . \| rg -v "help="` | Commands missing help |
+| `rg -n "raise (Exception\|ValueError)\(['\"]" -g '*.py' .` | Low-quality error messages |
+| `rg -n "delete\|drop\|purge\|reset" -g '*.py' . \| rg -v "confirm\|--force"` | Unguarded destructive ops |
+| `rg -n "<img" -g '*.{html,tsx}' . \| rg -v "alt="` | Images missing alt text |

@@ -44,7 +44,7 @@ ls pyproject.toml requirements*.txt package.json go.mod Cargo.toml 2>/dev/null
 
 Handle monorepos by scanning subdirectories:
 ```
-find . -name "pyproject.toml" -o -name "package.json" -o -name "go.mod" -o -name "Cargo.toml" | grep -v node_modules | grep -v ".venv"
+find . -name "pyproject.toml" -o -name "package.json" -o -name "go.mod" -o -name "Cargo.toml" | rg -v node_modules | rg -v ".venv"
 ```
 
 ### 2. Security Vulnerability Scan
@@ -84,9 +84,9 @@ uv pip list --outdated 2>/dev/null || pip list --outdated --format=columns
 
 **Python (direct deps only from pyproject.toml):**
 ```
-cat pyproject.toml | grep -A50 '\[project\]' | grep -E '^\s+"[a-zA-Z]' | \
+cat pyproject.toml | rg -A50 '\[project\]' | rg '^\s+"[a-zA-Z]' | \
   sed 's/.*"\([a-zA-Z0-9_-]*\).*/\1/' | \
-  xargs -I{} sh -c 'latest=$(pip index versions {} 2>/dev/null | head -1 | sed "s/.*(\(.*\))/\1/"); installed=$(pip show {} 2>/dev/null | grep Version | awk "{print \$2}"); echo "${}  installed=$installed  latest=$latest"'
+  xargs -I{} sh -c 'latest=$(pip index versions {} 2>/dev/null | head -1 | sed "s/.*(\(.*\))/\1/"); installed=$(pip show {} 2>/dev/null | rg Version | awk "{print \$2}"); echo "${}  installed=$installed  latest=$latest"'
 ```
 
 **JavaScript/TypeScript:**
@@ -96,7 +96,7 @@ npx npm-check-updates --format markdown 2>/dev/null || npm outdated
 
 **Go:**
 ```
-go list -m -u all 2>/dev/null | grep '\['
+go list -m -u all 2>/dev/null | rg '\['
 ```
 
 **Rust:**
@@ -110,7 +110,7 @@ For each direct dependency, check last release date and repository status.
 
 **Python — check PyPI metadata:**
 ```
-pip show <package> | grep Home-page
+pip show <package> | rg Home-page
 # Then check: last release on PyPI, GitHub archive status, deprecation notices
 ```
 
@@ -130,7 +130,7 @@ npm view <package> time.modified repository.url
 **Python:**
 ```
 pip-licenses --format=markdown --order=license 2>/dev/null || \
-  pip show $(pip list --format=freeze | cut -d= -f1) 2>/dev/null | grep -E "^(Name|License):"
+  pip show $(pip list --format=freeze | cut -d= -f1) 2>/dev/null | rg "^(Name|License):"
 ```
 
 **JavaScript:**
@@ -151,7 +151,7 @@ Look for multiple packages solving the same problem:
 - Multiple test runners or assertion libraries
 
 ```
-cat pyproject.toml package.json 2>/dev/null | grep -E '"[a-z]' | head -40
+cat pyproject.toml package.json 2>/dev/null | rg '"[a-z]' | head -40
 ```
 
 ### 7. Prioritize and Plan

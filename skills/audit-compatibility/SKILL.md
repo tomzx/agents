@@ -33,15 +33,15 @@ This is the **Compatibility** characteristic of the [ISO/IEC 25010](https://en.w
 Hardcoded ports, hostnames, absolute paths, and well-known shared locations that collide when two instances or two apps run together:
 
 ```
-grep -rEn "localhost|127\.0\.0\.1|0\.0\.0\.0|:3000|:8080|:5432|:6379|:5672|/tmp/|/var/|/usr/|C:\\\\" --include="*.py" --include="*.ts" --include="*.js" --include="*.go" . \
-  | grep -v -E "test|spec|example|docs|README"
+rg -n "localhost|127\.0\.0\.1|0\.0\.0\.0|:3000|:8080|:5432|:6379|:5672|/tmp/|/var/|/usr/|C:\\\\" -g '*.{py,ts,js,go}' . \
+  | rg -v "test|spec|example|docs|README"
 ```
 
 Flag hardcoded values that should be configurable (env vars, config). Two instances on the same host cannot both bind a hardcoded port or write to a hardcoded path.
 
 Fixed resource names (DB names, queue names, cache keys without a prefix/namespacing):
 ```
-grep -rEn "CREATE DATABASE|database=|DB_NAME|queue|exchange|routing_key" --include="*.py" --include="*.ts" --include="*.sql" .
+rg -n "CREATE DATABASE|database=|DB_NAME|queue|exchange|routing_key" -g '*.{py,ts,sql}' .
 ```
 
 ### 2. Co-existence: dependency conflicts
@@ -49,42 +49,42 @@ grep -rEn "CREATE DATABASE|database=|DB_NAME|queue|exchange|routing_key" --inclu
 Over-pinned exact versions and conflicting transitive ranges. Exact pins block co-installation with software needing a different version; unbounded ranges can pull a breaking major.
 
 ```
-grep -rEn "==[0-9]|\"[a-z@/-]+\": *\"[0-9]" pyproject.toml requirements*.txt package.json 2>/dev/null
+rg -n "==[0-9]|\"[a-z@/-]+\": *\"[0-9]" pyproject.toml requirements*.txt package.json 2>/dev/null
 ```
 
 Use the language tool to detect conflicts:
 ```
 uv pip tree --duplicates 2>/dev/null || pip check
-npm ls --all 2>/dev/null | grep -i "deduped\|invalid\|missing"
+npm ls --all 2>/dev/null | rg -i "deduped|invalid|missing"
 ```
 
 ### 3. Co-existence: global mutable state
 
 Module-level mutable state that breaks under concurrency or co-hosting:
 ```
-grep -rEn "^[_a-zA-Z]+ *:? *= *\[\]|^[_a-zA-Z]+ *:? *= *\{\}|^_cache|^_state|^_registry" --include="*.py" .
+rg -n "^[_a-zA-Z]+ *:? *= *\[\]|^[_a-zA-Z]+ *:? *= *\{\}|^_cache|^_state|^_registry" -g '*.py' .
 ```
 
 ### 4. Interoperability: API versioning
 
 Endpoints without a version prefix (`/v1/`, version header, or content negotiation). Unversioned APIs cannot evolve compatibly:
 ```
-grep -rEn "@(app|router)\.(get|post|put|delete|patch|route)\(['\"]" --include="*.py" . | grep -v "/v[0-9]"
+rg -n "@(app|router)\.(get|post|put|delete|patch|route)\(['\"]" -g '*.py' . | rg -v "/v[0-9]"
 ```
 
 ### 5. Interoperability: content types and encoding
 
 Responses or requests not setting/explicit content types; missing charset on text; JSON parsed without encoding guards:
 ```
-grep -rEn "json\.loads\(|JSON\.parse\(|Response\(|jsonify" --include="*.py" --include="*.ts" .
-grep -rEn "Content-Type|content_type|mimetype|charset" --include="*.py" --include="*.ts" .
+rg -n "json\.loads\(|JSON\.parse\(|Response\(|jsonify" -g '*.{py,ts}' .
+rg -n "Content-Type|content_type|mimetype|charset" -g '*.{py,ts}' .
 ```
 
 ### 6. Interoperability: schema validation
 
 Inputs consumed without schema validation (trusting external data):
 ```
-grep -rEnB2 "request\.(json|data|form|args|body)|req\.(body|query|params)|event\[" --include="*.py" --include="*.ts" --include="*.js" . | grep -v "validate\|schema\|pydantic\|zod\|joi\|serde"
+rg -n -B2 "request\.(json|data|form|args|body)|req\.(body|query|params)|event\[" -g '*.{py,ts,js}' . | rg -v "validate|schema|pydantic|zod|joi|serde"
 ```
 
 ### 7. Interoperability: brittle external-data handling
@@ -95,7 +95,7 @@ Regex/string parsing of structured external data instead of a proper parser; har
 
 Handlers returning 200 for created resources (should be 201), 200 for async-accepted work (should be 202), 200 for errors, or generic 400/500 where a specific code applies:
 ```
-grep -rEn "status_code\s*=\s*(200|400|500)|return.*200|\.send\(200\)|res\.(status\()?200" --include="*.py" --include="*.ts" --include="*.js" .
+rg -n "status_code\s*=\s*(200|400|500)|return.*200|\.send\(200\)|res\.(status\()?200" -g '*.{py,ts,js}' .
 ```
 
 ### 9. Report
@@ -174,7 +174,7 @@ Confirms versioning, content types, and input validation before external consume
 
 | Command | Description |
 |---|---|
-| `grep -rEn "localhost\|127\.0\.0\.1\|:8080\|/tmp/" --include="*.py" .` | Hardcoded shared resources |
+| `rg -n "localhost\|127\.0\.0\.1\|:8080\|/tmp/" -g '*.py' .` | Hardcoded shared resources |
 | `uv pip tree --duplicates` / `npm ls --all` | Dependency conflicts |
-| `grep -rEn "@(app\|router)\.(get\|post)" --include="*.py" . \| grep -v "/v[0-9]"` | Unversioned endpoints |
+| `rg -n "@(app\|router)\.(get\|post)" -g '*.py' . \| rg -v "/v[0-9]"` | Unversioned endpoints |
 | `pip check` | Installed-package conflicts |

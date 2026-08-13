@@ -47,7 +47,7 @@ mypy ${1:-.} \
   --ignore-missing-imports \
   --no-error-summary \
   --any-exprs-report .mypy-type-report \
-  2>/dev/null | grep -E "error:|note:" | head -40
+  2>/dev/null | rg "error:|note:" | head -40
 ```
 
 Parse the any-exprs report for per-file coverage:
@@ -68,25 +68,24 @@ for d in data.get('generalDiagnostics', []):
 " 2>/dev/null | head -30
 ```
 
-**Python — grep fallback (untyped function signatures):**
+**Python — rg fallback (untyped function signatures):**
 ```
-grep -rn --include="*.py" -E "^(    )?def [a-zA-Z_]" ${1:-.} | \
-  grep -v "->.*:" | grep -v "#" | \
+rg -n "^(    )?def [a-zA-Z_]" -g '*.py' ${1:-.} | \
+  rg -v "->.*:" | rg -v "#" | \
   awk -F: '{ if ($0 !~ /: [a-zA-Z\[]/) print }' | head -30
 ```
 
 Count untyped vs typed:
 ```
-total=$(grep -rc --include="*.py" -E "^(    )?def " ${1:-.} | awk -F: '{s+=$2} END{print s}')
-typed=$(grep -rc --include="*.py" -E "^(    )?def .*->|^(    )?def .*\) -> " ${1:-.} | awk -F: '{s+=$2} END{print s}')
+total=$(rg -c "^(    )?def " -g '*.py' ${1:-.} | awk -F: '{s+=$2} END{print s}')
+typed=$(rg -c "^(    )?def .*->|^(    )?def .*\) -> " -g '*.py' ${1:-.} | awk -F: '{s+=$2} END{print s}')
 echo "Typed functions: $typed / $total"
 ```
 
 **TypeScript — count explicit `any`:**
 ```
-grep -rn --include="*.ts" --include="*.tsx" \
-  -E ": any\b|as any\b|<any>" \
-  ${1:-.} | grep -v "node_modules\|\.d\.ts\|test\|spec" | \
+rg -n ": any\b|as any\b|<any>" \
+  -g '*.{ts,tsx}' ${1:-.} | rg -v "node_modules|\.d\.ts|test|spec" | \
   awk -F: '{print $1}' | sort | uniq -c | sort -rn | head -20
 ```
 
@@ -104,7 +103,7 @@ for f in flags:
 **JavaScript — check for `@ts-check` adoption:**
 ```
 total_js=$(find ${1:-.} -name "*.js" ! -path "*/node_modules/*" | wc -l)
-checked_js=$(grep -rl "@ts-check" ${1:-.} --include="*.js" | wc -l)
+checked_js=$(rg -l "@ts-check" -g '*.js' ${1:-.} | wc -l)
 echo "JS files with @ts-check: $checked_js / $total_js"
 ```
 
@@ -115,24 +114,24 @@ Focus on gaps that would provide the most benefit:
 **Public API surface** — exported/public functions without types are the highest priority since callers cannot rely on them safely:
 ```
 # Python: public functions (no leading underscore) without return type
-grep -rn --include="*.py" -E "^def [a-zA-Z]" ${1:-.} | grep -v " -> " | head -20
+rg -n "^def [a-zA-Z]" -g '*.py' ${1:-.} | rg -v " -> " | head -20
 
 # TypeScript: exported functions without return type
-grep -rn --include="*.ts" -E "^export (async )?function [a-zA-Z]" ${1:-.} | \
-  grep -v "): [a-zA-Z<]" | head -20
+rg -n "^export (async )?function [a-zA-Z]" -g '*.ts' ${1:-.} | \
+  rg -v "): [a-zA-Z<]" | head -20
 ```
 
 **`Any` escape hatches** — uses of `Any`/`any` that bypass the type system:
 ```
-grep -rn --include="*.py" -E "\bAny\b" ${1:-.} | grep -v "typing_extensions\|from typing\|import" | head -20
-grep -rn --include="*.ts" --include="*.tsx" -E ": any\b|as any" ${1:-.} | \
-  grep -v "node_modules\|\.d\.ts" | head -20
+rg -n "\bAny\b" -g '*.py' ${1:-.} | rg -v "typing_extensions|from typing|import" | head -20
+rg -n ": any\b|as any" -g '*.{ts,tsx}' ${1:-.} | \
+  rg -v "node_modules|\.d\.ts" | head -20
 ```
 
 **Untyped class attributes (Python):**
 ```
-grep -rn --include="*.py" -B1 "self\.[a-zA-Z_]* =" ${1:-.} | \
-  grep -v "__init__\|#\|annotated\|: " | head -20
+rg -n -B1 "self\.[a-zA-Z_]* =" -g '*.py' ${1:-.} | \
+  rg -v "__init__|#|annotated|: " | head -20
 ```
 
 ### 4. Cross-Reference with Churn
@@ -162,7 +161,7 @@ For each high-priority gap, read the function and infer the correct type signatu
 
 **Python — verify `mypy` or `pyright` is configured:**
 ```
-cat mypy.ini setup.cfg pyproject.toml 2>/dev/null | grep -A10 "\[mypy\]\|\[tool.mypy\]\|\[tool.pyright\]"
+cat mypy.ini setup.cfg pyproject.toml 2>/dev/null | rg -A10 "\[mypy\]|\[tool.mypy\]|\[tool.pyright\]"
 ```
 
 Recommend adding to CI if not present.
@@ -184,7 +183,7 @@ If `strict: true` is not set in `tsconfig.json`, recommend enabling it increment
 - Type coverage: X% of functions annotated
 - Explicit Any / untyped escapes: N
 - 🔴 High-priority gaps: N
-- Tools used: <mypy / pyright / tsc / grep>
+- Tools used: <mypy / pyright / tsc / rg>
 
 ## Configuration
 
@@ -262,5 +261,5 @@ The payments module is 20% typed. Before refactoring, recommends annotating the 
 | `mypy . --any-exprs-report .report` | Per-file Any expression count |
 | `pyright . --outputjson` | Strict Python type check with JSON output |
 | `tsc --noEmit` | TypeScript type check without emitting files |
-| `grep -rn ": any" --include="*.ts"` | Find explicit any in TypeScript |
-| `grep -rn "^def " --include="*.py" \| grep -v " -> "` | Untyped Python functions |
+| `rg -n ": any" -g '*.ts'` | Find explicit any in TypeScript |
+| `rg -n "^def " -g '*.py' \| rg -v " -> "` | Untyped Python functions |
