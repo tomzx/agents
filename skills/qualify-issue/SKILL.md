@@ -1,7 +1,7 @@
 ---
 name: qualify-issue
 description: Drive a multi-round Q&A loop with an external reporter to gather enough information to proceed to requirements.
-allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write
 argument-hint: "<issue-url-or-number> [repository]"
 ---
 

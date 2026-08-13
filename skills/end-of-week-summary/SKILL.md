@@ -3,7 +3,7 @@ name: end-of-week-summary
 description: Summarize weekly Slack activity, colleague activity, action items, and thanks for the week.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 WEEK=!`date +%V`
@@ -19,10 +19,10 @@ Produces a weekly digest covering personal Slack activity, a monitored Slack cha
 
 - `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `collect_individual_threads.py`)
 - `NOTES_DIR` environment variable set, containing daily `.slack.md` note files
-- `COLLEAGUES` environment variable set (resolved via `scripts/get-env COLLEAGUES`)
-- `SLACK_USER` environment variable set (resolved via `scripts/get-env SLACK_USER`; Slack username, e.g. `tom.rochette`)
-- `HELP_ML_CHANNEL_ID` environment variable set (resolved via `scripts/get-env HELP_ML_CHANNEL_ID`; Slack channel id for `#help-ml-infrastructure`)
-- `scripts/get-env` utility available
+- `COLLEAGUES` environment variable set (resolved via `~/.agents/scripts/get-env COLLEAGUES`)
+- `SLACK_USER` environment variable set (resolved via `~/.agents/scripts/get-env SLACK_USER`; Slack username, e.g. `tom.rochette`)
+- `HELP_ML_CHANNEL_ID` environment variable set (resolved via `~/.agents/scripts/get-env HELP_ML_CHANNEL_ID`; Slack channel id for `#help-ml-infrastructure`)
+- `~/.agents/scripts/get-env` utility available
 
 ## Pipeline
 
@@ -46,7 +46,7 @@ Summarize `.slack.md` files in `{BASE_DIR}` from the week ending {TODAY}. Write 
 Fetch messages from the #help-ml-infrastructure Slack channel during the week ending {TODAY} using `build_thread_kb.py`. `WEEK_START` is Monday of the current week; `TOMORROW` is used as the exclusive upper bound.
 
 ```bash
-HELP_ML_CHANNEL_ID=`scripts/get-env HELP_ML_CHANNEL_ID`
+HELP_ML_CHANNEL_ID=`~/.agents/scripts/get-env HELP_ML_CHANNEL_ID`
 
 uv run skills/slack-kb-channel/build_thread_kb.py \
   --channel $HELP_ML_CHANNEL_ID \
@@ -76,7 +76,7 @@ Read the resulting JSONL and summarize into `{BASE_DIR}/{YEAR}/weekly/{WEEK}/sla
 
 Resolve the colleagues list:
 ```
-scripts/get-env COLLEAGUES
+~/.agents/scripts/get-env COLLEAGUES
 ```
 
 For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`. Slack's `after:` is exclusive, so pass the day before `WEEK_START` as `--after` and `TOMORROW` as `--before`:
@@ -118,7 +118,7 @@ Few Slack messages and no action items. Summaries are brief; `action-items.md` n
 
 | Command | Description |
 |---|---|
-| `scripts/get-env COLLEAGUES` | Resolve the list of colleagues to summarize |
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env COLLEAGUES` | Resolve the list of colleagues to summarize |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%V` | Get the ISO week number |
 | `date +%Y-%m-%d` | Get today's date in ISO format |

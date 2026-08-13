@@ -1,7 +1,7 @@
 ---
 name: check-duplicates
 description: Check a GitHub issue for duplicate issues and existing fix PRs before investing effort.
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 

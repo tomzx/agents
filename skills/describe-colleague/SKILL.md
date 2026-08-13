@@ -4,7 +4,7 @@ description: Generate a profile for a colleague based on their Slack and GitHub 
 argument-hint: "[colleague]"
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 
 # Describe Colleague
 
@@ -14,14 +14,14 @@ Generates a structured profile for a colleague by synthesizing their Slack and G
 
 - Slack MCP server connected and authenticated
 - `gh` CLI authenticated
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
 - Colleague identifier (`{COLLEAGUE}`) provided as argument or from context
 
 ## Steps
 
 1. Retrieve `NOTES_DIR` from environment:
    ```
-   scripts/get-env NOTES_DIR
+   ~/.agents/scripts/get-env NOTES_DIR
    ```
 2. Search GitHub for the colleague's contributions using `gh`:
    ```
@@ -80,6 +80,6 @@ Carol's contributions are primarily via Slack. Profile is weighted toward Slack 
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `gh search commits --author=<user> --limit 50` | Fetch recent commits by a user |
 | `gh search prs --author=<user> --limit 50` | Fetch recent PRs authored by a user |

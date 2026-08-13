@@ -1,7 +1,7 @@
 ---
 name: create-pr
 description: Create a GitHub pull request with a structured description linked to its issue, with acceptance criteria coverage and reviewer assignment. Embeds visual proof that was captured beforehand by /validate-implementation (single asset, or a before/after pair for bug fixes) by reading the proof manifest; create-pr is a consumer and does not capture recordings itself. If no proof was captured, it omits the Visual proof section and suggests running /validate-implementation first. By default does NOT create the PR on GitHub; it drafts the description and shows it for review. Pass --post to create the PR, upload assets, and assign reviewers.
-allowed-tools: Bash(gh:*, git:*, ghx:*, base64:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, base64:*, ~/.agents/scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[repository] [issue-number] [--post]"
 ---
 

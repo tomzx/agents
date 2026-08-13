@@ -1,7 +1,7 @@
 ---
 name: check-linked-pr
 description: Detect pull requests someone else linked to the issue being worked on, then offer to continue, stop, or review them. Use mid-flow to avoid duplicating in-progress work and to decide whether to depend on an external PR instead.
-allowed-tools: Bash(gh:*, ghx:*, scripts/get-env:*), Read, Write, Edit
+allowed-tools: Bash(gh:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write, Edit
 argument-hint: "<issue-number> [repository]"
 ---
 

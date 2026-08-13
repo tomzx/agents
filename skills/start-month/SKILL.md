@@ -3,7 +3,7 @@ name: start-month
 description: Opens the calendar month with a theme, monthly outcomes, and carryover from the prior month review. Use when the user says /start-month, start of month, monthly planning, or new month kickoff.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -17,7 +17,7 @@ Sets intent for the calendar month: theme, a small set of outcomes, carryover fr
 
 ## Prerequisites
 
-- `NOTES_DIR` set (via `scripts/get-env NOTES_DIR`)
+- `NOTES_DIR` set (via `~/.agents/scripts/get-env NOTES_DIR`)
 - Optional: `{BASE_DIR}/goals.md`, `{BASE_DIR}/team-goals.md`
 - Optional: `{BASE_DIR}/{PREV_YEAR}/{PREV_MONTH}/month-review.md` (from **end-of-month-review**)
 - Optional: latest weekly `plan.md` or `review.md` under `{BASE_DIR}/{YEAR}/weekly/` for continuity

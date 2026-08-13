@@ -3,7 +3,7 @@ name: identify-skill-gaps
 description: Identify workflows the user performs that are not yet encoded as skills in the agents repository, and prompt to create or backlog them. Drives a self-reinforcing improvement loop.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 
 # Identify Skill Gaps
 

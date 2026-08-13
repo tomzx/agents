@@ -4,7 +4,7 @@ description: Build a profile of users' familiarity with a codebase based on thei
 argument-hint: "<username> [organization]"
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 
 # Profile User Code Familiarity
 
@@ -13,14 +13,14 @@ Builds per-user familiarity profiles by analyzing GitHub contributions - commits
 ## Prerequisites
 
 - `gh` CLI authenticated with access to the target repositories
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
 - Username(s) (`{USERS}`) and optional organization (`{ORGANIZATIONS}`) provided as arguments
 
 ## Steps
 
 1. Resolve the notes directory:
    ```
-   scripts/get-env NOTES_DIR
+   ~/.agents/scripts/get-env NOTES_DIR
    ```
 2. For each user in `{USERS}` within `{ORGANIZATIONS}`, retrieve contributions:
    ```
@@ -59,7 +59,7 @@ Generates separate profile files for each user, ideally processed in parallel.
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `gh search commits --author=<user> --owner=<org> --limit 100` | Fetch commits by a user in an org |
 | `gh search prs --author=<user> --owner=<org> --limit 100` | Fetch PRs authored by a user in an org |
 | `gh search issues --assignee=<user> --owner=<org> --limit 100` | Fetch issues assigned to a user in an org |

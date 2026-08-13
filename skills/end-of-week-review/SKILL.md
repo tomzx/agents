@@ -3,7 +3,7 @@ name: end-of-week-review
 description: Reflective end-of-week review covering goal progress, time and attention patterns, team health, and what to change next week. Runs the audit-attention skill to classify the week's activities as compounding or depreciating.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 WEEK=!`date +%V`
@@ -15,8 +15,8 @@ Guides a structured weekly reflection connecting your week's work to goals, surf
 
 ## Prerequisites
 
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `~/.agents/scripts/get-env` utility available
 - Optional: daily `.review.md` files from the week in `{BASE_DIR}/{YEAR}/{MONTH}/`
 - Optional: daily `.overall.md` files from the week in `{BASE_DIR}/{YEAR}/{MONTH}/`
 - Optional: `{BASE_DIR}/goals.md` with current personal goals
@@ -166,7 +166,7 @@ Colleague summary shows a team member is absent from key discussions. Review fla
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%V` | Get the ISO week number |
 | `date +%Y-%m-%d` | Get today's date in ISO format |
 | `date -d "next Monday" +%V` | Get next week's ISO week number |

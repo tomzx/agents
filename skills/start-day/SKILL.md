@@ -3,7 +3,7 @@ name: start-day
 description: Opens the workday by grounding priorities in yesterday's plan and goals, and optionally writes a short start-of-day note. Use when the user says /start-day, start of day, morning planning, or daily kickoff.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -15,10 +15,10 @@ Frames the day before deep work: confirm priorities, first focus block, and bloc
 
 ## Prerequisites
 
-- `NOTES_DIR` set (via `scripts/get-env NOTES_DIR`)
+- `NOTES_DIR` set (via `~/.agents/scripts/get-env NOTES_DIR`)
 - Optional: `{BASE_DIR}/goals.md`, `{BASE_DIR}/team-goals.md`
 - Optional: `{BASE_DIR}/{YEAR}/{MONTH}/{TODAY}.standup.md` (from end-of-day-summary, written as "next workday" standup)
-- Optional: `SEND_DAILY_SLACK` set (via `scripts/get-env SEND_DAILY_SLACK`; truthy values `1`, `true`, `yes` enable Slack posting)
+- Optional: `SEND_DAILY_SLACK` set (via `~/.agents/scripts/get-env SEND_DAILY_SLACK`; truthy values `1`, `true`, `yes` enable Slack posting)
 
 ## Steps
 
@@ -65,7 +65,7 @@ date: {TODAY}
 
 ## Post update to Slack
 
-As the final step, check whether `SEND_DAILY_SLACK` is set (via `scripts/get-env SEND_DAILY_SLACK`). Only post when it resolves to a truthy value (`1`, `true`, `yes`). If unset or empty, skip this step and inform the user that the Slack update was skipped.
+As the final step, check whether `SEND_DAILY_SLACK` is set (via `~/.agents/scripts/get-env SEND_DAILY_SLACK`). Only post when it resolves to a truthy value (`1`, `true`, `yes`). If unset or empty, skip this step and inform the user that the Slack update was skipped.
 
 When enabled, post a brief summary to the `tom-rochette-updates` channel using the **post-slack-message** skill:
 

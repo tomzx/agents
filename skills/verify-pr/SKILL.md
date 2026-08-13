@@ -1,7 +1,7 @@
 ---
 name: verify-pr
 description: Verify that a PR conforms to its specified requirements (acceptance criteria). Combines static criteria-to-code traceability with runtime execution that proves each criterion by building and running the PR. Records CLI demos (asciinema) and web UI captures (Playwright). Does not judge code craft (that is review-pr) or whether the target is the right product (that is validate-pr). By default does NOT post to GitHub; pass --post to post the conformance report as a PR comment.
-allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ../../scripts/get-env:*, ../../scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-github-comment:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository] [--post]"
 ---
 
@@ -348,7 +348,7 @@ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
 
 By default, the report is saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md` and NOT posted to GitHub. To post it, pass `--post` to the skill.
 
-Run `../../scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR" [--post]`. The `--post` flag is included when the user passed `--post` to this skill. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
+Run `~/.agents/scripts/should-post-github-comment --repo "$REPO" --author "$PR_AUTHOR" [--post]`. The `--post` flag is included when the user passed `--post` to this skill. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
 
 If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
 

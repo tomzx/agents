@@ -10,7 +10,7 @@ Produces a structured handoff document so work continues smoothly while the user
 ## Prerequisites
 
 - `gh` CLI authenticated (to list authored/reviewing PRs and assigned issues)
-- `NOTES_DIR` resolvable via `scripts/get-env NOTES_DIR` (output location)
+- `NOTES_DIR` resolvable via `~/.agents/scripts/get-env NOTES_DIR` (output location)
 - Leave dates (start/end) and any known coverage arrangements from the user
 
 ## Steps

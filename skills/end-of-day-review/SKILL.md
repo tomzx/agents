@@ -3,7 +3,7 @@ name: end-of-day-review
 description: Reflective end-of-day review that forces alignment between your work, your goals, and your team's goals.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -15,8 +15,8 @@ Guides a structured reflection on how the day's work aligned with personal and t
 
 ## Prerequisites
 
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `~/.agents/scripts/get-env` utility available
 - Optional: `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md` from end-of-day-summary
 - Optional: `{BASE_DIR}/goals.md` with current personal goals
 - Optional: `{BASE_DIR}/team-goals.md` with current team goals
@@ -114,5 +114,5 @@ Most time was in meetings and responding to requests. User rates reactivity as 5
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%Y-%m-%d` | Get today's date in ISO format |

@@ -1,7 +1,7 @@
 ---
 name: validate-implementation
 description: Visually validate the implemented feature on the current branch BEFORE opening a PR, so the user can confirm the feature works as intended. Captures a CLI demo (via record-asciinema) or a web screenshot/video (via record-playwright) and presents it for human confirmation. For bug fixes, replays the reproduce-issue before-command on the fixed code to produce a comparable after recording. Writes a proof manifest that create-pr consumes, so the recording happens prior to PR creation rather than during it. Use when the user says /validate-implementation, "record a demo before the PR", "visually verify the feature", "show me it works before opening a PR", or wants pre-PR visual proof.
-allowed-tools: Bash(git:*, asciinema:*, agg:*, asciicast2gif:*, svg-term:*, npx:*, npm:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(git:*, asciinema:*, agg:*, asciicast2gif:*, svg-term:*, npx:*, npm:*, node:*, uv:*, python:*, python3:*, curl:*, ~/.agents/scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[repository] [issue-number]"
 ---
 

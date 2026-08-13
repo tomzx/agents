@@ -3,7 +3,7 @@ name: sprint-retro
 description: Generate a sprint retrospective covering kudos, what went well, what could have gone better, blockers to speed, and action items. Use when the user asks for a sprint retro, retrospective, or sprint review.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -17,8 +17,8 @@ Produces a structured sprint retrospective by reviewing the past two weeks of da
 
 - Slack MCP server connected and authenticated
 - `gh` CLI authenticated
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `~/.agents/scripts/get-env` utility available
 - At least one week of daily notes present in `{BASE_DIR}`
 
 ## Steps
@@ -27,7 +27,7 @@ Produces a structured sprint retrospective by reviewing the past two weeks of da
 
 1. Resolve the notes directory:
    ```
-   scripts/get-env NOTES_DIR
+   ~/.agents/scripts/get-env NOTES_DIR
    ```
 2. Read all daily note files from the past two weeks within `{BASE_DIR}` (`.github.md`, `.slack.md`, `.overall.md`, `.timeline.md`, weekly summaries).
 3. Fetch recent GitHub activity (PRs opened, reviewed, merged; issues closed) for the past two weeks using `gh`.
@@ -95,7 +95,7 @@ Many blockers and slow reviews surface in the data. "Could Have Gone Better" and
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%Y-%m-%d` | Get today's date for output filename |
 | `gh pr list --author @me --state merged --search "merged:>={TWO_WEEKS_AGO}"` | List merged PRs from the sprint |
 | `gh pr list --reviewed-by @me --search "updated:>={TWO_WEEKS_AGO}"` | List PRs reviewed during the sprint |

@@ -3,7 +3,7 @@ name: start-week
 description: Opens the calendar week with themes, outcomes, and carryover from last week. Use when the user says /start-week, start of week, weekly planning, or Monday kickoff.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 WEEK=!`date +%V`
@@ -14,7 +14,7 @@ Sets intent for the ISO week: a small number of outcomes, how collaboration fits
 
 ## Prerequisites
 
-- `NOTES_DIR` set (via `scripts/get-env NOTES_DIR`)
+- `NOTES_DIR` set (via `~/.agents/scripts/get-env NOTES_DIR`)
 - Optional: `{BASE_DIR}/goals.md`, `{BASE_DIR}/team-goals.md`
 - Optional: `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md` (if end-of-week-summary already ran this week)
 - Optional: previous week's `{BASE_DIR}/{YEAR}/weekly/<prev>/review.md` or `action-items.md` for carryover

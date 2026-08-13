@@ -1,7 +1,7 @@
 ---
 name: publish-plan
 description: Commit an implementation plan to a branch, open a draft PR linked to the originating issue, and post a comment on the issue pointing to the PR.
-allowed-tools: Bash(gh:*, ghx:*, git:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*), Read, Write
 argument-hint: "<issue-url-or-number> [plan-file]"
 ---
 

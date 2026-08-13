@@ -1,7 +1,7 @@
 ---
 name: check-issue-status
 description: Determine whether a GitHub issue is already addressed in the codebase by extracting its requested behavior and verifying it against the code. Works for feature requests and bug reports in any format, with or without formal acceptance criteria. Use before starting work on an issue, or to triage stale issues, to avoid implementing or fixing something that is already present. Triggers on "is this issue already done", "is this already implemented", "is this bug already fixed", "check issue status", "is the issue still valid", or "is this issue stale".
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 

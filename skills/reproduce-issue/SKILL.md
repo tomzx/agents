@@ -1,7 +1,7 @@
 ---
 name: reproduce-issue
 description: Reproduce a bug reported in a GitHub issue by creating a worktree, analyzing the codebase, and attempting to trigger the bug.
-allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, scripts/get-env:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ~/.agents/scripts/get-env:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<issue-number> [repository]"
 ---
 

@@ -3,7 +3,7 @@ name: end-of-month-review
 description: Reflective end-of-month review covering OKR/goal progress, time allocation trends, team trajectory, and strategic focus adjustments for the next month.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -17,8 +17,8 @@ Guides a structured monthly retrospective that connects work patterns to goals a
 
 ## Prerequisites
 
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `~/.agents/scripts/get-env` utility available
 - Optional: weekly `review.md` files from the month in `{BASE_DIR}/{YEAR}/weekly/`
 - Optional: `{BASE_DIR}/goals.md` with current goals and OKRs
 - Optional: `{BASE_DIR}/team-goals.md` with current team goals and OKRs
@@ -152,7 +152,7 @@ Weekly `review.md` files don't exist. Proceed with goals files and user response
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%B` | Get the current month name |
 | `date +%m` | Get the current month number |
 | `date +%Y` | Get the current year |

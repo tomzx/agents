@@ -3,7 +3,7 @@ name: what-to-demo
 description: Review notes from the past two weeks to determine what could be demoed.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -16,14 +16,14 @@ Scans two weeks of daily notes to surface completed features, notable improvemen
 ## Prerequisites
 
 - `NOTES_DIR` environment variable set, containing daily note files
-- `scripts/get-env` utility available
+- `~/.agents/scripts/get-env` utility available
 - At least one week of daily notes present in `{BASE_DIR}`
 
 ## Steps
 
 1. Resolve the notes directory:
    ```
-   scripts/get-env NOTES_DIR
+   ~/.agents/scripts/get-env NOTES_DIR
    ```
 2. Identify daily note files from the past two weeks within `{BASE_DIR}`.
 3. Read each file and extract: completed features, notable changes, and improvements with visible results.
@@ -48,5 +48,5 @@ Notes reference a new API endpoint, a UI redesign, and a performance optimizatio
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%Y-%m-%d` | Get today's date for output filename |

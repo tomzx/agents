@@ -1,7 +1,7 @@
 ---
 name: check-issues-status
 description: Orchestrate check-issue-status across a list of issues to find which are already addressed in the code. Supports checking every open issue in a repository, issues authored by a specific user, or issues matching a custom search query, and these scopes combine. Use to triage a backlog for stale or already-implemented issues, audit a user's open reports, or filter a query before investing effort. Triggers on "check these issues", "which issues are already done", "find stale issues", "batch check issue status", "check issues by <user>", or "are any of these already fixed".
-allowed-tools: Bash(gh:*, git:*, ghx:*, scripts/get-env:*), Read, Write
+allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write
 argument-hint: "[owner/repo] [--author <user>] [--query <text>] [--limit <n>] [--state <state>] [--post]"
 ---
 

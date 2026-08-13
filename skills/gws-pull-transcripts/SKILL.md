@@ -13,7 +13,7 @@ metadata:
 Run the automation script (do not reimplement the pipeline by hand unless the script is missing or broken):
 
 ```bash
-./scripts/gws-pull-transcripts.sh
+~/.agents/scripts/gws-pull-transcripts.sh
 ```
 
 The script downloads Google Meet transcripts and Gemini meeting notes from Google Drive (including shared drives) and saves them as markdown under `{NOTES_DIR}/transcripts/`.
@@ -25,14 +25,14 @@ Default: `/Users/tom.rochette/.local/share/pnpm/gws`
 Override for other machines or installs:
 
 ```bash
-GWS=/path/to/gws ./scripts/gws-pull-transcripts.sh
+GWS=/path/to/gws ~/.agents/scripts/gws-pull-transcripts.sh
 ```
 
 ## Prerequisites
 
 - `gws` CLI installed and authenticated (see `skills/gws-drive/SKILL.md`)
 - `jq` installed
-- `NOTES_DIR` set in `.env` (resolved via `scripts/get-env NOTES_DIR` from the repo root)
+- `NOTES_DIR` set in `.env` (resolved via `~/.agents/scripts/get-env NOTES_DIR` from the repo root)
 - Google Drive API enabled for your GCP project
 
 ## Behavior (reference)
@@ -45,4 +45,4 @@ GWS=/path/to/gws ./scripts/gws-pull-transcripts.sh
 - Writes filenames from the doc title (date prefix when the title has no `YYYY-MM-DD`), slug, collision suffixes `-2`, `-3`, etc.
 - Prints a short summary (new count, skipped count, totals, new filenames)
 
-For full pipeline details and manifest schema, read `scripts/gws-pull-transcripts.sh`.
+For full pipeline details and manifest schema, read `~/.agents/scripts/gws-pull-transcripts.sh`.

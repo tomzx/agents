@@ -3,7 +3,7 @@ name: end-of-month-summary
 description: Summarize monthly GitHub activity, Slack activity, colleague activity, and generate a monthly highlights report.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YEAR=!`date +%Y`
 MONTH=!`date +%m`
@@ -21,10 +21,10 @@ Produces a monthly digest covering personal GitHub activity, personal Slack acti
 - `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `collect_individual_threads.py`)
 - `gh` CLI authenticated
 - `summarize-github-activity` script at `$HOME/repos/git/personal-automation/others/summarize-github-activity`
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `COLLEAGUES` environment variable set (resolved via `scripts/get-env COLLEAGUES`)
-- `HELP_ML_CHANNEL_ID` environment variable set (resolved via `scripts/get-env HELP_ML_CHANNEL_ID`; Slack channel id for `#help-ml-infrastructure`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `COLLEAGUES` environment variable set (resolved via `~/.agents/scripts/get-env COLLEAGUES`)
+- `HELP_ML_CHANNEL_ID` environment variable set (resolved via `~/.agents/scripts/get-env HELP_ML_CHANNEL_ID`; Slack channel id for `#help-ml-infrastructure`)
+- `~/.agents/scripts/get-env` utility available
 
 ## Pipeline
 
@@ -71,7 +71,7 @@ A list of the action items generated.
 Fetch messages from the #help-ml-infrastructure Slack channel for the full month using `build_thread_kb.py`:
 
 ```bash
-HELP_ML_CHANNEL_ID=`scripts/get-env HELP_ML_CHANNEL_ID`
+HELP_ML_CHANNEL_ID=`~/.agents/scripts/get-env HELP_ML_CHANNEL_ID`
 
 uv run skills/slack-kb-channel/build_thread_kb.py \
   --channel $HELP_ML_CHANNEL_ID \
@@ -101,7 +101,7 @@ Read the resulting JSONL and summarize into `{BASE_DIR}/{YEAR}/{MONTH}/slack.hel
 
 Resolve the colleagues list:
 ```
-scripts/get-env COLLEAGUES
+~/.agents/scripts/get-env COLLEAGUES
 ```
 
 For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`. Slack's `after:` is exclusive, so pass the day before `MONTH_START` as `--after` and `NEXT_MONTH_START` as `--before`:
@@ -143,8 +143,8 @@ Few GitHub events and minimal Slack. Summaries are brief; `action-items.md` note
 
 | Command | Description |
 |---|---|
-| `scripts/get-env COLLEAGUES` | Resolve the list of colleagues to summarize |
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env COLLEAGUES` | Resolve the list of colleagues to summarize |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%Y-%m-%d` | Get today's date in ISO format |
 | `date +%m` | Get the current month number |
 | `date +%B` | Get the current month name |

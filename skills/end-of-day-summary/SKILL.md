@@ -3,7 +3,7 @@ name: end-of-day-summary
 description: Summarize GitHub activity, Slack activity, and overall activity for the day, then generate a standup for the next day.
 ---
 
-BASE_DIR=!`scripts/get-env NOTES_DIR`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 TODAY=!`date +%Y-%m-%d`
 YESTERDAY=!`date -d "yesterday" +%Y-%m-%d`
 TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
@@ -21,9 +21,9 @@ Produces structured summaries of GitHub and Slack activity for the current day, 
 - `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `collect_individual_threads.py`)
 - `gh` CLI authenticated
 - `summarize-github-activity` script at `$HOME/repos/git/personal-automation/others/summarize-github-activity`
-- `NOTES_DIR` environment variable set (resolved via `scripts/get-env NOTES_DIR`)
-- `SLACK_USER` environment variable set (resolved via `scripts/get-env SLACK_USER`; Slack username, e.g. `tom.rochette`)
-- `scripts/get-env` utility available
+- `NOTES_DIR` environment variable set (resolved via `~/.agents/scripts/get-env NOTES_DIR`)
+- `SLACK_USER` environment variable set (resolved via `~/.agents/scripts/get-env SLACK_USER`; Slack username, e.g. `tom.rochette`)
+- `~/.agents/scripts/get-env` utility available
 
 ## Pipeline
 
@@ -50,7 +50,7 @@ Write output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md`.
 Collect Slack threads for {TODAY} using `collect_individual_threads.py`. Slack's `after:`/`before:` search operators are exclusive, so use the day before and the day after {TODAY} as bounds:
 
 ```bash
-SLACK_USER=`scripts/get-env SLACK_USER`
+SLACK_USER=`~/.agents/scripts/get-env SLACK_USER`
 
 uv run skills/slack-kb-individual/collect_individual_threads.py \
   --user $SLACK_USER \
@@ -131,7 +131,7 @@ Few GitHub events and minimal Slack. Summaries are brief; Overall may have mostl
 
 | Command | Description |
 |---|---|
-| `scripts/get-env NOTES_DIR` | Resolve the notes directory path |
+| `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory path |
 | `date +%Y-%m-%d` | Get today's date in ISO format |
 | `date -d "next Monday" +%Y-%m-%d` | Get next Monday's date |
 | `$HOME/repos/git/personal-automation/others/summarize-github-activity <user> <from> <to> <exclude>` | Summarize GitHub activity for a user |

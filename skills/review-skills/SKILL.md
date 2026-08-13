@@ -101,7 +101,7 @@ Also check:
 
 - Tool references in `allowed-tools` that do not exist or are misformatted
 - Environment variable references (`${VAR}`, `$VAR`) that are not explained in a Prerequisites section
-- Script references (`scripts/get-env`, etc.) where the script path is not documented or verified
+- Script references (`~/.agents/scripts/get-env`, etc.) where the script path is not documented or verified
 - External URLs that appear malformed (basic syntax check only, do not fetch)
 
 ### 5. Check for circular dependencies
