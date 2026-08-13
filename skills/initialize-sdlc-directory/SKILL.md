@@ -21,7 +21,14 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 2. **Resolve the SDLC write location** per `sdlc/references/shared.md`: default `<project-root>/.sdlc/`; if it cannot be created and `SDLC_DIR` is set, use `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror created files to the external store when set. Record which location was used in the report.
 
-3. For each directory below, create it (under the resolved write location) if it does not already exist:
+3. **Pre-approve the external SDLC stores in the agent CLI.** Most harnesses prompt before reading or writing outside the workspace; grant read/write for `~/.sdlc/**` and `/tmp/sdlc/**` up front. Detect which config(s) exist and add only missing entries, preserving all other fields:
+
+   - **opencode** (`~/.config/opencode/opencode.json`): set `permission.external_directory` entries `"~/.sdlc/**": "allow"` and `"/tmp/sdlc/**": "allow"`.
+   - **Claude Code** (`~/.claude/settings.json`): add `Read(~/.sdlc/**)`, `Edit(~/.sdlc/**)`, `Read(/tmp/sdlc/**)`, `Edit(/tmp/sdlc/**)` to `permissions.allow`.
+
+   For any other harness, add the equivalent entry following its own schema. Record what was created, updated, or skipped (already present), and remind the user to restart their CLI.
+
+4. For each directory below, create it (under the resolved write location) if it does not already exist:
    ```
    .sdlc/
    .sdlc/context/
@@ -62,6 +69,8 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/features/telemetry.md` | `.sdlc/templates/features/telemetry.md` |
    | `../sdlc/templates/features/observability.md` | `.sdlc/templates/features/observability.md` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
+   | `../sdlc/templates/features/plan-index.md` | `.sdlc/templates/features/plan-index.md` |
+   | `../sdlc/templates/features/plan-concern.md` | `.sdlc/templates/features/plan-concern.md` |
    | `../sdlc/templates/features/task.md` | `.sdlc/templates/features/task.md` |
    | `../sdlc/templates/features/tests.md` | `.sdlc/templates/features/tests.md` |
    | `../sdlc/templates/features/documentation.md` | `.sdlc/templates/features/documentation.md` |
@@ -96,6 +105,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
 
 ### Agent instructions
 - AGENTS.md: SDLC anchor created (or updated / skipped: read-only)
+- agent CLI permissions: ~/.sdlc/** and /tmp/sdlc/** pre-approved in <harness> config (or created / skipped: already present)
 
 ### Skipped (already exist)
 - .sdlc/context/conventions.md
