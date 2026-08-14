@@ -24,6 +24,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ## Formatting
 
 - Do not use curly or typographic quotation marks in any text you write for the issue (title, body, sections, lists, or examples). Use straight ASCII double quotes (`"`) and straight apostrophes (`'`) only.
+- Write one sentence per line throughout the issue body. Lists and checklist items follow their own format, but any prose paragraph should have each sentence on its own line.
 
 ## Acceptance Criteria
 
@@ -42,9 +43,15 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 - List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, the estimate should be revisited.
 - Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
 
+## Summary
+
+- If the issue description (background plus any context you would write) exceeds 200 words, add a **Summary** section before the **Background** section.
+- The summary must be less than 200 words, at most 5 sentences, with one sentence per line, and concisely summarize the ask: what is needed and why, in plain terms.
+- If the description is 200 words or fewer, omit the Summary section entirely.
+
 ## Issue Body Scope
 
-- Keep the issue body focused on background, acceptance criteria, and time budget.
+- Keep the issue body focused on summary (when applicable), background, acceptance criteria, and time budget.
 - If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not push it into the issue body. Instead, post it as a follow-up comment after the issue is created.
 - The issue body should give implementers enough context to start work; the follow-up comment provides the deeper analysis for those who want the reasoning.
 
@@ -71,6 +78,10 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 7. Create the issue with the structured body. For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 2. Omit `--repo` if no repository was provided (gh will infer it from the cwd). Only include `--label` flags for labels confirmed to exist in step 5:
     ```
     gh issue create [--repo $1] --title "<title>" --body "$(cat <<'EOF'
+    # Summary
+
+    <less than 200 words, at most 5 sentences, one sentence per line, summarizing the ask, only if the description exceeds 200 words; omit this section otherwise>
+
     # Background
 
     <context and motivation>
@@ -142,6 +153,7 @@ User provides a list of requirements. Convert each into a checklist item, then s
 Before finishing, confirm:
 
 - [ ] Duplicate search run before creating (no existing issue matches)
+- [ ] Summary section included only when the description exceeds 200 words; less than 200 words, at most 5 sentences, one sentence per line
 - [ ] Time budget included only for private repos; Should section omitted when empty
 - [ ] Detailed code analysis posted as a follow-up comment, not in the issue body
 
