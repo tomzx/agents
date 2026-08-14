@@ -42,6 +42,12 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 - List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, the estimate should be revisited.
 - Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
 
+## Issue Body Scope
+
+- Keep the issue body focused on background, acceptance criteria, and time budget.
+- If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not push it into the issue body. Instead, post it as a follow-up comment after the issue is created.
+- The issue body should give implementers enough context to start work; the follow-up comment provides the deeper analysis for those who want the reasoning.
+
 ## Steps
 
 1. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
@@ -103,7 +109,8 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     )" --label "<label1>" --label "<label2>"
     ```
     Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command. Omit all `--label` flags if no desired labels exist in the repository.
-8. **Assign the issue type** (if the repository supports issue types from step 4). After the issue is created, get its `node_id` and set the type:
+8. **Post detailed code analysis as a follow-up comment** (if applicable). If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body. Use `gh issue comment <number> [--repo $1] --body "..."`. Include the same attribution footer as the issue body.
+9. **Assign the issue type** (if the repository supports issue types from step 4). After the issue is created, get its `node_id` and set the type:
     ```
     NODE_ID=$(gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id')
     gh api graphql -f query='mutation($id:ID!, $typeId:ID!) { updateIssue(input:{id:$id, issueTypeId:$typeId}) { issue { url issueType { name } } } }' -f id="$NODE_ID" -f typeId="<issue_type_node_id>"
@@ -136,6 +143,7 @@ Before finishing, confirm:
 
 - [ ] Duplicate search run before creating (no existing issue matches)
 - [ ] Time budget included only for private repos; Should section omitted when empty
+- [ ] Detailed code analysis posted as a follow-up comment, not in the issue body
 
 Self-check the issue against the [`review-issue` checklist](../review-issue/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -150,5 +158,6 @@ Self-check the issue against the [`review-issue` checklist](../review-issue/SKIL
 | `ghx issue list --repo <repo> --search "<keywords>" --state all --limit 10` | Search for duplicate issues before creating (cached) |
 | `gh label list [--repo <repo>] --json name --jq '.[].name'` | List existing label names in the repository |
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
+| `gh issue comment <number> [--repo <repo>] --body "..."` | Post a follow-up comment with detailed code analysis |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get the issue's node ID for type assignment |
 | `gh api graphql -f query='mutation($id:ID!,$typeId:ID!){updateIssue(input:{id:$id,issueTypeId:$typeId}){issue{issueType{name}}}}' -f id=... -f typeId=...` | Set the issue type after creation |
