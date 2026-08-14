@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-201-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-203-green" alt="Skill count">
 </p>
 
 ## What
@@ -128,6 +128,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | Skill | Purpose |
 |-------|---------|
 | `/create-issue` | Create a GitHub issue with background, criteria, and time budget. |
+| `/create-issue-internal` | Create an internal issue as a local file in `~/.sdlc/<owner>/<repo>/internal-issues` instead of posting to GitHub. |
 | `/create-placeholder-issue` | Promote a pending (p-prefixed) SDLC feature to an issue-driven one by creating a placeholder GitHub issue and renaming its directory. |
 | `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
 | `/create-requirements` | Draft a requirements document from a feature brief or issue. |
@@ -210,6 +211,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |
 | `/ghx` | Browse issues and PRs with local disk caching, and post inline review comments, thread replies, and stashes. |
+| `/gh-stack` | Manage stacked PRs (create, push, submit, sync, rebase, merge) with the `gh stack` CLI extension. |
 | `/github-post-attribution` | Format attribution footers for skill-generated posts. |
 | `/attach-assets` | Upload files to a dedicated orphan branch and embed them in an issue or PR comment or description, keeping sensitive content off the default branch. |
 | `/pr-review-send` | Send review comments to GitHub. |
@@ -316,6 +318,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/slack-resolve-threads` | Triage open Slack threads, mark resolved ones with a checkmark reaction. |
 | `/slack-kb-channel` | Build a channel knowledge base for a given month. |
 | `/slack-kb-individual` | Collect conversations a person participated in. |
+| `/stakeholder-announcement` | Draft and post structured infrastructure progress announcements to stakeholder channels. |
 | `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |
 
 ### Memory & Automation
