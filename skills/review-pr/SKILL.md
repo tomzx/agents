@@ -279,14 +279,14 @@ Include a checklist table with one row per Code Review Checklist section (Scope 
 Include a Coverage section listing what tests exist, what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), what is missing, and the CI status.
 
 When reviewing, write the response to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
-Start the file with the marker `<!-- review-pr:HEAD_COMMIT -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA.
+Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
 If a file already exists for this `$SHORT_SHA`, update the file with the new information and tell me what changes have been made since the last review.
 If reviewing a new `$SHORT_SHA`, create a new file. To find the baseline for the "what changed" summary, glob `$PR_REVIEW_DIR/review-pr.*.md` (excluding `review-pr.$SHORT_SHA.md`), read the reviewed SHA from each filename (the segment between `review-pr.` and `.md`), and select the one whose commit is the most recent ancestor of the current `$SHORT_SHA` (compare with `git merge-base --is-ancestor`); fall back to the newest by file mtime if no ancestor is found. Read that file to summarize what has changed since that review. (This directory is user-global under `$HOME`; where it does not persist across runs, no baseline is found and the review proceeds fresh.)
 
 ### Example Output
 
 ```
-<!-- review-pr:a1b2c3d -->
+<!-- {"step":"review-pr","sha":"a1b2c3d","verdict":"fail"} -->
 # Review of PR #42: Add payment processing endpoint
 
 🟢 **Approved with minor suggestions**
@@ -353,7 +353,7 @@ The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`. Posting it as a
 
 After writing `review-pr.$SHORT_SHA.md`, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
 
-If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- review-pr:HEAD_COMMIT -->` marker.
+If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
@@ -374,11 +374,11 @@ fi
 
 If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
 
-| Verdict | When |
-|---|---|
-| `approved` | No blocking findings; the subject passes review |
-| `changes-requested` | Findings the author must address before it passes |
-| `rejected` | Fundamental flaw requiring rework or stopping |
+| Verdict | When | Marker verdict |
+|---|---|---|
+| `approved` | No blocking findings; the subject passes review | `pass` |
+| `changes-requested` | Findings the author must address before it passes | `fail` |
+| `rejected` | Fundamental flaw requiring rework or stopping | `fail` |
 
 ## Example Usage
 

@@ -301,7 +301,7 @@ Write the report to a file:
 
 ```bash
 BODY="$(cat <<'EOF'
-<!-- verify-pr:HEAD_COMMIT -->
+<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->
 ## Verification Report
 
 ### Summary
@@ -317,6 +317,8 @@ Verified commit: SHORT_SHA
 | Nonconforming | N | N |
 
 **PR conforms to specification:** Yes / No *(No if any Must criterion is Not verified or Nonconforming)*
+
+The marker verdict is `pass` if the PR conforms (Yes), `fail` if it does not (No).
 
 <details>
 <summary>Details</summary>
@@ -341,13 +343,18 @@ Verified commit: SHORT_SHA
 ---
 
 EOF
-)"
-
-# Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
-# (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
-PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
-mkdir -p "$PR_REVIEW_DIR"
-printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
+ )"
+ 
+ # Substitute the marker verdict: pass if PR conforms, fail if not
+ BODY="${BODY//MARKER_VERDICT/pass}"  # replace with pass or fail
+ BODY="${BODY//HEAD_COMMIT/$HEAD_COMMIT}"
+ BODY="${BODY//SHORT_SHA/$SHORT_SHA}"
+ 
+ # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
+ # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
+ PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+ mkdir -p "$PR_REVIEW_DIR"
+ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
 ```
 
 ### Post the conformance report as a PR comment
@@ -356,7 +363,7 @@ The report is saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`. Posting it as a
 
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- verify-pr:HEAD_COMMIT -->` marker.
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"

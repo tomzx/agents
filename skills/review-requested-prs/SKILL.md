@@ -9,6 +9,22 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), checks each one for commits that are newer than the latest validate-pr / verify-pr / review-pr marker, and runs only the stale review steps in order: `/validate-pr`, then `/verify-pr`, then `/review-pr`.
 
+Each sub-skill posts a comment (or writes locally when posting is disabled) with an HTML marker containing a JSON object with the step name, commit SHA, and verdict:
+
+```
+<!-- {"step":"validate-pr","sha":"abc123","verdict":"pass"} -->
+```
+
+The verdict is either `pass` (continue to the next step) or `fail` (halt the pipeline for this PR). Each sub-skill maps its own verdict vocabulary to these two values:
+
+| Step | Internal verdicts | `pass` | `fail` |
+|------|-------------------|--------|--------|
+| validate-pr | Right thing, Partially right, Wrong thing, Inconclusive | Right thing, Partially right | Wrong thing, Inconclusive |
+| verify-pr | Conforms, Nonconforming | Conforms (PR conforms: Yes) | Nonconforming (PR conforms: No) |
+| review-pr | approved, changes-requested, rejected | approved | changes-requested, rejected |
+
+The orchestrator reads these markers to skip steps already completed for the current HEAD commit and to surface verdicts in the summary table. The script also supports the legacy marker format (`<!-- validate-pr:SHA -->`) for backward compatibility, though it does not carry a verdict.
+
 The discovery and staleness check are handled by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as subagent tasks.
 
 ## Prerequisites

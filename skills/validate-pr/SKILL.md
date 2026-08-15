@@ -173,12 +173,12 @@ Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); fl
 
 ### 5. Render the validation verdict
 
-| Verdict | When |
-|---|---|
-| **Right thing** | The implemented behavior and criteria serve the real need; no unmet need, no meaningful orphan work |
-| **Partially right** | The core need is addressed but with gaps: an unmet secondary need, some orphan work, or criteria that partly miss the point |
-| **Wrong thing** | The target itself is wrong: the need is not addressed, or the spec solves the wrong problem, or a fix treats the symptom not the cause |
-| **Inconclusive** | The need could not be recovered from the issue (see failure modes) |
+| Verdict | When | Marker verdict |
+|---|---|---|
+| **Right thing** | The implemented behavior and criteria serve the real need; no unmet need, no meaningful orphan work | `pass` |
+| **Partially right** | The core need is addressed but with gaps: an unmet secondary need, some orphan work, or criteria that partly miss the point | `pass` |
+| **Wrong thing** | The target itself is wrong: the need is not addressed, or the spec solves the wrong problem, or a fix treats the symptom not the cause | `fail` |
+| **Inconclusive** | The need could not be recovered from the issue (see failure modes) | `fail` |
 
 A **Wrong thing** verdict is the most valuable output of this skill: it means the PR should not proceed to verification or review until the target is corrected, regardless of how well it is built.
 
@@ -188,7 +188,7 @@ Write the report to a file:
 
 ```bash
 BODY="$(cat <<'EOF'
-<!-- validate-pr:HEAD_COMMIT -->
+<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->
 ## Validation Report
 
 ### Summary
@@ -227,13 +227,19 @@ Validated commit: SHORT_SHA
 ---
 
 EOF
-)"
-
-# Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
-# (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
-PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
-mkdir -p "$PR_REVIEW_DIR"
-printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
+ )"
+ 
+ # Substitute the marker verdict based on the rendered verdict:
+ # Right thing -> pass, Partially right -> partial, Wrong thing -> fail, Inconclusive -> inconclusive
+ BODY="${BODY//MARKER_VERDICT/pass}"  # replace with actual verdict: pass/partial/fail/inconclusive
+ BODY="${BODY//HEAD_COMMIT/$HEAD_COMMIT}"
+ BODY="${BODY//SHORT_SHA/$SHORT_SHA}"
+ 
+ # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
+ # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
+ PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+ mkdir -p "$PR_REVIEW_DIR"
+ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
 ```
 
 ### Post the validation report as a PR comment
@@ -242,7 +248,7 @@ The report is saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`. Posting it as
 
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- validate-pr:HEAD_COMMIT -->` marker.
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"

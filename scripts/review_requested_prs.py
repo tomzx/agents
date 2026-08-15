@@ -57,7 +57,7 @@ from pathlib import Path
 import structlog
 from github import Auth, Github
 from github.GithubException import GithubException
-from rich.console import Console
+from rich.console import Console, Group
 from rich.progress import (
     BarColumn,
     Progress,
@@ -104,16 +104,38 @@ def timed(action: str, **kwargs: object) -> Iterator[None]:
         log.debug("done", action=action, elapsed_s=f"{elapsed:.2f}", **kwargs)
 
 
-MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
+JSON_MARKER_PATTERN = re.compile(r"<!--\s*(\{.*?\})\s*-->")
+
+LEGACY_MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
     "validate-pr": re.compile(r"<!-- validate-pr:([a-f0-9]+) -->"),
     "verify-pr": re.compile(r"<!-- verify-pr:([a-f0-9]+) -->"),
     "review-pr": re.compile(r"<!-- review-pr:([a-f0-9]+) -->"),
 }
 
+VALID_STEPS = ("validate-pr", "verify-pr", "review-pr")
+
 STEP_TO_FIELD: dict[str, str] = {
     "validate-pr": "validate_commit",
     "verify-pr": "verify_commit",
     "review-pr": "review_commit",
+}
+
+STEP_TO_POSTED_FIELD: dict[str, str] = {
+    "validate-pr": "validate_posted",
+    "verify-pr": "verify_posted",
+    "review-pr": "review_posted",
+}
+
+STEP_TO_VERDICT_FIELD: dict[str, str] = {
+    "validate-pr": "validate_verdict",
+    "verify-pr": "verify_verdict",
+    "review-pr": "review_verdict",
+}
+
+VERDICT_STYLES: dict[str, str] = {
+    "pass": "green",
+    "fail": "red",
+    "": "dim",
 }
 
 
@@ -126,6 +148,12 @@ class PRReviewState:
     validate_commit: str = ""
     verify_commit: str = ""
     review_commit: str = ""
+    validate_posted: bool = False
+    verify_posted: bool = False
+    review_posted: bool = False
+    validate_verdict: str = ""
+    verify_verdict: str = ""
+    review_verdict: str = ""
     stale_steps: list[str] = field(default_factory=list)
     skipped: bool = False
     error: str = ""
@@ -174,48 +202,62 @@ def is_repo_arg(arg: str) -> bool:
     return "/" in arg and not arg.startswith("http")
 
 
-def classify_args(args: list[str]) -> tuple[list[str], list[str]]:
-    """Split positional arguments into PR URLs and repo identifiers."""
+def is_owner_arg(arg: str) -> bool:
+    """Return True if *arg* looks like a standalone owner (org or user)."""
+    return "/" not in arg and not arg.startswith("http") and len(arg) > 0
+
+
+def classify_args(args: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """Split positional arguments into PR URLs, repos, and owners."""
     pr_urls: list[str] = []
     repos: list[str] = []
+    owners: list[str] = []
     for arg in args:
         if parse_pr_url(arg):
             pr_urls.append(arg)
         elif is_repo_arg(arg):
             repos.append(arg)
+        elif is_owner_arg(arg):
+            owners.append(arg)
         else:
             print(f"Warning: unrecognized argument '{arg}', skipping", file=sys.stderr)
-    return pr_urls, repos
+    return pr_urls, repos, owners
 
 
-def discover_prs(
+def _resolve_owner_qualifier(client: Github, owner: str) -> str:
+    """Determine whether *owner* is an org or a user on GitHub.
+
+    Returns ``org`` or ``user``. Defaults to ``org`` if the check fails
+    (e.g. rate limited), since orgs are the more common case for PR review
+    requests.
+    """
+    with timed("resolve_owner", owner=owner):
+        try:
+            client.get_organization(owner)
+            return "org"
+        except GithubException:
+            return "user"
+
+
+def _search_and_collect(
     client: Github,
-    pr_urls: list[str],
-    repos: list[str],
+    query: str,
     limit: int,
+    prs: list[PRReviewState],
+    seen: set[tuple[str, int]],
 ) -> list[PRReviewState]:
-    """Build the list of target PRs from explicit URLs and/or repo search."""
-    prs: list[PRReviewState] = []
-    seen: set[tuple[str, int]] = set()
+    """Run a search query and append new PRs to *prs*, skipping *seen* entries.
 
-    for url in pr_urls:
-        parsed = parse_pr_url(url)
-        if parsed:
-            repo, number = parsed
-            key = (repo, number)
-            if key not in seen:
-                seen.add(key)
-                prs.append(PRReviewState(repo=repo, number=number))
-
-    should_search = len(repos) > 0 or len(pr_urls) == 0
-    if should_search:
-        query = "is:pr is:open review-requested:@me"
-        for repo in repos:
-            query += f" repo:{repo}"
-
-        with timed("search_issues", query=query, limit=limit):
+    Silently skips queries that fail with validation errors (e.g. when an
+    owner name is valid as an org but not as a user, or vice versa).
+    """
+    remaining = limit - len(prs)
+    if remaining <= 0:
+        return prs
+    with timed("search_issues", query=query, limit=remaining):
+        try:
             results = client.search_issues(query)
-            for issue in islice(results, limit):
+            for issue in islice(results, remaining):
                 repo_full = (
                     issue.repository_url.rsplit("/", 2)[-2]
                     + "/"
@@ -231,6 +273,41 @@ def discover_prs(
                             title=issue.title,
                         ),
                     )
+        except GithubException as ex:
+            log.debug("search_failed", query=query, error=str(ex))
+    return prs
+
+
+def discover_prs(
+    client: Github,
+    pr_urls: list[str],
+    repos: list[str],
+    owners: list[str],
+    limit: int,
+) -> list[PRReviewState]:
+    """Build the list of target PRs from explicit URLs and/or repo search."""
+    prs: list[PRReviewState] = []
+    seen: set[tuple[str, int]] = set()
+
+    for url in pr_urls:
+        parsed = parse_pr_url(url)
+        if parsed:
+            repo, number = parsed
+            key = (repo, number)
+            if key not in seen:
+                seen.add(key)
+                prs.append(PRReviewState(repo=repo, number=number))
+
+    should_search = len(repos) > 0 or len(owners) > 0 or len(pr_urls) == 0
+    if should_search:
+        query = "is:pr is:open review-requested:@me"
+        for repo in repos:
+            query += f" repo:{repo}"
+        for owner in owners:
+            qualifier = _resolve_owner_qualifier(client, owner)
+            query += f" {qualifier}:{owner}"
+
+        prs = _search_and_collect(client, query, limit, prs, seen)
 
     log.debug(
         "discovered_prs",
@@ -253,6 +330,39 @@ def fetch_head_commit(client: Github, pr: PRReviewState) -> None:
 SDLC_REVIEW_DIR = Path.home() / ".sdlc"
 
 
+def _parse_markers(text: str, pr: PRReviewState, posted: bool) -> None:
+    """Extract marker data from text and update *pr* in place.
+
+    Supports both the new JSON format ``<!-- {"step":"validate-pr","sha":"...","verdict":"pass"} -->``
+    and the legacy format ``<!-- validate-pr:SHA -->``.
+    Overwrites on each match so the most recent marker wins.
+    """
+    for match in JSON_MARKER_PATTERN.finditer(text):
+        try:
+            data = json.loads(match.group(1))
+        except json.JSONDecodeError:
+            continue
+        step = data.get("step", "")
+        if step not in VALID_STEPS:
+            continue
+        sha = data.get("sha", "")
+        verdict = data.get("verdict", "")
+        if sha:
+            setattr(pr, STEP_TO_FIELD[step], sha)
+            setattr(pr, STEP_TO_POSTED_FIELD[step], posted)
+            if verdict:
+                setattr(pr, STEP_TO_VERDICT_FIELD[step], verdict)
+
+    for step, pattern in LEGACY_MARKER_PATTERNS.items():
+        field_name = STEP_TO_FIELD[step]
+        if getattr(pr, field_name):
+            continue
+        match = pattern.search(text)
+        if match:
+            setattr(pr, field_name, match.group(1))
+            setattr(pr, STEP_TO_POSTED_FIELD[step], posted)
+
+
 def check_markers(client: Github, pr: PRReviewState) -> None:
     """Scan PR comments and local .sdlc files for review-skill markers.
 
@@ -268,23 +378,18 @@ def check_markers(client: Github, pr: PRReviewState) -> None:
         comment_count = 0
         for comment in issue.get_comments():
             comment_count += 1
-            for step, pattern in MARKER_PATTERNS.items():
-                field_name = STEP_TO_FIELD[step]
-                match = pattern.search(comment.body or "")
-                if match:
-                    setattr(pr, field_name, match.group(1))
+            _parse_markers(comment.body or "", pr, posted=True)
 
         local_dir = SDLC_REVIEW_DIR / pr.repo / "pull-requests" / str(pr.number)
         if local_dir.is_dir():
-            for step, pattern in MARKER_PATTERNS.items():
+            for step in VALID_STEPS:
                 field_name = STEP_TO_FIELD[step]
                 if getattr(pr, field_name):
                     continue
                 for md_file in local_dir.glob(f"{step}.*.md"):
                     text = md_file.read_text(errors="replace")
-                    match = pattern.search(text)
-                    if match:
-                        setattr(pr, field_name, match.group(1))
+                    _parse_markers(text, pr, posted=False)
+                    if getattr(pr, field_name):
                         break
 
     log.debug(
@@ -295,6 +400,9 @@ def check_markers(client: Github, pr: PRReviewState) -> None:
         validate_commit=pr.validate_commit[:8] or "none",
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
+        validate_verdict=pr.validate_verdict or "none",
+        verify_verdict=pr.verify_verdict or "none",
+        review_verdict=pr.review_verdict or "none",
     )
 
 
@@ -323,26 +431,66 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
     return []
 
 
-def build_summary_table(prs: list[PRReviewState]) -> Table:
-    """Build a Rich table summarizing PR review states."""
-    table = Table(title="Review Requested PRs")
-    table.add_column("Repository", style="cyan")
-    table.add_column("PR", style="blue", justify="right")
-    table.add_column("Steps to run", style="yellow")
-    table.add_column("Status")
+def build_summary_table(prs: list[PRReviewState]) -> Group:
+    """Build Rich tables grouped by repository, summarizing PR review states."""
+    tables: list[Table] = []
+    for repo, repo_prs in _group_by_repo(prs):
+        table = Table(title=repo, title_style="bold cyan", show_header=True)
+        table.add_column("PR", style="blue", justify="right")
+        table.add_column("Validate", justify="center")
+        table.add_column("Verify", justify="center")
+        table.add_column("Review", justify="center")
+        table.add_column("Status")
 
+        for pr in repo_prs:
+            if pr.error:
+                status = f"[red]Error: {pr.error}[/red]"
+            elif not pr.stale_steps:
+                status = "[green]Skipped (all up to date)[/green]"
+            else:
+                status = "[bold yellow]Needs review[/bold yellow]"
+            validate_col = _marker_cell(
+                pr.validate_commit, pr.validate_posted, pr.validate_verdict
+            )
+            verify_col = _marker_cell(
+                pr.verify_commit, pr.verify_posted, pr.verify_verdict
+            )
+            review_col = _marker_cell(
+                pr.review_commit, pr.review_posted, pr.review_verdict
+            )
+            table.add_row(
+                f"#{pr.number}",
+                validate_col,
+                verify_col,
+                review_col,
+                status,
+            )
+        tables.append(table)
+    return Group(*tables)
+
+
+def _group_by_repo(prs: list[PRReviewState]) -> list[tuple[str, list[PRReviewState]]]:
+    """Group PRs by repo, preserving order of first appearance."""
+    groups: dict[str, list[PRReviewState]] = {}
+    order: list[str] = []
     for pr in prs:
-        if pr.error:
-            steps = "—"
-            status = f"[red]Error: {pr.error}[/red]"
-        elif not pr.stale_steps:
-            steps = "—"
-            status = "[green]Skipped (all up to date)[/green]"
-        else:
-            steps = ", ".join(pr.stale_steps)
-            status = "[bold yellow]Needs review[/bold yellow]"
-        table.add_row(pr.repo, f"#{pr.number}", steps, status)
-    return table
+        if pr.repo not in groups:
+            groups[pr.repo] = []
+            order.append(pr.repo)
+        groups[pr.repo].append(pr)
+    return [(repo, groups[repo]) for repo in order]
+
+
+def _marker_cell(commit: str, posted: bool, verdict: str) -> str:
+    """Return a display string for a marker column with verdict."""
+    if not commit:
+        return "[dim]—[/dim]"
+    location = "github" if posted else "local"
+    if not verdict:
+        style = "blue" if posted else "dim"
+        return f"[{style}]{location}[/{style}]"
+    verdict_style = VERDICT_STYLES.get(verdict, "dim")
+    return f"[{verdict_style}]{verdict}[/{verdict_style}] ({location})"
 
 
 def format_dispatch_commands(prs: list[PRReviewState]) -> str:
@@ -438,8 +586,8 @@ def main() -> int:
         return 1
 
     client = create_client(token)
-    pr_urls, repos = classify_args(args.targets)
-    prs = discover_prs(client, pr_urls, repos, args.limit)
+    pr_urls, repos, owners = classify_args(args.targets)
+    prs = discover_prs(client, pr_urls, repos, owners, args.limit)
 
     if not prs:
         print("No PRs found needing review.")
@@ -460,11 +608,19 @@ def main() -> int:
             transient=True,
         ) as progress,
     ):
-        task = progress.add_task("Processing PRs...", total=len(prs))
+        task = progress.add_task(
+            f"Processing PRs (0/{len(prs)})",
+            total=len(prs),
+        )
         futures = {executor.submit(process_pr, token, pr): pr for pr in prs}
         for future in as_completed(futures):
             future.result()
             progress.advance(task)
+            completed = progress.tasks[task].completed
+            progress.update(
+                task,
+                description=f"Processing PRs ({completed}/{len(prs)})",
+            )
 
     if args.quiet:
         prs = [pr for pr in prs if pr.stale_steps or pr.error]
