@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-203-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-206-green" alt="Skill count">
 </p>
 
 ## What
@@ -178,6 +178,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/publish-plan` | Commit a plan to a branch and open a draft PR. |
 | `/create-tasks-decomposition` | Decompose a plan into discrete, actionable tasks. |
 | `/review-tasks-decomposition` | Review a task decomposition for granularity and clarity. |
+| `/validate-assumptions` | Design and run minimal code experiments to verify risky technical assumptions before implementation. |
+| `/review-assumption-validation` | Review an assumption validation report for completeness and experiment rigor. |
 
 ### Implementation & Testing
 
@@ -319,6 +321,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/slack-kb-channel` | Build a channel knowledge base for a given month. |
 | `/slack-kb-individual` | Collect conversations a person participated in. |
 | `/stakeholder-announcement` | Draft and post structured infrastructure progress announcements to stakeholder channels. |
+| `/create-slack-announcement` | Draft a Slack announcement with copy-paste-ready mrkdwn formatting. |
 | `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |
 
 ### Memory & Automation

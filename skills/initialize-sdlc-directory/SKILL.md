@@ -69,6 +69,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/features/telemetry.md` | `.sdlc/templates/features/telemetry.md` |
    | `../sdlc/templates/features/observability.md` | `.sdlc/templates/features/observability.md` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
+   | `../sdlc/templates/features/assumption-validation.md` | `.sdlc/templates/features/assumption-validation.md` |
    | `../sdlc/templates/features/plan-index.md` | `.sdlc/templates/features/plan-index.md` |
    | `../sdlc/templates/features/plan-concern.md` | `.sdlc/templates/features/plan-concern.md` |
    | `../sdlc/templates/features/task.md` | `.sdlc/templates/features/task.md` |

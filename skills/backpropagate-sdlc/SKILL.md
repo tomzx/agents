@@ -127,6 +127,7 @@ For each target feature directory, read every artifact that exists and skip the 
 ├── telemetry.md
 ├── observability.md
 ├── plan.md
+├── assumption-validation.md
 ├── tasks/N-<slug>.md   # one file per task
 └── tests.md               # TC-N
 ```

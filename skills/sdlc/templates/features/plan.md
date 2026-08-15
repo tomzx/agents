@@ -38,6 +38,10 @@ status: draft
 |---|---|---|---|
 | <description> | High / Med / Low | High / Med / Low | <action> |
 
+## Assumptions
+
+- <Belief the plan depends on but has not verified. Promote risky ones via /create-assumption.>
+
 ## Timeline
 
 | Phase | Start | End | Notes |

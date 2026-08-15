@@ -26,8 +26,9 @@ Produces a structured implementation plan from a specification or requirements d
 4. Map dependencies between phases and external factors.
 5. Estimate effort for each phase (person-days or story points).
 6. Identify risks and mitigations.
-7. Propose a timeline if team capacity is known.
-8. Write the output to `.sdlc/features/N-<slug>/plan.md`.
+7. Record assumptions that the plan depends on but has not verified. Risks in the risk register often encode assumptions (e.g., "the third-party API will be available by Phase 2", "the team will have the required capacity", "the database migration will not require downtime"). For each assumption that carries meaningful risk, promote it via `/create-assumption` so it is tracked and can be validated before implementation.
+8. Propose a timeline if team capacity is known.
+9. Write the output to `.sdlc/features/N-<slug>/plan.md`.
 
 ## Output Format
 
@@ -45,12 +46,14 @@ Plan: Phase 1 (DB schema + migrations), Phase 2 (API endpoints), Phase 3 (fronte
 
 **Scenario 2: High-risk external dependency**
 Plan includes a spike in Phase 1 to validate a third-party payment provider integration before committing to Phase 2 scope.
+Assumptions promoted: "the payment provider API supports tokenized recurring charges" (High risk, validate via API probe in Phase 1 spike), "the webhook retry policy handles at-least-once delivery" (Medium risk, validate via integration test in Phase 1 spike).
 
 ## Completion Checklist
 
 Before handing off to review, confirm:
 
 - [ ] Telemetry and observability deliverables pulled into the plan as explicit work items
+- [ ] Risky assumptions from the risk register promoted via `/create-assumption`
 
 Self-check the draft against the [`review-plan` checklist](../review-plan/SKILL.md) and fix what you can, so review finds less to flag.
 

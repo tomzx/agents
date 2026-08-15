@@ -27,9 +27,10 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 6. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)? Are there infrastructure, licensing, or third-party costs?
 7. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
 8. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
-9. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
-10. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
-11. Write the output to `.sdlc/features/N-<slug>/feasibility.md`, creating the directory if it does not exist.
+9. Record assumptions that the feasibility assessment depends on but has not verified. For each assumption that carries meaningful risk (e.g., "the existing ORM supports this query pattern", "the third-party API has no rate limits below our expected volume", "the team has the required expertise"), promote it via `/create-assumption` so it is tracked and can be validated before implementation.
+10. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
+11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
+12. Write the output to `.sdlc/features/N-<slug>/feasibility.md`, creating the directory if it does not exist.
 
 ## Output Format
 
@@ -60,6 +61,7 @@ Current stack already handles file generation. Low effort, no new dependencies. 
 **Scenario 2: Feature with unknowns**
 User describes "add real-time collaboration like Google Docs."
 Requires WebSocket infrastructure not currently in the stack, high effort, significant operational burden. Verdict: Feasible with conditions (requires infrastructure spike and dedicated team).
+Assumptions promoted: "the existing load balancer supports WebSocket upgrades" (Medium risk, validate via spike), "the database can handle the expected write throughput of concurrent edits" (High risk, validate via load test).
 
 **Scenario 3: Clear no-go**
 User describes "migrate the entire platform to a different cloud provider in 2 weeks."
@@ -71,6 +73,7 @@ Before handing off to review, confirm:
 
 - [ ] Effort sized (S/M/L/XL), with conditions and risks listed for any "Feasible with conditions" verdict
 - [ ] Overall go/no-go stated, with No-go if any dimension is Not feasible
+- [ ] Risky assumptions promoted via `/create-assumption`
 
 Self-check the draft against the [`review-feasibility` checklist](../review-feasibility/SKILL.md) and fix what you can, so review finds less to flag.
 

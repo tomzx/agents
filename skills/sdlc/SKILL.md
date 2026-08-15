@@ -89,8 +89,13 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-plan            Audit feasibility, coverage, timeline realism
   /publish-plan           Commit plan to branch, open draft PR, comment on issue
                           (gate: wait for author sign-off before continuing)
-          │
-          ▼
+           │
+           ▼
+  /validate-assumptions          Design and run minimal code experiments to verify risky technical assumptions before implementation
+  /review-assumption-validation  Audit completeness, experiment quality, result rigor, and proceed/backtrack soundness
+                                 (gate: backtrack if critical assumptions invalidated)
+           │
+           ▼
   /create-tasks-decomposition   Break plan into XS–L tasks with critical path
   /review-tasks-decomposition   Audit granularity, completeness, dependencies
 
@@ -272,6 +277,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── telemetry.md
 │       ├── observability.md
 │       ├── plan.md
+│       ├── assumption-validation.md
 │       ├── tasks/                 # One file per task (e.g., 1-setup-db-schema.md)
 │       │   └── N-<slug>.md
 │       └── tests.md
@@ -288,6 +294,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── telemetry.md
 │   │   ├── observability.md
 │   │   ├── plan.md
+│   │   ├── assumption-validation.md
 │   │   ├── progress.md            # Template for feature-level progress tracking
 │   │   ├── task.md                # Template for a single task file
 │   │   └── tests.md
@@ -396,8 +403,8 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `observability` | A specification ready to define how feature health will be monitored |
 | `plan` | A specification (and telemetry/observability plans) ready for planning |
 | `publish-plan` | A reviewed plan ready to commit and share with the issue author |
-| `tasks` | An approved plan signed off by the issue author |
-| `tests` | A task decomposition ready for test design |
+| `validate-assumptions` | A published plan signed off by the issue author, ready to verify risky technical assumptions before task decomposition |
+| `tasks` | An assumption validation report (approved, or no risky assumptions) ready for task decomposition |
 | `implementation` | Tests ready; time to write code |
 | `documentation` | Implementation reviewed; code needs docs |
 | `validate-implementation` | Docs done and ready to capture visual proof + get user sign-off before opening a PR (records a CLI demo or web screenshot on the branch; no-op for non-visual changes) |
@@ -559,6 +566,7 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 | Mode | Example | Response |
 |---|---|---|
 | **Blocked** | `create-implementation` discovers a missing dependency or unclear spec | Record the blocker as an assumption or decision, backtrack to the phase that owns the missing artifact, resolve it, and re-enter the pipeline at that point. |
+| **Assumption invalidated** | `validate-assumptions` disproves a critical (High-risk) assumption that the specification or plan depends on | Backtrack to the affected design phase (specification or plan), revise the affected artifact, re-derive downstream artifacts, and re-run validation for any new assumptions. Record the backtrack via `/create-decision`. |
 | **Incoherent input** | `create-specifications` reveals requirements that contradict each other | Stop the current phase, backtrack to `review-requirements`, resolve contradictions, and continue forward from there. |
 | **Scope change** | `create-plan` shows the feature is much larger than the issue suggested | Backtrack to `create-issue` to rewrite scope and ACs, then re-derive downstream artifacts. |
 | **External blocker** | Third-party API unavailable, infrastructure not provisioned | Record as an assumption with a validation plan. If the blocker is resolved within the session, continue. Otherwise, stop after the current phase and note the blocker in the issue. |
@@ -625,7 +633,9 @@ Each phase consumes output from the previous phase:
 | create-plan | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings → `review-plan.md` |
 | publish-plan | `.sdlc/features/N-<slug>/plan.md` | Draft PR + issue comment (gate: author sign-off) |
-| create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
+| validate-assumptions | `.sdlc/features/N-<slug>/specification.md` + `plan.md` + `codebase-analysis.md` + `feasibility.md` + `.sdlc/knowledge/assumptions/` | `.sdlc/features/N-<slug>/assumption-validation.md` (`status: draft`); assumption statuses updated via `/review-assumption` |
+| review-assumption-validation | `.sdlc/features/N-<slug>/assumption-validation.md` + `.sdlc/knowledge/assumptions/` | Findings → `review-assumption-validation.md` |
+| create-tasks-decomposition | `.sdlc/features/N-<slug>/plan.md` (and assumption validation if produced) | `.sdlc/features/N-<slug>/tasks/N-<slug>.md` per task (`status: draft`) + initializes `progress.md` |
 | review-tasks-decomposition | `.sdlc/features/N-<slug>/tasks/` (all task files) | Findings → `review-tasks.md`; on approval sets each task `status: pending`; populates Task Progress table in `progress.md` |
 | create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings → `review-tests.md` |
