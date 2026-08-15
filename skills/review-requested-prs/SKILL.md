@@ -1,135 +1,110 @@
 ---
 name: review-requested-prs
 description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit.
-allowed-tools: Bash(gh:*, ghx:*)
+allowed-tools: Bash(uv run:*, gh:*, git:*), Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
 # Review Requested PRs
 
-Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), checks each one for commits that are newer than the latest validate-pr / verify-pr / review-pr comment, and runs only the stale review steps in order: `/validate-pr`, then `/verify-pr`, then `/review-pr`.
+Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), checks each one for commits that are newer than the latest validate-pr / verify-pr / review-pr marker, and runs only the stale review steps in order: `/validate-pr`, then `/verify-pr`, then `/review-pr`.
 
-Each sub-skill posts a comment with an HTML marker containing the commit SHA it was run against (`<!-- validate-pr:SHA -->`, `<!-- verify-pr:SHA -->`, `<!-- review-pr:SHA -->`). This orchestrator reads those markers to skip steps already completed for the current HEAD commit.
+The discovery and staleness check are handled by a deterministic Python script (`scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as subagent tasks.
 
 ## Prerequisites
 
-- `gh` CLI authenticated
+- `uv` installed (for running the Python script)
+- `gh` CLI authenticated (used by the script as a token fallback)
 - `validate-pr`, `verify-pr`, and `review-pr` skills available
 
 ## Workflow
 
 ```
-Parse arguments (PR URLs vs owner/repo)
+Run scripts/review_requested_prs.py --dispatch
                |
                v
-     Discover target PRs
-  (PR URL -> single PR;  owner/repo -> search)
+    Parse dispatch commands output
+  (one /skill command per stale step)
                |
                v
-    For each PR: fetch HEAD_COMMIT
+    Group commands by PR
                |
                v
-    Check markers for validate-pr,
-    verify-pr, review-pr
-               |
-      All three match HEAD?
-       /            \
-     Yes             No
-      |               |
-   Skip         Run stale steps in order:
-              validate-pr -> verify-pr -> review-pr
+    For each PR (in parallel):
+      Create shared worktree
+      Run stale steps sequentially:
+        validate-pr -> verify-pr -> review-pr
+      Check for blocking verdict after each step
+      Clean up worktree
                |
                v
-        Report summary table
+    Report summary
 ```
 
 ## Steps
 
-### 1. Parse arguments and discover PRs
+### 1. Run the discovery script
 
-Separate `$@` into two groups:
-
-- **PR URLs**: arguments containing `github.com/` and `/pull/` (e.g. `https://github.com/acme/api/pull/42`)
-- **Repos**: arguments in `owner/repo` format (contain `/` but are not URLs, e.g. `acme/api`)
-
-#### If PR URLs are provided
-
-For each PR URL, extract the owner/repo and PR number:
-
-```
-https://github.com/acme/api/pull/42  ->  REPO=acme/api, PR=42
-```
-
-The target list is exactly these PRs. Skip the search step.
-
-#### If repos are provided (or no arguments)
-
-Build the search command. With no arguments, search all review-requested PRs:
+Run the script to discover PRs and determine which steps are stale:
 
 ```bash
-gh search prs --review-requested @me --state open \
-  --json number,repository,title \
-  --limit 100
+uv run scripts/review_requested_prs.py $@ --dispatch
 ```
 
-For each `owner/repo` argument, add `--repo <owner/repo>` to scope the search.
+The script accepts the same arguments as the skill:
+- No arguments: searches all open PRs where you are a requested reviewer
+- `owner/repo` arguments: scopes the search to those repos
+- PR URL arguments: processes only those specific PRs
+- Mixed: processes the union of explicit PRs and search results
 
-This returns a list of PRs. For each entry extract:
-- `REPO`: `repository.nameWithOwner`
-- `PR`: `number`
+Useful flags:
+- `--limit N`: cap the number of PRs discovered (default 100)
+- `--log-level debug`: see API call timings for debugging
+- `--workers N`: number of PRs to process in parallel for staleness checks (default 8)
 
-#### Mixed arguments
+The `--dispatch` flag makes the script output one command per line for each stale step, in execution order:
 
-If both PR URLs and repos are provided, process the union: the explicitly listed PRs plus the search results from the repos.
+```
+/validate-pr 42 acme/api
+/verify-pr 42 acme/api
+/review-pr 42 acme/api
+/validate-pr 88 acme/web-app
+/verify-pr 88 acme/web-app
+/review-pr 88 acme/web-app
+```
 
-### 2. For each PR, fetch the HEAD commit
+If the script outputs nothing, all PRs are up to date and no work is needed.
+
+### 2. Parse dispatch commands
+
+Parse the script output into a per-PR plan. Each line has the format:
+
+```
+/{skill} {PR_NUMBER} {REPO}
+```
+
+Group lines by `(REPO, PR_NUMBER)` to get the ordered list of stale steps per PR. The steps within each PR are already in the correct execution order (validate-pr before verify-pr before review-pr).
+
+### 3. Run stale review steps
+
+For each PR that needs processing, create a shared git worktree once and reuse it across all stale steps for that PR.
+
+#### 3a. Create the shared worktree
+
+Before dispatching the first stale step for a PR, fetch the PR's head branch and create the worktree:
 
 ```bash
-ghx pr view {PR} --repo {REPO} --json --refresh | jq -r '.headRefOid'
+git fetch origin $HEAD_BRANCH
+WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+mkdir -p /tmp/sdlc/$REPO
+git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
 ```
 
-This gives you `HEAD_COMMIT` for the PR.
+If the worktree already exists (e.g. from a previous run), skip creation and reuse it.
 
-### 3. Check existing review markers
+#### 3b. Dispatch stale steps
 
-For each PR, fetch all issue comments and extract the latest marker SHA for each skill:
-
-```bash
-gh api repos/{REPO}/issues/{PR}/comments \
-  --jq '.[].body'
-```
-
-Search the comment bodies (most recent first) for each marker pattern:
-
-| Skill | Marker pattern |
-|-------|----------------|
-| validate-pr | `<!-- validate-pr:COMMIT_SHA -->` |
-| verify-pr | `<!-- verify-pr:COMMIT_SHA -->` |
-| review-pr | `<!-- review-pr:COMMIT_SHA -->` |
-
-For each skill, find the **most recent** comment containing its marker and extract `COMMIT_SHA`.
-
-Record three values:
-- `VALIDATE_COMMIT`: SHA from the latest validate-pr marker, or empty if none found
-- `VERIFY_COMMIT`: SHA from the latest verify-pr marker, or empty if none found
-- `REVIEW_COMMIT`: SHA from the latest review-pr marker, or empty if none found
-
-### 4. Determine which steps to run
-
-Compare each marker SHA against `HEAD_COMMIT`:
-
-| Condition | Action |
-|-----------|--------|
-| All three == `HEAD_COMMIT` | Skip this PR entirely (already fully reviewed) |
-| `VALIDATE_COMMIT` != `HEAD_COMMIT` | Run validate-pr, verify-pr, review-pr (all three) |
-| `VALIDATE_COMMIT` == `HEAD_COMMIT` but `VERIFY_COMMIT` != `HEAD_COMMIT` | Run verify-pr, then review-pr |
-| First two match but `REVIEW_COMMIT` != `HEAD_COMMIT` | Run review-pr only |
-
-Rationale: if validate-pr is stale, the downstream skills must also re-run because the code changed. If validate-pr is current but verify-pr is stale, only verify-pr and review-pr need to re-run. If only review-pr is stale, only it re-runs.
-
-### 5. Run stale review steps
-
-For each PR that needs processing, dispatch each stale skill as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt.
+Dispatch each stale skill as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
 
 Use the `general` subagent type for all three steps.
 
@@ -139,6 +114,7 @@ Dispatch a subagent with this exact prompt:
 
 ```
 Run the validate-pr skill: /validate-pr {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
 #### verify-pr
@@ -147,6 +123,7 @@ Dispatch a subagent with this exact prompt:
 
 ```
 Run the verify-pr skill: /verify-pr {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
 #### review-pr
@@ -155,13 +132,22 @@ Dispatch a subagent with this exact prompt:
 
 ```
 Run the review-pr skill: /review-pr {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
-Process PRs in parallel by dispatching one subagent per PR in a single message with multiple Task tool calls. Each PR is independent, so all PRs run concurrently. Within a PR, steps run sequentially (validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize steps within a single PR, because each step may halt the pipeline. Each sub-skill checks out the PR branch in a worktree, runs its analysis, and posts a comment with the commit SHA marker.
+Process PRs in parallel by dispatching one subagent per PR in a single message with multiple Task tool calls. Each PR is independent, so all PRs run concurrently. Within a PR, steps run sequentially (validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize steps within a single PR, because each step may halt the pipeline. Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
 
 If a step fails (e.g. build failure in verify-pr, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run subsequent steps for that PR. Record the failure in the summary. Treat a blocking verdict from any step the same way: a **Wrong thing** verdict from `validate-pr` (the target is the wrong product) should halt the pipeline before `verify-pr` spends a build, since verifying conformance to a wrong spec is wasted effort.
 
-### 6. Report summary
+#### 3c. Clean up the shared worktree
+
+After all stale steps for a PR complete (or the pipeline halts), remove the shared worktree:
+
+```bash
+git worktree remove $WORKTREE_DIR
+```
+
+### 4. Report summary
 
 After processing all PRs, output a summary table:
 
@@ -203,13 +189,13 @@ Processes exactly those two PRs. No search is performed.
 ```
 /review-requested-prs
 ```
-All PRs have markers matching their HEAD commit for all three skills. Reports all as skipped.
+The script outputs nothing (all markers match HEAD). Reports all as skipped.
 
 **Scenario 6: PR with no prior reviews**
 ```
 /review-requested-prs acme/api
 ```
-A PR has no validate-pr, verify-pr, or review-pr comments at all. Runs all three in sequence.
+A PR has no validate-pr, verify-pr, or review-pr comments or local files. Runs all three in sequence.
 
 **Scenario 7: validate-pr returns Wrong thing**
 ```
@@ -223,14 +209,11 @@ validate-pr judges the PR to be the wrong product (the need is not addressed). I
 ```
 Processes PR #42 in acme/api explicitly, plus searches acme/web-app for review-requested PRs. Processes the union.
 
-## Useful Commands Reference
+## Script Reference
 
-| Command | Description |
+| Script | Description |
 |---|---|
-| `gh search prs --review-requested @me --state open --json number,repository,title --limit 100` | List open PRs where you are a requested reviewer |
-| `gh search prs --review-requested @me --state open --repo <owner/repo> --json number,repository,title` | Scope search to a specific repo |
-| `ghx pr view <pr> --repo <owner/repo> --json --refresh \| jq -r '.headRefOid'` | Fetch the HEAD commit SHA for a PR |
-| `gh api repos/{owner}/{repo}/issues/{pr}/comments --jq '.[].body'` | List all comment bodies on a PR |
+| `scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for command output, `--json` for structured data, `--log-level debug` for timings. |
 
 ## Related Skills
 

@@ -75,13 +75,17 @@ gh pr view $1 --repo "$REPO" --json headRefName --jq '.headRefName'
 ISSUE_NUMBER=$(gh pr view $1 --repo "$REPO" --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
 ```
 
-Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context:
+Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context. If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
 
 ```bash
-git fetch origin $HEAD_BRANCH
-WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
-mkdir -p /tmp/sdlc/$REPO
-git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+_WORKTREE_OWNER=false
+if [ -z "${WORKTREE_DIR:-}" ]; then
+  git fetch origin $HEAD_BRANCH
+  WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+  mkdir -p /tmp/sdlc/$REPO
+  git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+  _WORKTREE_OWNER=true
+fi
 ```
 
 All subsequent code reading happens inside the worktree directory.
@@ -361,7 +365,9 @@ ${FOOTER}"
 ### Clean up
 
 ```bash
-git worktree remove $WORKTREE_DIR
+if [ "$_WORKTREE_OWNER" = true ]; then
+  git worktree remove $WORKTREE_DIR
+fi
 ```
 
 ## Outcome

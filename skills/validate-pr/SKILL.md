@@ -93,11 +93,17 @@ gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
 
 ### 1b. Create a git worktree on the PR branch
 
+If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
+
 ```bash
-git fetch origin $HEAD_BRANCH
-WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
-mkdir -p /tmp/sdlc/$REPO
-git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+_WORKTREE_OWNER=false
+if [ -z "${WORKTREE_DIR:-}" ]; then
+  git fetch origin $HEAD_BRANCH
+  WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
+  mkdir -p /tmp/sdlc/$REPO
+  git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+  _WORKTREE_OWNER=true
+fi
 ```
 
 All subsequent code reading happens inside the worktree directory.
@@ -248,7 +254,9 @@ ${FOOTER}"
 ### 7. Clean up
 
 ```bash
-git worktree remove $WORKTREE_DIR
+if [ "$_WORKTREE_OWNER" = true ]; then
+  git worktree remove $WORKTREE_DIR
+fi
 ```
 
 ## Failure Modes
