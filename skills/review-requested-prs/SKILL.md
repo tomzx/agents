@@ -1,7 +1,7 @@
 ---
 name: review-requested-prs
 description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit.
-allowed-tools: Bash(uv run:*, gh:*, git:*), Task
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), checks each one for commits that are newer than the latest validate-pr / verify-pr / review-pr marker, and runs only the stale review steps in order: `/validate-pr`, then `/verify-pr`, then `/review-pr`.
 
-The discovery and staleness check are handled by a deterministic Python script (`scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as subagent tasks.
+The discovery and staleness check are handled by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as subagent tasks.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ The discovery and staleness check are handled by a deterministic Python script (
 ## Workflow
 
 ```
-Run scripts/review_requested_prs.py --dispatch
+Run ~/.agents/scripts/review_requested_prs.py --dispatch
                |
                v
     Parse dispatch commands output
@@ -48,7 +48,7 @@ Run scripts/review_requested_prs.py --dispatch
 Run the script to discover PRs and determine which steps are stale:
 
 ```bash
-uv run scripts/review_requested_prs.py $@ --dispatch
+~/.agents/scripts/review_requested_prs.py $@ --dispatch
 ```
 
 The script accepts the same arguments as the skill:
@@ -213,7 +213,7 @@ Processes PR #42 in acme/api explicitly, plus searches acme/web-app for review-r
 
 | Script | Description |
 |---|---|
-| `scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for command output, `--json` for structured data, `--log-level debug` for timings. |
+| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for command output, `--json` for structured data, `--log-level debug` for timings. |
 
 ## Related Skills
 
