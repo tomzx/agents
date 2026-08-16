@@ -40,6 +40,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    .sdlc/knowledge/assumptions/
    .sdlc/knowledge/decisions/
    .sdlc/knowledge/learnings/
+   .sdlc/knowledge/questions/
    ```
 
 4. Create `.sdlc/.gitignore` — **only if it does not already exist** — with the following content to keep local-only workflow state out of version control:
@@ -81,6 +82,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/knowledge/assumption.md` | `.sdlc/templates/knowledge/assumption.md` |
    | `../sdlc/templates/knowledge/decision.md` | `.sdlc/templates/knowledge/decision.md` |
    | `../sdlc/templates/knowledge/learning.md` | `.sdlc/templates/knowledge/learning.md` |
+   | `../sdlc/templates/knowledge/question.md` | `.sdlc/templates/knowledge/question.md` |
 
 7. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
    - `project-overview.md`

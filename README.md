@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-206-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-208-green" alt="Skill count">
 </p>
 
 ## What
@@ -262,6 +262,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/supersede-decision` | Mark a decision as superseded by a newer one. |
 | `/create-assumption` | Record an assumption with its basis, risk, and validation plan. |
 | `/review-assumption` | Review an assumption for specificity and risk assessment. |
+| `/create-question` | Record an open question with context, answerer, impact, and needed-by date. |
+| `/review-question` | Review a question for specificity and answerability; record its resolution. |
 | `/create-learnings` | Capture learnings in a retrospective format. |
 | `/review-learnings` | Review a learnings document for actionability and completeness. |
 | `/session-review` | End-of-session checklist for code quality and design concerns. |

@@ -162,6 +162,8 @@ Cross-cutting records (invoke at any point in any flow)
 
   /create-domain-model    Model an unfamiliar domain (entities, relationships, glossary, invariants) as a one-off
   /review-domain-model    Audit entity coverage, relationship correctness, vocabulary, invariants, boundaries
+  /create-question        Record an open question with context, answerer, impact, needed-by date
+  /review-question        Audit specificity, answerability, impact; record the resolution
   /create-assumption      Record an assumption with basis, risk, and validation plan
   /review-assumption      Audit specificity, basis quality, risk, validation adequacy
   /create-decision        Record an architectural/implementation decision with context
@@ -306,14 +308,17 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   └── knowledge/
 │       ├── assumption.md
 │       ├── decision.md
-│       └── learning.md
+│       ├── learning.md
+│       └── question.md
 └── knowledge/
     ├── assumptions/
     │   └── N-<slug>.md         # Created by /create-assumption; one file per assumption
     ├── decisions/
     │   └── N-<slug>.md         # Created by /create-decision; one file per decision
-    └── learnings/
-        └── N-<slug>.md         # Created by /create-learnings; one file per retrospective
+    ├── learnings/
+    │   └── N-<slug>.md         # Created by /create-learnings; one file per retrospective
+    └── questions/
+        └── N-<slug>.md         # Created by /create-question; one file per question
 ```
 
 **Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind). `N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`); otherwise `N` is a `p`-prefixed sequence number marking a feature that is **pending a placeholder issue** (e.g., `p1-<slug>` with feature ID `FEAT-p1`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue is recorded in frontmatter when present. The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below). The full rules live in `references/shared.md` under Feature Directory Naming.
@@ -337,6 +342,7 @@ Each artifact type uses a consistent ID format:
 | Test case | `TC-N` | Per-feature | `TC-5` |
 | Assumption | `N` | Project-wide | `1` |
 | Decision | `N` | Project-wide | `2` |
+| Question | `N` | Project-wide | `5` |
 
 All SDLC numeric identifiers are unpadded: `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded. A feature with no issue yet uses a `p`-prefixed id instead (e.g. `FEAT-p1`, directory `p1-<slug>`); see Feature Directory Naming. The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
 
@@ -356,7 +362,7 @@ status: draft        # set on creation; review outcome lives in review-<artifact
 
 `create-*` pipeline skills write artifacts with `status: draft`.
 `review-*` pipeline skills do not modify the artifact `status`; they write a `review-<artifact>.md` findings file (verdict `approved` / `changes-requested` / `rejected`) beside the artifact, per `skills/sdlc/references/shared.md`. Downstream phases gate on that findings verdict, not on the artifact `status`.
-Domain lifecycle statuses are the exception and are still set by their review skill: task `pending` (set by `review-tasks-decomposition`), and the knowledge-record terminals: assumption (`Active → Validated | Invalidated | Deferred`), decision (`Proposed → Accepted | Deprecated | Superseded`), and learnings (`draft → complete`).
+Domain lifecycle statuses are the exception and are still set by their review skill: task `pending` (set by `review-tasks-decomposition`), and the knowledge-record terminals: assumption (`Active → Validated | Invalidated | Deferred`), decision (`Proposed → Accepted | Deprecated | Superseded`), question (`Open → Resolved | Deferred | Dismissed`), and learnings (`draft → complete`).
 
 ### Task Status Lifecycle
 
@@ -382,7 +388,7 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions surfaced during review are recorded in that review's findings body. When `backpropagate-sdlc` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions surfaced during review are recorded in that review's findings body; questions that need tracking (a named answerer and a needed-by date) are promoted to question records via `/create-question`. When `backpropagate-sdlc` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -425,6 +431,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `learnings` | A completed feature or sprint to reflect on |
 | `assumption` | An assumption to record (can be invoked at any phase) |
 | `decision` | A decision to record (can be invoked at any phase) |
+| `question` | An open question to track (can be invoked at any phase) |
 | `continue` | Resume an in-progress feature by scanning `.sdlc/features/` for unfinished work (runs Automatic Resume) |
 | `maintenance` | Run one or more maintenance skills (see Maintenance section in Pipeline Overview) to surface technical debt; findings feed into issue creation and backlog prioritization |
 | `audit` | Run `/audit-sdlc` to coordinate multiple audit skills and produce a unified findings report |
@@ -664,6 +671,8 @@ Each phase consumes output from the previous phase:
 | review-learnings | `.sdlc/knowledge/learnings/N-<slug>.md` | Findings; sets `status: complete` when resolved |
 | create-domain-model | Any phase context (typically design/specification) | Domain model document (`status: draft`) |
 | review-domain-model | Domain model document | Findings → `review-domain-model.md` |
+| create-question | Any phase context | `.sdlc/knowledge/questions/N-<slug>.md` |
+| review-question | `.sdlc/knowledge/questions/N-<slug>.md` | Findings; records the answer and sets status `Resolved`/`Deferred`/`Dismissed` when appropriate |
 | create-assumption | Any phase context | `.sdlc/knowledge/assumptions/N-<slug>.md` |
 | review-assumption | `.sdlc/knowledge/assumptions/N-<slug>.md` | Findings (improve basis, risk, validation) |
 | create-decision | Any phase context | `.sdlc/knowledge/decisions/N-<slug>.md` |

@@ -161,7 +161,7 @@ Before creating a new feature directory, check `.sdlc/features/` for an existing
 
 This matters for revision mode, where a `create-*` skill is re-invoked after a review returned `changes-requested`.
 
-> All SDLC numeric identifiers are unpadded: feature, task, assumption, decision, learning, and per-feature requirement/test IDs use the bare number (`FEAT-42`, `FR-1`, `TC-5`, task `3`), never zero-padded. The `p` prefix is the only non-numeric token permitted in a feature identifier.
+> All SDLC numeric identifiers are unpadded: feature, task, assumption, decision, learning, question, and per-feature requirement/test IDs use the bare number (`FEAT-42`, `FR-1`, `TC-5`, task `3`), never zero-padded. The `p` prefix is the only non-numeric token permitted in a feature identifier.
 
 ## Artifact Location Resolution (SDLC_DIR)
 
