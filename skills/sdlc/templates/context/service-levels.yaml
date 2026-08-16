@@ -1,0 +1,45 @@
+# OpenSLO definitions for this project's service levels.
+# Normative for targets, windows, and indicator definitions; service-levels.md holds
+# the human-readable record (journeys, SLA consequences, error budget policy narrative).
+# SLAs have no OpenSLO kind and stay documented in service-levels.md only.
+apiVersion: openslo/v1
+kind: Service
+metadata:
+  name: <service-name>
+  displayName: "<Service Name>"
+spec:
+  description: "<what this service does>"
+
+---
+
+apiVersion: openslo/v1
+kind: SLI
+metadata:
+  name: <sli-name>
+  displayName: "<SLI Name>"
+spec:
+  description: "<plain-language definition: good events / total events>"
+  ratioMetric:
+    counter:
+      good: <metric or query for good events>
+      total: <metric or query for total events>
+
+---
+
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: <slo-name>
+  displayName: "<SLO Name>"
+spec:
+  description: "<what user experience this objective protects>"
+  service: <service-name>
+  indicator:
+    metadataReference:
+      name: <sli-name>
+  timeWindow:
+    duration: 30d
+    isRolling: true
+  budgetingInterval: 30d
+  objectives:
+    - target: 0.999  # 99.9%

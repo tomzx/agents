@@ -43,15 +43,28 @@ Order criteria by FRs first (sorted by ID), then NFRs (sorted by ID).
 
 Acceptance criteria verify how a requirement is proven done, they do not restate it.
 Write concrete, scenario-based criteria (happy path, edge cases and error states where applicable).
+Write each criterion as a fenced `gherkin` block with a tag matching its requirement ID, so the criteria are parseable and later executable via BDD tooling (pytest-bdd, cucumber).
+Multiple scenarios per requirement are allowed; tag each with the requirement ID.
 
 - [ ] **FR-1**
-    - **Given** <precondition>
-    - **When** <action>
-    - **Then** <observable result>
+
+    ```gherkin
+    @FR-1
+    Scenario: <short name>
+      Given <precondition>
+      When <action>
+      Then <observable result>
+    ```
+
 - [ ] **NFR-1**
-    - **Given** <precondition>
-    - **When** <action>
-    - **Then** <observable result>
+
+    ```gherkin
+    @NFR-1
+    Scenario: <short name>
+      Given <precondition>
+      When <action>
+      Then <observable result with a quantitative threshold, e.g., responds in < 200 ms>
+    ```
 
 ## Conflicts
 

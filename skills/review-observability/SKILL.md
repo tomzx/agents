@@ -19,10 +19,11 @@ Audits an observability plan for completeness, actionability, consistency, and a
 ## Steps
 
 1. Read the observability document from `.sdlc/features/N-<slug>/observability.md` if present, otherwise from context or as a file path.
-2. Cross-reference against the specification, telemetry plan, and requirements.
-3. Identify issues in each of the five categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-observability.md` with frontmatter `artifact: observability`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+2. Run the deterministic checker best-effort: `promtool check rules .sdlc/features/N-<slug>/alerts.yaml` when both the file and the tool exist. A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Actionability.
+3. Cross-reference against the specification, telemetry plan, and requirements.
+4. Identify issues in each of the five categories below.
+5. Report findings. Omit any category that has no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-observability.md` with frontmatter `artifact: observability`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -34,6 +35,7 @@ Audits an observability plan for completeness, actionability, consistency, and a
 
 ### Actionability
 - Does every alert have a runbook with concrete diagnostic and resolution steps?
+- Does every alert in the summary tables have a matching rule in `alerts.yaml` (conditions, `for` duration, severity) and vice versa, when the file exists?
 - Is every alert tied to a human response (no "alert and forget")?
 - Are log entries structured and queryable (not free-form text)?
 - Do metrics include labels that allow narrowing down the issue (service, endpoint, error type)?
@@ -111,4 +113,6 @@ Once the findings verdict is `approved`, continue with `/create-plan`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `promtool check rules alerts.yaml` | Best-effort Prometheus rule validation; failure is a blocking finding |

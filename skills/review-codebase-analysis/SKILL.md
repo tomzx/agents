@@ -49,6 +49,8 @@ The review verifies that the analysis describes the real code (not assumptions) 
 - If the section is omitted, is that justified (i.e. only reuse/extend dispositions, or greenfield)?
 
 ### Coupling Awareness
+- Is the dependency map rendered as a Mermaid flowchart whose node classes match each component's change disposition?
+- Does every edge in the diagram correspond to a real dependency (spot-check against the source), and is any real dependency missing from the diagram?
 - Are dependencies between relevant components and external systems mapped, including shared state and synchronous vs. asynchronous boundaries?
 - Does the changeability assessment account for the coupling, or does it ignore downstream effects?
 
@@ -113,5 +115,6 @@ Once the findings verdict is `approved`, continue with `/create-feasibility`, wh
 | Command | Description |
 |---|---|
 | `read` / `grep` | Verify component paths and behavior claims against the actual source |
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the coupling flowchart |
 | `/create-assumption` | Formalize an unresolved open question that carries risk |
 | `/create-decision` | Record a change disposition with lasting consequences |

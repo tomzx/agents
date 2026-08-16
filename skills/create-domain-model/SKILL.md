@@ -23,7 +23,7 @@ It is richer than the project-level `.sdlc/context/vocabulary.md`, which it reus
 1. Read available context (requirements, specification, architecture, vocabulary) to identify the domain.
 2. Read `.sdlc/context/vocabulary.md` if present. Reuse existing project terms; only add terms that are specific to this domain and not already defined.
 3. Identify the **core entities**: the nouns in the domain that carry meaning (people, things, events, records, concepts). Capture each with a short description and the attributes that matter.
-4. Identify the **relationships** between entities, with cardinality (one-to-one, one-to-many, many-to-many) and any constraint or rule that governs the relationship.
+4. Identify the **relationships** between entities, with cardinality (one-to-one, one-to-many, many-to-many) and any constraint or rule that governs the relationship. Render the entity model as a Mermaid `classDiagram`: one class per entity with its key attributes, edges carrying cardinality, and each invariant attached as a `note` on the entity it constrains.
 5. Build a **glossary**: give each term a precise definition, and disambiguate any overloaded term (one word used two ways). Note where a term differs from general usage.
 6. State **invariants**: rules that always hold in this domain (business rules, constraints, identities). These are testable truths, not implementation details.
 7. Identify the **key quantities and metrics** the domain turns on, why each matters, and its current value if known.
@@ -65,6 +65,7 @@ Before handing off to review, confirm:
 - [ ] Entities cover the nouns that matter in the domain
 - [ ] Glossary reuses `.sdlc/context/vocabulary.md` terms rather than redefining them
 - [ ] Invariants are domain truths, not implementation choices
+- [ ] Entity model rendered as a Mermaid `classDiagram` with cardinalities on edges and invariants as notes
 
 Self-check the draft against the [`review-domain-model` checklist](../review-domain-model/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -75,4 +76,6 @@ When a domain model is confirmed, promote its terms into `.sdlc/context/vocabula
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on context documents.
+| Command | Description |
+|---|---|
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the class diagram |

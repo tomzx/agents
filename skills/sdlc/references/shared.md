@@ -77,6 +77,7 @@ The context files are:
 - `infrastructure.md` — technology stack, development tooling, CI/CD pipelines, environments, and deployment procedures
 - `roadmap.md` (optional) — initiatives sequenced across Now/Next/Later horizons, aligned to goals
 - `service-levels.md` (optional) — service-level objectives, indicators, agreements, and error budgets
+- `service-levels.yaml` (optional) — OpenSLO definitions companion to `service-levels.md`, normative for targets, windows, and indicator definitions (present only when `/create-service-levels` ran; SLAs stay documented in the markdown)
 - `observability.md` (optional) — monitoring stack, instrumentation libraries, alerting, and dashboards
 - `telemetry.md` (optional) — analytics platform, event conventions, existing event taxonomy, and privacy constraints
 

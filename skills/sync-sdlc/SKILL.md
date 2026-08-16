@@ -166,14 +166,14 @@ Works for both initial bootstrapping and periodic sync.
     b. Create `requirements.md` and `specification.md` in the new directory using the corresponding templates from `.sdlc/templates/features/` as the structure. Since these features were reverse-engineered from existing code, set frontmatter `status: done` on both — they document already-implemented functionality, not work yet to be done.
     c. Populate `requirements.md` with:
        - A real overview paragraph describing the feature's purpose.
-       - Functional requirements derived from the code (what the system does).
-       - Non-functional requirements if inferable (performance targets, security constraints, etc.).
-       - Acceptance criteria mapped to the functional requirements.
+     - Functional requirements derived from the code (what the system does).
+        - Non-functional requirements if inferable (performance targets, security constraints, etc.).
+        - Acceptance criteria as Gherkin scenarios (per the template) mapped to the functional requirements.
        - Any open questions that cannot be answered from the code alone.
     d. Populate `specification.md` with:
        - The technical approach for this feature.
        - Relevant data models or schemas (inferred from the code).
-       - API contracts if the feature exposes endpoints.
+        - API contracts if the feature exposes endpoints (summary table plus `api.yaml` in OpenAPI form, per the template).
        - Key sequence flows if non-trivial.
        - Technical decisions already made (libraries chosen, patterns used).
        - Known risks or open unknowns.

@@ -28,7 +28,7 @@ Audits a telemetry plan for completeness, actionability, measurability, and cons
 ### Completeness
 - Does every key user flow from the specification have corresponding events?
 - Does every functional requirement with user-facing behavior have at least one event or metric?
-- Are funnel steps complete (no gaps between entry and desired outcome)?
+- Is every funnel rendered as a Mermaid `flowchart TD` with one node per step, and are the steps complete (no gaps between entry and desired outcome, no unreachable nodes)?
 - Are counter metrics defined for features that could cause harm or degrade experience?
 
 ### Measurability
@@ -108,4 +108,6 @@ Once the findings verdict is `approved`, continue with `/create-plan`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the funnel flowcharts |

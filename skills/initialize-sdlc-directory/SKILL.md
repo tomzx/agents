@@ -64,10 +64,12 @@ Already-existing files are never overwritten — this is safe to run on a projec
    | `../sdlc/templates/features/codebase-analysis.md` | `.sdlc/templates/features/codebase-analysis.md` |
    | `../sdlc/templates/features/feasibility.md` | `.sdlc/templates/features/feasibility.md` |
    | `../sdlc/templates/features/specification.md` | `.sdlc/templates/features/specification.md` |
+   | `../sdlc/templates/features/api.yaml` | `.sdlc/templates/features/api.yaml` |
    | `../sdlc/templates/features/lifecycle.md` | `.sdlc/templates/features/lifecycle.md` |
    | `../sdlc/templates/features/mockups.md` | `.sdlc/templates/features/mockups.md` |
    | `../sdlc/templates/features/telemetry.md` | `.sdlc/templates/features/telemetry.md` |
    | `../sdlc/templates/features/observability.md` | `.sdlc/templates/features/observability.md` |
+   | `../sdlc/templates/features/alerts.yaml` | `.sdlc/templates/features/alerts.yaml` |
    | `../sdlc/templates/features/plan.md` | `.sdlc/templates/features/plan.md` |
    | `../sdlc/templates/features/assumption-validation.md` | `.sdlc/templates/features/assumption-validation.md` |
    | `../sdlc/templates/features/plan-index.md` | `.sdlc/templates/features/plan-index.md` |

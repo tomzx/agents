@@ -24,7 +24,7 @@ Without this step, features ship without instrumentation, making it impossible t
 2. Identify the key user flows and system interactions from the specification.
 3. For each flow, determine what events should be tracked to measure adoption, completion, and failure.
 4. Define success metrics that answer: "How do we know this feature is successful?"
-5. Define funnel steps for critical user journeys.
+5. Define funnel steps for critical user journeys, rendered as a Mermaid `flowchart TD` with one node per step labeled by its event, so a gap or an unreachable step in the funnel is visible at a glance.
 6. Specify the event taxonomy: event names, properties, and where they fire.
 7. Identify any counter metrics (signs the feature might be causing harm).
 8. Determine telemetry infrastructure requirements (existing vs. new instrumentation).
@@ -87,6 +87,7 @@ Before handing off to review, confirm:
 
 - [ ] Success metrics measurable and time-bound, and counter metrics (signs of harm) defined too
 - [ ] Every event includes a `source` property and follows the `<entity>_<action>_<status>` naming pattern
+- [ ] Every funnel rendered as a Mermaid `flowchart TD` whose node labels carry the marking event
 
 Self-check the draft against the [`review-telemetry` checklist](../review-telemetry/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -97,4 +98,6 @@ Once approved, continue with `/create-plan`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the funnel flowcharts |

@@ -31,6 +31,7 @@ Audits a domain model and reports findings across six categories: entity coverag
 - Are entities distinct, or do two entries describe the same thing?
 
 ### Relationship Correctness
+- Does the `classDiagram` agree with the Relationships table (same entities, same edges, cardinalities matching in both directions)?
 - Are cardinalities correct and consistent in both directions?
 - Are relationships between entities that actually interact, or are any spurious?
 - Are governing constraints on relationships stated?
@@ -41,6 +42,7 @@ Audits a domain model and reports findings across six categories: entity coverag
 - Is the same concept referred to by a single term throughout, or are synonyms causing confusion?
 
 ### Invariant Validity
+- Is every invariant attached as a note to the entity it constrains in the class diagram (no free-floating rules)?
 - Are invariants genuinely always-true domain rules, not implementation choices?
 - Are they testable (could you write a check that fails if the invariant breaks)?
 - Are any "invariants" actually default behaviors with known exceptions?
@@ -111,4 +113,6 @@ If the findings verdict is `changes-requested`, revise the model and re-run this
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the class diagram |

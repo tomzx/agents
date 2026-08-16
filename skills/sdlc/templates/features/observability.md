@@ -44,6 +44,9 @@ status: draft
 
 ## Alerts
 
+When the monitoring stack is Prometheus-compatible, the normative alert definitions live in [`alerts.yaml`](alerts.yaml) (Prometheus rule format), written alongside this document.
+This section remains the human-readable summary; the runbook and notification details stay here.
+
 ### <Alert Name>
 
 | Field | Value |

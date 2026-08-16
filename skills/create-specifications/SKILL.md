@@ -21,12 +21,13 @@ Produces a detailed technical specification from a requirements document, coveri
 1. Read and understand the requirements document, the existing solutions survey if present, and the codebase analysis if present.
 2. Identify the major components and their responsibilities.
 3. Define data models: entities, attributes, and relationships.
-4. Specify API contracts: endpoints, request/response schemas, and error codes.
-5. Describe key sequences: user flows, system interactions, and async processes.
+4. Specify API contracts: endpoints, request/response schemas, and error codes. When the feature defines an API surface, write the normative contract to `.sdlc/features/N-<slug>/api.yaml` (OpenAPI 3, template at `skills/sdlc/templates/features/api.yaml`) and keep only a summary table in `specification.md`, so the contract is lintable and diffable instead of prose.
+5. Describe key sequences as Mermaid `sequenceDiagram` blocks (one per flow): user flows, system interactions, and async processes. A message with no receiver makes a missing step obvious before code exists.
 6. Document technical decisions and their rationale.
 7. Identify risks, unknowns, and deferred decisions.
 8. Design data models, API contracts, and persisted state for evolution so future versions stay forward compatible (see Forward Compatibility below).
-9. Write the output to `.sdlc/features/N-<slug>/specification.md`.
+9. Validate best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint api.yaml` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A missing tool is not a failure; skip and note it. A validation failure is a defect to fix before handoff.
+10. Write the output to `.sdlc/features/N-<slug>/specification.md` (plus `api.yaml` when the feature has an API surface).
 
 ## Forward Compatibility
 
@@ -42,27 +43,21 @@ A forward-compatible design keeps working as the system evolves without forcing 
 ## Output Format
 
 Use the template at `skills/sdlc/templates/features/specification.md` (copied to `.sdlc/templates/features/specification.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
-Client → Service → DB
-   |                 |
-   |   POST /thing   |
-   |---------------->|
-   |                 |--- INSERT ---
-   |    201 Created  |
-   |<----------------|
-```
 
-## Technical Decisions
+When the feature has an API surface, also write `.sdlc/features/N-<slug>/api.yaml` from the template at `skills/sdlc/templates/features/api.yaml` (OpenAPI 3). The summary table in `specification.md` and `api.yaml` must agree; `api.yaml` is normative when they drift.
 
-| Decision | Choice | Rationale |
-|---|---|---|
+Sequences use Mermaid `sequenceDiagram` blocks, for example:
 
-## Risks and Unknowns
-
-1. <Risk or open question>
-
-## Out of Scope
-
-- <What is explicitly not covered by this specification>
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant S as Service
+    participant DB as DB
+    C->>S: POST /thing
+    S->>DB: INSERT thing
+    DB-->>S: ok
+    S-->>C: 201 Created
 ```
 
 ## Outcome
@@ -84,6 +79,8 @@ Spec defines the job queue schema, worker interface, retry policy, and failure a
 Before handing off to review, confirm:
 
 - [ ] Data models and API contracts designed for forward compatibility (tolerate unknown fields/values, additive changes)
+- [ ] `api.yaml` written when the feature has an API surface, and it agrees with the summary table and data models
+- [ ] Every key sequence rendered as a `sequenceDiagram` (no ASCII art sequences)
 
 Self-check the draft against the [`review-specifications` checklist](../review-specifications/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -94,4 +91,7 @@ Once approved, continue with `/create-lifecycle`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `npx -y @stoplight/spectral-cli lint api.yaml` | Best-effort OpenAPI lint (skip and note when unavailable) |
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check |

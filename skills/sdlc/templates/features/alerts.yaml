@@ -1,0 +1,16 @@
+# Prometheus alerting rules for <Feature Name>.
+# Normative alert definitions referenced by observability.md.
+# Written only when the monitoring stack is Prometheus-compatible.
+# Validate: promtool check rules alerts.yaml
+groups:
+  - name: <feature-slug>
+    rules:
+      - alert: <AlertName>
+        expr: |
+          <PromQL expression, e.g., sum(rate(errors_total[5m])) / sum(rate(requests_total[5m])) > 0.05>
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "<what is wrong, specifically>"
+          runbook: "<link or inline steps>"

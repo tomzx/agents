@@ -21,7 +21,27 @@ status: draft
 
 ## Dependency and Coupling Map
 
-<How the relevant components depend on each other and on external systems. Call out tight coupling, shared state, synchronous vs. asynchronous boundaries, and the blast radius of a change.>
+```mermaid
+flowchart LR
+    Feature["<this feature>"]
+    CompA["<component>"]
+    CompB["<component>"]
+    Ext["<external system>"]
+    Feature --> CompA
+    CompA --> CompB
+    CompA --> Ext
+    classDef reuse fill:#dcfce7,stroke:#16a34a,color:#000
+    classDef extend fill:#dbeafe,stroke:#2563eb,color:#000
+    classDef refactor fill:#fef9c3,stroke:#ca8a04,color:#000
+    classDef replace fill:#fee2e2,stroke:#dc2626,color:#000
+    class CompA extend
+    class CompB reuse
+```
+
+Node classes match the change dispositions from the Changeability Assessment below (reuse / extend / refactor / replace).
+External systems appear as plain nodes.
+
+<Prose call-outs for tight coupling, shared state, synchronous vs. asynchronous boundaries, and the blast radius of a change. A component claimed to be loosely coupled but drawn with edges to every neighbor is visible here in two seconds.>
 
 ## Changeability Assessment
 

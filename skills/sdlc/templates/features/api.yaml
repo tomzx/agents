@@ -1,0 +1,61 @@
+# OpenAPI 3 contract for <Feature Name>.
+# Normative API definition referenced by specification.md.
+# Validate: npx -y @stoplight/spectral-cli lint api.yaml
+openapi: 3.1.0
+info:
+  title: "<Feature Name> API"
+  version: 0.1.0
+  description: >
+    <One paragraph summarizing the API surface.
+    State the compatibility policy (e.g., additive-only within a major version).>
+paths:
+  /thing:
+    post:
+      summary: <one-line purpose>
+      operationId: createThing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateThingRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thing"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    CreateThingRequest:
+      type: object
+      additionalProperties: true  # tolerate unknown fields (forward compatibility)
+      required: [name]
+      properties:
+        name:
+          type: string
+    Thing:
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: INVALID_INPUT
+        message:
+          type: string

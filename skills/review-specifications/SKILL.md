@@ -18,9 +18,10 @@ Audits a technical specification and reports findings across seven categories: a
 
 1. Read the specification from `.sdlc/features/N-<slug>/specification.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the requirements document if available.
-3. Identify issues in each of the six categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-specification.md` with frontmatter `artifact: specification`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+3. Run the deterministic checkers best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Inconsistencies.
+4. Identify issues in each of the six categories below.
+5. Report findings. Omit any category that has no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-specification.md` with frontmatter `artifact: specification`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -31,8 +32,10 @@ Audits a technical specification and reports findings across seven categories: a
 
 ### Inconsistencies
 - Do data models match the API contracts (field names, types)?
+- Do data models and the summary table match `api.yaml` where it exists (field names, types, required flags, error codes)?
 - Are field names consistent across endpoints and schemas?
-- Do sequence diagrams match the described API behavior?
+- Do sequence diagrams match the described API behavior (messages correspond to real endpoints, responses match documented status codes)?
+- Does every endpoint in `api.yaml` appear in a sequence or the summary table, and vice versa (no orphan operations)?
 
 ### Incoherences
 - Do any stated technical decisions contradict each other?
@@ -117,10 +120,17 @@ Report under Missing Information.
 Spec requires a distributed lock for a feature that could use a simple DB transaction.
 Report under Implementability.
 
+**Scenario 4: OpenAPI lint failure**
+`spectral lint api.yaml` reports an unresolved `$ref` and an operation without a response.
+Report under Inconsistencies: the normative contract does not validate.
+
 ## Next Step
 
 Once the findings verdict is `approved`, continue with `/create-lifecycle`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `npx -y @stoplight/spectral-cli lint api.yaml` | Best-effort OpenAPI lint; failure is a blocking finding |
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check; failure is a blocking finding |

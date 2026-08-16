@@ -29,7 +29,7 @@ This skill goes deeper into the internal architecture you are about to modify: i
 3. Determine the **analysis scope**: which parts of the codebase this feature will touch, integrate with, or replace. Trace inward from the requirements to concrete modules, services, data stores, and interfaces.
 4. Locate the relevant code by searching the codebase. Record the entry points used (queries, paths) so the search is auditable.
 5. For each relevant component, capture its name, location (file or module path), current responsibility, and how the feature interacts with it (reads, writes, extends, replaces).
-6. Map **dependencies and coupling** between the relevant components and any external systems. Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part.
+6. Map **dependencies and coupling** between the relevant components and any external systems as a Mermaid `flowchart LR` with one node per component and class assignments matching the change dispositions (reuse / extend / refactor / replace). Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part in the accompanying prose. The diagram makes unintended coupling visible at a glance; the prose carries what the diagram cannot.
 7. For each component, decide a **change disposition** and justify it:
    - **Reuse as-is** — the component already does what is needed; do not modify it.
    - **Extend** — add to the component along its existing seams (new method, new config, new consumer) without altering current behavior.
@@ -74,6 +74,7 @@ Before handing off to review, confirm:
 
 - [ ] Refactor/replace dispositions include migration, impact, and de-risking
 - [ ] Findings reference concrete code locations and the search entry points used
+- [ ] Dependency and Coupling Map rendered as a Mermaid flowchart whose node classes match the change dispositions
 
 Self-check the draft against the [`review-codebase-analysis` checklist](../review-codebase-analysis/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -88,5 +89,6 @@ Once approved, continue with `/create-feasibility`, which consumes this analysis
 |---|---|
 | `grep` / codebase search | Locate the components, modules, and interfaces the feature will touch |
 | `read` | Read the relevant source to verify behavior claims instead of assuming them |
+| `mmdc -i <diagram.mmd>` or `npx -y @mermaid-js/mermaid-cli` | Best-effort Mermaid render check for the coupling flowchart |
 | `/create-assumption` | Record an unverified belief about existing behavior that carries risk |
 | `/create-decision` | Log an architectural change choice (e.g. replace vs. extend) with its rationale |

@@ -22,6 +22,27 @@ feature: "FEAT-N"
 |---|---|---|---|---|
 | <entity> | <verb / relation> | <entity> | one-to-many / many-to-many / ... | <constraint or rule> |
 
+## Entity Model
+
+```mermaid
+classDiagram
+    direction LR
+    class Order {
+        +total Money
+        +placedAt DateTime
+    }
+    class LineItem {
+        +quantity int
+    }
+    class Customer
+    Customer "1" --> "0..*" Order
+    Order "1" *-- "1..*" LineItem
+    note for Order "An order's total equals the sum of its line items plus tax."
+```
+
+One class per entity with its key attributes; edges carry cardinality; composition (`*--`) for whole-part relationships.
+Each invariant attaches as a `note` on the entity it constrains, so a rule floating free of its entity is visible immediately.
+
 ## Glossary
 
 <Reuse terms from `.sdlc/context/vocabulary.md` where they exist. Disambiguate any overloaded term.>

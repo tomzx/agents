@@ -255,6 +255,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   ├── goals.md                   # Objectives, key results, KPIs (optional, via /create-goals)
 │   ├── roadmap.md                 # Initiatives sequenced Now/Next/Later, aligned to goals (optional, via /create-roadmap)
 │   ├── service-levels.md         # SLOs, SLIs, SLAs, error budgets (optional, via /create-service-levels)
+│   ├── service-levels.yaml       # OpenSLO definitions, normative companion to service-levels.md (optional)
 │   ├── architecture.md            # Architecture decisions and patterns
 │   ├── schema.dbml                # Database schema in DBML format (present when the project uses a database)
 │   ├── conventions.md             # Naming, structure, coding standards
@@ -272,10 +273,12 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── codebase-analysis.md
 │       ├── feasibility.md
 │       ├── specification.md
+│       ├── api.yaml                 # OpenAPI 3 contract, companion to specification.md (when the feature has an API surface)
 │       ├── lifecycle.md
 │       ├── mockups.md
 │       ├── telemetry.md
 │       ├── observability.md
+│       ├── alerts.yaml              # Prometheus alert rules, companion to observability.md (when alerts are defined)
 │       ├── plan.md
 │       ├── assumption-validation.md
 │       ├── tasks/                 # One file per task (e.g., 1-setup-db-schema.md)
@@ -289,10 +292,12 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │   │   ├── codebase-analysis.md
 │   │   ├── feasibility.md
 │   │   ├── specification.md
+│   │   ├── api.yaml                 # OpenAPI 3 contract, companion to specification.md (when the feature has an API surface)
 │   │   ├── lifecycle.md
 │   │   ├── mockups.md
 │   │   ├── telemetry.md
 │   │   ├── observability.md
+│   │   ├── alerts.yaml              # Prometheus alert rules, companion to observability.md (when alerts are defined)
 │   │   ├── plan.md
 │   │   ├── assumption-validation.md
 │   │   ├── progress.md            # Template for feature-level progress tracking
@@ -620,7 +625,7 @@ Each phase consumes output from the previous phase:
 | review-codebase-analysis | `.sdlc/features/N-<slug>/codebase-analysis.md` | Findings → `review-codebase-analysis.md` |
 | create-feasibility | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` | `.sdlc/features/N-<slug>/feasibility.md` (`status: draft`) |
 | review-feasibility | `.sdlc/features/N-<slug>/feasibility.md` | Findings → `review-feasibility.md` (verdict `approved`/`rejected`) |
-| create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) |
+| create-specifications | `.sdlc/features/N-<slug>/requirements.md` + `existing-solutions.md` + `codebase-analysis.md` + `feasibility.md` | `.sdlc/features/N-<slug>/specification.md` (`status: draft`) + `api.yaml` (OpenAPI 3, when the feature has an API surface) |
 | review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings → `review-specifications.md` |
 | create-lifecycle | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/lifecycle.md` (`status: draft`); skipped (no artifact) when the feature manages no resources with a lifecycle |
 | review-lifecycle | `.sdlc/features/N-<slug>/lifecycle.md` | Findings → `review-lifecycle.md` |
@@ -628,7 +633,7 @@ Each phase consumes output from the previous phase:
 | review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings → `review-mockups.md` |
 | create-telemetry | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
 | review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings → `review-telemetry.md` |
-| create-observability | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) |
+| create-observability | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) + `alerts.yaml` (Prometheus rules, when alerts are defined and the stack is Prometheus-compatible) |
 | review-observability | `.sdlc/features/N-<slug>/observability.md` | Findings → `review-observability.md` |
 | create-plan | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) + `mockups.md` (if UI) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/plan.md` (`status: draft`) |
 | review-plan | `.sdlc/features/N-<slug>/plan.md` | Findings → `review-plan.md` |

@@ -27,15 +27,17 @@ Without explicit SLOs, reliability is judged by gut feel: no one knows when a de
 6. Define SLAs only where a contractual or external obligation exists; keep SLA targets looser than SLOs so internal headroom protects the agreement.
 7. Specify burn-rate or threshold alerts that surface budget depletion before the window ends.
 8. Confirm the measurement infrastructure can actually produce each SLI signal; flag gaps as open questions.
-9. Write the output to `.sdlc/context/service-levels.md`. If it already exists, revise per Revision Mode.
+9. Write the machine-readable definitions (services, SLIs, SLOs with targets, windows, and error budgets, alert policies) to `.sdlc/context/service-levels.yaml` in [OpenSLO](https://github.com/OpenSLO/openslo) format (template at `skills/sdlc/templates/context/service-levels.yaml`). SLAs have no OpenSLO kind and stay in the markdown. Validate best-effort that the YAML parses and each SLO references an existing SLI and service.
+10. Write the output to `.sdlc/context/service-levels.md`. If it already exists, revise per Revision Mode.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/context/service-levels.md`. Write the result to `.sdlc/context/service-levels.md`.
+Use the template at `skills/sdlc/templates/context/service-levels.md`. Write the result to `.sdlc/context/service-levels.md`, and the OpenSLO definitions to `.sdlc/context/service-levels.yaml`.
+The two must agree on targets, windows, and indicator definitions; when they drift, `service-levels.yaml` is normative.
 
 ## Revision Mode
 
-If `.sdlc/context/review-service-levels.md` exists with `verdict: changes-requested`, revise the existing `.sdlc/context/service-levels.md` to address each finding rather than regenerating from scratch.
+If `.sdlc/context/review-service-levels.md` exists with `verdict: changes-requested`, revise the existing `.sdlc/context/service-levels.md` **and** `.sdlc/context/service-levels.yaml` together to address each finding rather than regenerating from scratch.
 Preserve content the review did not challenge.
 Set the artifact frontmatter `status` to `in-review` while revising, and bump `revision: <n>` starting at 1 on the first revision.
 
@@ -82,6 +84,7 @@ Before handing off to review, confirm:
 
 - [ ] Each SLO has an error budget and a policy for when it is exhausted
 - [ ] SLAs (if any) are looser than their corresponding SLOs
+- [ ] `service-levels.yaml` written and agrees with `service-levels.md` (targets, windows, indicator definitions)
 
 Self-check the draft against the [`review-service-levels` checklist](../review-service-levels/SKILL.md) and fix what you can, so review finds less to flag.
 
@@ -92,4 +95,6 @@ Once approved, `observe-production` and `audit-observability` consume `.sdlc/con
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `uv run python -c "import yaml,sys; list(yaml.safe_load_all(open('service-levels.yaml')))"` | Best-effort check that the OpenSLO YAML parses |

@@ -36,6 +36,8 @@ Use MoSCoW priority for functional requirements: **Must** (essential), **Should*
 Functional requirements state *what* the system shall do; acceptance criteria state *how you verify* it is done.
 Do not restate an FR as its acceptance criterion.
 Write concrete, scenario-based criteria (happy path, edge cases, error states), usually several per requirement, each independently checkable and translatable into a test case.
+Write each criterion as a fenced `gherkin` block tagged with its requirement ID (`@FR-N` / `@NFR-N`), so the criteria are parseable and later executable via BDD tooling (pytest-bdd, cucumber).
+The Gherkin grammar is fixed: `Scenario:` with a short name, then `Given` / `When` / `Then` steps (`And` to continue a step kind); keep one action per `When`.
 
 ## Outcome
 
@@ -67,6 +69,7 @@ List open questions and draft requirements for the parts that are clear.
 Before handing off to review, confirm:
 
 - [ ] Each functional requirement has testable, scenario-based acceptance criteria that do not just restate the FR
+- [ ] Every acceptance criterion is a fenced `gherkin` block whose tag matches its requirement ID
 
 Self-check the draft against the [`review-requirements` checklist](../review-requirements/SKILL.md) and fix what you can, so review finds less to flag.
 

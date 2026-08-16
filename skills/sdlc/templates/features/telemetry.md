@@ -17,6 +17,15 @@ status: draft
 
 ## User Funnel
 
+```mermaid
+flowchart TD
+    S1["1. <step name><br/><entry event>"] --> S2["2. <step name><br/><event>"]
+    S2 --> S3["3. <step name><br/><exit event>"]
+```
+
+One node per funnel step, labeled with the event that marks reaching it.
+A step with no entry event, or a dangling node no path reaches, is visible in two seconds.
+
 | Step | Event | Entry Criteria | Exit Criteria |
 |---|---|---|---|
 | 1. <step name> | <event that marks entry> | <precondition> | <what moves user to next step> |

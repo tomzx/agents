@@ -36,6 +36,7 @@ Audits a requirements document and reports findings across five categories: clar
 
 ### Testability
 - Can each requirement be verified with a concrete test?
+- Is every acceptance criterion a well-formed `gherkin` block (tag matching its requirement ID, `Scenario:` with a name, at least one `Given`/`When`/`Then`)?
 - Are acceptance criteria measurable and observable?
 - Are quantitative thresholds given where applicable (e.g., "< 200 ms")?
 

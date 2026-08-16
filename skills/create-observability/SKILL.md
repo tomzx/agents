@@ -27,9 +27,9 @@ Without this step, features ship blind: outages go undetected, root causes take 
 4. Define service-level metrics (counters, histograms, gauges) that reflect system health.
 5. Identify where distributed traces should be emitted for cross-service flows.
 6. Define health checks and readiness probes for new services or endpoints.
-7. Specify alerts with clear conditions, severity, and runbook links.
+7. Specify alerts with clear conditions, severity, and runbook links. When the monitoring stack is Prometheus-compatible, write the normative alert definitions to `.sdlc/features/N-<slug>/alerts.yaml` (Prometheus rule format, template at `skills/sdlc/templates/features/alerts.yaml`) and keep the per-alert tables in the document as the human-readable summary. Validate best-effort with `promtool check rules alerts.yaml` when available; a missing tool is skipped, a validation failure is a defect to fix before handoff.
 8. Determine observability infrastructure requirements (existing vs. new instrumentation).
-9. Write the output to `.sdlc/features/N-<slug>/observability.md`.
+9. Write the output to `.sdlc/features/N-<slug>/observability.md` (plus `alerts.yaml` when alerts are defined and the stack is Prometheus-compatible).
 
 ## Output Format
 
@@ -101,6 +101,7 @@ Health check: readiness probe that verifies the WebSocket server can accept conn
 Before handing off to review, confirm:
 
 - [ ] Each alert is actionable, severity-tagged, and links a runbook
+- [ ] `alerts.yaml` written when the stack is Prometheus-compatible, and it agrees with the alert summary tables
 - [ ] SLO/error-budget targets referenced from requirements where applicable
 
 Self-check the draft against the [`review-observability` checklist](../review-observability/SKILL.md) and fix what you can, so review finds less to flag.
@@ -112,4 +113,6 @@ Once approved, continue with `/create-plan`.
 
 ## Useful Commands Reference
 
-No CLI commands required. This skill operates on document content provided in context.
+| Command | Description |
+|---|---|
+| `promtool check rules alerts.yaml` | Best-effort Prometheus rule validation (skip and note when unavailable) |

@@ -22,8 +22,8 @@ Covers happy paths, edge cases, and failure scenarios across relevant test level
 ## Steps
 
 1. Read the requirements, specification, lifecycle document, telemetry plan, and observability plan (if present).
-2. List all acceptance criteria that need to be verified.
-3. For each acceptance criterion, write at least one test case.
+2. List all acceptance criteria that need to be verified. In `requirements.md` these are the fenced `gherkin` scenarios, each tagged with its requirement ID (`@FR-N` / `@NFR-N`); map test cases to scenarios via that tag.
+3. For each acceptance criterion, write at least one test case. When the project uses a BDD framework (pytest-bdd, cucumber), a gherkin scenario can be executed directly; otherwise translate the scenario's Given/When/Then into the test case's Setup/Steps/Expected.
 4. For each analytics event in the telemetry plan, write a test case verifying the event is emitted with correct properties.
 5. For each metric, log entry, and trace span in the observability plan, write a test case verifying it is emitted correctly.
 6. Add edge case and failure scenario tests beyond the acceptance criteria.
