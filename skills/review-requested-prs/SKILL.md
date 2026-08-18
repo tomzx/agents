@@ -210,7 +210,7 @@ Processes PR #42 in acme/api explicitly, plus searches acme/web-app for review-r
 
 | Script | Description |
 |---|---|
-| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for command output, `--json` for structured data, `--log-level debug` for timings. |
+| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Always run with `--dispatch`; use `--log-level debug` for timings. |
 
 ## Related Skills
 

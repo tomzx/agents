@@ -285,6 +285,7 @@ def discover_prs(
     repos: list[str],
     owners: list[str],
     limit: int,
+    include_drafts: bool = False,
 ) -> list[PRReviewState]:
     """Build the list of target PRs from explicit URLs and/or repo search."""
     prs: list[PRReviewState] = []
@@ -302,6 +303,8 @@ def discover_prs(
     should_search = len(repos) > 0 or len(owners) > 0 or len(pr_urls) == 0
     if should_search:
         query = "is:pr is:open review-requested:@me"
+        if not include_drafts:
+            query += " draft:false"
         for repo in repos:
             query += f" repo:{repo}"
         for owner in owners:
@@ -555,15 +558,20 @@ def format_json(prs: list[PRReviewState]) -> str:
     return json.dumps([asdict(pr) for pr in prs], indent=2)
 
 
-def process_pr(token: str, pr: PRReviewState) -> PRReviewState:
+def process_pr(token: str, pr: PRReviewState, include_drafts: bool = False) -> PRReviewState:
     """Process a single PR: fetch HEAD commit, check markers, determine stale steps.
 
-    Creates its own GitHub client for thread safety.
+    Creates its own GitHub client for thread safety. Skips draft PRs unless
+    *include_drafts* is True.
     """
     with timed("process_pr", repo=pr.repo, pr=pr.number):
         client = create_client(token)
         try:
             fetch_head_commit(client, pr)
+            if pr.draft and not include_drafts:
+                pr.skipped = True
+                log.info("skip_draft", repo=pr.repo, pr=pr.number)
+                return pr
             check_markers(client, pr)
             pr.stale_steps = determine_stale_steps(pr)
             if not pr.stale_steps:
@@ -640,7 +648,7 @@ def main() -> int:
 
     client = create_client(token)
     pr_urls, repos, owners = classify_args(args.targets)
-    prs = discover_prs(client, pr_urls, repos, owners, args.limit)
+    prs = discover_prs(client, pr_urls, repos, owners, args.limit, include_drafts=args.draft)
 
     if not prs:
         print("No PRs found needing review.")
@@ -665,7 +673,9 @@ def main() -> int:
             f"Processing PRs (0/{len(prs)})",
             total=len(prs),
         )
-        futures = {executor.submit(process_pr, token, pr): pr for pr in prs}
+        futures = {
+            executor.submit(process_pr, token, pr, args.draft): pr for pr in prs
+        }
         for future in as_completed(futures):
             future.result()
             progress.advance(task)
@@ -689,8 +699,7 @@ def main() -> int:
     if args.json:
         print(format_json(prs))
     elif args.dispatch:
-        dispatch_prs = [pr for pr in prs if args.draft or not pr.draft]
-        commands = format_dispatch_commands(dispatch_prs)
+        commands = format_dispatch_commands(prs)
         if commands:
             print(commands)
         else:
