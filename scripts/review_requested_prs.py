@@ -462,7 +462,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
             if pr.error:
                 status = f"[red]Error: {pr.error}[/red]"
             elif not pr.stale_steps:
-                status = "[green]Skipped (all up to date)[/green]"
+                status = "[green]Ready for approval[/green]"
             else:
                 status = "[bold yellow]Needs review[/bold yellow]"
             head_col = (
@@ -614,7 +614,7 @@ def main() -> int:
     parser.add_argument(
         "--quiet",
         action="store_true",
-        help="Suppress output for PRs that are fully up to date.",
+        help="Suppress output for PRs that are ready for approval.",
     )
     parser.add_argument(
         "--log-level",
@@ -693,6 +693,8 @@ def main() -> int:
         commands = format_dispatch_commands(dispatch_prs)
         if commands:
             print(commands)
+        else:
+            print("nothing to dispatch")
     else:
         console.print(build_summary_table(prs))
 

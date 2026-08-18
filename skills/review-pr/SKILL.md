@@ -99,7 +99,7 @@ This skill is static code-craft review. It does not build or run the code (that 
 Before diving into the code:
 
 * Prior reports
-	* If `/verify-pr` has run, read its conformance report and treat the build/criteria status as settled; do not rebuild or re-litigate conformance here
+	* If `/verify-pr` has run, read its conformance report and treat the criteria status as settled; do not re-litigate conformance here
 * PR Metadata
 	* Read the PR title and description - is it clear and complete?
 	* Is the change size appropriate for what is implemented?
@@ -108,6 +108,8 @@ Before diving into the code:
 	* Understand what the PR is meant to do, so craft findings can be weighed against intent
 
 ## Code Review Checklist
+
+CI handles linting, formatting, type checking, build, and test suite execution; this review does not report on those. Focus on what requires human judgment.
 
 ### Scope & Relevance
 
@@ -129,12 +131,9 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 	* Does the code respect [SOLID](https://en.wikipedia.org/wiki/SOLID)?
 	* Is the code following existing design patterns in the codebase?
 	* Are there code duplications that violate DRY principle?
-* Code Style
-	* Check code for code style issues
+* Magic Numbers & Dead Code
 	* Are magic numbers/strings extracted as constants or configuration?
 	* Is there dead code or commented-out code that should be removed?
-* Type Safety
-	* In a weak typed or type hinted language, are parameters and return of functions/methods typed?
 
 ### Testing & Coverage
 
@@ -276,7 +275,7 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-Include a Coverage section listing what tests exist, what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), what is missing, and the CI status.
+Include a Coverage section listing what tests exist, what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and what is missing.
 
 When reviewing, write the response to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
 Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
@@ -339,7 +338,6 @@ Consider `CENTS_PER_DOLLAR = 100` as a named constant for readability.
 - Tests present: `tests/payments/test_routes.py` (8 cases, happy + error paths)
 - Manual testing: author tested Stripe checkout flow end-to-end, verified webhook delivery and retry behavior
 - Missing: webhook signature verification not tested
-- CI status: passing
 
 ## Outcome
 

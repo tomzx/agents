@@ -1,7 +1,7 @@
 ---
 name: review-requested-prs
 description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*)
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
@@ -25,7 +25,7 @@ The verdict is either `pass` (continue to the next step) or `fail` (halt the pip
 
 The orchestrator reads these markers to skip steps already completed for the current HEAD commit and to surface verdicts in the summary table. The script also supports the legacy marker format (`<!-- validate-pr:SHA -->`) for backward compatibility, though it does not carry a verdict.
 
-The discovery and staleness check are handled by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as subagent tasks.
+The discovery and staleness check are handled by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). The script checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. The LLM orchestrator consumes the script's output and dispatches the stale steps as `opencode run` invocations.
 
 ## Prerequisites
 
@@ -46,12 +46,12 @@ Run ~/.agents/scripts/review_requested_prs.py --dispatch
     Group commands by PR
                |
                v
-    For each PR (in parallel):
-      Create shared worktree
-      Run stale steps sequentially:
-        validate-pr -> verify-pr -> review-pr
-      Check for blocking verdict after each step
-      Clean up worktree
+     For each PR (in parallel):
+       Create shared worktree
+       For each stale step (in order):
+         Run opencode run with the single step command
+         Check for blocking verdict, halt if blocked
+       Clean up worktree
                |
                v
     Report summary
@@ -89,7 +89,7 @@ The `--dispatch` flag makes the script output one command per line for each stal
 /review-pr 88 acme/web-app
 ```
 
-If the script outputs nothing, all PRs are up to date and no work is needed.
+If the script outputs nothing, print "nothing to dispatch" and stop.
 
 ### 2. Parse dispatch commands
 
@@ -120,40 +120,21 @@ If the worktree already exists (e.g. from a previous run), skip creation and reu
 
 #### 3b. Dispatch stale steps
 
-Dispatch each stale skill as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
+Run each stale step as a separate `opencode run` invocation via the Bash tool. The prompt for each call is simply the single skill command from the dispatcher output, nothing else.
 
-Use the `general` subagent type for all three steps.
+For each PR, iterate over its stale steps in order (validate-pr, then verify-pr, then review-pr). For each step, run:
 
-#### validate-pr
-
-Dispatch a subagent with this exact prompt:
-
-```
-Run the validate-pr skill: /validate-pr {PR} {REPO}
-The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
+```bash
+opencode run --dir {WORKTREE_DIR} --auto --format json "/{skill} {PR_NUMBER} {REPO}"
 ```
 
-#### verify-pr
+After each `opencode run` call completes, check the verdict from the skill's output or posted marker before running the next step. If a step returns a blocking verdict (validate-pr: Wrong thing or Inconclusive; verify-pr: Nonconforming; review-pr: changes-requested or rejected), stop and do not run subsequent steps for that PR.
 
-Dispatch a subagent with this exact prompt:
+Run all PRs in parallel by issuing the first step of each PR as separate Bash calls in a single message. Each PR is independent, so all PRs run concurrently. Each `opencode run` call blocks until the session finishes and returns the final output. When a PR's step completes, dispatch its next step (if not blocked).
 
-```
-Run the verify-pr skill: /verify-pr {PR} {REPO}
-The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
-```
+Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
 
-#### review-pr
-
-Dispatch a subagent with this exact prompt:
-
-```
-Run the review-pr skill: /review-pr {PR} {REPO}
-The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
-```
-
-Process PRs in parallel by dispatching one subagent per PR in a single message with multiple Task tool calls. Each PR is independent, so all PRs run concurrently. Within a PR, steps run sequentially (validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize steps within a single PR, because each step may halt the pipeline. Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
-
-If a step fails (e.g. build failure in verify-pr, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run subsequent steps for that PR. Record the failure in the summary. Treat a blocking verdict from any step the same way: a **Wrong thing** verdict from `validate-pr` (the target is the wrong product) should halt the pipeline before `verify-pr` spends a build, since verifying conformance to a wrong spec is wasted effort.
+If a step fails (e.g. build failure in verify-pr, no linked issue), the sub-skill notes the failure and stops; it posts a comment for missing issues or criteria, but not for build failures (CI typically catches those). Do not run subsequent steps for that PR. Record the failure in the summary. Treat a blocking verdict from any step the same way: a **Wrong thing** verdict from `validate-pr` (the target is the wrong product) should halt the pipeline before `verify-pr` spends a build, since verifying conformance to a wrong spec is wasted effort.
 
 #### 3c. Clean up the shared worktree
 
@@ -173,7 +154,7 @@ After processing all PRs, output a summary table:
 | owner/repo | #88 | verify, review | Completed |
 | owner/repo | #55 | review | Completed |
 | owner/repo | #77 | validate, verify, review | Failed at validate (build error) |
-| owner/repo | #33 | — | Skipped (all up to date) |
+| owner/repo | #33 | — | Ready for approval |
 
 ## Example Usage
 
@@ -181,7 +162,7 @@ After processing all PRs, output a summary table:
 ```
 /review-requested-prs
 ```
-Finds 4 open PRs across multiple repos. 1 is fully reviewed already (skipped), 2 need all three steps, 1 needs only review-pr. Runs the stale steps on each.
+Finds 4 open PRs across multiple repos. 1 is fully reviewed already (ready for approval), 2 need all three steps, 1 needs only review-pr. Runs the stale steps on each.
 
 **Scenario 2: Filter to specific repositories**
 ```
@@ -205,7 +186,7 @@ Processes exactly those two PRs. No search is performed.
 ```
 /review-requested-prs
 ```
-The script outputs nothing (all markers match HEAD). Reports all as skipped.
+The script outputs nothing (all markers match HEAD). Reports all as ready for approval.
 
 **Scenario 6: PR with no prior reviews**
 ```

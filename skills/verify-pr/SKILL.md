@@ -12,7 +12,7 @@ Answers the **verification** question: "Are we building the product right?" Chec
 1. **Static traceability**: every criterion maps to specific code that implements it.
 2. **Runtime proof**: build the PR and execute each criterion, recording the evidence.
 
-It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead.
+It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead.
 
 ## Prerequisites
 
@@ -50,14 +50,16 @@ Create git worktree on PR branch
    |
    v
 Install dependencies / build
-   |
-   v
+(setup for runtime proof;
+CI handles build status)
+    |
+    v
 Build succeeded?
   /          \
  Yes           No
   |             |
   v             v
-Validate each   Post build failure, stop
+Validate each   Note build failure, stop
 criterion at runtime
    |
    v
@@ -185,6 +187,8 @@ If worktree creation fails, stop.
 
 ### 5. Install dependencies and build
 
+CI typically handles build verification; this step is a setup prerequisite for per-criterion runtime proof, not a conformance finding.
+
 Detect the project type and install/build:
 
 ```bash
@@ -193,7 +197,7 @@ ls package.json Cargo.toml pyproject.toml go.mod Makefile 2>/dev/null
 
 Follow the project's standard install and build process. Check `.sdlc/context/` for project-specific build instructions if available.
 
-If the build fails, post a comment reporting the build failure with the error output and stop. Do not attempt to fix build issues.
+If the build fails, note it and stop. CI would typically catch this first; do not report build status as a conformance finding.
 
 ### 6. Validate each acceptance criterion at runtime
 
@@ -228,8 +232,8 @@ For every acceptance criterion, prove or disprove through execution that the PR 
 
 #### Test criteria
 
-- Run the referenced tests
-- Verify they pass
+- Verify the referenced tests map to and prove the criterion (traceability)
+- CI runs the test suite; do not re-report pass/fail status that CI already covers
 - Verify the test count matches what the criterion requires
 
 #### Performance criteria
@@ -389,7 +393,7 @@ fi
 | **No linked issue, or no parseable acceptance criteria** | Save a comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims in a vacuum |
 | **PR description has no claims** | Proceed; criteria drive verification, claims are optional hints. Note the absence of claims in the report |
 | **Worktree creation fails** | Stop |
-| **Build fails** | Save build failure as a report file, stop |
+| **Build fails** | Note it and stop; CI would typically catch this first. Do not report as a conformance finding |
 | **asciinema not available** | `/record-asciinema` returns nothing; capture CLI stdout/stderr as text, skip the GIF |
 | **Playwright/Chromium not available** | `/record-playwright` returns nothing; describe the web UI change in text, skip the screenshot |
 | **Dev server won't start** | Skip web UI capture; note in the report and verify via unit tests where possible. Criteria that needed the server become Conforms (static only) if traced, else Not verified |
@@ -427,7 +431,7 @@ PR #90 implements a `--quiet` flag the author claims, but no acceptance criterio
 ```
 /verify-pr 15
 ```
-PR #15 fails to build due to missing dependency. Saves build error as a report file and stops.
+PR #15 fails to build due to missing dependency. Notes the build failure and stops. CI would typically catch this first.
 
 ## Next Step
 

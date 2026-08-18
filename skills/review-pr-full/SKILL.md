@@ -137,7 +137,7 @@ Run the verify-pr skill: /verify-pr {PR} {REPO}
 The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
-If verify-pr fails (e.g. build failure, no linked issue), the sub-skill posts a comment explaining the failure and stops. Do not run review-pr. Record the failure in the summary.
+If verify-pr fails (e.g. build failure, no linked issue), the sub-skill notes the failure and stops; it posts a comment for missing issues or criteria, but not for build failures (CI typically catches those). Do not run review-pr. Record the failure in the summary.
 
 #### review-pr
 
@@ -205,7 +205,7 @@ validate-pr judges the PR to be the wrong product. It posts its Wrong-thing verd
 ```
 /review-pr-full 88 acme/api
 ```
-validate-pr passes. verify-pr fails to build. Posts a build failure comment. review-pr is not run. Summary shows "Stopped at verify (build failure)".
+validate-pr passes. verify-pr fails to build. Notes the build failure and stops (CI would typically catch this). review-pr is not run. Summary shows "Stopped at verify (build failure)".
 
 **Scenario 7: PR number with $REPO from environment**
 ```
