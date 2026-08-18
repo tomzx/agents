@@ -19,6 +19,7 @@ or ``gh auth token`` as fallback).
 Usage:
     scripts/review_requested_prs.py [pr-url ... | owner/repo ...]
         [--limit N] [--json] [--dispatch] [--quiet] [--log-level LEVEL]
+        [--exclude-author LOGIN ...]
 
 Examples:
     # All PRs where you are a requested reviewer
@@ -144,6 +145,7 @@ class PRReviewState:
     repo: str
     number: int
     title: str = ""
+    author: str = ""
     draft: bool = False
     head_commit: str = ""
     validate_commit: str = ""
@@ -157,6 +159,7 @@ class PRReviewState:
     review_verdict: str = ""
     stale_steps: list[str] = field(default_factory=list)
     skipped: bool = False
+    skipped_reason: str = ""
     error: str = ""
 
 
@@ -272,6 +275,7 @@ def _search_and_collect(
                             repo=repo_full,
                             number=issue.number,
                             title=issue.title,
+                            author=issue.user.login if issue.user else "",
                         ),
                     )
         except GithubException as ex:
@@ -286,6 +290,7 @@ def discover_prs(
     owners: list[str],
     limit: int,
     include_drafts: bool = False,
+    exclude_authors: list[str] | None = None,
 ) -> list[PRReviewState]:
     """Build the list of target PRs from explicit URLs and/or repo search."""
     prs: list[PRReviewState] = []
@@ -310,6 +315,8 @@ def discover_prs(
         for owner in owners:
             qualifier = _resolve_owner_qualifier(client, owner)
             query += f" {qualifier}:{owner}"
+        for author in exclude_authors or []:
+            query += f" -author:{author}"
 
         prs = _search_and_collect(client, query, limit, prs, seen)
 
@@ -329,6 +336,7 @@ def fetch_head_commit(client: Github, pr: PRReviewState) -> None:
         pull = repo.get_pull(pr.number)
         pr.head_commit = pull.head.sha
         pr.draft = pull.draft
+        pr.author = pull.user.login if pull.user else ""
     log.debug("head_commit", repo=pr.repo, pr=pr.number, sha=pr.head_commit[:8])
 
 
@@ -558,18 +566,29 @@ def format_json(prs: list[PRReviewState]) -> str:
     return json.dumps([asdict(pr) for pr in prs], indent=2)
 
 
-def process_pr(token: str, pr: PRReviewState, include_drafts: bool = False) -> PRReviewState:
+def process_pr(
+    token: str,
+    pr: PRReviewState,
+    include_drafts: bool = False,
+    exclude_authors: list[str] | None = None,
+) -> PRReviewState:
     """Process a single PR: fetch HEAD commit, check markers, determine stale steps.
 
     Creates its own GitHub client for thread safety. Skips draft PRs unless
-    *include_drafts* is True.
+    *include_drafts* is True. Skips PRs whose author is in *exclude_authors*.
     """
     with timed("process_pr", repo=pr.repo, pr=pr.number):
         client = create_client(token)
         try:
             fetch_head_commit(client, pr)
+            if exclude_authors and pr.author in exclude_authors:
+                pr.skipped = True
+                pr.skipped_reason = "excluded_author"
+                log.info("skip_excluded_author", repo=pr.repo, pr=pr.number, author=pr.author)
+                return pr
             if pr.draft and not include_drafts:
                 pr.skipped = True
+                pr.skipped_reason = "draft"
                 log.info("skip_draft", repo=pr.repo, pr=pr.number)
                 return pr
             check_markers(client, pr)
@@ -620,6 +639,13 @@ def main() -> int:
         help="Include draft PRs in the dispatch output (excluded by default).",
     )
     parser.add_argument(
+        "--exclude-author",
+        nargs="*",
+        default=["dependabot[bot]"],
+        metavar="LOGIN",
+        help="GitHub logins of PR authors to exclude (default: dependabot[bot]).",
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="Suppress output for PRs that are ready for approval.",
@@ -648,7 +674,15 @@ def main() -> int:
 
     client = create_client(token)
     pr_urls, repos, owners = classify_args(args.targets)
-    prs = discover_prs(client, pr_urls, repos, owners, args.limit, include_drafts=args.draft)
+    prs = discover_prs(
+        client,
+        pr_urls,
+        repos,
+        owners,
+        args.limit,
+        include_drafts=args.draft,
+        exclude_authors=args.exclude_author,
+    )
 
     if not prs:
         print("No PRs found needing review.")
@@ -674,7 +708,7 @@ def main() -> int:
             total=len(prs),
         )
         futures = {
-            executor.submit(process_pr, token, pr, args.draft): pr for pr in prs
+            executor.submit(process_pr, token, pr, args.draft, args.exclude_author): pr for pr in prs
         }
         for future in as_completed(futures):
             future.result()
