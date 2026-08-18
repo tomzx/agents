@@ -201,6 +201,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
+| `/review-pr-full` | Orchestrate a full review (validate, verify, review) for a single PR, skipping up-to-date steps. |
 | `/review-requested-prs` | Orchestrate full reviews (validate, verify, review) across review-requested PRs or by PR URL. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-feedback` | Respond to developer comments, implement or explain, then push. |

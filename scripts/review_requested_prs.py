@@ -144,6 +144,7 @@ class PRReviewState:
     repo: str
     number: int
     title: str = ""
+    draft: bool = False
     head_commit: str = ""
     validate_commit: str = ""
     verify_commit: str = ""
@@ -324,6 +325,7 @@ def fetch_head_commit(client: Github, pr: PRReviewState) -> None:
         repo = client.get_repo(pr.repo)
         pull = repo.get_pull(pr.number)
         pr.head_commit = pull.head.sha
+        pr.draft = pull.draft
     log.debug("head_commit", repo=pr.repo, pr=pr.number, sha=pr.head_commit[:8])
 
 
@@ -386,9 +388,22 @@ def check_markers(client: Github, pr: PRReviewState) -> None:
                 field_name = STEP_TO_FIELD[step]
                 if getattr(pr, field_name):
                     continue
-                for md_file in local_dir.glob(f"{step}.*.md"):
-                    text = md_file.read_text(errors="replace")
-                    _parse_markers(text, pr, posted=False)
+
+                # Prefer the file matching the current HEAD commit, if any.
+                head_file = local_dir / f"{step}.{pr.head_commit}.md"
+                if head_file.is_file():
+                    _parse_markers(head_file.read_text(errors="replace"), pr, posted=False)
+                    if getattr(pr, field_name):
+                        continue
+
+                # Fall back to the most recently modified file for this step.
+                step_files = sorted(
+                    local_dir.glob(f"{step}.*.md"),
+                    key=lambda f: f.stat().st_mtime,
+                    reverse=True,
+                )
+                for md_file in step_files:
+                    _parse_markers(md_file.read_text(errors="replace"), pr, posted=False)
                     if getattr(pr, field_name):
                         break
 
@@ -437,6 +452,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
     for repo, repo_prs in _group_by_repo(prs):
         table = Table(title=repo, title_style="bold cyan", show_header=True)
         table.add_column("PR", style="blue", justify="right")
+        table.add_column("HEAD", justify="center")
         table.add_column("Validate", justify="center")
         table.add_column("Verify", justify="center")
         table.add_column("Review", justify="center")
@@ -449,17 +465,23 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 status = "[green]Skipped (all up to date)[/green]"
             else:
                 status = "[bold yellow]Needs review[/bold yellow]"
+            head_col = (
+                f"[blue]{pr.head_commit[:8]}[/blue]"
+                if pr.head_commit
+                else "[dim]—[/dim]"
+            )
             validate_col = _marker_cell(
-                pr.validate_commit, pr.validate_posted, pr.validate_verdict
+                pr.validate_commit, pr.validate_posted, pr.validate_verdict, pr.head_commit
             )
             verify_col = _marker_cell(
-                pr.verify_commit, pr.verify_posted, pr.verify_verdict
+                pr.verify_commit, pr.verify_posted, pr.verify_verdict, pr.head_commit
             )
             review_col = _marker_cell(
-                pr.review_commit, pr.review_posted, pr.review_verdict
+                pr.review_commit, pr.review_posted, pr.review_verdict, pr.head_commit
             )
             table.add_row(
-                f"#{pr.number}",
+                f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}",
+                head_col,
                 validate_col,
                 verify_col,
                 review_col,
@@ -481,25 +503,51 @@ def _group_by_repo(prs: list[PRReviewState]) -> list[tuple[str, list[PRReviewSta
     return [(repo, groups[repo]) for repo in order]
 
 
-def _marker_cell(commit: str, posted: bool, verdict: str) -> str:
-    """Return a display string for a marker column with verdict."""
+def _marker_cell(commit: str, posted: bool, verdict: str, head_commit: str) -> str:
+    """Return a display string for a marker column with commit SHA and match indicator.
+
+    The SHA is shown in green when it matches *head_commit* (current) or yellow
+    when it does not (stale). The verdict retains its own color (pass=green,
+    fail=red).
+    """
     if not commit:
         return "[dim]—[/dim]"
     location = "github" if posted else "local"
+    short = commit[:8]
+    is_current = commit == head_commit
+    match_style = "green" if is_current else "red"
     if not verdict:
-        style = "blue" if posted else "dim"
-        return f"[{style}]{location}[/{style}]"
+        base_style = "blue" if posted else "dim"
+        return f"[{base_style}]{location}[/{base_style}] [{match_style}]{short}[/{match_style}]"
     verdict_style = VERDICT_STYLES.get(verdict, "dim")
-    return f"[{verdict_style}]{verdict}[/{verdict_style}] ({location})"
+    return f"[{verdict_style}]{verdict}[/{verdict_style}] [{match_style}]{short}[/{match_style}] ({location})"
 
 
 def format_dispatch_commands(prs: list[PRReviewState]) -> str:
-    """Return dispatch commands (one per line) for PRs needing work."""
-    commands: list[str] = []
+    """Return dispatch commands for PRs needing work, separated by --- per PR.
+
+    Steps after a failed prior step are skipped (e.g. if validate-pr failed,
+    verify-pr and review-pr are not dispatched).
+    """
+    step_order = {"validate-pr": 0, "verify-pr": 1, "review-pr": 2}
+    verdict_fields = {
+        "validate-pr": "validate_verdict",
+        "verify-pr": "verify_verdict",
+    }
+    blocks: list[str] = []
     for pr in prs:
-        for step in pr.stale_steps:
-            commands.append(f"/{step} {pr.number} {pr.repo}")
-    return "\n".join(commands)
+        if not pr.stale_steps:
+            continue
+        cutoff = len(step_order)
+        for step, field_name in verdict_fields.items():
+            if getattr(pr, field_name) == "fail":
+                cutoff = step_order[step] + 1
+        steps = [s for s in pr.stale_steps if step_order[s] < cutoff]
+        if not steps:
+            continue
+        lines = [f"/{step} {pr.number} {pr.repo}" for step in steps]
+        blocks.append("\n".join(lines))
+    return "\n---\n".join(blocks)
 
 
 def format_json(prs: list[PRReviewState]) -> str:
@@ -557,6 +605,11 @@ def main() -> int:
         "--dispatch",
         action="store_true",
         help="Output only the dispatch commands (one per line) for PRs needing work.",
+    )
+    parser.add_argument(
+        "--draft",
+        action="store_true",
+        help="Include draft PRs in the dispatch output (excluded by default).",
     )
     parser.add_argument(
         "--quiet",
@@ -636,7 +689,8 @@ def main() -> int:
     if args.json:
         print(format_json(prs))
     elif args.dispatch:
-        commands = format_dispatch_commands(prs)
+        dispatch_prs = [pr for pr in prs if args.draft or not pr.draft]
+        commands = format_dispatch_commands(dispatch_prs)
         if commands:
             print(commands)
     else:
