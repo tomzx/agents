@@ -694,7 +694,7 @@ def main() -> int:
         if commands:
             print(commands)
         else:
-            print("nothing to dispatch")
+            print(f"processed {len(prs)} PRs, nothing to dispatch")
     else:
         console.print(build_summary_table(prs))
 
