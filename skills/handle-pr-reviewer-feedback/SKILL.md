@@ -1,13 +1,15 @@
 ---
-name: handle-pr-feedback
-description: Review and respond to developer comments on a GitHub pull request, implementing valid feedback or explaining rejections, then push changes.
+name: handle-pr-reviewer-feedback
+description: Address reviewer comments on your own GitHub pull request, implementing valid feedback or explaining rejections, then push changes. The author-side counterpart of handle-pr-author-feedback.
 allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/should-post-to-github:*), Read, Edit, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
-# Handle PR Feedback
+# Handle PR Reviewer Feedback
 
-Reviews and responds to all developer comments on a GitHub pull request, implementing valid feedback or explaining rejections with clear justification. On user approval it commits and pushes changes; whether replies are posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
+Reviews and responds to all reviewer comments on a GitHub pull request you authored, implementing valid feedback or explaining rejections with clear justification. On user approval it commits and pushes changes; whether replies are posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
+
+For the reviewer-side flow (verifying that a PR author addressed your review comments), use `handle-pr-author-feedback` instead.
 
 ## Prerequisites
 
@@ -20,7 +22,7 @@ Reviews and responds to all developer comments on a GitHub pull request, impleme
 
 ### Skill attribution (GitHub)
 
-Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-pr-feedback`.
+Before posting any PR comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-pr-reviewer-feedback`.
 
 ## Workflow
 
@@ -76,21 +78,21 @@ Fetch PR comments ($1)
 
 **Scenario 1: Bug fix requested**
 ```
-/handle-pr-feedback 42
+/handle-pr-reviewer-feedback 42
 ```
 Comment on line 37: "This function doesn't handle `user` being null."
 Decision: Actionable. Add a null guard, commit, push.
 
 **Scenario 2: Stylistic disagreement**
 ```
-/handle-pr-feedback 100
+/handle-pr-reviewer-feedback 100
 ```
 Comment: "Rename `processBatch` to `run`."
 Decision: Not actionable - "run" is less descriptive. Draft reply: "Keeping `processBatch` as it communicates intent better than `run`." Push.
 
 **Scenario 3: Multiple mixed comments**
 ```
-/handle-pr-feedback 77
+/handle-pr-reviewer-feedback 77
 ```
 Three comments: one requesting a missing test (implement), one asking for a type annotation (implement), one requesting an out-of-scope design change (reject with explanation). Address each independently, present all decisions together, then push.
 

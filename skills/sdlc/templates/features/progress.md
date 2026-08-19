@@ -48,7 +48,7 @@ last_updated: "<YYYY-MM-DD>"
 | Development & Testing | create-pr | — |
 | Development & Testing | review-pr | — |
 | Development & Testing | handle-pr-ci | — |
-| Development & Testing | handle-pr-feedback | — |
+| Development & Testing | handle-pr-reviewer-feedback | — |
 | Development & Testing | merge-pr | — |
 | Deployment | deploy-pr | — |
 | Learnings | create-learnings | — |

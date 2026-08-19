@@ -206,7 +206,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/review-pr-full` | Orchestrate a full review (validate, verify, review) for a single PR, skipping up-to-date steps. |
 | `/review-requested-prs` | Orchestrate full reviews (validate, verify, review) across review-requested PRs or by PR URL. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
-| `/handle-pr-feedback` | Respond to developer comments, implement or explain, then push. |
+| `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. |
+| `/handle-pr-author-feedback` | As the reviewer, verify the author's fixes address your comments; resolve fixed threads, reply on the rest. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
 | `/merge-pr` | Check approval and CI, then merge and clean up. |

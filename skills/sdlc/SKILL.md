@@ -21,7 +21,7 @@ Before performing any work that belongs to a pipeline phase, load that phase's s
 
 A skill's `allowed-tools`, workflow, attribution steps, and gates only apply once its content is in context.
 Never execute a phase's actions from memory or general knowledge.
-This is especially true for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-feedback`): their commit and push rules are bypassed whenever they are not loaded.
+This is especially true for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-reviewer-feedback`): their commit and push rules are bypassed whenever they are not loaded.
 
 This applies at every phase transition the orchestrator makes, on every entry point and fast path.
 If you reach a phase that needs committing, pushing, or a PR and its skill is not yet loaded, load it before doing anything else, then follow its workflow.
@@ -120,7 +120,7 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
     /verify-pr              Conformance: criteria-to-code traceability + runtime proof per criterion
    /review-pr              Comprehensive code review of the PR
   /handle-pr-ci           Diagnose failing CI checks, fix, push, confirm green (repeat until passing)
-  /handle-pr-feedback     Address reviewer comments, push, re-request review (repeat until approved)
+  /handle-pr-reviewer-feedback  Address reviewer comments, push, re-request review (repeat until approved)
   /merge-pr               Verify approvals + CI, merge, delete branch, confirm issue closed
 
   Stage 7 — Deployment
@@ -431,7 +431,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `validate-pr` | PR is open; judge whether it builds the right product before spending a build |
 | `verify-pr` | Right product confirmed; verify conformance to the acceptance criteria (traceability + runtime proof) |
 | `handle-pr-ci` | PR has failing CI checks to fix |
-| `handle-pr-feedback` | PR is open and has reviewer comments to address |
+| `handle-pr-reviewer-feedback` | PR is open and has reviewer comments to address |
 | `merge-pr` | PR is approved and CI is green, ready to merge |
 | `deploy` | PR is merged and ready to deploy to the target environment |
 | `bugfix` | A bug report issue to reproduce, fix, and submit as a PR (runs `fix-issue`) |
@@ -672,7 +672,7 @@ Each phase consumes output from the previous phase:
 | verify-pr | Pull request | Conformance report: criteria-to-code traceability + runtime proof per criterion (asciinema/Playwright recordings) |
 | review-pr | Pull request | Code review findings (resolve before merge) |
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
-| handle-pr-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
+| handle-pr-reviewer-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |
 | deploy-pr | Merged PR | Deployed changes, smoke tests passed, rollback plan verified |
 | fix-issue | GitHub issue describing a bug | Orchestrated bug fix: check-duplicates, reproduction (with before recording), implementation, PR (with after recording paired against before) |

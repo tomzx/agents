@@ -14,7 +14,7 @@ Verifies that a pull request has the required approvals and passing CI checks, t
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the target repository
 - PR number (`$1`) identifying an open pull request
-- All review feedback addressed (run `/handle-pr-feedback` first if comments are unresolved)
+- All review feedback addressed (run `/handle-pr-reviewer-feedback` first if comments are unresolved)
 
 ## Workflow
 

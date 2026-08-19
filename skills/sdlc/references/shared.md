@@ -16,7 +16,7 @@ When a skill completes and points to a successor, load that successor with the `
 
 A skill's `allowed-tools`, workflow, attribution steps, and gates take effect only once its content is in context.
 Never execute a successor's actions from memory or general knowledge.
-This is mandatory for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-feedback`): their commit and push rules are bypassed whenever the skill is not loaded.
+This is mandatory for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-reviewer-feedback`): their commit and push rules are bypassed whenever the skill is not loaded.
 
 This rule applies however the successor was reached:
 - via the orchestrator (`/sdlc <phase>`), which loads each phase skill before executing it, or
