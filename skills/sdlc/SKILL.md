@@ -141,6 +141,8 @@ Setup (run once per project, no dependencies on other flows)
 
 Project context (invoke when establishing or revising project-level context that features align to)
 
+  /create-project        Interview the user to populate the core .sdlc/context/ files for a new or empty project
+  /review-project        Audit the context files for completeness, consistency, clarity, actionability
   /identify-feature-opportunities  Generate and rank new feature opportunities from the software surface and signals (bottom-up discovery feeding roadmap)
   /create-goals          Define objectives, key results, and KPIs the project aligns to
   /review-goals          Audit measurability, ownership, alignment, focus
@@ -148,6 +150,11 @@ Project context (invoke when establishing or revising project-level context that
   /review-roadmap        Audit alignment, sequencing, focus, horizon discipline, currency
   /create-service-levels  Define SLOs, SLIs, SLAs, and error budgets for the service
   /review-service-levels  Audit measurability, coverage, error-budget policy, alignment
+
+  Greenfield continuation: once the roadmap is reviewed, enter the main flow at the
+  requirements stage with the first Now initiative as the feature brief, skipping
+  create-issue (the requirements skill creates a p-prefixed pending feature; promote
+  it to an issue later via /create-placeholder-issue)
 
 Bug fix fast path (entry: bugfix)
 
@@ -397,6 +404,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 |---|---|
 | `status` | Want to see current progress on a feature or pick up where you left off (runs progress report, no side effects) |
 | `setup` | A new project that needs the `.sdlc/` structure bootstrapped (runs `sync-sdlc`, which creates `.sdlc/` if absent) |
+| `project` | A new or empty project whose core context files need populating by interview (runs `create-project` → `review-project`; no code analysis, unlike `sync`) |
 | `sync` | An existing `.sdlc/` that needs reconciling with the current codebase (runs `sync-sdlc`) |
 | `configure-labels` | A repository that needs the standard label taxonomy created or updated |
 | `issue` | A feature idea or bug to capture as a GitHub issue |
@@ -484,15 +492,16 @@ If you commit/push manually, never `git add` these paths or `status-report.html`
 6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
 7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
-9. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
-10. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
-11. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
-12. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
-13. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
-14. When all review findings are resolved, move to the next phase.
-15. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
-16. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
-17. After learnings are captured and reviewed, the cycle is complete.
+9. If the entry point is `project`, invoke the `create-project` skill directly. It interviews the user to populate the core context files under `.sdlc/context/` (running `initialize-sdlc-directory` first when `.sdlc/` is absent), then invoke `review-project` and address findings. This is a standalone operation that does not advance the pipeline. Prefer it over `sync` when the project has no code to analyze.
+10. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
+11. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
+12. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
+13. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
+14. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+15. When all review findings are resolved, move to the next phase.
+16. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
+17. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
+18. After learnings are captured and reviewed, the cycle is complete.
 
 ### Status Report (entry: `status`)
 
@@ -500,7 +509,7 @@ Delegate to the `sdlc-status` skill, which handles all reporting logic including
 
 ### Linked-PR Guard (between phases)
 
-Before every sub-skill runs (step 10), the orchestrator checks whether someone else has linked a pull request to the issue being worked on. This catches a competing PR that appears after work has already started, so effort is not duplicated.
+Before every sub-skill runs (step 12), the orchestrator checks whether someone else has linked a pull request to the issue being worked on. This catches a competing PR that appears after work has already started, so effort is not duplicated.
 
 Invoke the `check-linked-pr` skill against the current issue (resolved from `github_ref`):
 
@@ -617,6 +626,8 @@ Each phase consumes output from the previous phase:
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated + SDLC anchor in `AGENTS.md` |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |
+| create-project | Project root with `.sdlc/` (created if absent) + user answering the interview | Populated core `.sdlc/context/` files (`project-overview.md`, `architecture.md`, `infrastructure.md`, `conventions.md`, `vocabulary.md`); placeholders remain for skipped questions |
+| review-project | Core `.sdlc/context/` files | Findings → `.sdlc/context/review-project.md` (verdict `approved`/`changes-requested`/`rejected`) |
 | create-issue | Feature idea / bug description | Structured GitHub issue |
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |
 | qualify-issue | GitHub issue with open questions | Fully qualified issue; updated body + qualification comment posted |

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-208-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-210-green" alt="Skill count">
 </p>
 
 ## What
@@ -62,6 +62,8 @@ The library is organized into thematic groups covering the full software develop
 | `/sdlc-status` | Display a progress dashboard for SDLC features from `.sdlc/` directory data. |
 | `/backpropagate-sdlc` | Walk the artifact chain in reverse to verify end-to-end traceability. |
 | `/initialize-sdlc-directory` | Bootstrap the `.sdlc/` directory structure in a project. |
+| `/create-project` | Interview the user to populate `.sdlc/context/` for a new or empty project. |
+| `/review-project` | Review project context files for completeness, consistency, clarity, and actionability. |
 | `/sync-sdlc` | Analyze code and reconcile it with the `.sdlc/` directory. |
 | `/update-sdlc-templates` | Update `.sdlc/templates/` with the latest canonical practices. |
 

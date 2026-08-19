@@ -95,6 +95,7 @@ Self-check the draft against the [`review-roadmap` checklist](../review-roadmap/
 
 Run `/review-roadmap` to audit the roadmap for alignment, sequencing, focus, horizon discipline, and currency before relying on it for prioritization.
 Once approved, `prioritize-issues` and `create-needs-assessment` read `.sdlc/context/roadmap.md` directly when ranking work and checking strategic fit.
+In a greenfield project with no backlog yet, the reviewed roadmap's first Now initiative can go straight to `/create-requirements` (as a `p`-prefixed pending feature) instead of through `/create-issue`; see the review's Next Step.
 
 ## Useful Commands Reference
 

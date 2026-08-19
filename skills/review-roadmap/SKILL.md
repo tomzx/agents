@@ -121,6 +121,9 @@ Report under Currency: re-baseline, remove shipped/abandoned items, and reset th
 Once the findings verdict is `approved`, the roadmap is ready to drive prioritization.
 `prioritize-issues` and `create-needs-assessment` read `.sdlc/context/roadmap.md` directly when ranking work and checking strategic fit.
 
+In a greenfield project with no issue backlog yet, skip `/create-issue`: the first Now initiative is already committed and scoped by the roadmap, so take it straight to `/create-requirements` as its feature brief.
+The requirements skill creates a `p`-prefixed pending feature for it; promote that feature to an issue later with `/create-placeholder-issue`.
+
 ## Useful Commands Reference
 
 | Command | Description |
