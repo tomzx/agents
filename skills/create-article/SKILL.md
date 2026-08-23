@@ -111,7 +111,7 @@ The "See also" section links readers to other articles in the same repository th
 1. Determine the output location of the new article (ask the user if not specified).
 2. Search the repository for other article files near that location. Common patterns: `*.md` under `articles/`, `posts/`, `blog/`, `docs/`, or a content directory indicated by the user.
 3. Match candidates by topic overlap: shared keywords, referenced technologies, same problem domain, or citations to the same primary sources.
-4. Prefer linking to 2-5 high-relevance articles over listing many loosely related ones. Quality over quantity.
+4. Link the high-relevance articles you found, as many as are genuinely relevant. Quality over quantity: omit loosely related ones.
 5. Use repository-relative paths (e.g. `../foo/bar.md` or `articles/xyz.md`) so links work in any clone or rendered preview of the repo.
 
 If no related articles exist in the repository, omit the "See also" section entirely rather than padding it.
