@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-210-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-211-green" alt="Skill count">
 </p>
 
 ## What
@@ -235,6 +235,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/research-article` | Research a topic to map the state of the art and gather sources. |
 | `/create-article` | Write a high-quality article for a given audience and sources. |
 | `/review-article` | Review an article for accuracy, clarity, structure, and fit. |
+| `/sync-articles` | Batch-revise articles into conformance via parallel `create-article` jobs, then verify links, front matter, style, and AI tags. |
 | `/create-readme` | Generate a README with badges, feature list, and setup. |
 | `/write-recent-work-and-needs-article` | Write a personal status article about recent work and needs. |
 

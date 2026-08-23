@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# sync-articles runner: dispatch one create-article job per listed article path.
+# Usage: sync-articles <list-file> [--repo DIR] [--logdir DIR] [--statusdir DIR] [--concurrency N]
+set -u
+
+LIST=""
+REPO="$(pwd)"
+LOGDIR=""
+STATUSDIR=""
+CONCURRENCY=4
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --concurrency) CONCURRENCY="$2"; shift 2 ;;
+    --repo) REPO="$2"; shift 2 ;;
+    --logdir) LOGDIR="$2"; shift 2 ;;
+    --statusdir) STATUSDIR="$2"; shift 2 ;;
+    -h|--help)
+      echo "usage: sync-articles <list-file> [--repo DIR] [--logdir DIR] [--statusdir DIR] [--concurrency N]"
+      exit 0
+      ;;
+    *) LIST="$1"; shift ;;
+  esac
+done
+
+if [ -z "$LIST" ] || [ ! -f "$LIST" ]; then
+  echo "error: list file not found: ${LIST:-<none>}" >&2
+  exit 2
+fi
+
+BASEDIR="$(dirname "$LIST")"
+LOGDIR="${LOGDIR:-${BASEDIR}/logs}"
+STATUSDIR="${STATUSDIR:-${BASEDIR}/status}"
+RESULTS="${STATUSDIR}/results.txt"
+mkdir -p "$LOGDIR" "$STATUSDIR"
+: > "$RESULTS"
+
+run_one() {
+  local path="$1"
+  local safe t0 t1
+  safe=$(printf '%s' "$path" | tr '/' '_')
+  t0=$(date +%s)
+  if opencode run --auto \
+    "create-article ${path}. Revise the existing article in place to conform to the create-article skill rules and the repository AGENTS.md writing conventions. Keep the article's meaning, front matter fields, and status. Do not commit." \
+    > "${LOGDIR}/${safe}.log" 2>&1; then
+    t1=$(date +%s)
+    echo "OK ${path} $((t1 - t0))s" >> "$RESULTS"
+  else
+    t1=$(date +%s)
+    echo "FAIL ${path} $((t1 - t0))s" >> "$RESULTS"
+  fi
+}
+export -f run_one
+export LOGDIR RESULTS
+
+cd "$REPO" || exit 1
+
+# The list file MUST be redirected into xargs explicitly.
+# A backgrounded runner inherits /dev/null as stdin, and xargs with empty stdin runs zero jobs and exits 0.
+xargs -P "$CONCURRENCY" -I{} bash -c 'run_one "$@"' _ {} < "$LIST"
+
+echo "DONE ok=$(grep -c '^OK' "$RESULTS" || true) fail=$(grep -c '^FAIL' "$RESULTS" || true)"
