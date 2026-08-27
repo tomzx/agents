@@ -90,7 +90,7 @@ Self-check the draft against the [`review-service-levels` checklist](../review-s
 
 ## Next Step
 
-Run `/review-service-levels` to audit the objectives for measurability, coverage, and policy soundness before relying on them.
+A review subagent is dispatched automatically to run `/review-service-levels` to audit the objectives for measurability, coverage, and policy soundness before relying on them.
 Once approved, `observe-production` and `audit-observability` consume `.sdlc/context/service-levels.md` directly.
 
 ## Useful Commands Reference

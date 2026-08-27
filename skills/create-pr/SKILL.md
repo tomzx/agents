@@ -284,6 +284,7 @@ Self-check the PR against the [`review-pr` checklist](../review-pr/SKILL.md) and
 
 ## Next Step
 
+A review subagent is dispatched automatically to run `/review-pr` to audit the PR for correctness, quality, security, performance, and spec alignment.
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-reviewer-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
 Run `/validate-pr` to confirm the PR builds the right product, then `/verify-pr` for claim-by-claim conformance proof with per-criterion recordings (the proof embedded here is a single representative asset captured by `/validate-implementation`).
 Close the loop with `/create-learnings` after the feature is merged.

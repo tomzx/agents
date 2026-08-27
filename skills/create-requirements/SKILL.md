@@ -75,7 +75,7 @@ Self-check the draft against the [`review-requirements` checklist](../review-req
 
 ## Next Step
 
-Run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.
+A review subagent is dispatched automatically to run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.
 Once approved, continue with `/create-existing-solutions` to survey prior art.
 
 ## Useful Commands Reference

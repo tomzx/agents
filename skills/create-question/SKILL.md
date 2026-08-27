@@ -60,6 +60,10 @@ Before handing off to review, confirm:
 
 Self-check the record against the [`review-question` checklist](../review-question/SKILL.md) and fix what you can, so review finds less to flag.
 
+## Next Step
+
+A review subagent is dispatched automatically to run `/review-question` to audit the record for specificity, answerability, impact, and resolution quality.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context and writes a Markdown file.

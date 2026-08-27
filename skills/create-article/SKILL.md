@@ -170,3 +170,7 @@ Synthesize the arguments, take a defensible position, and advise on when to use 
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on content provided in context.
+
+## Next Step
+
+A review subagent is dispatched automatically to run `/review-article` to audit the article for accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style. The review subagent reads the review-article skill at `skills/review-article/SKILL.md` and the article just written, then reports its findings and verdict.

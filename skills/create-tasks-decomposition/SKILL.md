@@ -152,7 +152,7 @@ Self-check the decomposition against the [`review-tasks-decomposition` checklist
 
 ## Next Step
 
-Run `/review-tasks-decomposition` to audit granularity, completeness, and dependencies before moving on.
+A review subagent is dispatched automatically to run `/review-tasks-decomposition` to audit granularity, completeness, and dependencies before moving on.
 Once tasks are approved, continue with `/create-tests`.
 
 ## Useful Commands Reference

@@ -25,6 +25,64 @@ This rule applies however the successor was reached:
 If a successor needs to commit, push, or open a PR and its skill is not yet loaded, load it first, then follow its workflow.
 Do not start the successor's commit, push, or PR actions and load the skill only afterward.
 
+## Automatic Review Dispatch
+
+When a `create-*` skill completes and its successor is the matching `review-*` skill, dispatch the review in a subagent (via the `task` tool with `subagent_type: "general"`) instead of loading it in the current context. The review runs with a fresh context, independent of the creation session, producing a more objective assessment.
+
+### Dispatching the review subagent
+
+Use the `task` tool with a prompt that:
+1. Names the `review-*` skill to load and its SKILL.md path.
+2. Identifies the artifact to review (the file path just written by the create skill, or the PR/issue number for GitHub-based reviews).
+3. Instructs the subagent to read the SKILL.md, follow the review checklist, and report its findings and verdict in its final message.
+
+Example subagent prompt for `create-plan`:
+
+```
+Read the review-plan skill at skills/review-plan/SKILL.md and follow its instructions to review the plan artifact at .sdlc/features/N-<slug>/plan.md. Apply the shared SDLC conventions in skills/sdlc/references/shared.md. Report your findings by category and state your verdict (approved, changes-requested, or rejected) in your final message.
+```
+
+### After the review returns
+
+Present the subagent's findings to the user:
+- **approved**: proceed to the next pipeline step named in the create skill's `## Next Step`.
+- **changes-requested**: offer to revise the artifact by re-entering the create skill in revision mode (see Revision Mode).
+- **rejected**: surface the rejection reason and ask the user how to proceed.
+
+### Which skills are covered
+
+Every `create-*` skill that has a `review-*` counterpart dispatches its review automatically:
+
+| Create skill | Review skill |
+|---|---|
+| create-needs-assessment | review-needs-assessment |
+| create-requirements | review-requirements |
+| create-existing-solutions | review-existing-solutions |
+| create-codebase-analysis | review-codebase-analysis |
+| create-feasibility | review-feasibility |
+| create-specifications | review-specifications |
+| create-lifecycle | review-lifecycle |
+| create-mockups | review-mockups |
+| create-telemetry | review-telemetry |
+| create-observability | review-observability |
+| create-plan | review-plan |
+| create-tasks-decomposition | review-tasks-decomposition |
+| create-tests | review-tests |
+| create-implementation | review-implementation |
+| create-documentation | review-documentation |
+| create-domain-model | review-domain-model |
+| create-decision | review-decision |
+| create-assumption | review-assumption |
+| create-question | review-question |
+| create-learnings | review-learnings |
+| create-goals | review-goals |
+| create-roadmap | review-roadmap |
+| create-service-levels | review-service-levels |
+| create-issue | review-issue |
+| create-project | review-project |
+| create-pr | review-pr |
+| create-article | review-article |
+
 ## SDLC Telemetry
 
 Every SDLC skill records one telemetry event when it executes, so over time you can analyze where your SDLC time goes and surface bottlenecks. This applies to every `create-*`/`review-*` pipeline skill, the setup skills, the maintenance skills, and the knowledge-record skills. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or alter the skill's work. Ignore a non-zero exit from the recorder.

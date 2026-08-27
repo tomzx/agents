@@ -79,7 +79,7 @@ Self-check the draft against the [`review-feasibility` checklist](../review-feas
 
 ## Next Step
 
-Run `/review-feasibility` to audit the assessment for completeness, risk coverage, and soundness of the go/no-go decision.
+A review subagent is dispatched automatically to run `/review-feasibility` to audit the assessment for completeness, risk coverage, and soundness of the go/no-go decision.
 If approved, continue with `/create-specifications`.
 
 ## Useful Commands Reference

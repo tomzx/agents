@@ -157,7 +157,7 @@ Locate the defect, implement the fix, write a regression test that would have ca
 
 ## Next Step
 
-Run `/review-implementation` to audit correctness, quality, security, and spec alignment before moving on.
+A review subagent is dispatched automatically to run `/review-implementation` to audit correctness, quality, security, and spec alignment before moving on.
 Once findings are resolved, continue with `/create-documentation`, then `/validate-implementation` to capture visual proof and get user sign-off before opening a PR, then `/create-pr`.
 
 ## Useful Commands Reference

@@ -86,7 +86,7 @@ Self-check the draft against the [`review-plan` checklist](../review-plan/SKILL.
 
 ## Next Step
 
-Run `/review-plan` to audit for completeness, feasibility, and risk coverage before moving on.
+A review subagent is dispatched automatically to run `/review-plan` to audit for completeness, feasibility, and risk coverage before moving on.
 Once approved, run `/publish-plan` to commit the plan and share it with the issue author, then continue with `/create-tasks-decomposition`.
 
 ## Useful Commands Reference

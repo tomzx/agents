@@ -54,6 +54,10 @@ Before handing off to review, confirm:
 
 Self-check the draft against the [`review-documentation` checklist](../review-documentation/SKILL.md) and fix what you can, so review finds less to flag.
 
+## Next Step
+
+A review subagent is dispatched automatically to run `/review-documentation` to audit the documentation for completeness, accuracy, clarity, usability, and structure.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context.

@@ -81,7 +81,7 @@ Self-check the draft against the [`review-needs-assessment` checklist](../review
 
 ## Next Step
 
-Run `/review-needs-assessment` to audit the assessment for rigor, evidence quality, and soundness of the verdict.
+A review subagent is dispatched automatically to run `/review-needs-assessment` to audit the assessment for rigor, evidence quality, and soundness of the verdict.
 If the need is validated (Needed or Nice-to-have), continue with `/create-requirements`.
 If the need is rejected (Not needed), update the issue and stop the pipeline.
 

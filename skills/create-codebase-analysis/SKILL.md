@@ -80,7 +80,7 @@ Self-check the draft against the [`review-codebase-analysis` checklist](../revie
 
 ## Next Step
 
-Run `/review-codebase-analysis` to audit the analysis for coverage, accuracy, changeability rigor, and impact assessment before moving on.
+A review subagent is dispatched automatically to run `/review-codebase-analysis` to audit the analysis for coverage, accuracy, changeability rigor, and impact assessment before moving on.
 Once approved, continue with `/create-feasibility`, which consumes this analysis alongside the requirements to judge viability and cost.
 
 ## Useful Commands Reference

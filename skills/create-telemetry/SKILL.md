@@ -93,7 +93,7 @@ Self-check the draft against the [`review-telemetry` checklist](../review-teleme
 
 ## Next Step
 
-Run `/review-telemetry` to audit the telemetry plan for completeness, actionability, and consistency before moving on.
+A review subagent is dispatched automatically to run `/review-telemetry` to audit the telemetry plan for completeness, actionability, and consistency before moving on.
 Once approved, continue with `/create-plan`.
 
 ## Useful Commands Reference

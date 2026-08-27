@@ -159,6 +159,10 @@ Before finishing, confirm:
 
 Self-check the issue against the [`review-issue` checklist](../review-issue/SKILL.md) and fix what you can, so review finds less to flag.
 
+## Next Step
+
+A review subagent is dispatched automatically to run `/review-issue` to audit the issue for completeness, clarity, acceptance criteria quality, and time budget defensibility before development begins.
+
 ## Useful Commands Reference
 
 | Command | Description |

@@ -66,7 +66,7 @@ Self-check the draft against the [`review-existing-solutions` checklist](../revi
 
 ## Next Step
 
-Run `/review-existing-solutions` to audit the survey for coverage, evaluation rigor, and a sound recommendation before moving on.
+A review subagent is dispatched automatically to run `/review-existing-solutions` to audit the survey for coverage, evaluation rigor, and a sound recommendation before moving on.
 Once approved, continue with `/create-codebase-analysis`, which analyzes the internal code and architecture the feature will touch.
 
 ## Useful Commands Reference

@@ -71,7 +71,7 @@ Self-check the draft against the [`review-domain-model` checklist](../review-dom
 
 ## Next Step
 
-Run `/review-domain-model` to audit entity coverage, relationship correctness, vocabulary consistency, invariant validity, boundary clarity, and framing alignment.
+A review subagent is dispatched automatically to run `/review-domain-model` to audit entity coverage, relationship correctness, vocabulary consistency, invariant validity, boundary clarity, and framing alignment.
 When a domain model is confirmed, promote its terms into `.sdlc/context/vocabulary.md` so future work reuses them.
 
 ## Useful Commands Reference

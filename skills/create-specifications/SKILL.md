@@ -86,7 +86,7 @@ Self-check the draft against the [`review-specifications` checklist](../review-s
 
 ## Next Step
 
-Run `/review-specifications` to audit for ambiguities, inconsistencies, and gaps before moving on.
+A review subagent is dispatched automatically to run `/review-specifications` to audit for ambiguities, inconsistencies, and gaps before moving on.
 Once approved, continue with `/create-lifecycle`.
 
 ## Useful Commands Reference

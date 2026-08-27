@@ -108,7 +108,7 @@ Self-check the draft against the [`review-observability` checklist](../review-ob
 
 ## Next Step
 
-Run `/review-observability` to audit the observability plan for completeness, actionability, and consistency before moving on.
+A review subagent is dispatched automatically to run `/review-observability` to audit the observability plan for completeness, actionability, and consistency before moving on.
 Once approved, continue with `/create-plan`.
 
 ## Useful Commands Reference

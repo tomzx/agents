@@ -74,7 +74,7 @@ Self-check the plan against the [`review-tests` checklist](../review-tests/SKILL
 
 ## Next Step
 
-Run `/review-tests` to audit coverage, correctness, and missing scenarios before moving on.
+A review subagent is dispatched automatically to run `/review-tests` to audit coverage, correctness, and missing scenarios before moving on.
 Once approved, continue with `/create-implementation`.
 
 ## Useful Commands Reference

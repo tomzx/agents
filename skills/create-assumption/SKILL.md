@@ -61,6 +61,10 @@ Before handing off to review, confirm:
 
 Self-check the record against the [`review-assumption` checklist](../review-assumption/SKILL.md) and fix what you can, so review finds less to flag.
 
+## Next Step
+
+A review subagent is dispatched automatically to run `/review-assumption` to audit the record for specificity, basis quality, risk assessment, and validation plan adequacy.
+
 ## Useful Commands Reference
 
 No CLI commands required. This skill operates on information provided in context and writes a Markdown file.
