@@ -137,10 +137,12 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 
 ### Testing & Coverage
 
-Review tests as code artifacts for quality. Whether a test proves a specific acceptance criterion is `/verify-pr`'s conformance concern.
+Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the PR diff and worktree context, and embed its three tables (introduced tests, change coverage, uncovered code) into the Coverage section below. Raise its findings (uncovered behavior changes and uncovered code) in the Findings section with severity proportional to risk.
 
-* Test Existence
-	* Is the new code accompanied by tests?
+Whether a test proves a specific acceptance criterion is `/verify-pr`'s conformance concern.
+
+Beyond the delegated analysis, also check:
+
 * Test Quality
 	* Do tests cover edge cases and error scenarios?
 	* Are test names descriptive of what they're testing?
@@ -275,7 +277,7 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-Include a Coverage section listing what tests exist, what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and what is missing.
+Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table. Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing. Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
 
 When reviewing, write the response to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
 Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
@@ -304,7 +306,7 @@ in `src/payments/`. One blocking issue plus two non-blocking suggestions below.
 |---|---|---|
 | Scope & Relevance | 🟢 | No unrelated changes |
 | Code Quality & Design | 🟢 | SOLID, naming, no duplication |
-| Testing & Coverage | 🟡 | Webhook signature verification untested |
+| Testing & Coverage | 🟡 | Webhook signature verification and API key loading untested |
 | Architecture & Structure | 🟢 | Follows existing `src/payments/` patterns |
 | Operational Concerns | 🟡 | No rate limiting on `POST /payments` |
 | Security & Data | 🔴 | Hardcoded test API key in `client.py` |
@@ -328,6 +330,13 @@ A malicious client could flood charge attempts. Reuse the existing
 @router.post("/payments")
 async def create_payment(...): ...
 
+### 🟡 SHOULD / Testing & Coverage / Add test for API key loading from environment
+
+`src/payments/client.py` loads `STRIPE_API_KEY` from `os.environ` but no test
+verifies this behavior. If the key loading logic changes in a future refactor
+(e.g. switched to a config file), the regression would go unnoticed. Add a test
+that patches the environment and asserts the client uses the expected key.
+
 ### 🟢 MAY / Code Quality & Design / Extract magic currency multiplier
 
 `src/payments/amount.py:15` uses `amount * 100` to convert dollars to cents.
@@ -335,9 +344,40 @@ Consider `CENTS_PER_DOLLAR = 100` as a named constant for readability.
 
 ## Coverage
 
-- Tests present: `tests/payments/test_routes.py` (8 cases, happy + error paths)
-- Manual testing: author tested Stripe checkout flow end-to-end, verified webhook delivery and retry behavior
-- Missing: webhook signature verification not tested
+### Introduced tests
+
+| Test file | Test(s) | What it tests |
+|---|---|---|
+| `tests/payments/test_routes.py` | `test_create_payment_success` | Successful payment creation returns 200 with charge ID |
+| `tests/payments/test_routes.py` | `test_create_payment_invalid_amount` | Rejects negative amounts with 400 |
+| `tests/payments/test_routes.py` | `test_create_payment_missing_token` | Rejects missing Stripe token with 400 |
+| `tests/payments/test_amount.py` | `test_cents_conversion` | Dollar-to-cents conversion handles edge values |
+
+### Change coverage
+
+| Changed file | Behavior changed | Covered by test? | Gap |
+|---|---|---|---|
+| `src/payments/routes.py` | New `POST /payments` endpoint | Yes | — |
+| `src/payments/routes.py` | Error response for invalid amount | Yes | — |
+| `src/payments/client.py` | API key loaded from env var | No | No test verifies key is loaded from environment |
+| `src/payments/client.py` | Webhook signature verification | No | No test covers webhook signature verification |
+
+### Uncovered code
+
+| File | Function / branch / path | Why it matters |
+|---|---|---|
+| `src/payments/client.py` | `verify_webhook_signature()` | No test calls this function at all |
+| `src/payments/client.py` | `load_api_key()` env-not-set branch | Test only covers the happy path; missing-key error path unexercised |
+| `src/payments/amount.py` | `to_cents()` negative input branch | `test_cents_conversion` covers zero and positive values only |
+
+### Manual testing
+
+- Author tested Stripe checkout flow end-to-end, verified webhook delivery and retry behavior
+
+### Missing
+
+- Webhook signature verification not tested
+- API key loading from environment not tested
 
 ## Outcome
 

@@ -1,7 +1,7 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*)
+description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Skips steps already completed for the current commit. Never posts anything to GitHub; all reports are written locally.
+allowed-tools: Bash(uv run:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*), Read, Write, Glob, Grep
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
@@ -219,4 +219,4 @@ Processes PR #42 in acme/api explicitly, plus searches acme/web-app for review-r
 | `quick-pr-reviews` | Lightweight counterpart: runs `quick-pr-review` (auto-approve) on changed PRs. Use this skill when you need rapid unblocking, not deep review. |
 | `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
 | `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
-| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). |
+| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage`. |

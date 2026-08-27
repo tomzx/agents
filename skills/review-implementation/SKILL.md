@@ -42,7 +42,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Is dead code or commented-out code absent?
 
 ### Test Coverage
-- Is new code covered by tests?
+- Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the implementation diff, and embed its three tables (introduced tests, change coverage, uncovered code) into the Test Coverage section below. Raise its findings in the findings body.
 - Are tests verifying behavior rather than implementation details?
 - Do tests cover error paths and edge cases?
 
@@ -92,6 +92,26 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 <Findings or "No issues found.">
 
 ## Test Coverage
+
+*Populated by [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md). Embed its three tables below and append any findings.*
+
+### Introduced tests
+
+| Test file | Test(s) | What it tests |
+|---|---|---|
+| <path> | <test name> | <behavior verified> |
+
+### Change coverage
+
+| Changed file | Behavior changed | Covered by test? | Gap |
+|---|---|---|---|
+| <path> | <description> | Yes / No | <gap or em-dash> |
+
+### Uncovered code
+
+| File | Function / branch / path | Why it matters |
+|---|---|---|
+| <path> | <description> | <risk if this code regresses silently> |
 
 <Findings or "No issues found.">
 

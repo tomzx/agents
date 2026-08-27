@@ -235,6 +235,7 @@ For every acceptance criterion, prove or disprove through execution that the PR 
 - Verify the referenced tests map to and prove the criterion (traceability)
 - CI runs the test suite; do not re-report pass/fail status that CI already covers
 - Verify the test count matches what the criterion requires
+- Delegate the test inventory to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the PR diff, and embed its introduced tests table into the conformance report, adding a "Maps to criterion?" column to trace each test back to the acceptance criterion it proves
 
 #### Performance criteria
 
@@ -333,6 +334,14 @@ The marker verdict is `pass` if the PR conforms (Yes), `fail` if it does not (No
 |---|---|---|---|---|---|
 | 1 | "<criterion text>" | Must | Traced | Conforms | <what was run, observed output> |
 | 2 | "<criterion text>" | Must | Gap | Nonconforming | <reason> |
+
+### Tests introduced
+
+*Populated by [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md). Embed its introduced tests table and add the "Maps to criterion?" column.*
+
+| Test file | Test(s) | What it tests | Maps to criterion? |
+|---|---|---|---|
+| "<test file>" | "<test name>" | "<behavior verified>" | Yes (#N) / No |
 
 ### Unmapped PR claims (out of scope relative to issue)
 

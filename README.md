@@ -291,6 +291,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/audit-maintainability` | ISO/IEC 25010 maintainability: coupling, cycles, layering, plus an aggregated find-* scorecard. |
 | `/audit-portability` | ISO/IEC 25010 portability: adaptability, installability, replaceability. |
 | `/analyze-git-churn` | Identify high-churn files from git history. |
+| `/analyze-test-coverage` | Analyze a changeset's test coverage: introduced tests, change coverage, and uncovered code. |
 | `/find-code-duplication` | Find copy-pasted blocks and near-duplicate logic. |
 | `/find-complexity-hotspots` | Find high cyclomatic complexity and deep nesting. |
 | `/find-coverage-gaps` | Find files with missing or insufficient test coverage. |

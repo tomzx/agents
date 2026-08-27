@@ -226,5 +226,5 @@ validate-pr passes. verify-pr fails to build. Notes the build failure and stops 
 | `review-requested-prs` | Multi-PR counterpart: discovers all review-requested PRs and runs the same pipeline across each in parallel. Use that when reviewing your queue; use this skill for a single PR. |
 | `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
 | `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
-| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). |
+| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage`. |
 | `quick-pr-review` | Lightweight counterpart: rapid auto-approve to unblock. Use this skill when you need deep review, not rapid unblocking. |
