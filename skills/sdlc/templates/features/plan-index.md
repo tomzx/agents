@@ -2,6 +2,7 @@
 title: "<Feature Name>"
 status: draft
 structure: split
+session_link: "<filled by skill>"
 ---
 
 # Implementation Plan: <Feature Name>

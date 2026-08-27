@@ -32,6 +32,7 @@ A charter is not a strategy document or a backlog. It is the agreement that make
 11. Optional: record **Values or guiding principles** the team commits to, especially where they differ from or emphasize the org's values. Omit the section if the team simply inherits the org values.
 12. Record **Open questions**: anything unresolved (unclear ownership, a pending reorg, a dependency on another team's decision). A charter that names its open gaps is more useful than one that hides them.
 13. Write the output to `teams/<team-slug>/charter.md` (or the path agreed in step 1) using the Output Format below.
+14. Include `session_link: http://localhost:10000/?session=<id>` in the frontmatter, using the current session ID from context. If no session ID is available, omit the field.
 
 ## Output Format
 
@@ -45,6 +46,7 @@ parent_org: <parent organization or business unit>
 lead: <team lead name or handle>
 last_reviewed: <ISO date>
 status: draft
+session_link: http://localhost:10000/?session=<id>
 ---
 
 # <Team Name> Charter

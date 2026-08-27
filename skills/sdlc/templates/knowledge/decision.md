@@ -1,5 +1,6 @@
 ---
 status: Proposed
+session_link: "<filled by skill>"
 ---
 
 # Decision: <Short title — the decision as a noun phrase>

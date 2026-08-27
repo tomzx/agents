@@ -1,5 +1,6 @@
 ---
 status: Active
+session_link: "<filled by skill>"
 ---
 
 # Assumption: <Short title — what is assumed, as a statement>

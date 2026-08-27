@@ -1,6 +1,7 @@
 ---
 title: "<Feature / Sprint / Project Name>"
 status: draft
+session_link: "<filled by skill>"
 ---
 
 # Learnings: <Feature / Sprint / Project Name>

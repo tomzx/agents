@@ -1,3 +1,4 @@
+<!-- session_link: <filled by skill> -->
 # Architecture
 
 ## System Overview

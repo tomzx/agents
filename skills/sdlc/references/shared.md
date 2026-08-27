@@ -354,6 +354,7 @@ Frontmatter:
 artifact: <artifact>
 verdict: <approved | changes-requested | rejected>
 reviewed_at: <ISO date>
+session_link: http://localhost:10000/?session=<id>
 ---
 ```
 
@@ -415,3 +416,27 @@ If that file exists and its `verdict` is `changes-requested`, operate in **revis
 Otherwise (no findings file, or `verdict: approved`), draft fresh as normal.
 
 Either way, emit the usual outcome (`approved` -> the next `review-*` step). Revision mode changes how the artifact is produced, not the verdict the skill emits.
+
+## Session Link in Generated Artifacts
+
+Every artifact file written by a `create-*` or `review-*` skill includes a link back to the session that generated it, so a reader can reopen that session to inspect or continue the work.
+
+### Determining the session ID
+
+The current session ID is available in the session context (e.g., `ses_fbbd6ecf9ffeBDsTFy7ccdFJM6`).
+If no session ID is available, omit the session link entirely.
+
+### Where to write it
+
+| File type | Location |
+|---|---|
+| Markdown with frontmatter (feature artifacts, knowledge records, review findings) | Add `session_link: http://localhost:10000/?session=<id>` to the frontmatter |
+| Markdown without frontmatter (context files) | Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` on the first line |
+| YAML files (`api.yaml`, `alerts.yaml`, `service-levels.yaml`) | Add `# session_link: http://localhost:10000/?session=<id>` as the first line |
+
+### Rules
+
+- The link uses the format `http://localhost:10000/?session=<session_id>`.
+- Add the link once, when the file is first created. On revisions, update the link to the current session.
+- For review findings files (see Review Findings Persistence), include `session_link` in the findings frontmatter alongside `artifact`, `verdict`, and `reviewed_at`.
+- Local-only files (`state.yml`, `features/*/progress.md`, `status-report.html`) are never committed and do not need a session link.

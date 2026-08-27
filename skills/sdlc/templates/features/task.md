@@ -6,6 +6,7 @@ size: <XS|S|M|L>
 depends_on: []
 completed_date: null
 blocker: null
+session_link: "<filled by skill>"
 ---
 
 # Task N: <Task title>

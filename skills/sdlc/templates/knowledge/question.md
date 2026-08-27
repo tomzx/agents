@@ -1,5 +1,6 @@
 ---
 status: Open
+session_link: "<filled by skill>"
 ---
 
 # Question: <Short title, phrased as the question asked>

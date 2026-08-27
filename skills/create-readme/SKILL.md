@@ -23,6 +23,7 @@ Produces a `README.md` for a project using a fixed template with centered header
 6. Determine install steps from the package manifest, Makefile, or build scripts.
 7. Write the README following the output template exactly.
 8. Write the file to `README.md` in the project root.
+9. Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` as the first line of the file, using the current session ID from context. If no session ID is available, omit the comment.
 
 ## Output Format
 

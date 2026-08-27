@@ -24,6 +24,7 @@ If sources are not yet gathered, run `/research-article` first to discover the s
 5. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
 6. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
 7. Revise for clarity, flow, and conciseness.
+8. Include `session_link: http://localhost:10000/?session=<id>` in the frontmatter, using the current session ID from context. If no session ID is available, omit the field.
 
 ## Formatting Rules
 
@@ -143,6 +144,7 @@ Produce the article as clean markdown starting with YAML frontmatter containing 
 ---
 audience_notes: >
   [one line on any assumptions made about the audience's prior knowledge]
+session_link: http://localhost:10000/?session=<id>
 ---
 
 [...article body...]

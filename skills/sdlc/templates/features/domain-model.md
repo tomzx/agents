@@ -2,6 +2,7 @@
 title: "<Domain Name>"
 status: draft
 feature: "FEAT-N"
+session_link: "<filled by skill>"
 ---
 
 # Domain Model: <Domain Name>

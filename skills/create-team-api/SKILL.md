@@ -36,6 +36,7 @@ Where a charter says why a team exists and how it works internally, the Team API
 11. Record **Evolution**: expected changes as the team or org matures (for example, a platform team moving a service from collaboration to x-as-a-service once the API stabilizes, or a stream-aligned team splitting as scope grows).
 12. Record **Open questions**: unresolved ownership, missing dependencies, interfaces still being negotiated.
 13. Write the output to `teams/<team-slug>/team-api.md` using the Output Format below.
+14. Include `session_link: http://localhost:10000/?session=<id>` in the frontmatter, using the current session ID from context. If no session ID is available, omit the field.
 
 ## Output Format
 
@@ -46,6 +47,7 @@ name: <Human-readable Team Name>
 team_type: <stream-aligned | platform | enabling | complicated-subsystem>
 last_reviewed: <ISO date>
 status: draft
+session_link: http://localhost:10000/?session=<id>
 ---
 
 # <Team Name> Team API
