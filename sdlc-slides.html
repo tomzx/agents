@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The SDLC Skill</title>
+<meta name="description" content="A full software development lifecycle encoded as composable agent skills">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/black.css">
+<style>
+  :root {
+    --accent: #4fd1c5;
+    --accent2: #f6ad55;
+    --muted: #a0aec0;
+    --bg-card: rgba(16, 24, 38, 0.82);
+    --border: #2d3748;
+  }
+  body { background: #04101f; }
+  #vanta-bg { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 0; }
+  .reveal-viewport { background: transparent !important; }
+  .reveal .backgrounds { display: none; }
+  .reveal { z-index: 1; }
+  .reveal pre { background: rgba(4, 16, 31, 0.75); }
+  .reveal { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 30px; }
+  .reveal h1, .reveal h2, .reveal h3 { text-transform: none; font-weight: 700; }
+  .reveal h1 { font-size: 1.8em; }
+  .reveal h2 { font-size: 1.15em; color: var(--accent); margin-bottom: 0.5em; }
+  .reveal code, .reveal pre { font-family: "JetBrains Mono", "Fira Code", Consolas, monospace; }
+  .reveal code { color: var(--accent2); }
+  .reveal pre { box-shadow: none; border: 1px solid var(--border); border-radius: 8px; font-size: 0.62em; line-height: 1.35; }
+  .muted { color: var(--muted); }
+  .kicker { font-size: 0.6em; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; text-align: left; }
+  .cards.two { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; font-size: 0.72em; }
+  .card h3 { font-size: 1.05em; color: var(--accent); margin: 0 0 8px 0; }
+  .card p { margin: 0; color: var(--muted); line-height: 1.4; }
+  .card ul { margin: 0; padding-left: 1.1em; color: var(--muted); line-height: 1.45; }
+  .flow { display: flex; align-items: stretch; justify-content: center; gap: 6px; margin: 26px 0 10px; }
+  .stage { background: var(--bg-card); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 8px; padding: 12px 10px; flex: 1; font-size: 0.5em; }
+  .stage b { display: block; color: var(--accent); font-size: 1.25em; margin-bottom: 6px; }
+  .stage span { color: var(--muted); display: block; margin-top: 4px; line-height: 1.35; }
+  .arrow { align-self: center; color: var(--accent2); font-size: 0.8em; }
+  .twocol { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: start; text-align: left; }
+  .reveal ul { text-align: left; }
+  .reveal li { margin-bottom: 0.35em; line-height: 1.4; }
+  table.reveal-table { border-collapse: collapse; font-size: 0.62em; width: 100%; }
+  table.reveal-table th { color: var(--accent); border-bottom: 2px solid var(--border); padding: 8px 12px; text-align: left; }
+  table.reveal-table td { border-bottom: 1px solid var(--border); padding: 7px 12px; color: var(--muted); text-align: left; }
+  table.reveal-table td:first-child { color: #e2e8f0; }
+  .pill { display: inline-block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px; font-size: 0.55em; color: var(--muted); margin: 4px 3px; }
+  .pill b { color: var(--accent); font-weight: 600; }
+  .big-number { font-size: 2.6em; font-weight: 800; color: var(--accent2); line-height: 1; }
+  .footer-note { position: absolute; bottom: 18px; left: 0; right: 0; font-size: 0.4em; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="vanta-bg"></div>
+<div class="reveal">
+<div class="slides">
+
+  <!-- 1. Title -->
+  <section>
+    <p class="kicker">Agent skill deep dive</p>
+    <h1>The SDLC Skill</h1>
+    <p class="muted">A complete software development lifecycle,<br>encoded as composable agent skills</p>
+    <p style="margin-top:1.2em">
+      <span class="pill"><b>/sdlc</b> orchestrator</span>
+      <span class="pill"><b>80+</b> associated skills</span>
+      <span class="pill"><b>7</b> pipeline stages</span>
+      <span class="pill"><b>25+</b> create/review pairs</span>
+    </p>
+    <aside class="notes">
+      One orchestrator skill plus a large family of focused skills.
+      The pipeline runs from issue creation all the way to retrospectives.
+    </aside>
+  </section>
+
+  <!-- 2. What is it -->
+  <section>
+    <h2>What is it?</h2>
+    <div class="twocol">
+      <ul>
+        <li><b>/sdlc</b> is an <b>orchestrator</b>: it runs sub-skills in sequence, each phase consuming the previous phase's output</li>
+        <li>Enter at any phase, or resume in-progress work with <code>/sdlc continue</code></li>
+        <li>Every artifact is a <b>markdown file</b> under <code>.sdlc/</code>, git-versioned and reviewable</li>
+        <li>Every skill also works <b>standalone</b> (<code>/create-pr</code>, <code>/review-implementation</code>) when you want just one phase</li>
+      </ul>
+      <pre style="font-size:0.55em; line-height:1.3"><code>.sdlc/
+├── context/
+│   ├── project-overview.md
+│   ├── goals.md
+│   ├── architecture.md
+│   ├── schema.dbml
+│   ├── conventions.md
+│   ├── vocabulary.md
+│   └── infrastructure.md
+├── features/
+│   └── 42-notifications/
+│       ├── requirements.md
+│       ├── specification.md
+│       ├── plan.md
+│       ├── tasks/
+│       └── review-plan.md
+├── knowledge/      # decisions, assumptions
+└── templates/      # editable defaults</code></pre>
+    </div>
+  </section>
+
+  <!-- 3. The big ideas -->
+  <section>
+    <h2>Six ideas at the core</h2>
+    <div class="cards">
+      <div class="card"><h3>Create / Review pairing</h3><p>Every <b>create-*</b> skill has a matching <b>review-*</b> skill that audits it, often in a fresh subagent context.</p></div>
+      <div class="card"><h3>File-first artifacts</h3><p>Requirements, specs, plans and findings are traceable files, not chat history. IDs link issue to code.</p></div>
+      <div class="card"><h3>Gates and backtracking</h3><p>Phases stop when work is not needed or not feasible. Failures backtrack to the root-cause phase, never silently skip.</p></div>
+      <div class="card"><h3>Proportionality</h3><p>Fast paths for small work: a typo fix should not need a specification. When in doubt, include more phases.</p></div>
+      <div class="card"><h3>Resumable state</h3><p>A state file and per-feature progress logs mean any session can pick up exactly where the last one stopped.</p></div>
+      <div class="card"><h3>Measured process</h3><p>Each skill records one telemetry event, so you can see where your SDLC time actually goes.</p></div>
+    </div>
+  </section>
+
+  <!-- 4. The pipeline -->
+  <section>
+    <h2>The pipeline: 7 stages</h2>
+    <div class="flow">
+      <div class="stage"><b>1. Issue</b><span>create-issue, review-issue, qualify-issue, triage, prioritize (RICE)</span></div>
+      <div class="arrow">&#8594;</div>
+      <div class="stage"><b>2. Needs validation</b><span>does this address a genuine need? (gate: stop if not)</span></div>
+      <div class="arrow">&#8594;</div>
+      <div class="stage"><b>3. Requirements + research</b><span>requirements, CLI design, existing solutions, codebase analysis, feasibility (gate)</span></div>
+      <div class="arrow">&#8594;</div>
+      <div class="stage"><b>4. Design</b><span>spec, lifecycle, mockups, telemetry, observability, plan, assumptions, tasks</span></div>
+    </div>
+    <div class="flow">
+      <div class="stage"><b>5–6. Build + test</b><span>tests, implementation, docs, visual proof, PR: validate / verify / review, CI, merge</span></div>
+      <div class="arrow">&#8594;</div>
+      <div class="stage"><b>7. Deployment</b><span>deploy-pr with smoke tests and rollback verification</span></div>
+      <div class="arrow">&#8594;</div>
+      <div class="stage" style="border-top-color: var(--accent2)"><b>Learnings</b><span>retrospective: what went well, root causes, actions</span></div>
+    </div>
+    <p class="muted" style="font-size:0.6em">Plus parallel flows: setup, project context, bug-fix fast path, cross-cutting records, and maintenance.</p>
+  </section>
+
+  <!-- 5. Create/review pairing -->
+  <section>
+    <h2>Idea 1 · Create / review pairing</h2>
+    <div class="twocol">
+      <ul>
+        <li>25+ pairs: <code>create-plan</code> &#8594; <code>review-plan</code>, <code>create-tests</code> &#8594; <code>review-tests</code>, and so on</li>
+        <li>Reviews run in a <b>fresh subagent context</b> for independent judgment</li>
+        <li>Verdicts: <b>approved</b> (proceed), <b>changes-requested</b> (revision mode), <b>rejected</b> (stop)</li>
+        <li>Findings persist as <code>review-&lt;artifact&gt;.md</code> beside the artifact, so the verdict survives across sessions and machines</li>
+        <li>Drift detection can regress an approved review to changes-requested, re-opening the loop</li>
+      </ul>
+      <div class="card" style="font-size:0.85em">
+        <h3>Why it matters</h3>
+        <p>Reviews catch problems while they are still cheap: a contradiction in requirements costs minutes to fix, the same flaw discovered in production costs days. The pairing turns quality from a heroic act into a default step.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. File-first artifacts -->
+  <section>
+    <h2>Idea 2 · Everything is a traceable file</h2>
+    <div class="twocol">
+      <ul>
+        <li>Feature directory named after its issue: <code>42-notification-system</code> &#8592; issue <b>#42</b></li>
+        <li>Cross-reference IDs: <code>FEAT-42</code>, <code>FR-1</code>, <code>NFR-2</code>, <code>TC-5</code> link requirements to tests to tasks</li>
+        <li>No issue yet? A <code>p</code>-prefixed feature (<code>p1-onboarding</code>) marks it as pending, promotable later with <code>/create-placeholder-issue</code></li>
+        <li><code>SDLC_DIR</code> can mirror artifacts outside the repo, keyed by <code>{owner}/{repository}</code>, for forks and third-party code</li>
+        <li>Local-only state (<code>state.yml</code>, <code>progress.md</code>) is gitignored and never committed</li>
+      </ul>
+      <div>
+        <p class="muted" style="font-size:0.7em">Each artifact carries frontmatter state:</p>
+        <pre><code>---
+issue: "#42"
+title: "Notification System"
+status: draft
+session_link: http://localhost:10000/?session=ses_...
+---</code></pre>
+        <p class="muted" style="font-size:0.7em">Review findings live beside it, with their own verdict and date.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Gates and backtracking -->
+  <section>
+    <h2>Idea 3 · Gates and backtracking</h2>
+    <div class="cards two">
+      <div class="card">
+        <h3>Gates stop bad work early</h3>
+        <ul>
+          <li><b>Needs gate:</b> not a genuine need? stop, record findings on the issue</li>
+          <li><b>Feasibility gate:</b> not viable? stop before design</li>
+          <li><b>Plan sign-off:</b> the author approves the draft PR before implementation</li>
+          <li><b>Assumption gate:</b> a critical invalidated assumption sends you back to design</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Backtracking rules</h3>
+        <ul>
+          <li>Return to the <b>nearest phase that owns the root cause</b> (implementation ambiguity &#8594; fix the spec, not the issue)</li>
+          <li><b>Re-derive downstream</b>: changing an upstream artifact invalidates everything below it</li>
+          <li><b>Record why</b> via <code>/create-decision</code></li>
+          <li>Never silently skip a failed phase; more than two phases of backtrack depth needs the user</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Proportionality -->
+  <section>
+    <h2>Idea 4 · Proportionality: fast paths</h2>
+    <table class="reveal-table">
+      <tr><th>Scenario</th><th>Example</th><th>Path</th></tr>
+      <tr><td>Bug fix</td><td>Off-by-one in pagination logic</td><td><code>fix-issue</code> (reproduce &#8594; fix &#8594; proof &#8594; PR)</td></tr>
+      <tr><td>Hotfix</td><td>Patch a production incident</td><td>implementation &#8594; PR &#8594; merge &#8594; deploy</td></tr>
+      <tr><td>Config change</td><td>Toggle a feature flag</td><td>implementation &#8594; PR &#8594; merge &#8594; deploy</td></tr>
+      <tr><td>Dependency update</td><td>Bump a library, patch a CVE</td><td>implementation &#8594; PR &#8594; review &#8594; merge</td></tr>
+      <tr><td>Refactor</td><td>Rename, extract helper</td><td>tests &#8594; implementation &#8594; PR &#8594; review &#8594; merge</td></tr>
+      <tr><td>Docs only</td><td>Fix a typo, add an example</td><td>documentation &#8594; PR &#8594; merge</td></tr>
+    </table>
+    <p class="muted" style="font-size:0.65em; margin-top:16px">Invariants: always open a PR so CI runs and the change is reviewable, never skip CI before merging, and when in doubt include more phases.</p>
+  </section>
+
+  <!-- 9. Resumable state -->
+  <section>
+    <h2>Idea 5 · Resumable by design</h2>
+    <div class="twocol">
+      <ul>
+        <li><code>state.yml</code> tracks the run: <code>current_phase</code> always holds <b>what comes next</b>, plus the GitHub ref and feature directory</li>
+        <li>Each feature has a <code>progress.md</code> with a pipeline status table, task progress, and current blocker</li>
+        <li>Sessions write <b>boundary markers</b>: what was accomplished, where to pick up next</li>
+        <li><code>/sdlc continue</code> scans for unfinished features and offers to resume at the recorded re-entry point</li>
+        <li>The Linked-PR Guard checks for competing PRs before every phase, so parallel work never collides silently</li>
+      </ul>
+      <div class="card" style="font-size:0.85em">
+        <h3>Concurrent-safe</h3>
+        <p>Skills re-read shared <code>.sdlc/</code> files at each step instead of trusting earlier reads, because other sessions may have changed them. Reviews, statuses, and feature numbering are always checked against current disk state.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Knowledge + telemetry -->
+  <section>
+    <h2>Ideas 6 &amp; 7 · Knowledge and measurement</h2>
+    <div class="cards two">
+      <div class="card">
+        <h3>Cross-cutting knowledge records</h3>
+        <ul>
+          <li><b>Assumptions:</b> basis, risk, validation plan (Active &#8594; Validated / Invalidated / Deferred)</li>
+          <li><b>Decisions:</b> context, alternatives, trade-offs, consequences; <code>/supersede-decision</code> to evolve them</li>
+          <li><b>Questions:</b> named answerer, what it blocks, needed-by date</li>
+          <li><b>Learnings:</b> structured retrospectives after each feature</li>
+          <li>Any of these can be captured at <b>any</b> phase</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Telemetry on the process itself</h3>
+        <ul>
+          <li>Every skill records one event to a local SQLite database (best-effort, never blocking)</li>
+          <li><code>summary</code> shows counts per step and <b>average time-to-reach each step</b></li>
+          <li>That column is the bottleneck signal: steps that consistently take long to reach are where to investigate</li>
+          <li>Plain SQLite, so query it directly for custom analysis</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Skill families -->
+  <section>
+    <h2>The associated skill families</h2>
+    <div class="cards" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="card"><h3>Setup</h3><p><b>sync-sdlc</b>, initialize-sdlc-directory, update-sdlc-templates, configure-labels, onboard-repository</p></div>
+      <div class="card"><h3>Issue intake</h3><p>create-issue, review-issue, qualify-issue, triage-issues, prioritize-issues, search-existing-issues, check-duplicates</p></div>
+      <div class="card"><h3>Research</h3><p>create-requirements, existing-solutions, codebase-analysis, feasibility + review counterparts</p></div>
+      <div class="card"><h3>Design</h3><p>specifications, lifecycle, mockups, telemetry, observability, plan, validate-assumptions, tasks</p></div>
+      <div class="card"><h3>Build + PR</h3><p>create-tests, create-implementation, validate-implementation, create-pr, validate-pr, verify-pr, review-pr, handle-pr-ci, handle-pr-reviewer-feedback, merge-pr</p></div>
+      <div class="card"><h3>Bug fixes</h3><p>fix-issue orchestrator, reproduce-issue (with recorded before/after proof), check-linked-pr</p></div>
+      <div class="card"><h3>Deploy + learn</h3><p>deploy-pr, observe-production, create-learnings</p></div>
+      <div class="card"><h3>Project + maintenance</h3><p>create-project, create-goals, create-roadmap, create-service-levels, identify-feature-opportunities, audit-sdlc, find-dead-code, find-complexity-hotspots, backpropagate-sdlc, sdlc-status</p></div>
+    </div>
+  </section>
+
+  <!-- 12. Getting started: day one -->
+  <section>
+    <h2>Getting started · Day one</h2>
+    <div class="cards">
+      <div class="card"><h3>1 · Bootstrap</h3><p>Run <code>/sdlc setup</code> or <code>/sync-sdlc</code>. It creates the <code>.sdlc/</code> tree, populates templates, and writes a short SDLC anchor into your <code>AGENTS.md</code> so every future agent session knows where the artifacts live.</p></div>
+      <div class="card"><h3>2 · Add context</h3><p>Run <code>/create-project</code>. It interviews you to fill <code>project-overview.md</code>, <code>architecture.md</code>, <code>conventions.md</code>, and more. Context flows into every artifact the pipeline produces afterwards.</p></div>
+      <div class="card"><h3>3 · Labels</h3><p>Run <code>/configure-labels</code> once per repository to set up the standard issue label taxonomy the triage skills expect.</p></div>
+    </div>
+    <p class="muted" style="font-size:0.65em; margin-top:20px">Already have a codebase without <code>.sdlc/</code>? <code>/sync-sdlc</code> reconciles the two and reports drift instead of starting from zero.</p>
+  </section>
+
+  <!-- 13. Getting started: first feature -->
+  <section>
+    <h2>Getting started · Your first run</h2>
+    <div class="twocol">
+      <ul>
+        <li><b>Full pipeline:</b> <code>/sdlc issue</code> with a feature idea, then let it walk through create &#8594; review &#8594; next phase</li>
+        <li><b>Start smaller:</b> <code>/sdlc bugfix &lt;issue&gt;</code> runs the fast path: duplicates check, reproduction with a recorded "before" video, fix, comparable "after" proof, PR</li>
+        <li><b>Just one phase:</b> invoke skills directly, like <code>/review-implementation</code> or <code>/create-pr</code>, when you want full control</li>
+        <li><b>Watch the rhythm:</b> draft, review, address findings, advance. Getting comfortable with that loop is 90% of using the system</li>
+      </ul>
+      <pre><code># a feature, end to end
+/sdlc issue "Add dark mode toggle"
+
+# a bug, the fast way
+/sdlc bugfix 57
+
+# resume later, any session
+/sdlc continue
+
+# where am I?
+/sdlc status</code></pre>
+    </div>
+  </section>
+
+  <!-- 14a. Beginner tips: driving the pipeline -->
+  <section>
+    <h2>Tips for beginners · Driving the pipeline</h2>
+    <div class="cards two" style="grid-template-columns: repeat(2, 1fr)">
+      <div class="card"><h3>Never lose your place</h3><p><code>/sdlc status</code> and <code>/sdlc continue</code> are read-only and safe. Use them liberally: they show where you are and resume exactly where the last session stopped.</p></div>
+      <div class="card"><h3>Do not skip the reviews</h3><p>The <code>review-*</code> skills are where cheap mistakes get caught. Address the findings before advancing; revision mode exists for exactly that.</p></div>
+      <div class="card"><h3>Match the path to the work</h3><p>A typo does not need a specification; a new auth flow does. Fast paths exist precisely so the full pipeline stays affordable for work that needs it.</p></div>
+      <div class="card"><h3>Trust the gate verdicts</h3><p>If a needs or feasibility review says stop, stopping early is the feature working, not failing. The findings stay on the issue for when conditions change.</p></div>
+    </div>
+  </section>
+
+  <!-- 14b. Beginner tips: making it yours -->
+  <section>
+    <h2>Tips for beginners · Making it yours</h2>
+    <div class="cards">
+      <div class="card"><h3>Templates are yours</h3><p>Edit <code>.sdlc/templates/</code> to match how your team writes. <code>/update-sdlc-templates</code> merges upstream improvements with your changes later.</p></div>
+      <div class="card"><h3>Record as you go</h3><p><code>/create-decision</code> and <code>/create-assumption</code> cost a minute in the moment and save a day of archaeology six months later.</p></div>
+      <div class="card"><h3>Watch the telemetry</h3><p>After a few runs, the telemetry <code>summary</code> shows average time-to-reach each step, revealing which phases are worth trimming for your team.</p></div>
+    </div>
+  </section>
+
+  <!-- 15. Closing -->
+  <section>
+    <h1 style="font-size:1.4em">Process as code</h1>
+    <p class="muted" style="font-size:0.8em">The lifecycle is not meetings and ceremony.<br>It is files, reviews, and gates that any agent, in any session, can pick up.</p>
+    <p style="margin-top:1.5em">
+      <a href="https://github.com/tomzx/agents" style="color:var(--accent)">github.com/tomzx/agents</a>
+    </p>
+    <p style="margin-top:1em">
+      <span class="pill">skills/sdlc/SKILL.md</span>
+      <span class="pill">skills/sdlc/references/shared.md</span>
+      <span class="pill">/sdlc setup</span>
+    </p>
+    <p class="muted" style="font-size:0.6em; margin-top:1.5em">Navigate: arrows or space · press ESC for the slide overview · append ?print-pdf to the URL for PDF export</p>
+  </section>
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+(function () {
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "width:100%;height:100%;display:block";
+  document.getElementById("vanta-bg").appendChild(canvas);
+  const gl = canvas.getContext("webgl", { antialias: true });
+  if (!gl) return;
+
+  const CAM_POS = [738, 723, 1200];
+  const CAM_TARGET = [140, -30, 190];
+  const LIGHT_POS = [270, 120, 410];
+  const SPEED = 0.45;
+  const WAVE_HEIGHT = 8.0;
+  const COLOR = [0.0, 0.102, 0.2];
+
+  const vs = `
+    attribute vec2 aPos;
+    uniform mat4 uProj;
+    uniform mat4 uView;
+    uniform float uTime;
+    uniform float uSpeed;
+    uniform float uWaveHeight;
+    varying vec3 vWorld;
+    varying vec3 vNormal;
+    void main() {
+      float x = aPos.x * 900.0;
+      float z = aPos.y * 720.0;
+      float rnd = fract(sin(dot(vec2(x, z), vec2(12.9898, 78.233))) * 43758.5453);
+      float oy = rnd * 4.0 - 10.0;
+      float sw = uSpeed;
+      float chop = sqrt(sw) * cos(-x - z * 0.7);
+      float phase = sw * uTime * 0.02 - sw * x * 0.025 + sw * z * 0.015 + chop;
+      float delta = sin(phase);
+      float tro = (delta + 1.0) * (delta + 1.0) / 4.0;
+      float y = oy + tro * uWaveHeight;
+      vWorld = vec3(x, y, z);
+      float dPdx = -sw * 0.025 + sqrt(sw) * sin(-x - z * 0.7);
+      float dPdz = sw * 0.015 + sqrt(sw) * 0.7 * sin(-x - z * 0.7);
+      float dtd = (delta + 1.0) / 2.0;
+      float dhdx = uWaveHeight * dtd * cos(phase) * dPdx;
+      float dhdz = uWaveHeight * dtd * cos(phase) * dPdz;
+      vNormal = normalize(vec3(-dhdx, 1.0, -dhdz));
+      gl_Position = uProj * uView * vec4(vWorld, 1.0);
+    }`;
+
+  const ext = gl.getExtension("OES_standard_derivatives");
+  const fsHead = ext
+    ? "#extension GL_OES_standard_derivatives : enable\n#define FLAT 1\n"
+    : "#define FLAT 0\n";
+  const fs = fsHead + `
+    precision highp float;
+    varying vec3 vWorld;
+    varying vec3 vNormal;
+    uniform vec3 uCamPos;
+    uniform vec3 uLightPos;
+    uniform vec3 uColor;
+    void main() {
+      vec3 V = normalize(uCamPos - vWorld);
+#if FLAT
+      vec3 N = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+      if (dot(N, V) < 0.0) { N = -N; }
+#else
+      vec3 N = normalize(vNormal);
+#endif
+      vec3 L = normalize(uLightPos - vWorld);
+      vec3 H = normalize(L + V);
+      float diff = max(dot(N, L), 0.0);
+      float spec = pow(max(dot(N, H), 0.0), 25.0);
+      vec3 col = uColor * (0.9 + 0.9 * diff) + vec3(0.0666, 0.0666, 0.0666) * 2.83 * spec;
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+
+  function compile(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(s));
+    }
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    throw new Error(gl.getProgramInfoLog(prog));
+  }
+  gl.useProgram(prog);
+
+  const NX = 100, NZ = 80, W = NX + 1;
+  const verts = new Float32Array(W * (NZ + 1) * 2);
+  let vi = 0;
+  for (let j = 0; j <= NZ; j++) {
+    for (let i = 0; i <= NX; i++) {
+      verts[vi++] = (i / NX) * 2 - 1;
+      verts[vi++] = (j / NZ) * 2 - 1;
+    }
+  }
+  const idx = new Uint16Array(NX * NZ * 6);
+  let ii = 0;
+  for (let i = 1; i <= NX; i++) {
+    for (let j = 1; j <= NZ; j++) {
+      const a = (j - 1) * W + (i - 1), b = (j - 1) * W + i;
+      const c = j * W + (i - 1), d = j * W + i;
+      if (Math.random() < 0.5) {
+        idx[ii++] = a; idx[ii++] = b; idx[ii++] = c;
+        idx[ii++] = b; idx[ii++] = c; idx[ii++] = d;
+      } else {
+        idx[ii++] = a; idx[ii++] = b; idx[ii++] = d;
+        idx[ii++] = a; idx[ii++] = c; idx[ii++] = d;
+      }
+    }
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, "aPos");
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uProj = gl.getUniformLocation(prog, "uProj");
+  const uView = gl.getUniformLocation(prog, "uView");
+  const uTime = gl.getUniformLocation(prog, "uTime");
+  const uSpeed = gl.getUniformLocation(prog, "uSpeed");
+  const uWaveHeight = gl.getUniformLocation(prog, "uWaveHeight");
+  const uCamPos = gl.getUniformLocation(prog, "uCamPos");
+  const uLightPos = gl.getUniformLocation(prog, "uLightPos");
+  const uColor = gl.getUniformLocation(prog, "uColor");
+
+  function perspective(fovy, aspect, near, far) {
+    const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+    return new Float32Array([
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (far + near) * nf, -1,
+      0, 0, 2 * far * near * nf, 0
+    ]);
+  }
+  function lookAt(eye, center, up) {
+    const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
+    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const z = norm(sub(eye, center));
+    const x = norm(cross(up, z));
+    const y = cross(z, x);
+    return new Float32Array([
+      x[0], y[0], z[0], 0,
+      x[1], y[1], z[1], 0,
+      x[2], y[2], z[2], 0,
+      -dot(x, eye), -dot(y, eye), -dot(z, eye), 1
+    ]);
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniformMatrix4fv(uProj, false,
+      perspective(35 * Math.PI / 180, canvas.width / canvas.height, 50, 10000));
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  gl.uniformMatrix4fv(uView, false, lookAt(CAM_POS, CAM_TARGET, [0, 1, 0]));
+  gl.uniform3fv(uCamPos, CAM_POS);
+  gl.uniform3fv(uLightPos, LIGHT_POS);
+  gl.uniform3fv(uColor, COLOR);
+  gl.uniform1f(uSpeed, SPEED);
+  gl.uniform1f(uWaveHeight, WAVE_HEIGHT);
+  gl.clearColor(0.016, 0.063, 0.122, 1);
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const start = performance.now();
+  function frame(now) {
+    gl.uniform1f(uTime, (now - start) / 1000 * 60);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
+    if (!reduced) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  width: 1280,
+  height: 760,
+  margin: 0.06,
+  plugins: [RevealNotes]
+});
+</script>
+</body>
+</html>
