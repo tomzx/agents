@@ -53,6 +53,7 @@ Use the template at `skills/sdlc/templates/features/codebase-analysis.md` (copie
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/codebase-analysis.md`).
 
 ## Example Usage
 

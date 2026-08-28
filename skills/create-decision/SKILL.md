@@ -31,6 +31,11 @@ If this decision replaces an earlier one, run `/supersede-decision <old> <new>` 
 
 Use the template at `skills/sdlc/templates/knowledge/decision.md` (copied to `.sdlc/templates/knowledge/decision.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the record is written.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/decisions/N-<slug>.md`, or the project's existing ADR directory when one is used).
+
 ## Example Usage
 
 **Scenario 1: Library choice**

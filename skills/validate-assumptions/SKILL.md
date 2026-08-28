@@ -71,6 +71,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Some experiments were inconclusive or poorly designed; redo before proceeding |
 | `rejected` | A critical assumption was invalidated and the feature must backtrack or stop |
 
+In the same emission, list every file you produced or updated under `artifacts:` (`.sdlc/features/N-<slug>/assumption-validation.md`, plus any assumption records whose status you updated).
+
 ## Example Usage
 
 **Scenario 1: Spike to verify ORM capability**

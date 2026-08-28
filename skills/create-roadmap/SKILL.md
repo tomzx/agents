@@ -60,6 +60,7 @@ Make the minimum changes that resolve every finding.
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`.
 If the artifact could not be produced, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/context/roadmap.md`).
 
 ## Example Usage
 

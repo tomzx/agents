@@ -52,6 +52,7 @@ Use the template at `skills/sdlc/templates/features/tests.md` (copied to `.sdlc/
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the test plan could not be produced, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/tests.md`).
 
 ## Example Usage
 

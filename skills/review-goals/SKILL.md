@@ -82,6 +82,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Findings the author must address before it passes |
 | `rejected` | Fundamental flaw requiring rework or stopping |
 
+In the same emission, list the findings file under `artifacts:` (`.sdlc/context/review-goals.md`).
+
 ## Example Usage
 
 **Scenario 1: Output mistaken for outcome**

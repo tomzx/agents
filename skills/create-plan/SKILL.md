@@ -57,6 +57,7 @@ Two layouts are supported. They are interchangeable for downstream skills (`revi
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the draft `plan/` PR is opened. If no PR was opened, omit the file.
+In the same emission, list every file you produced under `artifacts:` (`.sdlc/features/N-<slug>/plan.md`, or `.sdlc/features/N-<slug>/plan/index.md` plus each `plan/<concern>.md`).
 
 ## Example Usage
 

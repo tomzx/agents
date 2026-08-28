@@ -34,6 +34,7 @@ Use the template at `skills/sdlc/templates/knowledge/learning.md` (copied to `.s
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the learnings artifact is written.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/learnings/N-<slug>.md`).
 
 ## Example Usage
 

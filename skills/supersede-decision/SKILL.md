@@ -70,6 +70,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `rejected` | A validation rule failed; no files were changed |
 | `unknown` | A decision could not be resolved, or an error occurred |
 
+In the same emission, list both updated decision files under `artifacts:`; omit the key on refusal, when no files change.
+
 This skill records lifecycle state, not artifact quality.
 It does not gate on review and is safe to run independently of the `create-decision` / `review-decision` pair.
 

@@ -31,6 +31,11 @@ When the answer arrives, record it via `/review-question`. When the answer canno
 
 Use the template at `skills/sdlc/templates/knowledge/question.md` (copied to `.sdlc/templates/knowledge/question.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
 
+## Outcome
+
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the record is written.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/questions/N-<slug>.md`).
+
 ## Example Usage
 
 **Scenario 1: Scope question to a stakeholder**

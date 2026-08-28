@@ -56,6 +56,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `rejected` | Not needed (see Handling Not-Needed Verdicts) |
 | `needs-info` | Insufficient evidence to decide |
 
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/needs-assessment.md`); omit the key when nothing was written (rejected, needs-info).
+
 ## Example Usage
 
 **Scenario 1: Clear need**

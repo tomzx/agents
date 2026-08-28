@@ -44,6 +44,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `approved` | Domain model drafted (artifact written with `status: draft`, ready for `/review-domain-model`) |
 | `needs-info` | The domain is too unclear to model; state what is needed |
 
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/domain-model.md`); omit the key when nothing was written (needs-info).
+
 ## Example Usage
 
 **Scenario 1: Unfamiliar regulatory domain**

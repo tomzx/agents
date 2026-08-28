@@ -88,6 +88,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Findings the author must address before it passes |
 | `rejected` | Fundamental flaw requiring rework (for example, the context describes a different project than the one in the repo) |
 
+In the same emission, list the findings file under `artifacts:` (`.sdlc/context/review-project.md`).
+
 ## Example Usage
 
 **Scenario 1: Placeholder left behind**

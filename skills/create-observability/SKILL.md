@@ -73,6 +73,7 @@ Add spans at service boundaries and for expensive operations (DB queries, extern
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
+In the same emission, list every file you produced under `artifacts:` (`.sdlc/features/N-<slug>/observability.md`, plus `.sdlc/features/N-<slug>/alerts.yaml` when written).
 
 ## Example Usage
 

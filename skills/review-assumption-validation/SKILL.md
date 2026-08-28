@@ -90,6 +90,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Some experiments were inconclusive or poorly designed; redo before proceeding |
 | `rejected` | A critical assumption was invalidated and backtracking was not performed, or the proceed decision is unsound |
 
+In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-assumption-validation.md`).
+
 ## Example Usage
 
 **Scenario 1: Missing assumption**

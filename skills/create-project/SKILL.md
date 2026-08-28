@@ -80,6 +80,7 @@ Report what was written and what remains open:
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`.
 If the interview could not be completed (for example the user abandoned it), omit the file.
+In the same emission, list every context file you wrote under `artifacts:`.
 
 ## Example Usage
 

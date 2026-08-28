@@ -61,6 +61,7 @@ Common metric types:
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the artifact could not be produced, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/telemetry.md`).
 
 ## Example Usage
 

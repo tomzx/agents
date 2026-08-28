@@ -78,6 +78,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `skipped` | The feature manages no resources with a meaningful lifecycle; no artifact is written and the pipeline proceeds past review to the next phase |
 
 If the artifact could not be produced for any other reason, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/lifecycle.md`); omit the key when emitting `skipped` (no file is written).
 
 ## Example Usage
 

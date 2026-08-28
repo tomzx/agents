@@ -36,6 +36,7 @@ Use the template at `skills/sdlc/templates/features/documentation.md` (copied to
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, mirroring the `status: draft` written to the artifact. If the artifact could not be produced, omit the file.
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/documentation.md`).
 
 ## Example Usage
 

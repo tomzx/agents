@@ -13,7 +13,7 @@ Each task gets its own file under `.sdlc/features/N-<slug>/tasks/` with a unique
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
-- `.sdlc/features/N-<slug>/plan.md` (must have passed review with findings verdict `approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
+- `.sdlc/features/N-<slug>/plan.md` (unified) **or** `.sdlc/features/N-<slug>/plan/index.md` plus its `plan/<concern>.md` files (split) (must have passed review with findings verdict `approved`), or an implementation plan/specification provided in context or as a file path (`$1`)
 
 ## Task Sizing Guidelines
 
@@ -29,7 +29,7 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 
 ## Steps
 
-1. Read the plan or specification.
+1. Resolve and read the plan: `.sdlc/features/N-<slug>/plan.md` (unified), otherwise `.sdlc/features/N-<slug>/plan/index.md` together with every `plan/<concern>.md` it lists (split), otherwise the specification or a file path (`$1`). For a split plan, decompose tasks across all concern files as one combined backlog (the `tasks/` directory stays flat per feature, not per concern).
 2. Identify all units of work, targeting tasks completable in 0.5–2 days each.
 3. For each task, define: description, acceptance criteria, effort size, and dependencies on other tasks.
 4. Order tasks and assign sequence numbers starting at `1` within this feature.
@@ -129,6 +129,7 @@ Computing the critical path:
 ## Outcome
 
 If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md`, If the decomposition could not be produced, omit the file.
+In the same emission, list every task file you produced under `artifacts:` (each `.sdlc/features/N-<slug>/tasks/N-<slug>.md`).
 
 ## Example Usage
 

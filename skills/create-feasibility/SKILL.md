@@ -52,6 +52,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `approved` | Go or Go with conditions |
 | `rejected` | No-go (see Handling No-Go Verdicts) |
 
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/feasibility.md`); omit the key when nothing was written (rejected writes no artifact).
+
 ## Example Usage
 
 **Scenario 1: Straightforward feature**
