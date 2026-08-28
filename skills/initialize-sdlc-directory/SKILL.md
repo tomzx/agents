@@ -61,6 +61,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
    |---|---|
    | `../sdlc/templates/features/needs-assessment.md` | `.sdlc/templates/features/needs-assessment.md` |
    | `../sdlc/templates/features/requirements.md` | `.sdlc/templates/features/requirements.md` |
+   | `../sdlc/templates/features/cli-design.md` | `.sdlc/templates/features/cli-design.md` |
    | `../sdlc/templates/features/existing-solutions.md` | `.sdlc/templates/features/existing-solutions.md` |
    | `../sdlc/templates/features/codebase-analysis.md` | `.sdlc/templates/features/codebase-analysis.md` |
    | `../sdlc/templates/features/feasibility.md` | `.sdlc/templates/features/feasibility.md` |

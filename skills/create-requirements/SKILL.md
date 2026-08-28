@@ -7,6 +7,7 @@ argument-hint: "[feature-brief or issue-url]"
 # Create Requirements
 
 Drafts a structured requirements document from a feature brief, user story, or GitHub issue, capturing functional requirements, non-functional requirements, constraints, and acceptance criteria.
+When the feature has a CLI surface, it delegates to `/create-cli-design` so the commands and options are designed alongside the requirements they serve.
 
 ## Prerequisites
 
@@ -26,6 +27,7 @@ Drafts a structured requirements document from a feature brief, user story, or G
 7. Flag any open questions where requirements are unclear or missing.
 8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
 9. Write the output to `.sdlc/features/N-<slug>/requirements.md`, creating the directory if it does not exist.
+10. Detect a CLI surface: when the feature adds or changes CLI commands or options, load the `create-cli-design` skill with the `skill` tool and run it to design the interface from the requirements just drafted, producing `.sdlc/features/N-<slug>/cli-design.md`.
 
 ## Output Format
 
@@ -47,6 +49,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 |---|---|
 | `approved` | Requirements drafted (artifact written with `status: draft`, ready for `/review-requirements`) |
 | `needs-info` | Issue lacks the detail needed to derive requirements |
+
+In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/requirements.md`, plus `.sdlc/features/N-<slug>/cli-design.md` when step 10 delegated to `create-cli-design`); omit the key when nothing was written (needs-info).
 
 ## Example Usage
 
@@ -76,6 +80,7 @@ Self-check the draft against the [`review-requirements` checklist](../review-req
 ## Next Step
 
 A review subagent is dispatched automatically to run `/review-requirements` to audit the document for clarity, completeness, testability, and conflicts before moving on.
+When the feature has a CLI surface and step 10 has not run yet, `/create-cli-design` runs first so the review covers the interface too.
 Once approved, continue with `/create-existing-solutions` to survey prior art.
 
 ## Useful Commands Reference

@@ -49,7 +49,8 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
            ▼
   Stage 3 — Requirements & Research
   /create-requirements    Draft functional + non-functional requirements
-  /review-requirements    Audit for clarity, completeness, testability, conflicts
+  /create-cli-design      Design the CLI surface (commands, options, exit codes, example sessions); delegated by /create-requirements when the feature has one
+  /review-requirements    Audit for clarity, completeness, testability, conflicts (covers cli-design.md when present)
            │
            ▼
    /create-existing-solutions  Survey prior art (libraries, products, internal code) and recommend adopt vs. build
@@ -635,8 +636,9 @@ Each phase consumes output from the previous phase:
 | prioritize-issues | Labeled issues | RICE-ranked backlog |
 | create-needs-assessment | Reviewed, prioritized issue | `.sdlc/features/N-<slug>/needs-assessment.md` (`status: draft`) |
 | review-needs-assessment | `.sdlc/features/N-<slug>/needs-assessment.md` | Findings → `review-needs-assessment.md` (verdict `approved`/`rejected`) |
-| create-requirements | `.sdlc/features/N-<slug>/needs-assessment.md` (review approved) | `.sdlc/features/N-<slug>/requirements.md` (`status: draft`) |
-| review-requirements | `.sdlc/features/N-<slug>/requirements.md` | Findings → `review-requirements.md` |
+| create-requirements | `.sdlc/features/N-<slug>/needs-assessment.md` (review approved) | `.sdlc/features/N-<slug>/requirements.md` (`status: draft`); delegates to `create-cli-design` when the feature has a CLI surface |
+| create-cli-design | `.sdlc/features/N-<slug>/requirements.md` (draft acceptable) | `.sdlc/features/N-<slug>/cli-design.md` (`status: draft`); skipped (no artifact) when the feature has no CLI surface |
+| review-requirements | `.sdlc/features/N-<slug>/requirements.md` (+ `cli-design.md` when present) | Findings → `review-requirements.md` |
 | create-existing-solutions | `.sdlc/features/N-<slug>/requirements.md` | `.sdlc/features/N-<slug>/existing-solutions.md` (`status: draft`) |
 | review-existing-solutions | `.sdlc/features/N-<slug>/existing-solutions.md` | Findings → `review-existing-solutions.md` |
 | create-codebase-analysis | `.sdlc/features/N-<slug>/requirements.md` (+ `existing-solutions.md`) | `.sdlc/features/N-<slug>/codebase-analysis.md` (`status: draft`) |

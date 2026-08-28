@@ -6,17 +6,19 @@ description: Review a requirements document for clarity, completeness, testabili
 # Review Requirements
 
 Audits a requirements document and reports findings across five categories: clarity, completeness, testability, feasibility, and conflicts.
+When a `cli-design.md` companion is present, the CLI design is reviewed in the same pass under its own category.
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/requirements.md`, or a requirements document provided in context or as a file path
+- `.sdlc/features/N-<slug>/cli-design.md` (optional; present when the feature has a CLI surface and `/create-cli-design` ran)
 
 ## Steps
 
-1. Read the requirements document from `.sdlc/features/N-<slug>/requirements.md` if present, otherwise from context or as a file path.
-2. Identify issues in each of the five categories below.
+1. Read the requirements document from `.sdlc/features/N-<slug>/requirements.md` if present, otherwise from context or as a file path. Read `cli-design.md` too when it exists beside it: the two artifacts are reviewed together as one requirements phase.
+2. Identify issues in each of the applicable categories below.
 3. Report findings using the output format. Omit any category that has no findings.
 4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
 5. Write the findings to `.sdlc/features/N-<slug>/review-requirements.md` with frontmatter `artifact: requirements`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
@@ -44,6 +46,15 @@ Audits a requirements document and reports findings across five categories: clar
 - Are any requirements technically impractical given the stated constraints?
 - Are there scope or effort concerns that should be flagged?
 - Do dependencies on external systems introduce unaddressed risk?
+
+### CLI Design (when `cli-design.md` is present)
+- Does every user-facing functional requirement map to at least one command, subcommand, or option in the traceability table?
+- Does every command have a synopsis, options with types and defaults, and at least one example?
+- Are exit codes, the stdout/stderr split, and machine-readable output defined and consistent across commands?
+- Do command naming, flags, and help style follow the project's existing CLI conventions (or the stated design principles for a first CLI)?
+- Are destructive actions protected (confirmation prompt with `--yes`/`--force` to skip) and are error messages actionable?
+- Do the example sessions demonstrate a happy path and at least one error path?
+- Does any interface choice conflict with a requirement or constraint (report under Conflicts)?
 
 ### Conflicts
 
@@ -77,6 +88,10 @@ For each conflict found, report: the requirement IDs involved, the nature of the
 
 <Findings or "No issues found.">
 
+## CLI Design
+
+<Only when cli-design.md is present; otherwise omit this section. Findings or "No issues found.">
+
 ## Conflicts
 
 <For each conflict, or "No issues found.":>
@@ -95,6 +110,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `approved` | No blocking findings; the subject passes review |
 | `changes-requested` | Findings the author must address before it passes |
 | `rejected` | Fundamental flaw requiring rework or stopping |
+
+In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-requirements.md` plus the requirements document when you amended it to resolve a conflict, and `cli-design.md` when you amended the design).
 
 ## Example Usage
 

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-218-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-219-green" alt="Skill count">
 </p>
 
 ## What
@@ -134,6 +134,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/create-placeholder-issue` | Promote a pending (p-prefixed) SDLC feature to an issue-driven one by creating a placeholder GitHub issue and renaming its directory. |
 | `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
 | `/create-requirements` | Draft a requirements document from a feature brief or issue. |
+| `/create-cli-design` | Design the CLI surface (commands, options, exit codes, example sessions) for a feature with a CLI. |
 | `/review-requirements` | Review requirements for clarity, completeness, and testability. |
 | `/qualify-issue` | Drive a Q&A loop with a reporter to gather enough information. |
 | `/reproduce-issue` | Reproduce a bug reported in a GitHub issue. |
