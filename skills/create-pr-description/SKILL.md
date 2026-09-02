@@ -12,7 +12,6 @@ Generates a structured PR description from the current branch's diff against its
 
 - `gh` CLI authenticated
 - An open PR must exist for the current branch (the diff target is the PR's base branch)
-- `gt` (Graphite CLI) installed, required only when `$1` and `$2` are provided (issue fetch)
 - Current branch must have commits relative to its parent
 
 > **Note:** This skill diffs against the PR base branch reported by `gh`. For a workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
@@ -54,7 +53,7 @@ Generate PR description markdown
    ```
 2. If `$1` (repository) and `$2` (issue number) are provided, fetch the issue:
    ```
-   gt issue view $2 --repo $1
+   gh issue view $2 --repo $1
    ```
 3. Resolve agents attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `create-pr-description`.
 4. Generate the PR description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
@@ -115,5 +114,4 @@ Issue has 5 acceptance criteria; this PR covers 3. "Acceptance criteria covered"
 |---|---|
 | `git diff $(gh pr view --json baseRefName -q .baseRefName)..HEAD` | Diff current branch against its PR base branch |
 | `gh pr view <pr> --repo <owner/repo> --json baseRefName -q .baseRefName` | Get the base branch of a PR via gh CLI |
-| `gt issue view <issue> --repo <owner/repo>` | Fetch issue details via Graphite CLI |
 | `gh issue view <issue> --repo <owner/repo>` | Fetch issue details via gh CLI |
