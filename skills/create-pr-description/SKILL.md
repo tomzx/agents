@@ -6,15 +6,16 @@ argument-hint: "[repository] [issue]"
 
 # Generate PR Description
 
-Generates a structured PR description from the current branch's diff against its Graphite parent, optionally cross-referencing a GitHub issue to assess acceptance criteria coverage.
+Generates a structured PR description from the current branch's diff against its PR base branch, optionally cross-referencing a GitHub issue to assess acceptance criteria coverage.
 
 ## Prerequisites
 
-- `gt` (Graphite CLI) installed and authenticated in a git repository
-- `gh` CLI authenticated (required only when `$1` and `$2` are provided)
+- `gh` CLI authenticated
+- An open PR must exist for the current branch (the diff target is the PR's base branch)
+- `gt` (Graphite CLI) installed, required only when `$1` and `$2` are provided (issue fetch)
 - Current branch must have commits relative to its parent
 
-> **Note:** This skill uses the Graphite CLI (`gt`) and diffs against the Graphite parent branch. For a `gh`-based workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
+> **Note:** This skill diffs against the PR base branch reported by `gh`. For a workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
 
 ### Skill attribution (GitHub)
 
@@ -23,7 +24,7 @@ Before returning the PR description, read [`github-post-attribution/SKILL.md`](.
 ## Workflow
 
 ```
-Compute diff (gt parent -> HEAD)
+Compute diff (PR base -> HEAD)
         |
         v
 Issue provided? ($1 $2)
@@ -49,7 +50,7 @@ Generate PR description markdown
 
 1. Compute the diff:
    ```
-   git diff $(gt parent)..HEAD
+   git diff $(gh pr view --json baseRefName -q .baseRefName)..HEAD
    ```
 2. If `$1` (repository) and `$2` (issue number) are provided, fetch the issue:
    ```
@@ -94,7 +95,7 @@ Substitute `SKILL_FILE_URL` and `SKILL_SHORT_SHA` per [`github-post-attribution/
 ```
 /create-pr-description
 ```
-Diffs current branch vs parent, produces description with "To be filled by the user" in the References section.
+Diffs current branch vs its PR base, produces description with "To be filled by the user" in the References section.
 
 **Scenario 2: PR linked to an issue**
 ```
@@ -112,6 +113,7 @@ Issue has 5 acceptance criteria; this PR covers 3. "Acceptance criteria covered"
 
 | Command | Description |
 |---|---|
-| `git diff $(gt parent)..HEAD` | Diff current branch against its Graphite parent |
+| `git diff $(gh pr view --json baseRefName -q .baseRefName)..HEAD` | Diff current branch against its PR base branch |
+| `gh pr view <pr> --repo <owner/repo> --json baseRefName -q .baseRefName` | Get the base branch of a PR via gh CLI |
 | `gt issue view <issue> --repo <owner/repo>` | Fetch issue details via Graphite CLI |
 | `gh issue view <issue> --repo <owner/repo>` | Fetch issue details via gh CLI |
