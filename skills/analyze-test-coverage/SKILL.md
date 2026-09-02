@@ -1,6 +1,6 @@
 ---
 name: analyze-test-coverage
-description: Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff.
+description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
 allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[diff-ref | worktree-dir]"
 ---

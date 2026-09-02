@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role).
+description: "Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
 allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
