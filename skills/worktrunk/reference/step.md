@@ -438,7 +438,7 @@ Virtual environments contain absolute paths and can't be copied. Use `uv sync` i
 
 ### Behavior vs Claude Code on desktop
 
-The `.worktreeinclude` pattern is shared with [Claude Code on desktop](https://code.claude.com/docs/en/desktop), which copies matching files when creating worktrees. Differences:
+The `.worktreeinclude` pattern is shared with Claude Code on desktop, which copies matching files when creating worktrees. Differences:
 
 - worktrunk copies all gitignored files by default; Claude Code requires `.worktreeinclude`
 - worktrunk uses copy-on-write for large directories like `target/` — potentially 30x faster on macOS, 6x on Linux

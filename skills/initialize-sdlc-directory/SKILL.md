@@ -24,7 +24,7 @@ Already-existing files are never overwritten — this is safe to run on a projec
 3. **Pre-approve the external SDLC stores in the agent CLI.** Most harnesses prompt before reading or writing outside the workspace; grant read/write for `~/.sdlc/**` and `/tmp/sdlc/**` up front. Detect which config(s) exist and add only missing entries, preserving all other fields:
 
    - **opencode** (`~/.config/opencode/opencode.json`): set `permission.external_directory` entries `"~/.sdlc/**": "allow"` and `"/tmp/sdlc/**": "allow"`.
-   - **Claude Code** (`~/.claude/settings.json`): add `Read(~/.sdlc/**)`, `Edit(~/.sdlc/**)`, `Read(/tmp/sdlc/**)`, `Edit(/tmp/sdlc/**)` to `permissions.allow`.
+   - **Claude Code**: add `Read(~/.sdlc/**)`, `Edit(~/.sdlc/**)`, `Read(/tmp/sdlc/**)`, `Edit(/tmp/sdlc/**)` to `permissions.allow` in its user settings file.
 
    For any other harness, add the equivalent entry following its own schema. Record what was created, updated, or skipped (already present), and remind the user to restart their CLI.
 
