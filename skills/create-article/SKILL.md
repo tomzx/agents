@@ -24,7 +24,7 @@ If sources are not yet gathered, run `/research-article` first to discover the s
 5. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
 6. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
 7. Revise for clarity, flow, and conciseness.
-8. Include `session_link: http://localhost:10000/?session=<id>` in the frontmatter, using the current session ID from context. If no session ID is available, omit the field.
+8. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article). The list may contain zero entries: if no session ID is available, omit the field entirely.
 
 ## Formatting Rules
 
@@ -67,6 +67,8 @@ If sources are not yet gathered, run `/research-article` first to discover the s
 ---
 audience_notes: >
   [one line on any assumptions made about the audience's prior knowledge]
+agent_sessions:
+  - [<session identifier, one per contributing session>]
 ---
 
 # [Title: specific and descriptive, not clickbait]
@@ -134,17 +136,19 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Ending with "In conclusion, we have seen that..."
 - Em-dash sentence structures; use commas or parentheses instead
 - Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
-- The use of the following terms (unless it is the most appropriate): shape, honest, load bearing, substrate
+- The use of the following terms (unless it is the most appropriate): shape, honest, load bearing, substrate, posture
 
 ## Output Format
 
-Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes`. After the article, include a brief sources section:
+Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes` and the `agent_sessions` list. After the article, include a brief sources section:
 
 ```markdown
 ---
 audience_notes: >
   [one line on any assumptions made about the audience's prior knowledge]
-session_link: http://localhost:10000/?session=<id>
+agent_sessions:
+  - <session-id-1>
+  - <session-id-2>
 ---
 
 [...article body...]
@@ -154,6 +158,8 @@ session_link: http://localhost:10000/?session=<id>
 - [Source Title](https://...) - [one-line note on what it contributed]
 - [Source Title](https://...) - [one-line note on what it contributed]
 ```
+
+`agent_sessions` lists the identifiers of every LLM/agent session that contributed to the article, with zero to many entries. Omit the field entirely when the list would be empty.
 
 ## Example Usage
 
