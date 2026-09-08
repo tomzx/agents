@@ -9,9 +9,10 @@
 # ///
 """Deterministic orchestrator for the review-requested-prs skill.
 
-Discovers PRs needing review, checks staleness of validate-pr / verify-pr /
-review-pr comment markers against each PR's HEAD commit, and outputs which
-review steps need to be dispatched.
+Discovers PRs needing review (requested from you, plus open PRs you have
+already reviewed), checks staleness of validate-pr / verify-pr / review-pr
+comment markers against each PR's HEAD commit, and outputs which review
+steps need to be dispatched.
 
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
@@ -19,7 +20,7 @@ or ``gh auth token`` as fallback).
 Usage:
     scripts/review_requested_prs.py [pr-url ... | owner/repo ...]
         [--limit N] [--json] [--dispatch] [--quiet] [--log-level LEVEL]
-        [--exclude-author LOGIN ...]
+        [--exclude-author LOGIN ...] [--sort {id,age}]
 
 Examples:
     # All PRs where you are a requested reviewer
@@ -52,6 +53,7 @@ from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 
@@ -133,10 +135,17 @@ STEP_TO_VERDICT_FIELD: dict[str, str] = {
     "review-pr": "review_verdict",
 }
 
+FIELD_TO_STEP: dict[str, str] = {v: k for k, v in STEP_TO_FIELD.items()}
+
 VERDICT_STYLES: dict[str, str] = {
     "pass": "green",
     "fail": "red",
     "": "dim",
+}
+
+VERDICT_DISPLAY: dict[str, str] = {
+    "pass": "✅",
+    "fail": "❌",
 }
 
 
@@ -146,8 +155,13 @@ class PRReviewState:
     number: int
     title: str = ""
     author: str = ""
+    created_at: str = ""
+    ready_at: str = ""
+    last_comment_at: str = ""
+    last_comment_by: str = ""
     draft: bool = False
     head_commit: str = ""
+    last_commit_at: str = ""
     validate_commit: str = ""
     verify_commit: str = ""
     review_commit: str = ""
@@ -157,6 +171,9 @@ class PRReviewState:
     validate_verdict: str = ""
     verify_verdict: str = ""
     review_verdict: str = ""
+    approvers: list[str] = field(default_factory=list)
+    additions: int = 0
+    deletions: int = 0
     stale_steps: list[str] = field(default_factory=list)
     skipped: bool = False
     skipped_reason: str = ""
@@ -292,7 +309,14 @@ def discover_prs(
     include_drafts: bool = False,
     exclude_authors: list[str] | None = None,
 ) -> list[PRReviewState]:
-    """Build the list of target PRs from explicit URLs and/or repo search."""
+    """Build the list of target PRs from explicit URLs and/or repo search.
+
+    Discovery combines two search queries: PRs requesting the user's review
+    and open PRs the user has already reviewed. The second query keeps PRs
+    whose review request was consumed (e.g. by submitting a comment review)
+    visible until they are closed or fully approved. The overall *limit*
+    applies across both queries, with review-requested PRs taking priority.
+    """
     prs: list[PRReviewState] = []
     seen: set[tuple[str, int]] = set()
 
@@ -307,18 +331,31 @@ def discover_prs(
 
     should_search = len(repos) > 0 or len(owners) > 0 or len(pr_urls) == 0
     if should_search:
-        query = "is:pr is:open review-requested:@me"
+        filters = ""
         if not include_drafts:
-            query += " draft:false"
+            filters += " draft:false"
         for repo in repos:
-            query += f" repo:{repo}"
+            filters += f" repo:{repo}"
         for owner in owners:
             qualifier = _resolve_owner_qualifier(client, owner)
-            query += f" {qualifier}:{owner}"
+            filters += f" {qualifier}:{owner}"
         for author in exclude_authors or []:
-            query += f" -author:{author}"
+            filters += f" -author:{author}"
 
-        prs = _search_and_collect(client, query, limit, prs, seen)
+        prs = _search_and_collect(
+            client,
+            f"is:pr is:open review-requested:@me{filters}",
+            limit,
+            prs,
+            seen,
+        )
+        prs = _search_and_collect(
+            client,
+            f"is:pr is:open reviewed-by:@me sort:updated-desc{filters}",
+            limit,
+            prs,
+            seen,
+        )
 
     log.debug(
         "discovered_prs",
@@ -330,13 +367,33 @@ def discover_prs(
 
 
 def fetch_head_commit(client: Github, pr: PRReviewState) -> None:
-    """Populate *pr.head_commit* via the GitHub API."""
+    """Populate *pr.head_commit* and the approving reviewers via the GitHub API."""
     with timed("fetch_head_commit", repo=pr.repo, pr=pr.number):
         repo = client.get_repo(pr.repo)
         pull = repo.get_pull(pr.number)
         pr.head_commit = pull.head.sha
         pr.draft = pull.draft
+        pr.additions = pull.additions or 0
+        pr.deletions = pull.deletions or 0
+        git_commit = repo.get_commit(pull.head.sha)
+        stamp = git_commit.commit.committer.date or git_commit.commit.author.date
+        pr.last_commit_at = stamp.isoformat() if stamp else ""
         pr.author = pull.user.login if pull.user else ""
+        pr.created_at = pull.created_at.isoformat() if pull.created_at else ""
+        ready_times = [
+            event.created_at
+            for event in repo.get_issue(pr.number).get_events()
+            if event.event == "ready_for_review" and event.created_at
+        ]
+        if ready_times and not pr.draft:
+            pr.ready_at = max(ready_times).isoformat()
+        latest_state: dict[str, str] = {}
+        for review in pull.get_reviews():
+            if review.user and review.state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+                latest_state[review.user.login] = review.state
+        pr.approvers = sorted(
+            user for user, state in latest_state.items() if state == "APPROVED"
+        )
     log.debug("head_commit", repo=pr.repo, pr=pr.number, sha=pr.head_commit[:8])
 
 
@@ -376,22 +433,50 @@ def _parse_markers(text: str, pr: PRReviewState, posted: bool) -> None:
             setattr(pr, STEP_TO_POSTED_FIELD[step], posted)
 
 
-def check_markers(client: Github, pr: PRReviewState) -> None:
-    """Scan PR comments and local .sdlc files for review-skill markers.
+def _note_last_comment(pr: PRReviewState, when: datetime | None, login: str | None) -> None:
+    """Record *when* as the PR's last comment if it is newer than what is stored."""
+    if when is None:
+        return
+    iso = when.isoformat()
+    if pr.last_comment_at and iso <= pr.last_comment_at:
+        return
+    pr.last_comment_at = iso
+    pr.last_comment_by = login or ""
 
-    GitHub comments are returned oldest-first by the API, so we overwrite on
-    each match, leaving the most recent marker SHA in the field. We also scan
+
+def check_markers(client: Github, pr: PRReviewState) -> None:
+    """Scan PR activity and local .sdlc files for review-skill markers.
+
+    Conversation comments, inline review comments, and review submissions all
+    update the last-comment tracking and are searched for markers. GitHub
+    listings are returned oldest-first by the API, so we overwrite on each
+    match, leaving the most recent marker SHA in the field. We also scan
     local report files at ~/.sdlc/<owner>/<repo>/pull-requests/<pr>/ for
     markers when posting to GitHub is disabled or markers are only local.
     """
     with timed("check_markers", repo=pr.repo, pr=pr.number):
         repo = client.get_repo(pr.repo)
         issue = repo.get_issue(pr.number)
+        pull = repo.get_pull(pr.number)
 
         comment_count = 0
         for comment in issue.get_comments():
             comment_count += 1
+            login = comment.user.login if comment.user else ""
+            _note_last_comment(pr, comment.created_at, login)
             _parse_markers(comment.body or "", pr, posted=True)
+
+        for comment in pull.get_review_comments():
+            comment_count += 1
+            login = comment.user.login if comment.user else ""
+            _note_last_comment(pr, comment.created_at, login)
+            _parse_markers(comment.body or "", pr, posted=True)
+
+        for review in pull.get_reviews():
+            comment_count += 1
+            login = review.user.login if review.user else ""
+            _note_last_comment(pr, review.submitted_at, login)
+            _parse_markers(review.body or "", pr, posted=True)
 
         local_dir = SDLC_REVIEW_DIR / pr.repo / "pull-requests" / str(pr.number)
         if local_dir.is_dir():
@@ -463,40 +548,61 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
     for repo, repo_prs in _group_by_repo(prs):
         table = Table(title=repo, title_style="bold cyan", show_header=True)
         table.add_column("PR", style="blue", justify="right")
+        table.add_column("Author")
+        table.add_column("Age", justify="right")
+        table.add_column("Commit age", justify="right")
+        table.add_column("Last comment", justify="right")
         table.add_column("HEAD", justify="center")
+        table.add_column("Diff", justify="right")
         table.add_column("Validate", justify="center")
         table.add_column("Verify", justify="center")
         table.add_column("Review", justify="center")
         table.add_column("Status")
+        table.add_column("Approver")
 
         for pr in repo_prs:
-            if pr.error:
-                status = f"[red]Error: {pr.error}[/red]"
-            elif not pr.stale_steps:
-                status = "[green]Ready for approval[/green]"
-            else:
-                status = "[bold yellow]Needs review[/bold yellow]"
+            status = (
+                f"[red]Error: {pr.error}[/red]"
+                if pr.error
+                else "[green]Ready for approval[/green]"
+                if not pr.stale_steps
+                else "[bold yellow]Needs review[/bold yellow]"
+            )
+            approver_col = (
+                f"[green]{', '.join(pr.approvers)}[/green]"
+                if pr.approvers
+                else "[dim]—[/dim]"
+            )
             head_col = (
                 f"[blue]{pr.head_commit[:8]}[/blue]"
                 if pr.head_commit
                 else "[dim]—[/dim]"
             )
             validate_col = _marker_cell(
-                pr.validate_commit, pr.validate_posted, pr.validate_verdict, pr.head_commit
+                pr.validate_commit, pr.validate_posted, pr.validate_verdict, pr.head_commit,
+                _step_report_path(pr, "validate_commit"),
             )
             verify_col = _marker_cell(
-                pr.verify_commit, pr.verify_posted, pr.verify_verdict, pr.head_commit
+                pr.verify_commit, pr.verify_posted, pr.verify_verdict, pr.head_commit,
+                _step_report_path(pr, "verify_commit"),
             )
             review_col = _marker_cell(
-                pr.review_commit, pr.review_posted, pr.review_verdict, pr.head_commit
+                pr.review_commit, pr.review_posted, pr.review_verdict, pr.head_commit,
+                _step_report_path(pr, "review_commit"),
             )
             table.add_row(
-                f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}",
+                _pr_cell(pr),
+                pr.author or "[dim]—[/dim]",
+                _age_cell(pr.ready_at or pr.created_at),
+                _age_cell(pr.last_commit_at),
+                _age_cell(pr.last_comment_at, pr.last_comment_by),
                 head_col,
+                f"[green]+{pr.additions}[/green] [red]-{pr.deletions}[/red]",
                 validate_col,
                 verify_col,
                 review_col,
                 status,
+                approver_col,
             )
         tables.append(table)
     return Group(*tables)
@@ -514,24 +620,83 @@ def _group_by_repo(prs: list[PRReviewState]) -> list[tuple[str, list[PRReviewSta
     return [(repo, groups[repo]) for repo in order]
 
 
-def _marker_cell(commit: str, posted: bool, verdict: str, head_commit: str) -> str:
-    """Return a display string for a marker column with commit SHA and match indicator.
+def _age_cell(created_at: str, by: str = "") -> str:
+    """Return a compact age string (e.g. 3h, 2d by alice) for a timestamp."""
+    if not created_at:
+        return "[dim]—[/dim]"
+    seconds = (datetime.now(timezone.utc) - datetime.fromisoformat(created_at)).total_seconds()
+    style = "bold red" if seconds >= 86400 else "dim"
+    if seconds < 3600:
+        age = f"{int(seconds // 60)}m"
+    elif seconds < 48 * 3600:
+        age = f"{int(seconds // 3600)}h"
+    else:
+        age = f"{int(seconds // 86400)}d"
+    suffix = f" by {by}" if by else ""
+    return f"[{style}]{age}{suffix}[/{style}]"
 
-    The SHA is shown in green when it matches *head_commit* (current) or yellow
-    when it does not (stale). The verdict retains its own color (pass=green,
-    fail=red).
+
+def _pr_cell(pr: PRReviewState) -> str:
+    """Return the PR number cell as a hyperlink to the GitHub pull request."""
+    url = f"https://github.com/{pr.repo}/pull/{pr.number}"
+    label = f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}"
+    return f"[link={url}]{label}[/link]"
+
+
+def _step_report_path(pr: PRReviewState, commit_field: str) -> Path | None:
+    """Return the local report file for a step marker, if it exists.
+
+    Report files are named ``<step>.<short-sha>.md`` (typically a 7-character
+    short SHA), so fall back to a glob on the marker's SHA prefix when the
+    exact full-sha name does not exist.
+    """
+    commit = getattr(pr, commit_field)
+    if not commit:
+        return None
+    step = FIELD_TO_STEP[commit_field]
+    local_dir = SDLC_REVIEW_DIR / pr.repo / "pull-requests" / str(pr.number)
+    exact = local_dir / f"{step}.{commit}.md"
+    if exact.is_file():
+        return exact
+    matches = sorted(local_dir.glob(f"{step}.{commit[:7]}*.md"))
+    return matches[0] if matches else None
+
+
+def _marker_cell(
+    commit: str,
+    posted: bool,
+    verdict: str,
+    head_commit: str,
+    report_path: Path | None = None,
+) -> str:
+    """Return a display string for a marker column with verdict and SHA indicator.
+
+    The SHA is shown only when it does not match *head_commit* (stale), colored
+    red; when it matches, it is omitted since the HEAD column already shows it.
+    The verdict retains its own color (pass=green, fail=red). When
+    *report_path* is given, the cell becomes a hyperlink that opens the
+    associated report file.
     """
     if not commit:
         return "[dim]—[/dim]"
     location = "github" if posted else "local"
     short = commit[:8]
     is_current = commit == head_commit
-    match_style = "green" if is_current else "red"
     if not verdict:
         base_style = "blue" if posted else "dim"
-        return f"[{base_style}]{location}[/{base_style}] [{match_style}]{short}[/{match_style}]"
-    verdict_style = VERDICT_STYLES.get(verdict, "dim")
-    return f"[{verdict_style}]{verdict}[/{verdict_style}] [{match_style}]{short}[/{match_style}] ({location})"
+        cell = f"[{base_style}]{location}[/{base_style}]"
+        if not is_current:
+            cell += f" [red]{short}[/red]"
+    else:
+        verdict_style = VERDICT_STYLES.get(verdict, "dim")
+        verdict_text = VERDICT_DISPLAY.get(verdict, verdict)
+        cell = f"[{verdict_style}]{verdict_text}[/{verdict_style}]"
+        if not is_current:
+            cell += f" [red]{short}[/red]"
+        cell += f" ({location})"
+    if report_path:
+        return f"[link={report_path.as_uri()}]{cell}[/link]"
+    return cell
 
 
 def format_dispatch_commands(prs: list[PRReviewState]) -> str:
@@ -646,6 +811,14 @@ def main() -> int:
         help="GitHub logins of PR authors to exclude (default: dependabot[bot]).",
     )
     parser.add_argument(
+        "--sort",
+        choices=("id", "age"),
+        default="id",
+        help="Sort order: 'id' (PR number, descending, default) or 'age' "
+        "(oldest first, measured from the most recent draft -> ready "
+        "transition or from opening when there is none).",
+    )
+    parser.add_argument(
         "--quiet",
         action="store_true",
         help="Suppress output for PRs that are ready for approval.",
@@ -718,6 +891,12 @@ def main() -> int:
                 task,
                 description=f"Processing PRs ({completed}/{len(prs)})",
             )
+
+    if args.sort == "age":
+        # Oldest first, so the largest age (descending age) comes first.
+        prs.sort(key=lambda pr: ((pr.ready_at or pr.created_at) == "", pr.ready_at or pr.created_at or ""))
+    else:
+        prs.sort(key=lambda pr: pr.number, reverse=True)
 
     if args.quiet:
         prs = [pr for pr in prs if pr.stale_steps or pr.error]
