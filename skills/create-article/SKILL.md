@@ -1,6 +1,6 @@
 ---
 name: create-article
-description: Write, update, or revise a high-quality article given a target audience and relevant sources. Use when the user wants to write a new article, update or revise an existing article (to keep tone, structure, and style consistent with prior writing), or improve an article's research, clarity, or flow. Produces a structured, well-researched article tailored to the audience's knowledge level and interests.
+description: Write, update, or revise a high-quality article given a target audience and relevant sources. Use when the user wants to write a new article, update or revise an existing article (to keep tone, structure, and style consistent with prior writing), or improve an article's research, clarity, or flow. Produces a structured, well-researched article tailored to the audience's knowledge level and interests, adding visualizations where they aid comprehension.
 ---
 
 # Write Article
@@ -21,10 +21,11 @@ If sources are not yet gathered, run `/research-article` first to discover the s
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
 4. Draft the article using the structure below, following the formatting rules.
-5. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
-6. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
-7. Revise for clarity, flow, and conciseness.
-8. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article). The list may contain zero entries: if no session ID is available, omit the field entirely.
+5. Add visualizations where they aid comprehension (see "Visualizations" below).
+6. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
+7. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
+8. Revise for clarity, flow, and conciseness.
+9. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article). The list may contain zero entries: if no session ID is available, omit the field entirely.
 
 ## Formatting Rules
 
@@ -51,6 +52,37 @@ If sources are not yet gathered, run `/research-article` first to discover the s
   than "this fails on nested generics", or "that approach trades latency for throughput" rather than
   "that trades latency for throughput". Referential words are acceptable when the referent is
   unambiguous and immediately adjacent, or when repeating the noun would be clunky.
+
+## Visualizations
+
+Generate a few visualizations per article whenever they aid comprehension.
+A visualization earns its place when it communicates an idea faster than prose: diagrams for structure and flow, charts for data, illustrations for concepts, annotated figures, comparisons, or timelines.
+Skip visualizations for short or purely narrative pieces, and never add one that only restates what the surrounding text already says clearly.
+
+**Choosing a format:**
+
+- **SVG (default)**: Write each visualization as an SVG file stored next to the article, and reference it with a repository-relative path.
+  SVG is the most expressive option: full control over layout, color, typography, and annotations, and it looks consistent in any viewer.
+  It covers everything from charts and annotated illustrations to precise technical diagrams.
+  Verify the referenced file exists before finalizing the article.
+- **Mermaid**: Use a fenced code block marked `mermaid` for simple flowcharts, sequence diagrams, and state diagrams where the built-in layout is enough and a hand-built SVG would add little.
+  It renders on GitHub and most markdown viewers, keeps the article self-contained, and diffs cleanly.
+  Example:
+
+  ```mermaid
+  flowchart LR
+      A[Sources] --> B[Research brief]
+      B --> C[Draft article]
+      C --> D[Review]
+      D -->|findings| C
+  ```
+
+**Rules:**
+
+- Keep each visualization focused on one idea, and label every element.
+- Place the visualization immediately after the paragraph that introduces the concept, preceded by a one-sentence lead-in.
+- Mermaid code blocks are exempt from the one-sentence-per-line rule.
+- Calibrate technical depth to the audience: conceptual overviews for general readers, precise labels and types for experts.
 
 ## Audience Calibration
 
@@ -125,6 +157,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Open with the most interesting or important thing, not background
 - Make a specific claim or argument, not a survey of possibilities
 - Use concrete examples, numbers, or comparisons to anchor abstract points
+- Include a visualization when an idea would otherwise take many sentences to explain
 - Attribute claims to sources with hyperlinks; don't state opinions as facts
 - End with something the reader can take away or act on
 - Each sentence sits on its own line in the markdown source
@@ -133,6 +166,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Padding: filler phrases like "In today's fast-paced world..." or "It's important to note that..."
 - Hedging everything: take a position where the sources support one
 - Restating the same point in multiple sections
+- Visualizations that repeat the text instead of adding understanding
 - Ending with "In conclusion, we have seen that..."
 - Em-dash sentence structures; use commas or parentheses instead
 - Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
