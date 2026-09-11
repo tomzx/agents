@@ -12,7 +12,7 @@ Answers the **verification** question: "Are we building the product right?" Chec
 1. **Static traceability**: every criterion maps to specific code that implements it.
 2. **Runtime proof**: build the PR and execute each criterion, recording the evidence.
 
-It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead.
+It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead. That includes approach-level observations gathered at runtime (for example criteria provable only by reaching into internals), which go to `/review-pr`'s Approach & Simplicity through the report notes.
 
 ## Prerequisites
 
@@ -32,6 +32,14 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 
 ```
 Fetch PR metadata + diff + linked issue(s) ($1)
+          |
+          v
+verify.yaml scope?
+(same head -> stop, return state;
+ pure rebase -> bump sha, stop;
+ ancestor delta or contained
+ tree-diff -> incremental;
+ else -> full verification)
           |
           v
 Parse acceptance criteria + claims, build coverage map
@@ -73,9 +81,10 @@ Detect change surface
 Collect assets (GIFs / PNGs / video)
    |
    v
-Upload assets to PR branch
+Upload assets (orphan branch)
    |
    v
+Update verify.yaml
 Write the conformance report (traceability + runtime evidence)
     |
     v
@@ -87,7 +96,7 @@ Clean up worktree
 ### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
+gh pr view $PR_NUMBER --repo $REPO --json title,body,state,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 ```bash
@@ -98,13 +107,24 @@ Extract:
 - PR title and description (body) with claims
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch origin "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - Head branch name (`headRefName`), base branch name (`baseRefName`)
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
+- `PR_STATE`: the PR state (`state`: `OPEN`, `CLOSED`, or `MERGED`)
 
-#### 1a. Resolve and fetch linked issue(s)
+#### 1a. Re-review scope (reuse the previous run when possible)
+
+Read the verification state file `$PR_REVIEW_DIR/verify.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports; one finding per acceptance criterion, `status` one of `conforms` / `conforms-static` / `unverified` / `fails`). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues, creating a worktree, or building: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental verification, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full verification. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+
+- Trace criteria to code as usual, but at runtime re-run only criteria whose implementation the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) touches, plus every criterion whose `status` is `fails`.
+- Criteria the delta does not touch keep their `status` and evidence; reference the previous report's demonstrations instead of re-recording.
+
+#### 1b. Resolve and fetch linked issue(s)
 
 Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references.
 
@@ -203,6 +223,8 @@ If the build fails, note it and stop. CI would typically catch this first; do no
 
 For every acceptance criterion, prove or disprove through execution that the PR meets it. The criterion's nature (refined by any mapped claim) determines the method. **Must** criteria must all be validated for the PR to conform.
 
+Validate through the product's public entry points first (CLI command, API call, UI interaction). If a criterion can only be proven by reaching into internals (calling private functions, importing internal modules, asserting on call structure), the criterion may still conform, but the friction is itself a finding: the implementation resists verification through its public surface. Record it in the report's notes for `/review-pr` (Approach & Simplicity, design coupling), naming what was reached into and why no public path existed.
+
 #### Behavior criteria
 
 - Write a small script or test that exercises the behavior the criterion requires
@@ -247,7 +269,7 @@ For each criterion, record the runtime result combined with its static status:
 | Status | Meaning |
 |--------|---------|
 | **Conforms** | Code traced (Step 3) and runtime execution confirms the criterion is met |
-| **Conforms (static only)** | Code traced but runtime could not confirm (test couldn't run, ambiguous result); note the reason |
+| **Conforms (static only)** | Code traced but runtime could not confirm; the report must state what runtime evidence the criterion needed and why it was infeasible (test couldn't run, dev server wouldn't start, ambiguous result) |
 | **Not verified** | Could not confirm (no path to verify at runtime, and static trace inconclusive) |
 | **Nonconforming** | Runtime output, or the absence of implementing code, shows the criterion is not met |
 
@@ -287,32 +309,27 @@ Collect the returned PNG/video paths for each criterion. Kill the dev server bef
 
 ### 8. Upload assets and write the conformance report
 
-Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) to the PR branch so they can be referenced inline:
+Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) via [`/attach-assets`](../attach-assets/SKILL.md), so demo binaries land on the repo's orphan asset branch instead of the PR branch's history:
 
-```bash
-RECORDINGS=/tmp/verify-pr-$PR_NUMBER/recordings
-for asset in $RECORDINGS/*.gif $RECORDINGS/*.png $RECORDINGS/*.svg $RECORDINGS/*.webm $RECORDINGS/*.cast; do
-  [ -f "$asset" ] || continue
-  filename=$(basename "$asset")
-  gh api repos/$REPO/contents/.verify-pr/$filename \
-    --method PUT \
-    -f message="Add demo: $filename" \
-    -f content="$(base64 -w 0 "$asset")" \
-    -f branch="$HEAD_BRANCH"
-done
-```
+- Read [`../attach-assets/SKILL.md`](../attach-assets/SKILL.md) and invoke it with `TARGET` = `$PR_NUMBER --pr` and `FILES` = the files in `/tmp/verify-pr-$PR_NUMBER/recordings`.
+- It writes the files under `$PR_NUMBER/` on the orphan branch (default `assets`) and returns raw URLs of the form `https://raw.githubusercontent.com/$REPO/assets/$PR_NUMBER/<filename>`.
 
-Write the report to a file:
+Reference the returned raw URLs inline in the report. If the upload fails, include command output as text in the comment instead.
+
+First update `$PR_REVIEW_DIR/verify.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add one finding per newly traced criterion (`title` = criterion text, `severity` = `must` or `should`, `evidence` = what was run and observed or the asset path), and update the `status` of existing criteria (`conforms` / `conforms-static` / `unverified` / `fails`). Then move the review checkpoint tag to the verified head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+
+Then write the report to a file, overwriting the previous report. A full verification contains the complete template below; an incremental verification stays short: scope (the delta, with diffstat), criteria re-run this pass, criteria whose `status` changed, and the verdict:
 
 ```bash
 BODY="$(cat <<'EOF'
-<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->
+<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
 ## Verification Report
 
 ### Summary
 
 Issue(s): #N
 Verified commit: SHORT_SHA
+Scope: full review / delta since <short sha>
 
 | Status | Must | Should |
 |--------|------|--------|
@@ -347,6 +364,10 @@ The marker verdict is `pass` if the PR conforms (Yes), `fail` if it does not (No
 
 - "<claim text>" — no acceptance criterion maps to this
 
+### Notes for /review-pr
+
+<Criteria that could only be verified by reaching into internals, or other design-coupling observations; omit the section when empty>
+
 ### Demonstrations
 
 <embedded GIFs (CLI) / screenshots + video (web UI) / links, one per criterion>
@@ -361,26 +382,27 @@ EOF
  # Substitute the marker verdict: pass if PR conforms, fail if not
  BODY="${BODY//MARKER_VERDICT/pass}"  # replace with pass or fail
  BODY="${BODY//HEAD_COMMIT/$HEAD_COMMIT}"
+ BODY="${BODY//HEAD_TREE/$HEAD_TREE}"
  BODY="${BODY//SHORT_SHA/$SHORT_SHA}"
  
  # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
  # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
  PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
  mkdir -p "$PR_REVIEW_DIR"
- printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
+ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.report.md"
 ```
 
 ### Post the conformance report as a PR comment
 
-The report is saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`. Posting it as a PR comment is decided by `should-post-to-github`.
+The report is saved to `$PR_REVIEW_DIR/verify-pr.report.md`. Posting it as a PR comment is decided by `should-post-to-github`.
 
-Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md`.
+Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.report.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md")
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/verify-pr.report.md")
 
 ${FOOTER}"
 ```

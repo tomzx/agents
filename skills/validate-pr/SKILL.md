@@ -9,7 +9,7 @@ argument-hint: "<pr-number> [repository]"
 
 Answers the **validation** question: "Are we building the right product?" Given the linked issue, recover the underlying customer need (the problem being solved, the "why"), then judge whether the acceptance criteria and the implemented behavior actually serve that need.
 
-This is the only review step that can catch a PR which faithfully implements its specification but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, that is `/review-pr`'s job.
+This is the only review step that can catch a PR which faithfully implements its specification but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, and it does not judge whether the implemented approach is the simplest and most changeable, that is `/review-pr`'s job. It judges mechanism soundness one level up, at the spec (criteria soundness below), and hands code-level approach observations to `/review-pr` through the report notes.
 
 The cheap, build-free nature of this step is intentional: it runs first as an early gate. If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
 
@@ -29,6 +29,14 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 
 ```
 Fetch PR metadata + diff + linked issue(s) ($1)
+          |
+          v
+validate.yaml scope?
+(same head -> stop, return state;
+ pure rebase -> bump sha, stop;
+ ancestor delta or contained
+ tree-diff -> incremental;
+ else -> full validation)
           |
           v
 Create git worktree on PR branch
@@ -56,6 +64,7 @@ Render validation verdict
 (Right / Partially right / Wrong / Inconclusive)
    |
    v
+Update validate.yaml
 Post validation report
 ```
 
@@ -64,7 +73,7 @@ Post validation report
 ### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json title,body,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
+gh pr view $PR_NUMBER --repo $REPO --json title,body,state,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 ```bash
@@ -75,13 +84,25 @@ Extract:
 - PR title and description (body)
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch origin "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - `HEAD_BRANCH`: the `headRefName` (PR branch name)
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
+- `PR_STATE`: the PR state (`state`: `OPEN`, `CLOSED`, or `MERGED`)
 
-#### 1a. Resolve and fetch linked issue(s)
+#### 1a. Re-review scope (reuse the previous run when possible)
+
+Read the validation state file `$PR_REVIEW_DIR/validate.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues or creating a worktree: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental validation, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full validation. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+
+- Recover the need and criteria as usual, but assess only how the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) affects need-fit, criteria soundness, and scope.
+- Re-confirm every `open` finding in the state file against that delta, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
+- Do not re-evaluate code the delta does not touch, and keep the previous verdict unless the delta changes it.
+
+#### 1b. Resolve and fetch linked issue(s)
 
 Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references (in that order of priority).
 
@@ -91,7 +112,7 @@ For each linked issue number, fetch its full body:
 gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
 ```
 
-### 1b. Create a git worktree on the PR branch
+### 1c. Create a git worktree on the PR branch
 
 If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
 
@@ -162,6 +183,7 @@ Do the acceptance criteria actually serve the recovered need?
 - Are there needs with no covering criterion? The criteria under-specify the problem.
 - Are there criteria that serve no need? They over-constrain the solution or import assumptions that belong to a different problem.
 - Do the criteria over-prescribe the *how* when the need is about the *what*, locking the implementation into a mechanism that may not be the right way to meet the need?
+- Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that paints the next change into a corner (an unversioned data format, a closed enum, a singleton)? Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
 
 Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); flagging unsound criteria here is a validation contribution.
 
@@ -182,19 +204,22 @@ Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); fl
 
 A **Wrong thing** verdict is the most valuable output of this skill: it means the PR should not proceed to verification or review until the target is corrected, regardless of how well it is built.
 
-### 6. Post the validation report
+### 6. Update the validation state and post the validation report
 
-Write the report to a file:
+First update `$PR_REVIEW_DIR/validate.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add newly identified findings, and apply the `status` flips decided during the run (`open` / `addressed` / `stale` / `wontfix`). `title` is a finding's identity: update an existing entry instead of adding a duplicate. `first_seen_sha` is informational provenance. Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+
+Then write the report to a file, overwriting the previous report. A full validation contains the complete template below; an incremental validation stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict:
 
 ```bash
 BODY="$(cat <<'EOF'
-<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->
+<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
 ## Validation Report
 
 ### Summary
 
 Issue(s): #N
 Validated commit: SHORT_SHA
+Scope: full review / delta since <short sha>
 
 **Verdict:** Right thing / Partially right / Wrong thing / Inconclusive
 
@@ -220,7 +245,7 @@ Validated commit: SHORT_SHA
 
 ### Notes
 
-<Any additional observations, including criteria-soundness notes for verify-pr>
+<Any additional observations, including criteria-soundness notes for verify-pr and approach notes for review-pr (reinvention, rigidity, or wrong-layer observations seen while reading the diff)>
 
 </details>
 
@@ -233,26 +258,27 @@ EOF
  # Right thing -> pass, Partially right -> partial, Wrong thing -> fail, Inconclusive -> inconclusive
  BODY="${BODY//MARKER_VERDICT/pass}"  # replace with actual verdict: pass/partial/fail/inconclusive
  BODY="${BODY//HEAD_COMMIT/$HEAD_COMMIT}"
+ BODY="${BODY//HEAD_TREE/$HEAD_TREE}"
  BODY="${BODY//SHORT_SHA/$SHORT_SHA}"
  
  # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
  # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
  PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
  mkdir -p "$PR_REVIEW_DIR"
- printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
+ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.report.md"
 ```
 
 ### Post the validation report as a PR comment
 
-The report is saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`. Posting it as a PR comment is decided by `should-post-to-github`.
+The report is saved to `$PR_REVIEW_DIR/validate-pr.report.md`. Posting it as a PR comment is decided by `should-post-to-github`.
 
-Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md`.
+Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.report.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md")
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.report.md")
 
 ${FOOTER}"
 ```

@@ -405,19 +405,40 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 ### Files
 
-| Skill | File |
-|---|---|
-| `validate-pr` | `validate-pr.$SHORT_SHA.md` |
-| `verify-pr` | `verify-pr.$SHORT_SHA.md` |
-| `review-pr` | `review-pr.$SHORT_SHA.md`, plus `gh-pr-view.md` (raw PR cache) |
+| Skill | Findings state | Latest rendered report |
+|---|---|---|
+| `validate-pr` | `validate.yaml` | `validate-pr.report.md` |
+| `verify-pr` | `verify.yaml` | `verify-pr.report.md` |
+| `review-pr` | `review.yaml` | `review-pr.report.md`, plus `gh-pr-view.md` (raw PR cache) |
 
-`$SHORT_SHA` is the first 7 characters of the PR head commit, so each reviewed commit gets its own report.
+`<skill>.yaml` is the findings state, one YAML document per skill per PR with a flat header (`pr`, `updated_at`, `last_reviewed_sha`, `last_reviewed_tree`) and a `findings` list. Each finding has `title` (its identity; when a re-review matches an existing finding, update that entry instead of adding a duplicate), `description`, `severity` (`must` / `should` / `may`), `status`, and an informational `first_seen_sha`. `status` is the source of truth; the shas are provenance only. `validate-pr` and `review-pr` use `open` / `addressed` / `stale` / `wontfix`; `verify-pr` stores one finding per acceptance criterion with `conforms` / `conforms-static` / `unverified` / `fails`.
+
+`<skill>.report.md` is the rendered, human-readable report of the most recent run and embeds the HTML marker (`<!-- {"step":"<skill>","sha":...,"tree":...,"verdict":...} -->`) that the orchestrator scans. It is overwritten on each run; history lives in the state file and the GitHub comments, not in filenames.
+
+### Re-review scope
+
+Each run picks the cheapest sufficient scope before analyzing anything:
+
+1. No state file or empty `last_reviewed_sha` → full review.
+2. Head commit equals `last_reviewed_sha` → nothing changed since the last run: stop and return the state. Stopping means stopping: no analysis, no worktree, no build, no comment; only the state file and the latest report are returned.
+3. `last_reviewed_sha` is an ancestor of the head (`git merge-base --is-ancestor`; a missing commit object counts as failure) → incremental: evaluate only `git diff last_reviewed_sha..HEAD` plus a re-confirmation of every open finding against that delta. Verdict and evidence carry over unless the delta invalidates them.
+4. History rewritten (not an ancestor, force-push or rebase) → compare `last_reviewed_tree` with the head tree: identical content (pure rebase, message-only amend) → update `last_reviewed_sha`, move the checkpoint tag, stop; tree-diff touches a contained subset of the PR's files → incremental scoped to that diff; otherwise full review with a rewrite note.
+
+The tree in the state header makes step 4 durable across garbage collection, fresh clones, and other machines (the fallback where tags do not exist).
+
+The scope decision itself is specified here and nowhere else. Each of `validate-pr`, `verify-pr`, and `review-pr` references this list and records only its own deltas: which findings or criteria to re-confirm or re-run incrementally, which setup steps a same-head stop skips, and what the incremental report contains. Do not restate the decision tree in a skill.
+
+### Review checkpoint tags
+
+On the machine where the skills run against the repository, each PR has one lightweight local tag pointing at the last-reviewed commit: `prs/$PR_NUMBER/review`. Every run that updates the state file also moves the tag to the new head (`git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true`; tolerate failure on read-only clones). The tag keeps the reviewed commit and its tree objects reachable, so after a force-push the ancestor check (`git merge-base --is-ancestor`) and the delta (`git diff "prs/$PR_NUMBER/review" "$HEAD_COMMIT"`) keep working locally, and the commits between two checks are `git log "prs/$PR_NUMBER/review..HEAD"`. The `last_reviewed_tree` in the state header remains the fallback on machines without the tag.
+
+Lifecycle: moved by the three skills on every completed run (including the pure-rebase path); deleted when the PR closes. Each skill deletes the tag when it observes the PR is `CLOSED` or `MERGED`, and `/merge-pr` deletes it after merging (`git tag -d "prs/$PR_NUMBER/review"`).
 
 ### What this store is and is not
 
 - It is a **user-global** store under `$HOME`, outside any reviewed repo. It survives worktree creation/removal and never produces untracked files in someone else's clone.
 - Despite the `.sdlc` name, it is **unrelated to the project `.sdlc/` tree and the `SDLC_DIR` mirror**: it is not governed by `SDLC_DIR` read/write resolution, is **not** committed by the automation runner's `commit-sdlc.sh`, and is **not** mirrored.
-- Cross-run/cross-machine persistence depends on `$HOME` persisting. `review-pr` globs this directory for prior `review-pr.*.md` to summarize what changed since the last review; where `$HOME` does not persist (e.g. an ephemeral CI runner) it degrades gracefully to a fresh review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, not these files, so it is unaffected by this location.
+- Cross-run/cross-machine persistence depends on `$HOME` persisting; where it does not (e.g. an ephemeral CI runner), the state file is absent and every run is a full review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, falling back to the marker inside each `<skill>.report.md`, so it is mostly unaffected by this location.
 
 ## Revision Mode (create-* skills)
 

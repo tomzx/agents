@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: "Conduct the code-craft review of a GitHub pull request (quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
+description: "Conduct the code-craft review of a GitHub pull request (approach and simplicity, quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
 allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
 # Review Pull Request
 
-Answers the **craft** question: "is this code well-built?" Covers code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Writes findings to a structured markdown file.
+Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); approach-level notes arriving from `/validate-pr` or `/verify-pr` land there. Writes findings to a structured markdown file.
 
 ## Prerequisites
 
@@ -27,6 +27,14 @@ Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append 
 Fetch PR metadata + comments ($1)
             |
             v
+  review.yaml scope?
+  (same head -> stop, return state;
+   pure rebase -> bump sha, stop;
+   ancestor delta or contained
+   tree-diff -> incremental;
+   else -> full review)
+            |
+            v
   Create git worktree on PR branch
             |
             v
@@ -35,16 +43,17 @@ Fetch PR metadata + comments ($1)
             |
             v
   Code Review Checklist
-  (quality, tests, architecture,
-   ops, security, docs)
+  (approach, quality, tests,
+   architecture, ops, security, docs)
             |
             v
   Context-Specific Review
   (feature / bug fix / DB / API?)
             |
             v
-  Write review-pr.$SHORT_SHA.md
-  (create or update)
+  Update review.yaml findings
+  Write review-pr.report.md
+  (full or delta-focused)
              |
              v
    Post review file
@@ -64,8 +73,10 @@ ghx pr view $1 --repo "$REPO" --comments --refresh > "$PR_REVIEW_DIR/gh-pr-view.
 Extract:
 - `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch origin "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
 - `HEAD_BRANCH`: the PR's head branch name (`headRefName`)
+- `PR_STATE`: the PR state (`state` field in the `gh-pr-view.md` cache: `OPEN`, `CLOSED`, or `MERGED`)
 
 ```bash
 gh pr view $1 --repo "$REPO" --json headRefName --jq '.headRefName'
@@ -74,6 +85,16 @@ gh pr view $1 --repo "$REPO" --json headRefName --jq '.headRefName'
 ```bash
 ISSUE_NUMBER=$(gh pr view $1 --repo "$REPO" --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
 ```
+
+### Re-review scope (reuse the previous run when possible)
+
+Read the review state file `$PR_REVIEW_DIR/review.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before doing any analysis: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental review, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full review. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+
+- Evaluate only the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff), re-confirming every `open` finding in the state file against it, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
+- Do not re-evaluate code the delta does not touch, and keep the previous verdict unless the delta invalidates it.
+- Add findings for problems in the new code only.
 
 Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context. If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
 
@@ -120,6 +141,36 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 	* Should these be split into separate PRs for clarity?
 	* Do irrelevant changes obscure the actual changes being reviewed?
 
+### Approach & Simplicity
+
+Judge the chosen approach, not just the code. These findings are invisible in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
+
+For each significant mechanism the PR introduces (new dependency, new abstraction, new data format, new pattern), answer:
+
+* Alternatives
+	* Name at least one alternative approach and why the chosen one wins
+	* If no alternative comes to mind, you have not understood the choice yet; investigate before approving
+* Simplest sufficient
+	* Could the same behavior ship with meaningfully less machinery (fewer files, no new abstraction, an existing helper)?
+	* Speculative generality (a single implementation with no named future consumer) is a finding
+* Proportionality
+	* Is the machinery proportional to the problem (a plugin system for one implementation, a config framework for three settings)?
+* Reinvention
+	* Does the codebase or a dependency already provide this?
+	* A reinvented utility is a finding even when well-written
+* One way to do it
+	* Does the PR add a second mechanism for something the codebase already standardizes (logging, config, error types, persistence access, HTTP wrappers)?
+* Change-cost scenarios
+	* Pick the 1-2 most plausible future changes (new field in the persisted model, swapped storage backend, new caller for this API) and count what would have to change
+	* A small requirement change with wide fan-out is a finding; name the touch points
+* Wrong layer
+	* Is the logic at the layer where the codebase handles similar concerns (validation, formatting, access control)?
+
+Rules for findings in this section:
+
+* Every approach finding must name the concrete future change that becomes expensive, or the alternative it loses to
+* If you cannot name a change scenario or an alternative, do not file the finding; unfalsifiable approach critique is taste, not review
+
 ### Code Quality & Design
 
 * Naming Conventions
@@ -128,8 +179,8 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 		* Are they clear enough?
 		* Are they respecting the naming convention?
 * Design Principles
-	* Does the code respect [SOLID](https://en.wikipedia.org/wiki/SOLID)?
-	* Is the code following existing design patterns in the codebase?
+	* Does the code respect [SOLID](https://en.wikipedia.org/wiki/SOLID)? (class-level judgment; approach-level judgment lives in Approach & Simplicity above)
+	* Is the code following existing design patterns in the codebase? (name the pattern; if you cannot, do the directed search in Approach & Simplicity)
 	* Are there code duplications that violate DRY principle?
 * Magic Numbers & Dead Code
 	* Are magic numbers/strings extracted as constants or configuration?
@@ -275,19 +326,21 @@ Indicate the date+time (using ISO 8601 format) the file was generated in the fil
 
 Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers surface at the top.
 
-Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
+Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
+
+Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable. Writing this section is the forcing function for the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict.
 
 Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table. Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing. Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
 
-When reviewing, write the response to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`), substituting the 7-character short SHA of the head commit being reviewed.
-Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
-If a file already exists for this `$SHORT_SHA`, update the file with the new information and tell me what changes have been made since the last review.
-If reviewing a new `$SHORT_SHA`, create a new file. To find the baseline for the "what changed" summary, glob `$PR_REVIEW_DIR/review-pr.*.md` (excluding `review-pr.$SHORT_SHA.md`), read the reviewed SHA from each filename (the segment between `review-pr.` and `.md`), and select the one whose commit is the most recent ancestor of the current `$SHORT_SHA` (compare with `git merge-base --is-ancestor`); fall back to the newest by file mtime if no ancestor is found. Read that file to summarize what has changed since that review. (This directory is user-global under `$HOME`; where it does not persist across runs, no baseline is found and the review proceeds fresh.)
+First update the review state file `$PR_REVIEW_DIR/review.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`). `title` is a finding's identity: when a delta looks like an existing finding, update that entry instead of adding a duplicate. `first_seen_sha` is informational provenance. Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+
+Then write the review to `$PR_REVIEW_DIR/review-pr.report.md`, overwriting the previous report (resolving per `sdlc/references/shared.md`). A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
+Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA, `HEAD_TREE` with the head commit's tree hash, and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
 
 ### Example Output
 
 ```
-<!-- {"step":"review-pr","sha":"a1b2c3d","verdict":"fail"} -->
+<!-- {"step":"review-pr","sha":"a1b2c3d","tree":"3f9c2e1","verdict":"fail"} -->
 # Review of PR #42: Add payment processing endpoint
 
 🟢 **Approved with minor suggestions**
@@ -297,14 +350,28 @@ Reviewed SHA: `a1b2c3d`
 ## Summary
 
 The PR implements the Stripe payment endpoint per the acceptance criteria
-in #37. Implementation is clean, well-tested, and follows existing patterns
-in `src/payments/`. One blocking issue plus two non-blocking suggestions below.
+in #37. The endpoint follows existing patterns in `src/payments/` and is
+well-tested, but the client hand-rolls a retry loop the codebase already
+solves. One blocking issue plus three non-blocking suggestions below.
+
+## Approach
+
+The PR adds a `requests`-based client whose `create_payment` hand-rolls a
+retry loop (3 fixed attempts, no backoff) over a module-level
+`requests.Session`, exposed through a new `POST /payments` route in
+`src/payments/routes.py`.
+
+| Decision | Alternatives considered | Why chosen | Change-cost |
+|---|---|---|---|
+| Hand-rolled retry loop in `client.py` | `@retry` helper (`src/api/middleware.py`) | Not stated in the PR | Any retry-policy change (backoff, jitter, retryable errors) edits the loop in place while every other call site changes one decorator argument |
+| Endpoint in `src/payments/routes.py` | Reuse the generic resource router in `src/api/` | Follows the existing `src/payments/` module layout | Low |
 
 ## Checklist
 
 | Section | Status | Notes |
 |---|---|---|
 | Scope & Relevance | 🟢 | No unrelated changes |
+| Approach & Simplicity | 🟡 | Retry loop duplicates the existing `@retry` helper |
 | Code Quality & Design | 🟢 | SOLID, naming, no duplication |
 | Testing & Coverage | 🟡 | Webhook signature verification and API key loading untested |
 | Architecture & Structure | 🟢 | Follows existing `src/payments/` patterns |
@@ -319,6 +386,15 @@ in `src/payments/`. One blocking issue plus two non-blocking suggestions below.
 `src/payments/client.py:8` contains `sk_test_4eC39HqLy...`. Move it to an
 environment variable (`STRIPE_API_KEY`) and load via `os.environ`.
 Verified it is not in `.env.example` either, so add it there as well.
+
+### 🟡 SHOULD / Approach & Simplicity / Reuse the existing retry helper
+
+`src/payments/client.py:12` hand-rolls a retry loop with 3 fixed attempts and
+no backoff. The codebase already has a parameterized `@retry` helper in
+`src/api/middleware.py:40`, used by every other outbound call. If the retry
+policy ever changes (backoff, jitter, which errors are retryable), this loop
+must be edited in place while every other call site changes one decorator
+argument. Reuse the helper, or record why it cannot apply here.
 
 ### 🟡 SHOULD / Operational Concerns / Add rate limiting on the endpoint
 
@@ -387,15 +463,15 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`. Posting it as a PR comment is decided by `should-post-to-github`.
+The review is saved to `$PR_REVIEW_DIR/review-pr.report.md`. Posting it as a PR comment is decided by `should-post-to-github`.
 
-After writing `review-pr.$SHORT_SHA.md`, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`.
+After writing `review-pr.report.md`, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
 
-If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md")
+gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.report.md")
 
 ${FOOTER}"
 ```
@@ -424,7 +500,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /review-pr 42
 ```
-PR adds a payment processing endpoint. Review checks code quality and architecture, notes test-quality gaps, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit. (Conformance to the acceptance criteria is `/verify-pr`'s verdict.)
+PR adds a payment processing endpoint. Review checks the approach (flags a hand-rolled retry loop that duplicates the existing `@retry` helper), code quality and architecture, notes test-quality gaps, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit. (Conformance to the acceptance criteria is `/verify-pr`'s verdict.)
 
 **Scenario 2: Bug fix PR**
 ```
@@ -436,7 +512,7 @@ PR fixes a null pointer. Review checks that the change is localized and the new 
 ```
 /review-pr 55
 ```
-`review-pr.<previous-sha>.md` already exists from a previous run on an earlier commit. Create `review-pr.<new-sha>.md`, read the previous file to summarize what changed since the last review (e.g., "Test coverage added, rate limit not yet addressed").
+`review.yaml` already carries findings from a previous run on an earlier commit (an ancestor of the new head). Review incrementally: evaluate only the delta against the previous feedback, flip the `status` of findings the new commits resolve (e.g., "Test coverage added, rate limit not yet addressed"), add findings for problems in the new code only, and render a short delta-focused `review-pr.report.md`.
 
 ## Useful Commands Reference
 
