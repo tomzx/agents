@@ -61,7 +61,8 @@ All acceptance criteria met?
 10. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
 11. Ensure all acceptance criteria are met.
 12. Check for code quality issues (naming, duplication, dead code).
-13. Run the full test suite and confirm it passes.
+13. Review the full diff and confirm the important parts of the changed code are covered by tests (see Test Coverage of Changes below).
+14. Run the full test suite and confirm it passes.
 
 ## Branching Strategy
 
@@ -99,6 +100,17 @@ git pull
 git rebase origin/main
 ```
 
+## Test Coverage of Changes
+
+Before marking the task done, review the full diff (`git diff main`) and verify the important parts of the change are covered by tests. The important parts are:
+
+- New public functions, methods, classes, and API endpoints.
+- Changed logic: branches added, modified, or removed; changed conditions and error paths.
+- Bug fixes: a regression test that fails without the fix and passes with it.
+- Lifecycle rules, invariants, and transition guards (per the lifecycle document, if present).
+
+Not every line needs a test. Skip boilerplate, trivial accessors, and code the framework or type system already guarantees. If an important part is impractical to test directly (e.g. requires external services), cover it with the closest practical test or note the gap in the task or PR description.
+
 ## Implementation Guidelines
 
 - Follow the existing code style and naming conventions in the codebase.
@@ -107,6 +119,7 @@ git rebase origin/main
 - Handle error cases at system boundaries; trust internal code and framework guarantees.
 - Do not introduce new dependencies unless specified in the plan.
 - Ensure new code is covered by the tests defined in the test plan.
+- Ensure the important parts of the changed code are covered by tests (see Test Coverage of Changes above).
 - Design public contracts and persisted data for evolution: tolerate unknown fields, handle unknown enum values gracefully, and prefer additive changes so future versions stay forward compatible.
 
 ## Checklist Before Marking Done
@@ -117,6 +130,7 @@ git rebase origin/main
 - [ ] Analytics events implemented per telemetry plan (if present)
 - [ ] Logging, metrics, tracing, and health checks implemented per observability plan (if present)
 - [ ] Tests written and passing
+- [ ] Important parts of the diff covered by tests (new public code, changed logic, regression tests for fixes)
 - [ ] No linting or type errors
 - [ ] No dead code or commented-out code introduced
 - [ ] Public contracts and persisted data tolerate future additions (forward compatible)
