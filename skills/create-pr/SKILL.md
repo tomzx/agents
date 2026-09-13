@@ -7,7 +7,12 @@ argument-hint: "[repository] [issue-number]"
 
 # Create Pull Request
 
-Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers. Whether the PR is created on GitHub (and visual-proof assets uploaded, reviewers assigned) is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`); when posting is disabled it drafts the description and shows it for review instead. It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens. It does not capture recordings itself; recording happens at human-review time, before the PR exists. It also surfaces the design decisions the implementation made: recorded ADRs are pulled from `.sdlc/knowledge/decisions/`, and ad-hoc choices made while implementing are summarized, both in a Design decisions section (moved to a follow-up PR comment when the description would grow unwieldy).
+Opens a GitHub pull request for the current branch with a structured description that maps implementation changes to acceptance criteria, links the originating issue, and requests reviewers.
+Whether the PR is created on GitHub (and visual-proof assets uploaded, reviewers assigned) is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`); when posting is disabled it drafts the description and shows it for review instead.
+It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens.
+It does not capture recordings itself; recording happens at human-review time, before the PR exists.
+It also surfaces the design decisions the implementation made: recorded ADRs are pulled from `.sdlc/knowledge/decisions/`, and ad-hoc choices made while implementing are summarized, both in a Design decisions section (moved to a follow-up PR comment when the description would grow unwieldy).
+After creation it posts a few inline context comments via `ghx` where the diff is not self-explanatory, to spare reviewers reverse-engineering the change.
 
 ## Prerequisites
 
@@ -17,9 +22,12 @@ Opens a GitHub pull request for the current branch with a structured description
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)
 - Tests passing locally before the PR is opened
-- For visual proof (captured beforehand): run [`/validate-implementation`](../validate-implementation/SKILL.md) on the branch first. It records a CLI demo (via [`/record-asciinema`](../record-asciinema/SKILL.md)) or a web screenshot (via [`/record-playwright`](../record-playwright/SKILL.md)) and writes `$PROOF_DIR/captured-proof.json`. If that manifest is absent, `create-pr` omits the Visual proof section and suggests running `/validate-implementation` first (it never captures on its own).
+- For visual proof (captured beforehand): run [`/validate-implementation`](../validate-implementation/SKILL.md) on the branch first.
+  It records a CLI demo (via [`/record-asciinema`](../record-asciinema/SKILL.md)) or a web screenshot (via [`/record-playwright`](../record-playwright/SKILL.md)) and writes `$PROOF_DIR/captured-proof.json`.
+  If that manifest is absent, `create-pr` omits the Visual proof section and suggests running `/validate-implementation` first (it never captures on its own).
 
-> **Note:** This skill uses `gh` (GitHub CLI) directly. For a Graphite-based workflow that diffs against the Graphite parent branch, use `/create-pr-description` instead.
+> **Note:** This skill uses `gh` (GitHub CLI) directly.
+> For a Graphite-based workflow that diffs against the Graphite parent branch, use `/create-pr-description` instead.
 
 ### Skill attribution (GitHub)
 
@@ -81,6 +89,9 @@ stop           |
            gh pr create (draft if incomplete)
                 |
                 v
+           Add context comments via ghx (only where they add signal)
+                |
+                v
            Assign reviewers (if known)
 ```
 
@@ -93,7 +104,8 @@ stop           |
    If no commits, stop and inform the user.
 
 2. Confirm tests pass before opening:
-   Run the project's test command. If tests fail, stop and list the failures.
+   Run the project's test command.
+   If tests fail, stop and list the failures.
 
 3. Compute the diff against the base branch:
    ```
@@ -109,13 +121,19 @@ stop           |
 
 5. Collect the design decisions this PR implements, from two optional sources:
 
-   **Recorded decisions (ADRs).** List `.sdlc/knowledge/decisions/` (apply the `SDLC_DIR` read fallback in `shared.md` when the repo path is absent) and keep the decisions relevant to this PR: those whose frontmatter or body references the feature (`FEAT-N`, the issue number, or the feature slug), or whose file was created after the merge-base commit date. Skip entries whose status is `Superseded` (they no longer describe this code).
+   **Recorded decisions (ADRs).** List `.sdlc/knowledge/decisions/` (apply the `SDLC_DIR` read fallback in `shared.md` when the repo path is absent) and keep the decisions relevant to this PR: those whose frontmatter or body references the feature (`FEAT-N`, the issue number, or the feature slug), or whose file was created after the merge-base commit date.
+   Skip entries whose status is `Superseded` (they no longer describe this code).
 
-   **Ad-hoc decisions made while implementing.** From the implementation context and the diff, identify choices that shaped the code and that a reviewer would otherwise have to reverse-engineer: the approach taken over a plausible alternative, a library or algorithm choice, a data-model trade-off, complexity deliberately deferred. Summarize each as one bullet (decision, rejected alternative, reason). Do not include style-level choices or anything an ADR already covers.
+   **Ad-hoc decisions made while implementing.** From the implementation context and the diff, identify choices that shaped the code and that a reviewer would otherwise have to reverse-engineer: the approach taken over a plausible alternative, a library or algorithm choice, a data-model trade-off, complexity deliberately deferred.
+   Summarize each as one bullet (decision, rejected alternative, reason).
+   Do not include style-level choices or anything an ADR already covers.
 
-   If neither source yields anything, omit the Design decisions section entirely. When there are more than five decisions, plan to move them to a follow-up comment (see step 10).
+   If neither source yields anything, omit the Design decisions section entirely.
+   When there are more than five decisions, plan to move them to a follow-up comment (see step 10).
 
-6. Resolve the visual proof to embed. `create-pr` consumes proof captured beforehand by [`/validate-implementation`](../validate-implementation/SKILL.md); it does not capture recordings itself. Resolve the proof directory and detect what is available:
+6. Resolve the visual proof to embed.
+   `create-pr` consumes proof captured beforehand by [`/validate-implementation`](../validate-implementation/SKILL.md); it does not capture recordings itself.
+   Resolve the proof directory and detect what is available:
 
    ```bash
    REPO="${1:-$REPO}"
@@ -129,7 +147,8 @@ stop           |
    test -f "$PROOF_DIR/captured-proof.json"
    ```
 
-   If present, read it. It is authoritative for which assets to embed:
+   If present, read it.
+   It is authoritative for which assets to embed:
 
    ```json
    {
@@ -140,17 +159,22 @@ stop           |
    }
    ```
 
-   Embed exactly the files listed in `assets` (resolved against `$PROOF_DIR`), in listed order. Render Before / After layout when `mode` is `bugfix-pair` (or `bugfix-before-only`, embedding just the before with a note that after is pending via `/validate-implementation`). Render the single-asset block when `mode` is `single`.
+   Embed exactly the files listed in `assets` (resolved against `$PROOF_DIR`), in listed order.
+   Render Before / After layout when `mode` is `bugfix-pair` (or `bugfix-before-only`, embedding just the before with a note that after is pending via `/validate-implementation`).
+   Render the single-asset block when `mode` is `single`.
 
    **Partial state — before only, no manifest yet:** If `captured-proof.json` is absent but `$PROOF_DIR/proof-manifest.txt` exists (reproduce-issue captured a before, but `/validate-implementation` has not yet produced the after), embed the existing `$PROOF_DIR/before-bug.*` alone with a note that the after recording is pending, and suggest running `/validate-implementation` to complete the pair.
 
-   **No proof captured:** If neither manifest exists, omit the Visual proof section entirely and note in the PR description (or in console output before creation) that `/validate-implementation` can capture proof. Do not attempt to capture here.
+   **No proof captured:** If neither manifest exists, omit the Visual proof section entirely and note in the PR description (or in console output before creation) that `/validate-implementation` can capture proof.
+   Do not attempt to capture here.
 
     This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
 
-7. Decide whether to create the PR on GitHub: set `PR_AUTHOR=$(gh api user --jq .login)` and run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip asset upload and PR creation: present the draft description to the user (referencing local file paths for any proof) and stop.
+7. Decide whether to create the PR on GitHub: set `PR_AUTHOR=$(gh api user --jq .login)` and run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
+   If it exits 1, skip asset upload and PR creation: present the draft description to the user (referencing local file paths for any proof) and stop.
 
-8. Upload the resolved asset(s) (from step 6) to the branch and note their raw URLs for the description. Upload only the assets chosen in step 6, not everything in `$PROOF_DIR`:
+8. Upload the resolved asset(s) (from step 6) to the branch and note their raw URLs for the description.
+   Upload only the assets chosen in step 6, not everything in `$PROOF_DIR`:
    ```
    for asset in "$PROOF_DIR"/<asset-from-step-6>; do
      [ -f "$asset" ] || continue
@@ -161,23 +185,33 @@ stop           |
        -f branch="$(git rev-parse --abbrev-ref HEAD)"
    done
    ```
-   When `captured-proof.json` is the source, iterate its `assets` list rather than a glob, so unrelated files in `$PROOF_DIR` are not uploaded. Omit `--repo` if the repository can be inferred from the current working directory. For each uploaded asset, derive its raw URL as `https://raw.githubusercontent.com/$1/<branch>/.create-pr-proof/<basename>`.
+   When `captured-proof.json` is the source, iterate its `assets` list rather than a glob, so unrelated files in `$PROOF_DIR` are not uploaded.
+   Omit `--repo` if the repository can be inferred from the current working directory.
+   For each uploaded asset, derive its raw URL as `https://raw.githubusercontent.com/$1/<branch>/.create-pr-proof/<basename>`.
 
-9. Draft the PR description following the output format below, including the Design decisions section from step 5 and embedding the proof if one was captured. Do not line wrap the description; each paragraph/bullet should be a single long line.
+9. Draft the PR description following the output format below, including the Design decisions section from step 5 and embedding the proof if one was captured.
+   Do not line wrap the description; each paragraph/bullet should be a single long line.
 
-10. Create the PR. Use `--draft` if any acceptance criteria are unmet:
+10. Create the PR.
+    Use `--draft` if any acceptance criteria are unmet:
    ```
    gh pr create --repo $1 --title "<title>" --body "$(cat <<'EOF'
    <description>
    EOF
    )" [--draft]
    ```
-   Omit `--repo` if the repository can be inferred from the current working directory. If the design decisions were too large for the description (more than five, per step 5), post them as a follow-up comment instead:
+   Omit `--repo` if the repository can be inferred from the current working directory.
+   If the design decisions were too large for the description (more than five, per step 5), post them as a follow-up comment instead:
    ```
    gh pr comment <pr-number> --body "<design decisions>"
    ```
 
-11. If reviewer GitHub handles are known from context, assign them:
+11. Add context comments for reviewers with `ghx`.
+    Read the diff from the reviewer's seat and post inline comments (`ghx pr comment <pr-number> --file <path> --line <n> --body "..."`) only where the change is not self-explanatory: a non-obvious workaround, a pointer to related code, a subtle trade-off not already covered by the Design decisions.
+    Judge each candidate comment by signal versus noise, not by count: post it only if it would change how a reviewer reads, tests, or trusts the code, and skip it when its value is marginal.
+    Every comment spends reviewer attention, so noise dilutes the comments that matter; skip the step entirely when nothing clears that bar, and never restate what the code already says.
+
+12. If reviewer GitHub handles are known from context, assign them:
    ```
    gh pr edit <pr-number> --add-reviewer <handle>
    ```
@@ -187,21 +221,28 @@ stop           |
 ```markdown
 # What
 
-<Present-tense summary of changes. Bullet points for multiple changes.>
+<Present-tense summary of changes.
+Bullet points for multiple changes.>
 
 # Why
 
-<Problem being solved or feature being added. Reference the issue.>
+<Problem being solved or feature being added.
+Reference the issue.>
 
 # Design decisions
 
-<One bullet per decision the implementation made: what was decided, the rejected alternative, and why. Link to the ADR when the decision was recorded. Omit this section entirely when there are no decisions. When there are more than five, post them as a follow-up comment (`gh pr comment`) and keep a one-line section here linking to it.>
+<One bullet per decision the implementation made: what was decided, the rejected alternative, and why.
+Link to the ADR when the decision was recorded.
+Omit this section entirely when there are no decisions.
+When there are more than five, post them as a follow-up comment (`gh pr comment`) and keep a one-line section here linking to it.>
 
 - <Decision> instead of <rejected alternative>, because <reason> ([ADR N](.sdlc/knowledge/decisions/N-<slug>.md))
 
 # How to test
 
-<Manual verification steps only. Exclude anything already covered by CI (lint, typecheck, unit tests, integration tests, build, etc.) since reviewers can see those results automated. Focus on steps that require human judgment or manual interaction.>
+<Manual verification steps only.
+Exclude anything already covered by CI (lint, typecheck, unit tests, integration tests, build, etc.) since reviewers can see those results automated.
+Focus on steps that require human judgment or manual interaction.>
 
 1. <Step to manually verify the change works>
 2. <Step for a manual edge case or error path>
@@ -210,7 +251,9 @@ stop           |
 
 ![demo](raw-github-url-to-asset)
 
-*Captured beforehand by `/validate-implementation`. Run `/verify-pr` for claim-by-claim conformance proof. Omit this section entirely if no proof was captured.*
+*Captured beforehand by `/validate-implementation`.
+Run `/verify-pr` for claim-by-claim conformance proof.
+Omit this section entirely if no proof was captured.*
 
 For a bug fix with a paired before/after recording, use the Before / After layout instead of the single-asset block above:
 
@@ -225,10 +268,12 @@ For a bug fix with a paired before/after recording, use the Before / After layou
 
 ![after-fix](raw-github-url-to-after-asset)
 
-*Before captured by `/reproduce-issue`; after captured by `/validate-implementation`. Run `/verify-pr` for claim-by-claim conformance proof.*
+*Before captured by `/reproduce-issue`; after captured by `/validate-implementation`.
+Run `/verify-pr` for claim-by-claim conformance proof.*
 ```
 
-If only the before asset exists (after not yet captured), keep the Before block and note that the after will be added once `/validate-implementation` is run. Omit the section entirely if no proof was captured.
+If only the before asset exists (after not yet captured), keep the Before block and note that the after will be added once `/validate-implementation` is run.
+Omit the section entirely if no proof was captured.
 
 # Acceptance criteria coverage
 
@@ -247,7 +292,8 @@ Created with [create-pr]({SKILL_FILE_URL}) (`SKILL_SHORT_SHA`)
 
 Resolve `SKILL_FILE_URL` and `SKILL_SHORT_SHA` per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md).
 
-Use `Closes #N` to auto-close the issue on merge. Use `Related to #N` if the PR only partially addresses the issue.
+Use `Closes #N` to auto-close the issue on merge.
+Use `Related to #N` if the PR only partially addresses the issue.
 
 ## Example Usage
 
@@ -261,43 +307,56 @@ Diffs branch, fetches issue #42, maps all 4 ACs to changes, creates PR with "Clo
 ```
 /create-pr owner/myrepo 88
 ```
-Issue has 5 ACs; this branch addresses 3. Creates a ready-for-review PR, marks the 2 unmet ACs as unchecked with a note, uses "Related to #88" (or drafts the description without creating the PR if posting is disabled).
+Issue has 5 ACs; this branch addresses 3.
+Creates a ready-for-review PR, marks the 2 unmet ACs as unchecked with a note, uses "Related to #88" (or drafts the description without creating the PR if posting is disabled).
 
 **Scenario 3: Housekeeping PR without an issue**
 ```
 /create-pr
 ```
-No issue provided. Creates PR with What/Why/How-to-test sections; omits AC coverage and References sections (or drafts the description without creating the PR if posting is disabled).
+No issue provided.
+Creates PR with What/Why/How-to-test sections; omits AC coverage and References sections (or drafts the description without creating the PR if posting is disabled).
 
 **Scenario 4: Incomplete implementation**
 ```
 /create-pr owner/myrepo 100
 ```
-One AC not yet met. Opens as a draft PR so it is not accidentally merged (or drafts the description without creating the PR if posting is disabled).
+One AC not yet met.
+Opens as a draft PR so it is not accidentally merged (or drafts the description without creating the PR if posting is disabled).
 
 **Scenario 5: Web UI PR with embedded visual proof**
 ```
 /create-pr owner/myrepo 130
 ```
-`/validate-implementation` was run first and wrote `/tmp/<owner>/<repo>/130/captured-proof.json` listing `pr-demo-1280x720.png`. `create-pr` reads the manifest, uploads that PNG to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately. It does not start the dev server or capture anything itself. If posting is disabled, it drafts the description with local file references without uploading or creating the PR.
+`/validate-implementation` was run first and wrote `/tmp/<owner>/<repo>/130/captured-proof.json` listing `pr-demo-1280x720.png`.
+`create-pr` reads the manifest, uploads that PNG to `.create-pr-proof/`, and embeds it in a "Visual proof" section so reviewers see the change immediately.
+It does not start the dev server or capture anything itself.
+If posting is disabled, it drafts the description with local file references without uploading or creating the PR.
 
 **Scenario 6: PR where no proof was captured**
 ```
 /create-pr owner/myrepo 130
 ```
-No `$PROOF_DIR/captured-proof.json` exists (the user skipped `/validate-implementation`). `create-pr` omits the "Visual proof" section and notes that `/validate-implementation` can capture proof first. The PR opens with the standard sections (or drafts the description without creating the PR if posting is disabled).
+No `$PROOF_DIR/captured-proof.json` exists (the user skipped `/validate-implementation`).
+`create-pr` omits the "Visual proof" section and notes that `/validate-implementation` can capture proof first.
+The PR opens with the standard sections (or drafts the description without creating the PR if posting is disabled).
 
 **Scenario 7: Bug-fix PR with paired before/after recordings**
 ```
 /create-pr owner/myrepo 42
 ```
-Branch is `fix/42-null-pointer-login`. `/validate-implementation` was run after the fix: it found `/tmp/<owner>/<repo>/42/proof-manifest.txt` (written earlier by `/reproduce-issue`, `surface: cli`), replayed that command on the fixed code into `after-fix.gif`, and wrote `captured-proof.json` with `mode: bugfix-pair` listing both `before-bug.gif` and `after-fix.gif`. `create-pr` reads the manifest, uploads both to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side. If posting is disabled, it drafts the description with local file references without uploading or creating the PR.
+Branch is `fix/42-null-pointer-login`.
+`/validate-implementation` was run after the fix: it found `/tmp/<owner>/<repo>/42/proof-manifest.txt` (written earlier by `/reproduce-issue`, `surface: cli`), replayed that command on the fixed code into `after-fix.gif`, and wrote `captured-proof.json` with `mode: bugfix-pair` listing both `before-bug.gif` and `after-fix.gif`.
+`create-pr` reads the manifest, uploads both to `.create-pr-proof/`, and renders a Before / After section in the PR body so reviewers see the bug and the fix side by side.
+If posting is disabled, it drafts the description with local file references without uploading or creating the PR.
 
 **Scenario 8: PR with design decisions**
 ```
 /create-pr owner/myrepo 42
 ```
-During implementation two ADRs were recorded under `.sdlc/knowledge/decisions/` referencing `FEAT-42`, and the implementation also chose SQLite over a flat file without recording an ADR. The description's Design decisions section links both ADRs and summarizes the ad-hoc choice with its rejected alternative and reason. A PR where neither source yields anything omits the section (or drafts the description without creating the PR if posting is disabled).
+During implementation two ADRs were recorded under `.sdlc/knowledge/decisions/` referencing `FEAT-42`, and the implementation also chose SQLite over a flat file without recording an ADR.
+The description's Design decisions section links both ADRs and summarizes the ad-hoc choice with its rejected alternative and reason.
+A PR where neither source yields anything omits the section (or drafts the description without creating the PR if posting is disabled).
 
 ## Completion Checklist
 
@@ -306,6 +365,7 @@ Before requesting review, confirm:
 - [ ] Issue linked (Closes vs Related to #N) with acceptance criteria mapped to coverage checkboxes
 - [ ] Design decisions included (description or follow-up comment), the section omitted entirely when there are none
 - [ ] Visual proof embedded if `/validate-implementation` captured it, the section omitted entirely if not (no placeholder left)
+- [ ] Context comments added via `ghx` only where each one adds signal for reviewers (omitted when nothing clears the noise bar)
 
 ## Next Step
 
@@ -322,5 +382,6 @@ Close the loop with `/create-learnings` after the feature is merged.
 | `ghx issue view <number> --repo <owner/repo>` | Fetch issue details (cached) |
 | `gh pr create --repo <repo> --title "..." --body "..." [--draft]` | Open the pull request |
 | `gh pr comment <number> --body "..."` | Post the design decisions as a follow-up comment when they are too large for the description |
+| `ghx pr comment <number> --file <path> --line <n> --body "..."` | Post an inline context comment for reviewers |
 | `gh pr edit <number> --add-reviewer <handle>` | Assign a reviewer after creation |
 | `gh api repos/<repo>/contents/<path> --method PUT -f content="$(base64 -w 0 <asset>)"` | Upload a visual-proof asset to the branch |
