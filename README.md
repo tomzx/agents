@@ -198,7 +198,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 
 | Skill | Purpose |
 |-------|---------|
-| `/create-pr` | Create a PR with a structured description linked to its issue. |
+| `/create-pr` | Create a PR with a structured description linked to its issue, including the design decisions it implements. |
 | `/review-pr` | Conduct a comprehensive code review of a PR. |
 | `/create-pr-description` | Generate a PR description based on changes. |
 | `/update-pr-description` | Update a PR description after new commits. |
