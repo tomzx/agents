@@ -93,13 +93,13 @@ For each PR:
 
 ```bash
 gh pr view $PR --repo "$REPO" \
-  --json number,headRefName,baseRefName,headRepositoryOwner,isCrossRepository,mergeable,mergeStateStatus
+  --json number,headRefName,baseRefName,headRepository,mergeable,mergeStateStatus
 ```
 
 - If `mergeable == "UNKNOWN"`, wait a few seconds and re-query. Give up after ~30 seconds; treat as "mergeable unknown" (skip, report).
 - Keep the PR if `mergeable == "CONFLICTING"` (or `mergeStateStatus == "CONFLICTING"`).
 
-For each kept PR capture: `HEAD_REF`, `BASE_REF`, and whether it is same-repo (`isCrossRepository == false`) or a fork (`isCrossRepository == true`; use `headRepositoryOwner.login` as the fork owner).
+For each kept PR capture: `HEAD_REF`, `BASE_REF`, and `HEAD_REPO` (the `headRepository.nameWithOwner`; this is the base repository itself for same-repo PRs and the author's fork for cross-repository PRs, so `https://github.com/$HEAD_REPO.git` is the correct fetch URL in both cases). Derive `FORK` as `HEAD_REPO != REPO` and `HEAD_REPO_OWNER` as `${HEAD_REPO%%/*}` (needed for fork push URLs).
 
 ### 4. Prepare one worktree per conflicting PR (reuse or create)
 
@@ -129,16 +129,16 @@ Build a task record for the PR:
 TASK = {
   PR, REPO, HEAD_REF, BASE_REF, WORKDIR (absolute),
   FORK: true|false,
-  HEAD_REPO_OWNER (for fork push)
+  HEAD_REPO (nameWithOwner; fetch/push URL target for forks)
 }
 ```
 
 If worktree setup fails for a PR, record it as skipped ("worktree setup failed") and do not dispatch a sub-agent for it.
 
-For fork PRs, create the worktree from the PR ref instead of `origin/<HEAD_REF>`:
+For fork PRs, create the worktree from a local branch fetched directly from the fork instead of `origin/<HEAD_REF>`:
 
 ```bash
-git fetch origin "pull/$PR/head:pr-$PR"
+git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_REF:pr-$PR"
 git worktree add "$WORKDIR" "pr-$PR"
 ```
 
@@ -165,7 +165,7 @@ PR number:    {PR}
 Worktree:     {WORKDIR}        (absolute path; cd here first)
 Head branch:  {HEAD_REF}       (push back here)
 Base branch:  {BASE_REF}
-Fork PR:      {FORK}           (if true, push to git@github.com:{HEAD_REPO_OWNER}/{HEAD_REPO}.git)
+Fork PR:      {FORK}           (if true, push to git@github.com:{HEAD_REPO}.git)
 Dry run:      {DRY_RUN}        (true: do not push, do not comment)
 Verify cmds:  {VERIFY_COMMANDS}  (e.g. "uv run ruff check .", "uv run pytest -q")
                (empty means no verification available)
@@ -189,8 +189,8 @@ Steps:
    - red    -> run `git merge --abort`, return verdict "verify-failed" with output
 7. Commit the merge: git commit --no-edit
 8. Unless DRY_RUN is true:
-     - push: git push origin {HEAD_REF}
-       (fork: git push git@github.com:{HEAD_REPO_OWNER}/{HEAD_REPO}.git {LOCAL_BRANCH}:{HEAD_REF})
+      - push: git push origin {HEAD_REF}
+        (fork: git push git@github.com:{HEAD_REPO}.git {LOCAL_BRANCH}:{HEAD_REF})
      - post a short comment via gh pr comment {PR} --repo {REPO} with the list of
        resolved files and the resolve-pr-conflicts attribution footer
        (see skills/github-post-attribution/SKILL.md). Never force-push.
@@ -292,7 +292,7 @@ Falls back to sequential processing in the current session, same resolution rule
 | Command | Description |
 |---|---|
 | `gh search prs --author @me --state open --repo <owner/repo> --json number,title` | List the current user's open PRs in a repo |
-| `gh pr view <pr> --json mergeable,mergeStateStatus,headRefName,baseRefName,headRepositoryOwner,isCrossRepository` | Detect conflicts and fetch branch names (poll if `mergeable` is `UNKNOWN`) |
+| `gh pr view <pr> --json mergeable,mergeStateStatus,headRefName,baseRefName,headRepository` | Detect conflicts and fetch branch names plus the head repo (`nameWithOwner`, works for forks; poll if `mergeable` is `UNKNOWN`) |
 | `git worktree list --porcelain` | Find an existing worktree on a branch (reuse path) |
 | `git worktree add <path> <branch>` | Create a worktree on a PR head branch (orchestrator only) |
 | `git merge origin/<base> --no-edit` | Reproduce the conflict by merging the base branch (sub-agent) |

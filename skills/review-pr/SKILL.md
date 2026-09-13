@@ -73,13 +73,14 @@ ghx pr view $1 --repo "$REPO" --comments --refresh > "$PR_REVIEW_DIR/gh-pr-view.
 Extract:
 - `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
-- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch origin "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
+- `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
 - `HEAD_BRANCH`: the PR's head branch name (`headRefName`)
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_STATE`: the PR state (`state` field in the `gh-pr-view.md` cache: `OPEN`, `CLOSED`, or `MERGED`)
 
 ```bash
-gh pr view $1 --repo "$REPO" --json headRefName --jq '.headRefName'
+gh pr view $1 --repo "$REPO" --json headRefName,headRepository --jq '"\(.headRepository.nameWithOwner) \(.headRefName)"'
 ```
 
 ```bash
@@ -101,10 +102,10 @@ Create a git worktree on the PR branch so full files (not just diff hunks) can b
 ```bash
 _WORKTREE_OWNER=false
 if [ -z "${WORKTREE_DIR:-}" ]; then
-  git fetch origin $HEAD_BRANCH
+  git fetch "https://github.com/$HEAD_REPO.git" $HEAD_BRANCH
   WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
   mkdir -p /tmp/sdlc/$REPO
-  git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+  git worktree add $WORKTREE_DIR FETCH_HEAD
   _WORKTREE_OWNER=true
 fi
 ```
@@ -521,5 +522,5 @@ PR fixes a null pointer. Review checks that the change is localized and the new 
 | `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
 | `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
 | `gh pr comment <pr-number> --repo <owner>/<repo> --body "..."` | Post review summary comment to the PR |
-| `git worktree add /tmp/sdlc/<owner>/<repo>/<issue> origin/<branch>` | Create a worktree on the PR branch for code reading |
+| `git fetch https://github.com/<headOwner>/<headRepo>.git <branch> && git worktree add /tmp/sdlc/<owner>/<repo>/<issue> FETCH_HEAD` | Create a worktree on the PR branch for code reading (works for fork PRs) |
 | `git worktree remove /tmp/sdlc/<owner>/<repo>/<issue>` | Clean up the worktree after review |

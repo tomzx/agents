@@ -9,10 +9,10 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), checks each one for commits that are newer than the latest validate-pr / verify-pr / review-pr marker, and runs only the stale review steps in order: `/validate-pr`, then `/verify-pr`, then `/review-pr`.
 
-Each sub-skill posts a comment (or writes locally when posting is disabled) with an HTML marker containing a JSON object with the step name, commit SHA, and verdict:
+Each sub-skill posts a comment (or writes locally when posting is disabled) with an HTML marker containing a JSON object with the step name, commit SHA, tree hash, and verdict:
 
 ```
-<!-- {"step":"validate-pr","sha":"abc123","verdict":"pass"} -->
+<!-- {"step":"validate-pr","sha":"abc123","tree":"3f9c2e1","verdict":"pass"} -->
 ```
 
 The verdict is either `pass` (continue to the next step) or `fail` (halt the pipeline for this PR). Each sub-skill maps its own verdict vocabulary to these two values:
@@ -107,13 +107,19 @@ For each PR that needs processing, create a shared git worktree once and reuse i
 
 #### 3a. Create the shared worktree
 
-Before dispatching the first stale step for a PR, fetch the PR's head branch and create the worktree:
+Before dispatching the first stale step for a PR, resolve where the PR's head lives. The head may be on a fork rather than the base repository, so query the head repository up front instead of assuming `origin`:
 
 ```bash
-git fetch origin $HEAD_BRANCH
+gh pr view $PR_NUMBER --repo $REPO --json headRefName,headRepository --jq '"\(.headRepository.nameWithOwner) \(.headRefName)"'
+```
+
+Set `HEAD_REPO` from `headRepository.nameWithOwner`. For same-repo PRs this is the base repository itself; for cross-repository PRs it is the fork, so `https://github.com/${HEAD_REPO}.git` is the correct fetch URL in both cases. Set `HEAD_BRANCH` from `headRefName`. Then create the worktree:
+
+```bash
 WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
 mkdir -p /tmp/sdlc/$REPO
-git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+git fetch https://github.com/$HEAD_REPO.git $HEAD_BRANCH
+git worktree add $WORKTREE_DIR FETCH_HEAD
 ```
 
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.

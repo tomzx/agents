@@ -93,18 +93,20 @@ The steps are already in the correct execution order (validate-pr before verify-
 
 ### 3. Create the shared worktree
 
-Before dispatching the first stale step, fetch the PR's head branch and create a worktree that all stale steps will reuse:
+Before dispatching the first stale step, resolve where the PR's head lives. The head may be on a fork rather than the base repository, so query the head repository up front instead of assuming `origin`:
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json headRefName --jq '.headRefName'
+gh pr view $PR_NUMBER --repo $REPO --json headRefName,headRepository --jq '"\(.headRepository.nameWithOwner) \(.headRefName)"'
 ```
+
+Set `HEAD_REPO` from `headRepository.nameWithOwner`. For same-repo PRs this is the base repository itself; for cross-repository PRs it is the fork, so `https://github.com/${HEAD_REPO}.git` is the correct fetch URL in both cases. Set `HEAD_BRANCH` from `headRefName`. Then create the worktree that all stale steps will reuse:
 
 ```bash
 ISSUE_NUMBER=$(gh pr view $PR_NUMBER --repo $REPO --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
 WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
 mkdir -p /tmp/sdlc/$REPO
-git fetch origin $HEAD_BRANCH
-git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+git fetch https://github.com/$HEAD_REPO.git $HEAD_BRANCH
+git worktree add $WORKTREE_DIR FETCH_HEAD
 ```
 
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.

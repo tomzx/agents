@@ -96,7 +96,7 @@ Clean up worktree
 ### 1. Fetch PR metadata, diff, and linked issue(s)
 
 ```bash
-gh pr view $PR_NUMBER --repo $REPO --json title,body,state,headRefName,headRefOid,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
+gh pr view $PR_NUMBER --repo $REPO --json title,body,state,headRefName,headRefOid,headRepository,author,baseRefName,files,additions,deletions,changedFiles,closingIssuesReferences
 ```
 
 ```bash
@@ -107,9 +107,10 @@ Extract:
 - PR title and description (body) with claims
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
-- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch origin "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
+- `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
 - Head branch name (`headRefName`), base branch name (`baseRefName`)
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
@@ -193,10 +194,10 @@ If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requeste
 ```bash
 _WORKTREE_OWNER=false
 if [ -z "${WORKTREE_DIR:-}" ]; then
-  git fetch origin $HEAD_BRANCH
+  git fetch "https://github.com/$HEAD_REPO.git" $HEAD_BRANCH
   WORKTREE_DIR=/tmp/sdlc/$REPO/${ISSUE_NUMBER:-pr-$PR_NUMBER}
   mkdir -p /tmp/sdlc/$REPO
-  git worktree add $WORKTREE_DIR origin/$HEAD_BRANCH
+  git worktree add $WORKTREE_DIR FETCH_HEAD
   _WORKTREE_OWNER=true
 fi
 ```
