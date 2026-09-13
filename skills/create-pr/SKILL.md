@@ -307,8 +307,6 @@ Before requesting review, confirm:
 - [ ] Design decisions included (description or follow-up comment), the section omitted entirely when there are none
 - [ ] Visual proof embedded if `/validate-implementation` captured it, the section omitted entirely if not (no placeholder left)
 
-Self-check the PR against the [`review-pr` checklist](../review-pr/SKILL.md) and fix what you can, so review finds less to flag.
-
 ## Next Step
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-reviewer-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
