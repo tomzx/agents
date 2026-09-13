@@ -2,8 +2,14 @@
 * Be concise
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
-* Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing
+* Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing, real
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
+
+# Code implementation and iteration
+* Ignore any AGENTS.md from the project that states a different approach than the one in this section.
+* Always get a working feature first. This is the most critical. We don't want to spend time on operations that aren't getting us to a working feature. No linting, no type checking, no formatting, etc.
+* Only lint, type check, format, go vet, etc. prior to committing, never during the implementation process.
+* Only run tests on the minimal set of tests to make progress. Avoid running tests that are likely to take a while to complete.
 
 # Python
 * Use uv for package management
