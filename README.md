@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-219-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-220-green" alt="Skill count">
 </p>
 
 ## What
@@ -125,6 +125,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/create-domain-model` | Model an unfamiliar domain (entities, relationships, glossary, invariants) as a one-off. |
 | `/review-domain-model` | Review a domain model for coverage, vocabulary, and invariant validity. |
 | `/create-mermaid-visualization` | Create any Mermaid diagram (flowchart, sequence, class, ER, C4, gantt, mindmap, 30+ types) with type selection, syntax references, and validation. |
+| `/create-svg-image` | Create hand-authored SVG diagrams and visualizations following a bundled style guide, with geometry math, renderer portability, and a validation loop. |
 
 ### Issue & Requirements
 
