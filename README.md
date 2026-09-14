@@ -124,6 +124,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 |-------|---------|
 | `/create-domain-model` | Model an unfamiliar domain (entities, relationships, glossary, invariants) as a one-off. |
 | `/review-domain-model` | Review a domain model for coverage, vocabulary, and invariant validity. |
+| `/create-mermaid-visualization` | Create any Mermaid diagram (flowchart, sequence, class, ER, C4, gantt, mindmap, 30+ types) with type selection, syntax references, and validation. |
 
 ### Issue & Requirements
 
