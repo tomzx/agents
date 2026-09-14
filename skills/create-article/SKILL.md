@@ -62,10 +62,12 @@ Skip visualizations for short or purely narrative pieces, and never add one that
 **Choosing a format:**
 
 - **SVG (default)**: Write each visualization as an SVG file stored next to the article, and reference it with a repository-relative path.
+  Follow the `create-svg-image` skill for creating the SVG.
   SVG is the most expressive option: full control over layout, color, typography, and annotations, and it looks consistent in any viewer.
   It covers everything from charts and annotated illustrations to precise technical diagrams.
   Verify the referenced file exists before finalizing the article.
-- **Mermaid**: Use a fenced code block marked `mermaid` for simple flowcharts, sequence diagrams, and state diagrams where the built-in layout is enough and a hand-built SVG would add little.
+- **Mermaid**: Use a fenced code block marked `mermaid` for any Mermaid diagram type (flowcharts, sequence diagrams, state diagrams, ER diagrams, Gantt charts, mindmaps, timelines, and more) where the built-in layout is enough and a hand-built SVG would add little.
+  Follow the `create-mermaid-visualization` skill for diagram type selection, syntax, and validation.
   It renders on GitHub and most markdown viewers, keeps the article self-contained, and diffs cleanly.
   Example:
 
