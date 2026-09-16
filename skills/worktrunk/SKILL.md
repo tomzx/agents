@@ -19,7 +19,8 @@ Reference files are synced from [worktrunk.dev](https://worktrunk.dev) documenta
 - **reference/llm-commits.md**: LLM commit message generation
 - **reference/tips-patterns.md**: Language-specific tips and patterns
 - **reference/shell-integration.md**: Shell integration debugging
-- **reference/troubleshooting.md**: Troubleshooting for LLM and hooks (Claude-specific)
+- **reference/troubleshooting.md**: Troubleshooting for LLM and hooks
+- **reference/agent-integration.md**: Agent CLI plugins (installation, activity tracking)
 
 For command-specific options, run `wt <command> --help`. For configuration, follow the workflows below.
 
@@ -67,10 +68,10 @@ Most common request. See `reference/llm-commits.md` for supported tools and exac
 
 1. **Detect available tools**
    ```bash
-   which claude codex llm aichat 2>/dev/null
+   which codex llm aichat 2>/dev/null
    ```
 
-2. **If none installed, recommend Claude Code** (already available in Claude Code sessions)
+2. **If none installed, recommend installing one** (see `reference/llm-commits.md` for supported tools)
 
 3. **Propose config change** — Get the exact command from `reference/llm-commits.md`
    ```toml
@@ -266,7 +267,7 @@ Two resolutions exist — pick based on who the agent is running for:
 
 ## Advanced: Agent Handoffs
 
-When the user requests spawning a worktree with an agent in a background session ("spawn a worktree for...", "hand off to another agent"), use the appropriate pattern for their terminal multiplexer. Substitute `<agent-cli>` with the CLI you are running as: `claude` for Claude Code, `'opencode run'` for OpenCode.
+When the user requests spawning a worktree with an agent in a background session ("spawn a worktree for...", "hand off to another agent"), use the appropriate pattern for their terminal multiplexer. Substitute `<agent-cli>` with the command that launches your agent CLI (e.g. `'opencode run'` for OpenCode).
 
 **tmux** (check `$TMUX` env var):
 ```bash
@@ -285,9 +286,9 @@ zellij run -- wt switch --create <branch-name> -x <agent-cli> -- '<task descript
 
 **Do not use this pattern** for normal worktree operations.
 
-Example (tmux, Claude Code):
+Example (tmux, OpenCode):
 ```bash
-tmux new-session -d -s fix-auth-bug "wt switch --create fix-auth-bug -x claude -- \
+tmux new-session -d -s fix-auth-bug "wt switch --create fix-auth-bug -x 'opencode run' -- \
   'The login session expires after 5 minutes. Find the session timeout config and extend it to 24 hours.'"
 ```
 
@@ -296,22 +297,3 @@ Example (Zellij, OpenCode):
 zellij run -- wt switch --create fix-auth-bug -x 'opencode run' -- \
   'The login session expires after 5 minutes. Find the session timeout config and extend it to 24 hours.'
 ```
-
-### Parallel sub-Agents (single Claude Code session)
-
-To spawn multiple sub-Agents that each work in their own worktree from one Claude Code session — no terminal multiplexer, no human in the other pane — pre-start each worktree from the parent and pass the path into the sub-Agent prompt:
-
-```bash
-wt switch --create <branch> --no-cd --no-hooks
-```
-
-Then call the `Agent` tool **without** `isolation: "worktree"`, naming the path in the prompt:
-
-```
-You are working in `/abs/path/to/worktrunk.<branch>` on branch `<branch>`.
-All edits must stay in that worktree.
-```
-
-`--no-cd` skips the shell-integration cd script the parent can't consume; `--no-hooks` is appropriate when each sub-Agent will run its own build/test step (e.g. `cargo run -- hook pre-merge --yes`) and you don't need post-start setup repeated per worktree.
-
-**Do not** use `Agent { isolation: "worktree" }` for this. Claude Code passes its internal agent ID as `name` to the `WorktreeCreate` hook, so `wt` creates the worktree as `worktrunk.agent-<id>` on a throwaway branch. If the sub-Agent then creates a feature branch on top, you end up with non-canonical paths, orphan branches, and post-start hooks fired against the wrong branch. Pre-creating with `wt switch --create` keeps path, branch, and hook target aligned.

@@ -7,7 +7,7 @@
 for memory extraction.
 
 agentsview syncs session transcripts from every supported coding agent
-(Claude Code, Codex, OpenCode, Gemini, Copilot, etc.) into a single SQLite
+(Codex, OpenCode, Gemini, Copilot, etc.) into a single SQLite
 archive. This script reads that archive read-only, tracks which sessions have
 already been turned into memory, and emits structured JSON or ready-to-paste
 timeline markdown grouped by day.

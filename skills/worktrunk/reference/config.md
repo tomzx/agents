@@ -42,9 +42,6 @@ Organizations can deploy a system-wide config file for shared defaults — run `
 ```toml
 # ~/.config/worktrunk/config.toml
 worktree-path = ".worktrees/{{ branch | sanitize }}"
-
-[commit.generation]
-command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"
 ```
 
 **Project config** — shared team settings:
@@ -131,13 +128,6 @@ worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 ## LLM commit messages
 
 Generate commit messages automatically during merge. Requires an external CLI tool.
-
-### Claude Code
-
-```toml
-[commit.generation]
-command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"
-```
 
 ### Codex
 
@@ -506,7 +496,7 @@ Without shell integration, `wt switch` prints the target directory but cannot `c
 
 ### First-run prompts
 
-On first run without shell integration, Worktrunk offers to install it. On first commit without LLM configuration, it offers to configure a detected tool (`claude`, `codex`). Declining sets `skip-shell-integration-prompt` or `skip-commit-generation-prompt` automatically.
+On first run without shell integration, Worktrunk offers to install it. On first commit without LLM configuration, it offers to configure a detected tool (e.g. `codex`). Declining sets `skip-shell-integration-prompt` or `skip-commit-generation-prompt` automatically.
 
 # Other
 
@@ -1111,7 +1101,7 @@ $ wt list
 ### Use cases
 
 - **Work status** — `🚧` WIP, `✅` ready for review, `🔥` urgent
-- **Agent tracking** — The [Claude Code](https://worktrunk.dev/claude-code/) plugin sets markers automatically
+- **Agent tracking** — The [OpenCode plugin](https://github.com/max-sixty/worktrunk/tree/main/dev/opencode-plugin.ts) sets markers automatically
 - **Notes** — Any short text: `"blocked"`, `"needs tests"`
 
 ### Storage

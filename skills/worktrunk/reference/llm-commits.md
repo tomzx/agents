@@ -6,15 +6,6 @@ Worktrunk generates commit messages by building a templated prompt and piping it
 
 Any command that reads a prompt from stdin and outputs a commit message works. Add to `~/.config/worktrunk/config.toml`:
 
-### Claude Code
-
-```toml
-[commit.generation]
-command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"
-```
-
-`CLAUDECODE=` unsets the nesting guard so `claude -p` works from within a Claude Code session. `--no-session-persistence` prevents the commit conversation from polluting `claude --continue`. The other flags disable tools, skills, settings, and system prompt for fast text-only output. See [Claude Code docs](https://docs.anthropic.com/en/docs/build-with-claude/claude-code) for installation.
-
 ### Codex
 
 ```toml

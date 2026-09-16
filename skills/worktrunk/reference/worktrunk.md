@@ -11,7 +11,7 @@ A quick demo:
 
 ## Context: git worktrees
 
-AI agents like Claude Code and Codex can handle longer tasks without
+AI agents like Codex and OpenCode can handle longer tasks without
 supervision, such that it's possible to manage 5-10+ in parallel. Git's native
 worktree feature give each agent its own working directory, so they don't step
 on each other's changes.
@@ -43,11 +43,11 @@ Worktrees are addressed by branch name; paths are computed from a configurable t
       <td>cd ../repo.feat</td>
     </tr>
     <tr>
-      <td>Create + start Claude</td>
-      <td>wt switch -c -x claude feat</td>
+      <td>Create + start OpenCode</td>
+      <td>wt switch -c -x opencode feat</td>
       <td>git worktree add -b feat ../repo.feat && \
 cd ../repo.feat && \
-claude</td>
+opencode</td>
     </tr>
     <tr>
       <td>Clean up</td>
@@ -177,9 +177,9 @@ $ wt merge main
 For parallel agents, create multiple worktrees and launch an agent in each:
 
 ```bash
-wt switch -x claude -c feature-a -- 'Add user authentication'
-wt switch -x claude -c feature-b -- 'Fix the pagination bug'
-wt switch -x claude -c feature-c -- 'Write tests for the API'
+wt switch -x opencode -c feature-a -- 'Add user authentication'
+wt switch -x opencode -c feature-b -- 'Fix the pagination bug'
+wt switch -x opencode -c feature-c -- 'Write tests for the API'
 ```
 
 The `-x` flag runs a command after switching; arguments after `--` are passed to it. Configure [post-start hooks](https://worktrunk.dev/hook/#hook-types) to automate setup (install deps, start dev servers).
@@ -189,7 +189,7 @@ The `-x` flag runs a command after switching; arguments after `--` are passed to
 - Learn the core commands: [`wt switch`](https://worktrunk.dev/switch/), [`wt list`](https://worktrunk.dev/list/), [`wt merge`](https://worktrunk.dev/merge/), [`wt remove`](https://worktrunk.dev/remove/)
 - Set up [hooks](https://worktrunk.dev/hook/) for automated setup
 - Explore [LLM commit messages](https://worktrunk.dev/llm-commits/), [interactive
-  picker](https://worktrunk.dev/switch/#interactive-picker), [Claude Code integration](https://worktrunk.dev/claude-code/), [CI
+  picker](https://worktrunk.dev/switch/#interactive-picker), [CI
   status & PR links](https://worktrunk.dev/list/#ci-status)
 - Browse [tips & patterns](https://worktrunk.dev/tips-patterns/) for recipes: aliases, dev servers, databases, agent handoffs, and more
 - [Extending Worktrunk](https://worktrunk.dev/extending/) — customize workflows with hooks & aliases
@@ -197,8 +197,5 @@ The `-x` flag runs a command after switching; arguments after `--` are passed to
 
 ## Further reading
 
-- [Claude Code: Best practices for agentic coding](https://www.anthropic.com/engineering/claude-code-best-practices) — Anthropic's official guide, including the worktree pattern
-- [Shipping faster with Claude Code and Git Worktrees](https://incident.io/blog/shipping-faster-with-claude-code-and-git-worktrees) — incident.io's workflow for parallel agents
-- [Git worktree pattern discussion](https://github.com/anthropics/claude-code/issues/1052) — Community discussion in the Claude Code repo
 - [@DevOpsToolbox's video on Worktrunk](https://youtu.be/WBQiqr6LevQ?t=345)
 - [git-worktree documentation](https://git-scm.com/docs/git-worktree) — Official git reference

@@ -164,7 +164,7 @@ fi
 '''
 ```
 
-Run with `wt move-changes --to=feature-xyz`. The guard skips the stash when nothing is in flight; otherwise `git stash push` captures everything and `--execute` pops it in the new worktree with the staged/unstaged split intact. Anything after `--` runs in the new worktree after pop. For example, `wt move-changes --to=feature-xyz -- claude` opens Claude there.
+Run with `wt move-changes --to=feature-xyz`. The guard skips the stash when nothing is in flight; otherwise `git stash push` captures everything and `--execute` pops it in the new worktree with the staged/unstaged split intact. Anything after `--` runs in the new worktree after pop. For example, `wt move-changes --to=feature-xyz -- opencode` opens OpenCode there.
 
 To copy instead of move, add `git stash apply --index --quiet` right after the push.
 

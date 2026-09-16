@@ -157,12 +157,12 @@ Options:
 
           Especially useful with shell aliases:
 
-            alias wsc='wt switch --create -x claude'
+            alias wsc="wt switch --create -x 'opencode run'"
             wsc feature-branch -- 'Fix GH #322'
 
-          Then wsc feature-branch creates the worktree and launches Claude Code. Arguments after --
-          are passed to the command, so wsc feature -- 'Fix GH #322' runs claude 'Fix GH #322',
-          starting Claude with a prompt.
+            Then wsc feature-branch creates the worktree and launches OpenCode. Arguments after --
+            are passed to the command, so wsc feature -- 'Fix GH #322' runs 'opencode run' 'Fix GH #322',
+            starting OpenCode with a prompt.
 
           Template example: -x code -- '{{ worktree_path }}' opens VS Code at the worktree, -x tmux
           -- new -s '{{ branch | sanitize }}' starts a tmux session named after the branch.
@@ -193,8 +193,8 @@ Automation:
       --format <FORMAT>
           Output format
 
-          JSON prints structured result to stdout. Designed for tool integration (e.g., Claude Code
-          WorktreeCreate hooks).
+          JSON prints structured result to stdout. Designed for tool integration (e.g., agent CLI
+          hooks).
 
           Possible values:
           - text: Human-readable text output

@@ -1,11 +1,11 @@
 ---
 name: sessions-memory
-description: "Turn AI agent sessions archived by agentsview into durable memory. Reads the local agentsview SQLite archive directly (Claude Code, Codex, OpenCode, Gemini, Copilot, and every other harness agentsview syncs), incrementally tracks what has already been processed, and writes two memory layers: per-day timeline notes and PARA entity facts. Use when the user says /sessions-memory, 'remember my sessions', 'build memory from sessions', 'what did I work on', 'sync sessions to memory', or wants coding-session history turned into long-term knowledge. Feeds the para-memory-files system."
+description: "Turn AI agent sessions archived by agentsview into durable memory. Reads the local agentsview SQLite archive directly (Codex, OpenCode, Gemini, Copilot, and every other harness agentsview syncs), incrementally tracks what has already been processed, and writes two memory layers: per-day timeline notes and PARA entity facts. Use when the user says /sessions-memory, 'remember my sessions', 'build memory from sessions', 'what did I work on', 'sync sessions to memory', or wants coding-session history turned into long-term knowledge. Feeds the para-memory-files system."
 ---
 
 # Sessions Memory
 
-Reads every AI coding session agentsview has synced from disk (Claude Code, Codex, OpenCode, Gemini, Copilot, and the dozens of other harnesses in its registry) out of the local SQLite archive, and turns them into the two memory layers defined by `para-memory-files`: daily timeline notes (Layer 2, the "when") and PARA entity facts (Layer 1, the durable knowledge graph).
+Reads every AI coding session agentsview has synced from disk (Codex, OpenCode, Gemini, Copilot, and the dozens of other harnesses in its registry) out of the local SQLite archive, and turns them into the two memory layers defined by `para-memory-files`: daily timeline notes (Layer 2, the "when") and PARA entity facts (Layer 1, the durable knowledge graph).
 
 The script owns every deterministic decision: where the archive lives, which sessions are noise (automated runs, subagents, deleted), how incremental processing works, and how transcripts are grouped. The skill owns the judgment part: deciding what is actually worth remembering from each session.
 

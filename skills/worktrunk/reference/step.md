@@ -436,11 +436,9 @@ deps = "ln -sf {{ primary_worktree_path }}/node_modules ."
 
 Virtual environments contain absolute paths and can't be copied. Use `uv sync` instead — it's fast enough that copying isn't worth it.
 
-### Behavior vs Claude Code on desktop
+### Behavior notes
 
-The `.worktreeinclude` pattern is shared with Claude Code on desktop, which copies matching files when creating worktrees. Differences:
-
-- worktrunk copies all gitignored files by default; Claude Code requires `.worktreeinclude`
+- worktrunk copies all gitignored files by default; `.worktreeinclude` narrows the set
 - worktrunk uses copy-on-write for large directories like `target/` — potentially 30x faster on macOS, 6x on Linux
 - worktrunk runs as a configurable hook in the worktree lifecycle
 

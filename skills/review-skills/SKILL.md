@@ -314,7 +314,7 @@ Scans `.opencode/skills/`, finds 3 broken references where skills were renamed, 
 ```
 /review-skills ~/.agents/skills
 ```
-Scans the user's Claude skills directory, finds a near-duplicate pair (`start-day` vs `start-morning`) and an orphaned skill `old-deploy` that is no longer referenced.
+Scans the user's skills directory, finds a near-duplicate pair (`start-day` vs `start-morning`) and an orphaned skill `old-deploy` that is no longer referenced.
 
 **Scenario 3: Compare skill library health over time**
 ```
