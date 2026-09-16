@@ -33,6 +33,11 @@ Understand codebase context
 (patterns, conventions, architecture)
         |
         v
+Verify test coverage of code to modify
+(add characterization tests if under-tested,
+ commit them separately)
+        |
+        v
 Implement in small, verifiable steps
         |
         v
@@ -55,14 +60,16 @@ All acceptance criteria met?
 4. Set up a feature branch (see Branching Strategy below).
 5. Explore the codebase to understand existing patterns, naming conventions, and architecture.
 6. Identify which files need to be created or modified.
-7. Implement the changes in small increments, verifying each step with tests.
-8. If a lifecycle document exists, implement state machines, transition guards, invariants, and retention policies as part of each relevant code change.
-9. If a telemetry plan exists, implement analytics events and telemetry as part of each relevant code change.
-10. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
-11. Ensure all acceptance criteria are met.
-12. Check for code quality issues (naming, duplication, dead code).
-13. Review the full diff and confirm the important parts of the changed code are covered by tests (see Test Coverage of Changes below).
-14. Run the full test suite and confirm it passes.
+7. For every existing part of the code you are about to modify, check its current test coverage. If it is not well covered, first write characterization tests that pin down the existing behavior. This ensures you are not unintentionally changing behavior with your modifications.
+8. Commit the characterization tests separately from the implementation changes, so there is a before/after trace of how the tests evolved.
+9. Implement the changes in small increments, verifying each step with tests. Update the characterization tests as the behavior intentionally changes.
+10. If a lifecycle document exists, implement state machines, transition guards, invariants, and retention policies as part of each relevant code change.
+11. If a telemetry plan exists, implement analytics events and telemetry as part of each relevant code change.
+12. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
+13. Ensure all acceptance criteria are met.
+14. Check for code quality issues (naming, duplication, dead code).
+15. Review the full diff and confirm the important parts of the changed code are covered by tests (see Test Coverage of Changes below).
+16. Run the full test suite and confirm it passes.
 
 ## Branching Strategy
 
@@ -84,6 +91,7 @@ The implementation must happen on a dedicated branch, never directly on `main`.
 ### Commit discipline
 
 - Make small, atomic commits with descriptive messages.
+- Commit characterization tests written before the implementation as their own commit, separate from implementation commits, so the test evolution has a clear before/after trace.
 - Reference the issue number in at least the first commit (e.g., `feat: add POST /orders endpoint (#42)`).
 - Rebase on `main` before pushing if the branch has been alive for a while:
    ```
@@ -130,6 +138,7 @@ Not every line needs a test. Skip boilerplate, trivial accessors, and code the f
 - [ ] Analytics events implemented per telemetry plan (if present)
 - [ ] Logging, metrics, tracing, and health checks implemented per observability plan (if present)
 - [ ] Tests written and passing
+- [ ] Code modified was covered by tests first (characterization tests added where coverage was missing, committed separately)
 - [ ] Important parts of the diff covered by tests (new public code, changed logic, regression tests for fixes)
 - [ ] No linting or type errors
 - [ ] No dead code or commented-out code introduced
