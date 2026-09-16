@@ -344,14 +344,14 @@ def discover_prs(
 
         prs = _search_and_collect(
             client,
-            f"is:pr is:open review-requested:@me{filters}",
+            f"is:pr is:open review-requested:@me -author:@me{filters}",
             limit,
             prs,
             seen,
         )
         prs = _search_and_collect(
             client,
-            f"is:pr is:open reviewed-by:@me sort:updated-desc{filters}",
+            f"is:pr is:open reviewed-by:@me -author:@me sort:updated-desc{filters}",
             limit,
             prs,
             seen,
