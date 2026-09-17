@@ -19,8 +19,8 @@ or ``gh auth token`` as fallback).
 
 Usage:
     scripts/review_requested_prs.py [pr-url ... | owner/repo ...]
-        [--limit N] [--json] [--dispatch] [--quiet] [--log-level LEVEL]
-        [--exclude-author LOGIN ...] [--sort {id,age}]
+        [--limit N] [--json] [--dispatch] [--dispatch-prs] [--quiet]
+        [--log-level LEVEL] [--exclude-author LOGIN ...] [--sort {id,age}]
 
 Examples:
     # All PRs where you are a requested reviewer
@@ -85,6 +85,7 @@ def configure_logging(level: str) -> None:
     """Configure structlog with the given level name."""
     structlog.configure(
         processors=[
+            structlog.processors.TimeStamper(fmt="iso", utc=True),
             structlog.stdlib.add_log_level,
             structlog.dev.ConsoleRenderer(),
         ],
@@ -116,6 +117,13 @@ LEGACY_MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
 }
 
 VALID_STEPS = ("validate-pr", "verify-pr", "review-pr")
+
+STEP_ORDER: dict[str, int] = {step: index for index, step in enumerate(VALID_STEPS)}
+
+VERDICT_FIELDS: dict[str, str] = {
+    "validate-pr": "validate_verdict",
+    "verify-pr": "verify_verdict",
+}
 
 STEP_TO_FIELD: dict[str, str] = {
     "validate-pr": "validate_commit",
@@ -161,6 +169,8 @@ class PRReviewState:
     last_comment_by: str = ""
     draft: bool = False
     head_commit: str = ""
+    head_repo: str = ""
+    head_branch: str = ""
     last_commit_at: str = ""
     validate_commit: str = ""
     verify_commit: str = ""
@@ -260,48 +270,47 @@ def _resolve_owner_qualifier(client: Github, owner: str) -> str:
             return "user"
 
 
-def _search_and_collect(
+def _search_prs(
     client: Github,
     query: str,
     limit: int,
-    prs: list[PRReviewState],
     seen: set[tuple[str, int]],
 ) -> list[PRReviewState]:
-    """Run a search query and append new PRs to *prs*, skipping *seen* entries.
+    """Run a search query and return PRs not already in *seen*.
 
+    Does not mutate *seen*, so concurrent discovery queries can run without
+    racing; the caller merges and de-duplicates the batches in priority order.
     Silently skips queries that fail with validation errors (e.g. when an
     owner name is valid as an org but not as a user, or vice versa).
     """
-    remaining = limit - len(prs)
-    if remaining <= 0:
-        return prs
-    with timed("search_issues", query=query, limit=remaining):
+    found: list[PRReviewState] = []
+    with timed("search_issues", query=query, limit=limit):
         try:
             results = client.search_issues(query)
-            for issue in islice(results, remaining):
+            for issue in islice(results, limit):
                 repo_full = (
                     issue.repository_url.rsplit("/", 2)[-2]
                     + "/"
                     + issue.repository_url.rsplit("/", 2)[-1]
                 )
-                key = (repo_full, issue.number)
-                if key not in seen:
-                    seen.add(key)
-                    prs.append(
-                        PRReviewState(
-                            repo=repo_full,
-                            number=issue.number,
-                            title=issue.title,
-                            author=issue.user.login if issue.user else "",
-                        ),
-                    )
+                if (repo_full, issue.number) in seen:
+                    continue
+                found.append(
+                    PRReviewState(
+                        repo=repo_full,
+                        number=issue.number,
+                        title=issue.title,
+                        author=issue.user.login if issue.user else "",
+                    ),
+                )
         except GithubException as ex:
             log.debug("search_failed", query=query, error=str(ex))
-    return prs
+    return found
 
 
 def discover_prs(
     client: Github,
+    token: str,
     pr_urls: list[str],
     repos: list[str],
     owners: list[str],
@@ -314,8 +323,10 @@ def discover_prs(
     Discovery combines two search queries: PRs requesting the user's review
     and open PRs the user has already reviewed. The second query keeps PRs
     whose review request was consumed (e.g. by submitting a comment review)
-    visible until they are closed or fully approved. The overall *limit*
-    applies across both queries, with review-requested PRs taking priority.
+    visible until they are closed or fully approved. The two queries run
+    concurrently, each against its own client; their results are merged with
+    review-requested PRs taking priority, and the overall *limit* applies
+    across both.
     """
     prs: list[PRReviewState] = []
     seen: set[tuple[str, int]] = set()
@@ -342,20 +353,30 @@ def discover_prs(
         for author in exclude_authors or []:
             filters += f" -author:{author}"
 
-        prs = _search_and_collect(
-            client,
+        queries = (
             f"is:pr is:open review-requested:@me -author:@me{filters}",
-            limit,
-            prs,
-            seen,
-        )
-        prs = _search_and_collect(
-            client,
             f"is:pr is:open reviewed-by:@me -author:@me sort:updated-desc{filters}",
-            limit,
-            prs,
-            seen,
         )
+        with ThreadPoolExecutor(max_workers=len(queries)) as executor:
+            futures = [
+                executor.submit(_search_prs, create_client(token), query, limit, seen)
+                for query in queries
+            ]
+            batches = [future.result() for future in futures]
+
+        # Review-requested PRs take priority; previously-reviewed PRs fill the
+        # remaining slots up to the overall limit.
+        for batch in batches:
+            for candidate in batch:
+                key = (candidate.repo, candidate.number)
+                if key in seen:
+                    continue
+                seen.add(key)
+                prs.append(candidate)
+                if len(prs) >= limit:
+                    break
+            if len(prs) >= limit:
+                break
 
     log.debug(
         "discovered_prs",
@@ -366,35 +387,102 @@ def discover_prs(
     return prs
 
 
-def fetch_head_commit(client: Github, pr: PRReviewState) -> None:
-    """Populate *pr.head_commit* and the approving reviewers via the GitHub API."""
-    with timed("fetch_head_commit", repo=pr.repo, pr=pr.number):
-        repo = client.get_repo(pr.repo)
-        pull = repo.get_pull(pr.number)
-        pr.head_commit = pull.head.sha
-        pr.draft = pull.draft
-        pr.additions = pull.additions or 0
-        pr.deletions = pull.deletions or 0
-        git_commit = repo.get_commit(pull.head.sha)
-        stamp = git_commit.commit.committer.date or git_commit.commit.author.date
-        pr.last_commit_at = stamp.isoformat() if stamp else ""
-        pr.author = pull.user.login if pull.user else ""
-        pr.created_at = pull.created_at.isoformat() if pull.created_at else ""
+GRAPHQL_PR_QUERY = """
+query($owner:String!,$name:String!,$number:Int!){
+  repository(owner:$owner,name:$name){
+    pullRequest(number:$number){
+      headRefOid
+      headRefName
+      headRepository{nameWithOwner}
+      isDraft
+      additions
+      deletions
+      author{login}
+      createdAt
+      commits(last:1){nodes{commit{committedDate}}}
+      reviews(last:100){nodes{state author{login} submittedAt body}}
+      comments(last:100){nodes{body createdAt author{login}}}
+      reviewThreads(first:100){nodes{comments(last:100){nodes{body createdAt author{login}}}}}
+      timelineItems(itemTypes:[READY_FOR_REVIEW_EVENT],last:1){nodes{... on ReadyForReviewEvent{createdAt}}}
+    }
+  }
+}
+"""
+
+
+def _format_iso(value: str | None) -> str:
+    """Normalize a GraphQL ISO-8601 timestamp (``Z`` suffix) to offset form."""
+    if not value:
+        return ""
+    return value.replace("Z", "+00:00")
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    """Parse a GraphQL ISO-8601 timestamp into an aware datetime."""
+    if not value:
+        return None
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def fetch_pr_data(client: Github, pr: PRReviewState) -> None:
+    """Populate *pr* from one GraphQL query, then scan local report files.
+
+    A single ``POST /graphql`` replaces the dozen REST round trips that
+    fetching the head commit and scanning activity separately required, and
+    draws on the GraphQL rate-limit budget rather than the core budget. The
+    ``last:100`` / ``first:100`` connections deliberately keep the most recent
+    activity, which is what the marker logic (most recent match wins) needs.
+    """
+    with timed("fetch_pr_data", repo=pr.repo, pr=pr.number):
+        owner, name = pr.repo.split("/", 1)
+        _headers, data = client.requester.graphql_query(
+            GRAPHQL_PR_QUERY,
+            {"owner": owner, "name": name, "number": pr.number},
+        )
+        pull = data["data"]["repository"]["pullRequest"]
+
+        pr.head_commit = pull["headRefOid"]
+        pr.head_repo = (pull["headRepository"] or {}).get("nameWithOwner") or pr.repo
+        pr.head_branch = pull["headRefName"] or ""
+        pr.draft = pull["isDraft"]
+        pr.additions = pull["additions"] or 0
+        pr.deletions = pull["deletions"] or 0
+        pr.author = (pull["author"] or {}).get("login", "")
+        pr.created_at = _format_iso(pull["createdAt"])
+        commits = pull["commits"]["nodes"]
+        if commits:
+            pr.last_commit_at = _format_iso(commits[-1]["commit"]["committedDate"])
         ready_times = [
-            event.created_at
-            for event in repo.get_issue(pr.number).get_events()
-            if event.event == "ready_for_review" and event.created_at
+            node["createdAt"]
+            for node in pull["timelineItems"]["nodes"]
+            if node.get("createdAt")
         ]
         if ready_times and not pr.draft:
-            pr.ready_at = max(ready_times).isoformat()
+            pr.ready_at = _format_iso(max(ready_times))
+
+        for comment in pull["comments"]["nodes"]:
+            login = (comment.get("author") or {}).get("login", "")
+            _note_last_comment(pr, _parse_iso(comment.get("createdAt")), login)
+            _parse_markers(comment.get("body") or "", pr, posted=True)
+
+        for thread in pull["reviewThreads"]["nodes"]:
+            for comment in thread["comments"]["nodes"]:
+                login = (comment.get("author") or {}).get("login", "")
+                _note_last_comment(pr, _parse_iso(comment.get("createdAt")), login)
+                _parse_markers(comment.get("body") or "", pr, posted=True)
+
         latest_state: dict[str, str] = {}
-        for review in pull.get_reviews():
-            if review.user and review.state in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
-                latest_state[review.user.login] = review.state
-        pr.approvers = sorted(
-            user for user, state in latest_state.items() if state == "APPROVED"
-        )
-    log.debug("head_commit", repo=pr.repo, pr=pr.number, sha=pr.head_commit[:8])
+        for review in pull["reviews"]["nodes"]:
+            login = (review.get("author") or {}).get("login", "")
+            _note_last_comment(pr, _parse_iso(review.get("submittedAt")), login)
+            _parse_markers(review.get("body") or "", pr, posted=True)
+            if login and review["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+                latest_state[login] = review["state"]
+        pr.approvers = sorted(u for u, s in latest_state.items() if s == "APPROVED")
+
+        check_local_markers(pr)
+
+    log.debug("fetched_pr_data", repo=pr.repo, pr=pr.number, sha=pr.head_commit[:8])
 
 
 SDLC_REVIEW_DIR = Path.home() / ".sdlc"
@@ -444,70 +532,50 @@ def _note_last_comment(pr: PRReviewState, when: datetime | None, login: str | No
     pr.last_comment_by = login or ""
 
 
-def check_markers(client: Github, pr: PRReviewState) -> None:
-    """Scan PR activity and local .sdlc files for review-skill markers.
+def check_local_markers(pr: PRReviewState) -> None:
+    """Scan local report files for review-skill markers.
 
-    Conversation comments, inline review comments, and review submissions all
-    update the last-comment tracking and are searched for markers. GitHub
-    listings are returned oldest-first by the API, so we overwrite on each
-    match, leaving the most recent marker SHA in the field. We also scan
-    local report files at ~/.sdlc/<owner>/<repo>/pull-requests/<pr>/ for
-    markers when posting to GitHub is disabled or markers are only local.
+    Markers posted to GitHub are read from the GraphQL response in
+    :func:`fetch_pr_data`; this covers the case where posting to GitHub is
+    disabled or a marker only exists locally, at
+    ``~/.sdlc/<owner>/<repo>/pull-requests/<pr>/``.
     """
-    with timed("check_markers", repo=pr.repo, pr=pr.number):
-        repo = client.get_repo(pr.repo)
-        issue = repo.get_issue(pr.number)
-        pull = repo.get_pull(pr.number)
+    local_dir = SDLC_REVIEW_DIR / pr.repo / "pull-requests" / str(pr.number)
+    if not local_dir.is_dir():
+        return
 
-        comment_count = 0
-        for comment in issue.get_comments():
-            comment_count += 1
-            login = comment.user.login if comment.user else ""
-            _note_last_comment(pr, comment.created_at, login)
-            _parse_markers(comment.body or "", pr, posted=True)
+    for step in VALID_STEPS:
+        field_name = STEP_TO_FIELD[step]
+        if getattr(pr, field_name):
+            continue
 
-        for comment in pull.get_review_comments():
-            comment_count += 1
-            login = comment.user.login if comment.user else ""
-            _note_last_comment(pr, comment.created_at, login)
-            _parse_markers(comment.body or "", pr, posted=True)
-
-        for review in pull.get_reviews():
-            comment_count += 1
-            login = review.user.login if review.user else ""
-            _note_last_comment(pr, review.submitted_at, login)
-            _parse_markers(review.body or "", pr, posted=True)
-
-        local_dir = SDLC_REVIEW_DIR / pr.repo / "pull-requests" / str(pr.number)
-        if local_dir.is_dir():
-            for step in VALID_STEPS:
-                field_name = STEP_TO_FIELD[step]
+        # Prefer the file matching the current HEAD commit, if any.
+        # Reports are named with the short (7-char) SHA; accept a full
+        # SHA name too for older files.
+        for name in (f"{step}.{pr.head_commit}.md", f"{step}.{pr.head_commit[:7]}.md"):
+            head_file = local_dir / name
+            if head_file.is_file():
+                _parse_markers(head_file.read_text(errors="replace"), pr, posted=False)
                 if getattr(pr, field_name):
-                    continue
+                    break
+        if getattr(pr, field_name):
+            continue
 
-                # Prefer the file matching the current HEAD commit, if any.
-                head_file = local_dir / f"{step}.{pr.head_commit}.md"
-                if head_file.is_file():
-                    _parse_markers(head_file.read_text(errors="replace"), pr, posted=False)
-                    if getattr(pr, field_name):
-                        continue
-
-                # Fall back to the most recently modified file for this step.
-                step_files = sorted(
-                    local_dir.glob(f"{step}.*.md"),
-                    key=lambda f: f.stat().st_mtime,
-                    reverse=True,
-                )
-                for md_file in step_files:
-                    _parse_markers(md_file.read_text(errors="replace"), pr, posted=False)
-                    if getattr(pr, field_name):
-                        break
+        # Fall back to the most recently modified file for this step.
+        step_files = sorted(
+            local_dir.glob(f"{step}.*.md"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,
+        )
+        for md_file in step_files:
+            _parse_markers(md_file.read_text(errors="replace"), pr, posted=False)
+            if getattr(pr, field_name):
+                break
 
     log.debug(
-        "markers_checked",
+        "local_markers_checked",
         repo=pr.repo,
         pr=pr.number,
-        comments=comment_count,
         validate_commit=pr.validate_commit[:8] or "none",
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
@@ -646,9 +714,12 @@ def _pr_cell(pr: PRReviewState) -> str:
 def _step_report_path(pr: PRReviewState, commit_field: str) -> Path | None:
     """Return the local report file for a step marker, if it exists.
 
-    Report files are named ``<step>.<short-sha>.md`` (typically a 7-character
-    short SHA), so fall back to a glob on the marker's SHA prefix when the
-    exact full-sha name does not exist.
+    Two naming conventions are supported:
+
+    * ``<step>.<sha>.md`` (full or short SHA in the filename), the canonical
+      per-run report written by the skills.
+    * ``<step>.report.md``, a stable symlink to the most recent run's report
+      (also accepted as a plain file for older runs).
     """
     commit = getattr(pr, commit_field)
     if not commit:
@@ -659,7 +730,12 @@ def _step_report_path(pr: PRReviewState, commit_field: str) -> Path | None:
     if exact.is_file():
         return exact
     matches = sorted(local_dir.glob(f"{step}.{commit[:7]}*.md"))
-    return matches[0] if matches else None
+    if matches:
+        return matches[0]
+    report = local_dir / f"{step}.report.md"
+    if report.is_file():
+        return report
+    return None
 
 
 def _marker_cell(
@@ -705,24 +781,47 @@ def format_dispatch_commands(prs: list[PRReviewState]) -> str:
     Steps after a failed prior step are skipped (e.g. if validate-pr failed,
     verify-pr and review-pr are not dispatched).
     """
-    step_order = {"validate-pr": 0, "verify-pr": 1, "review-pr": 2}
-    verdict_fields = {
-        "validate-pr": "validate_verdict",
-        "verify-pr": "verify_verdict",
-    }
     blocks: list[str] = []
     for pr in prs:
-        if not pr.stale_steps:
-            continue
-        cutoff = len(step_order)
-        for step, field_name in verdict_fields.items():
-            if getattr(pr, field_name) == "fail":
-                cutoff = step_order[step] + 1
-        steps = [s for s in pr.stale_steps if step_order[s] < cutoff]
+        steps = effective_stale_steps(pr)
         if not steps:
             continue
         lines = [f"/{step} {pr.number} {pr.repo}" for step in steps]
         blocks.append("\n".join(lines))
+    return "\n---\n".join(blocks)
+
+
+def effective_stale_steps(pr: PRReviewState) -> list[str]:
+    """Return the stale steps not skipped because an earlier step failed."""
+    cutoff = len(STEP_ORDER)
+    for step, field_name in VERDICT_FIELDS.items():
+        if getattr(pr, field_name) == "fail":
+            cutoff = STEP_ORDER[step] + 1
+    return [s for s in pr.stale_steps if STEP_ORDER[s] < cutoff]
+
+
+def format_review_full_commands(prs: list[PRReviewState]) -> str:
+    """Return self-contained /review-pr-full commands, separated by --- per PR.
+
+    Each command carries the precomputed stale steps and the head repo/branch
+    so the receiving review-pr-full session can start immediately without
+    re-querying GitHub for staleness or PR status. Steps after a failed prior
+    step are skipped, same as format_dispatch_commands.
+    """
+    blocks: list[str] = []
+    for pr in prs:
+        steps = effective_stale_steps(pr)
+        if not steps:
+            continue
+        parts = [
+            f"/review-pr-full {pr.number} {pr.repo}",
+            f"--steps {','.join(steps)}",
+        ]
+        if pr.head_repo:
+            parts.append(f"--head-repo {pr.head_repo}")
+        if pr.head_branch:
+            parts.append(f"--head-branch {pr.head_branch}")
+        blocks.append(" ".join(parts))
     return "\n---\n".join(blocks)
 
 
@@ -737,7 +836,7 @@ def process_pr(
     include_drafts: bool = False,
     exclude_authors: list[str] | None = None,
 ) -> PRReviewState:
-    """Process a single PR: fetch HEAD commit, check markers, determine stale steps.
+    """Process a single PR: fetch data and markers, determine stale steps.
 
     Creates its own GitHub client for thread safety. Skips draft PRs unless
     *include_drafts* is True. Skips PRs whose author is in *exclude_authors*.
@@ -745,7 +844,7 @@ def process_pr(
     with timed("process_pr", repo=pr.repo, pr=pr.number):
         client = create_client(token)
         try:
-            fetch_head_commit(client, pr)
+            fetch_pr_data(client, pr)
             if exclude_authors and pr.author in exclude_authors:
                 pr.skipped = True
                 pr.skipped_reason = "excluded_author"
@@ -756,7 +855,6 @@ def process_pr(
                 pr.skipped_reason = "draft"
                 log.info("skip_draft", repo=pr.repo, pr=pr.number)
                 return pr
-            check_markers(client, pr)
             pr.stale_steps = determine_stale_steps(pr)
             if not pr.stale_steps:
                 pr.skipped = True
@@ -797,6 +895,14 @@ def main() -> int:
         "--dispatch",
         action="store_true",
         help="Output only the dispatch commands (one per line) for PRs needing work.",
+    )
+    parser.add_argument(
+        "--dispatch-prs",
+        action="store_true",
+        help=(
+            "Output one self-contained /review-pr-full command per PR needing work, "
+            "carrying the precomputed stale steps and head refs."
+        ),
     )
     parser.add_argument(
         "--draft",
@@ -849,6 +955,7 @@ def main() -> int:
     pr_urls, repos, owners = classify_args(args.targets)
     prs = discover_prs(
         client,
+        token,
         pr_urls,
         repos,
         owners,
@@ -913,6 +1020,12 @@ def main() -> int:
         print(format_json(prs))
     elif args.dispatch:
         commands = format_dispatch_commands(prs)
+        if commands:
+            print(commands)
+        else:
+            print(f"processed {len(prs)} PRs, nothing to dispatch")
+    elif args.dispatch_prs:
+        commands = format_review_full_commands(prs)
         if commands:
             print(commands)
         else:
