@@ -7,7 +7,8 @@ argument-hint: "<pr-number>"
 
 # Handle PR Reviewer Feedback
 
-Reviews and responds to all reviewer comments on a GitHub pull request you authored, implementing valid feedback or explaining rejections with clear justification. On user approval it commits and pushes changes; whether replies are posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
+Reviews and responds to all reviewer comments on a GitHub pull request you authored, implementing valid feedback or explaining rejections with clear justification.
+On user approval it commits and pushes changes; whether replies are posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
 
 For the reviewer-side flow (verifying that a PR author addressed your review comments), use `handle-pr-author-feedback` instead.
 
@@ -68,11 +69,17 @@ Fetch PR comments ($1)
    git add -A && git commit -m "<message>"
    git push
    ```
-6. Decide whether to post replies: get the PR author (`gh pr view $1 --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, reply to each comment thread with the outcome using `ghx`. For actionable comments where changes were implemented: reply with a brief summary and a link to the commit (e.g., "Done: added null guard for `user` in abc1234."). For non-actionable comments: reply with the rejection explanation. Use the thread IDs from step 1:
+6. Decide whether to post replies: get the PR author (`gh pr view $1 --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
+   If it exits 0, reply to each comment thread with the outcome using `ghx`.
+   For actionable comments where changes were implemented: reply with a brief summary and a link to the commit (e.g., "Done: added null guard for `user` in abc1234.").
+   For non-actionable comments: reply with the rejection explanation.
+   Never wrap a commit SHA/hash in backticks: GitHub does not render a backticked SHA as a link, so write it as plain text (e.g., "in abc1234", not "in `abc1234`") so it autolinks.
+   Use the thread IDs from step 1:
    ```
    ghx pr comment $1 --reply-thread <thread-id> --body "<outcome summary>"
    ```
-   Append the **Skill attribution** footer to each reply. If the script exits 1, present the drafted replies to the user without posting.
+   Append the **Skill attribution** footer to each reply.
+   If the script exits 1, present the drafted replies to the user without posting.
 
 ## Example Usage
 
@@ -81,20 +88,24 @@ Fetch PR comments ($1)
 /handle-pr-reviewer-feedback 42
 ```
 Comment on line 37: "This function doesn't handle `user` being null."
-Decision: Actionable. Add a null guard, commit, push.
+Decision: Actionable.
+Add a null guard, commit, push.
 
 **Scenario 2: Stylistic disagreement**
 ```
 /handle-pr-reviewer-feedback 100
 ```
 Comment: "Rename `processBatch` to `run`."
-Decision: Not actionable - "run" is less descriptive. Draft reply: "Keeping `processBatch` as it communicates intent better than `run`." Push.
+Decision: Not actionable - "run" is less descriptive.
+Draft reply: "Keeping `processBatch` as it communicates intent better than `run`."
+Push.
 
 **Scenario 3: Multiple mixed comments**
 ```
 /handle-pr-reviewer-feedback 77
 ```
-Three comments: one requesting a missing test (implement), one asking for a type annotation (implement), one requesting an out-of-scope design change (reject with explanation). Address each independently, present all decisions together, then push.
+Three comments: one requesting a missing test (implement), one asking for a type annotation (implement), one requesting an out-of-scope design change (reject with explanation).
+Address each independently, present all decisions together, then push.
 
 ## Useful Commands Reference
 
