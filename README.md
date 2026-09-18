@@ -206,13 +206,14 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
-| `/review-pr-full` | Orchestrate a full review (validate, verify, review) for a single PR, skipping up-to-date steps. |
-| `/review-requested-prs` | Orchestrate full reviews (validate, verify, review) across review-requested PRs or by PR URL. |
+| `/review-pr-full` | Orchestrate a full review (validate, verify, review) for a single PR, skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
+| `/review-requested-prs` | Fan out full reviews (validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. |
 | `/triage-pr-feedback` | Proactively scan your open PRs for new reviewer feedback, write a recommendation file per comment, then prompt for decisions; built to run on a 10-15 minute schedule. |
 | `/handle-pr-author-feedback` | As the reviewer, verify the author's fixes address your comments; resolve fixed threads, reply on the rest. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
+| `/handle-failing-pr-ci` | List my open PRs' CI status, then fix failing CI across all of them in parallel, one `handle-pr-ci` session per PR. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
 | `/validate-pr` | Judge whether the PR builds the right product (needs alignment, criteria soundness, scope). |
@@ -369,6 +370,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | Skill | Purpose |
 |-------|---------|
 | `/onboard-repository` | Bootstrap SDLC, triaging, and standardization. |
+| `/agent-tools` | Companion CLI suite (`devx agent-tools`) for CI, BigQuery data, experiments, Grokt code search, incidents, Observe observability, web, read-only Slack, Vault, and World navigation. |
 | `/compare-skills` | Compare skill directories and identify practices to adopt. |
 | `/create-skill` | Author a new skill by synthesizing the best of similar existing skills. |
 | `/directory-to-spec` | Create a spec directory for code in the current directory. |
