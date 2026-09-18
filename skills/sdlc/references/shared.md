@@ -440,6 +440,37 @@ Lifecycle: moved by the three skills on every completed run (including the pure-
 - Despite the `.sdlc` name, it is **unrelated to the project `.sdlc/` tree and the `SDLC_DIR` mirror**: it is not governed by `SDLC_DIR` read/write resolution, is **not** committed by the automation runner's `commit-sdlc.sh`, and is **not** mirrored.
 - Cross-run/cross-machine persistence depends on `$HOME` persisting; where it does not (e.g. an ephemeral CI runner), the state file is absent and every run is a full review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, falling back to the marker inside each `<skill>.report.md`, so it is mostly unaffected by this location.
 
+## PR Feedback Recommendations (triage-pr-feedback)
+
+`triage-pr-feedback` analyzes reviewer feedback left on PRs you authored and writes one recommendation file per comment, so the decision can be made without re-reading the threads.
+
+### Location
+
+Files live beside the PR review reports, in a `feedback/` subdirectory:
+
+```
+$HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/feedback/{feedback-id}.md
+```
+
+The `{feedback-id}` is derived from the GitHub node and is stable across runs: `comment-<databaseId>` (review thread comment), `review-<databaseId>` (change-request review body), `conversation-<databaseId>` (top-level conversation comment).
+
+### File contract
+
+The file is Markdown with YAML frontmatter. The keys the orchestrator depends on are:
+
+- `feedback_id`, `kind`, `repo`, `pr`, `author`, `created_at`, `head_commit`, `analyzed_at` — provenance.
+- `recommendation` — one of `implement`, `reject`, `clarify`, `no-action` (advisory).
+- `confidence` — `high`, `medium`, or `low`.
+- `decision` — set only after the user decides: `implement`, `decline`, or `defer`. Its **absence** marks the item as awaiting a decision; its presence (including `defer`) stops it being re-surfaced.
+- `decided_at` — set alongside `decision`.
+- `session_link` — the standard session link.
+
+The body carries the verbatim comment, an analysis grounded in `file:line`, a recommended action, and a draft reply.
+
+### State semantics
+
+There is no separate state file: the presence of a recommendation file is the "already analyzed" marker, and the presence of a `decision` key is the "already decided" marker. This is what makes a 10-15 minute scheduled run idempotent and quiet. The store is user-global like the PR review reports: outside any repo, not governed by `SDLC_DIR`, and never committed.
+
 ## Revision Mode (create-* skills)
 
 A `create-*` skill may be re-invoked after its artifact was returned with `changes-requested`. Before drafting, detect whether a revision is in progress:

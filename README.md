@@ -210,6 +210,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/review-requested-prs` | Orchestrate full reviews (validate, verify, review) across review-requested PRs or by PR URL. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. |
+| `/triage-pr-feedback` | Proactively scan your open PRs for new reviewer feedback, write a recommendation file per comment, then prompt for decisions; built to run on a 10-15 minute schedule. |
 | `/handle-pr-author-feedback` | As the reviewer, verify the author's fixes address your comments; resolve fixed threads, reply on the rest. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
