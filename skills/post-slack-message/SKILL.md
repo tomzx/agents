@@ -17,7 +17,7 @@ Posts a message to a Slack channel or as a thread reply using `post_slack_messag
 
 ## Prerequisites
 
-- `SLACK_TOKEN` set. A bot token (`xoxb-`) only needs the token; a web/browser token (`xoxc-`) also needs `SLACK_COOKIE` (the `xoxd-` value), the same credentials used by `slack-kb-individual` and `slack-cached`. Place them in `.env` at the repo root or export them in the environment.
+- `SLACK_TOKEN` set. A bot token (`xoxb-`) only needs the token; a web/browser token (`xoxc-`) also needs `SLACK_COOKIE` (the `xoxd-` value), the same credentials used by `slack-kb-individual` and `slackx`. Place them in `.env` at the repo root or export them in the environment.
 - The target channel: a channel id, a Slack archive URL, or a channel name.
 
 ## Inputs
@@ -142,4 +142,4 @@ Skills like **start-day** and **end-day** post automated daily updates and are a
 | `uv run post_slack_message.py ... --thread-ts <ts> "<text>"` | Post as a thread reply. |
 | `uv run post_slack_message.py ... --dry-run "<text>"` | Resolve channel and preview without sending. |
 | `echo "<text>" \| uv run post_slack_message.py --channel <id> --stdin` | Post a message read from stdin. |
-| `slack-cached show-channels` | Look up a channel name/id. |
+| `slackx show-channels` | Look up a channel name/id. |
