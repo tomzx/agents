@@ -334,6 +334,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/slack-resolve-threads` | Triage open Slack threads, mark resolved ones with a checkmark reaction. |
 | `/slack-kb-channel` | Build a channel knowledge base for a given month. |
 | `/slack-kb-individual` | Collect conversations a person participated in. |
+| `/extract-colleague-decisions` | Extract the decisions colleagues made on a given day from their Slack messages. |
 | `/stakeholder-announcement` | Draft and post structured infrastructure progress announcements to stakeholder channels. |
 | `/create-slack-announcement` | Draft a Slack announcement with copy-paste-ready mrkdwn formatting. |
 | `/kb-organized-memory` | Build theme-organized knowledge from temporal memory files. |

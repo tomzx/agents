@@ -177,6 +177,15 @@ slackx search "from:@alice after:2024-01-01" --json
 slackx search "incident" --jsonl
 ```
 
+`after:` and `before:` are exclusive date bounds. To search a single day
+(e.g. `2026-09-18`), bracket it with the day before and the day after:
+`after:<prev-day> before:<next-day>`, since `after:2026-09-18` would exclude
+that day itself.
+
+```bash
+slackx search "after:2026-09-17 before:2026-09-19" --json
+```
+
 Add `--full-threads` to also fetch every reply for each thread a match belongs
 to:
 
@@ -233,6 +242,21 @@ slackx show-users
 slackx show-channels --json
 slackx show-channels --jsonl
 ```
+
+Show a single channel's information (name, topic, purpose, members, archived,
+created, creator) given an id, a cached name, or a channel URL. It fetches the
+channel live via `conversations.info` and caches it; pass `--no-fetch` to render
+a previously cached channel instead (errors when not cached):
+
+```bash
+slackx show-channel C0B6CQN0G6B
+slackx show-channel C0B6CQN0G6B --json
+slackx show-channel general --jsonl
+slackx show-channel https://acme.slack.com/archives/C0B6CQN0G6B
+```
+
+Unknown or inaccessible channels surface a clean `channel_not_found` error
+(exit code 1) rather than a traceback.
 
 ---
 
@@ -296,8 +320,8 @@ uv run slack-fake-server --port 8199 --num-threads 50
 ```
 
 It serves deterministic workspace data (`conversations.list`,
-`conversations.replies`, `conversations.history`, `users.list`) and can
-simulate Slack-tier rate limiting with `--rate-limits`.
+`conversations.replies`, `conversations.history`, `conversations.info`,
+`users.list`) and can simulate Slack-tier rate limiting with `--rate-limits`.
 
 Point `slackx` at it with:
 
