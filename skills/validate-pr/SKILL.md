@@ -266,12 +266,15 @@ EOF
  # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
  PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
  mkdir -p "$PR_REVIEW_DIR"
- printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.report.md"
+ # Per-run report named by the reviewed commit: preserves report history by filename.
+ printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
+ # Stable name that always points at the most recent run's report.
+ ln -sf "validate-pr.$SHORT_SHA.md" "$PR_REVIEW_DIR/validate-pr.report.md"
 ```
 
 ### Post the validation report as a PR comment
 
-The report is saved to `$PR_REVIEW_DIR/validate-pr.report.md`. Posting it as a PR comment is decided by `should-post-to-github`.
+The report is saved to `$PR_REVIEW_DIR/validate-pr.<SHORT_SHA>.md`, with `$PR_REVIEW_DIR/validate-pr.report.md` pointing at the most recent run. Posting it as a PR comment is decided by `should-post-to-github`.
 
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.report.md`.
 

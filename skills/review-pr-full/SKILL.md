@@ -1,8 +1,8 @@
 ---
 name: review-pr-full
-description: Orchestrate a full PR review (validate-pr, verify-pr, review-pr) for a single PR. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
-argument-hint: "<pr-number> [repository] | <pr-url>"
+description: Orchestrate a full PR review (validate-pr, verify-pr, review-pr) for a single PR. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository, and optionally a precomputed plan (--steps, --head-repo, --head-branch) so it can start immediately without re-querying GitHub.
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task, Read
+argument-hint: "<pr-number> [repository] | <pr-url> [--steps a,b] [--head-repo owner/repo] [--head-branch name]"
 ---
 
 # Review PR Full
@@ -10,6 +10,8 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 Runs the complete three-step review pipeline on a single PR: `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed.
 
 Staleness checking is handled by the same deterministic Python script used by `review-requested-prs` (`~/.agents/scripts/review_requested_prs.py`). It checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. Only stale steps are run, so re-running after a partial completion picks up where it left off.
+
+When called by `review-requested-prs`, the staleness check and head-ref resolution have already been done. The caller passes them as `--steps`, `--head-repo`, and `--head-branch`, and this skill skips its own GitHub queries and starts the checks immediately. This keeps the parent orchestrator from being the bottleneck: one `review-pr-full` session owns each PR end to end.
 
 ## Prerequisites
 
@@ -23,20 +25,31 @@ Staleness checking is handled by the same deterministic Python script used by `r
 Resolve PR argument (URL or number + repo)
                 |
                 v
-Run ~/.agents/scripts/review_requested_prs.py --dispatch
-                |
-                v
-  Parse dispatch commands (stale steps for this PR)
-                |
-                v
+   Precomputed plan given?
+     (--steps passed)
+    /          \
+   No           Yes
+    |             |
+    v             v
+Run script    Use STALE_STEPS as-is
+--dispatch    (skip GitHub staleness check)
+    |             |
+    +------+------+
+           |
+           v
+  Parse stale steps for this PR
+           |
+           v
   Any stale steps?
    /          \
   No           Yes
    |             |
    v             v
- Report       Create shared worktree
- "up to          |
- date"           v
+Report       Create shared worktree
+"up to          |  (use --head-repo/--head-branch when given,
+date"           |   else resolve via gh pr view)
+                |
+                v
             Run stale steps sequentially:
               validate-pr -> verify-pr -> review-pr
             Check for blocking verdict after each step
@@ -45,7 +58,7 @@ Run ~/.agents/scripts/review_requested_prs.py --dispatch
             Clean up worktree
                 |
                 v
-            Report summary
+            Emit VERDICT line + summary
 ```
 
 ## Steps
@@ -57,6 +70,13 @@ Accept one of:
 - A PR number with a repository: `42 owner/repo`
 - A PR number alone: `42` (uses `$REPO` from the environment)
 
+Optional precomputed arguments, normally supplied by `review-requested-prs`:
+- `--steps a,b,c`: comma-separated list of the stale steps to run, already ordered and already trimmed of steps blocked by an earlier failed step. When present, step 2 is skipped entirely.
+- `--head-repo owner/repo`: the PR head repository (the fork for cross-repository PRs). When present, step 3 uses it instead of calling `gh pr view`.
+- `--head-branch name`: the PR head branch. When present, step 3 uses it instead of calling `gh pr view`.
+
+Treat a precomputed plan as authoritative: do not re-run discovery or the staleness script, and do not call GitHub for staleness or PR status. It was computed against the same HEAD moments earlier.
+
 If a PR URL is given, pass it directly to the script. If a PR number and repo are given, construct the URL:
 
 ```bash
@@ -67,7 +87,9 @@ If only a PR number is given and `$REPO` is not set, stop and ask for the reposi
 
 ### 2. Run the staleness script
 
-Run the script to determine which steps are stale for this PR:
+**Skip this step when `--steps` was provided.** Set `STALE_STEPS` from the flag and continue to step 3.
+
+Otherwise, run the script to determine which steps are stale for this PR:
 
 ```bash
 ~/.agents/scripts/review_requested_prs.py "$PR_URL" --dispatch
@@ -89,7 +111,7 @@ Each line has the format:
 /{skill} {PR_NUMBER} {REPO}
 ```
 
-The steps are already in the correct execution order (validate-pr before verify-pr before review-pr).
+The steps are already in the correct execution order (validate-pr before verify-pr before review-pr). Set `STALE_STEPS` to the ordered list of step names.
 
 ### 3. Create the shared worktree
 
@@ -99,7 +121,11 @@ Before dispatching the first stale step, resolve where the PR's head lives. The 
 gh pr view $PR_NUMBER --repo $REPO --json headRefName,headRepository --jq '"\(.headRepository.nameWithOwner) \(.headRefName)"'
 ```
 
-Set `HEAD_REPO` from `headRepository.nameWithOwner`. For same-repo PRs this is the base repository itself; for cross-repository PRs it is the fork, so `https://github.com/${HEAD_REPO}.git` is the correct fetch URL in both cases. Set `HEAD_BRANCH` from `headRefName`. Then create the worktree that all stale steps will reuse:
+Set `HEAD_REPO` from `headRepository.nameWithOwner`. For same-repo PRs this is the base repository itself; for cross-repository PRs it is the fork, so `https://github.com/${HEAD_REPO}.git` is the correct fetch URL in both cases. Set `HEAD_BRANCH` from `headRefName`.
+
+**When `--head-repo` and `--head-branch` were provided, skip the `gh pr view` above and use those values directly** (`HEAD_REPO="${HEAD_REPO_ARG}"`, `HEAD_BRANCH="${HEAD_BRANCH_ARG}"`). The caller already resolved them, so no GitHub call is needed.
+
+Then create the worktree that all stale steps will reuse:
 
 ```bash
 ISSUE_NUMBER=$(gh pr view $PR_NUMBER --repo $REPO --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
@@ -109,11 +135,13 @@ git fetch https://github.com/$HEAD_REPO.git $HEAD_BRANCH
 git worktree add $WORKTREE_DIR FETCH_HEAD
 ```
 
+When a precomputed plan was given, skip the `ISSUE_NUMBER` lookup (it is a naming convenience only) and use `WORKTREE_DIR=/tmp/sdlc/$REPO/pr-$PR_NUMBER`.
+
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.
 
 ### 4. Dispatch stale review steps
 
-Dispatch each stale skill as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
+Dispatch each skill in `STALE_STEPS` as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
 
 Use the `general` subagent type for all three steps.
 
@@ -160,7 +188,24 @@ git worktree remove $WORKTREE_DIR
 
 ### 6. Report summary
 
-After processing, output a summary:
+After processing, output the summary table and finish with a single machine-readable verdict line, so a parent orchestrator (`review-requested-prs`) can aggregate results without parsing the table:
+
+```
+VERDICT <status> | PR #{PR} | {REPO} | steps={STALE_STEPS} | <short note>
+```
+
+`<status>` is one of:
+
+| Status | Meaning |
+|---|---|
+| `completed` | Every stale step ran and passed (or there were none left to run after a partial pass) |
+| `up-to-date` | Nothing was stale; all steps already match the current HEAD |
+| `stopped-validate` | validate-pr returned Wrong thing or Inconclusive; later steps not run |
+| `stopped-verify` | verify-pr failed (build failure, nonconforming, missing issue/criteria); review-pr not run |
+| `stopped-review` | review-pr returned changes-requested or rejected |
+| `error` | The pipeline could not run (worktree setup failed, script error) |
+
+Then show the table:
 
 | Repository | PR | Steps run | Result |
 |---|---|---|---|
@@ -185,31 +230,37 @@ No prior markers found. Runs validate-pr, verify-pr, and review-pr in sequence. 
 ```
 Same as Scenario 1 but using a PR URL.
 
-**Scenario 3: Partial completion, re-run**
+**Scenario 3: Precomputed plan from review-requested-prs**
+```
+/review-pr-full 42 acme/api --steps validate-pr,verify-pr --head-repo acme/api --head-branch feature-x
+```
+The caller already ran the staleness check and resolved the head refs. The skill skips its own GitHub queries, creates the worktree from `acme/api@feature-x`, runs validate-pr then verify-pr, and stops before review-pr. Ends with `VERDICT completed | PR #42 | acme/api | steps=validate-pr,verify-pr | ...`.
+
+**Scenario 4: Partial completion, re-run**
 ```
 /review-pr-full 42 acme/api
 ```
 validate-pr and verify-pr markers match HEAD, but review-pr is stale. Runs only `/review-pr 42 acme/api`. Summary shows "Completed (validate, verify up to date)".
 
-**Scenario 4: All steps up to date**
+**Scenario 5: All steps up to date**
 ```
 /review-pr-full 42 acme/api
 ```
 All three markers match HEAD. Script outputs nothing. Reports "All review steps are up to date for PR #42 in acme/api".
 
-**Scenario 5: validate-pr returns Wrong thing**
+**Scenario 6: validate-pr returns Wrong thing**
 ```
 /review-pr-full 15 acme/api
 ```
 validate-pr judges the PR to be the wrong product. It posts its Wrong-thing verdict. verify-pr and review-pr are not run. Summary shows "Stopped at validate (wrong product)".
 
-**Scenario 6: verify-pr build failure**
+**Scenario 7: verify-pr build failure**
 ```
 /review-pr-full 88 acme/api
 ```
 validate-pr passes. verify-pr fails to build. Notes the build failure and stops (CI would typically catch this). review-pr is not run. Summary shows "Stopped at verify (build failure)".
 
-**Scenario 7: PR number with $REPO from environment**
+**Scenario 8: PR number with $REPO from environment**
 ```
 /review-pr-full 42
 ```
@@ -219,13 +270,13 @@ validate-pr passes. verify-pr fails to build. Notes the build failure and stops 
 
 | Script | Description |
 |---|---|
-| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for command output, `--json` for structured data, `--log-level debug` for timings. Pass a single PR URL to scope it to one PR. |
+| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), outputs dispatch commands. Run with `--dispatch` for per-step commands, `--dispatch-prs` for one self-contained `/review-pr-full` command per PR, `--json` for structured data, `--log-level debug` for timings. Pass a single PR URL to scope it to one PR. |
 
 ## Related Skills
 
 | Skill | Relationship |
 |---|---|
-| `review-requested-prs` | Multi-PR counterpart: discovers all review-requested PRs and runs the same pipeline across each in parallel. Use that when reviewing your queue; use this skill for a single PR. |
+| `review-requested-prs` | Multi-PR counterpart: discovers all review-requested PRs and fans out one `review-pr-full` session per PR in parallel, passing a precomputed plan so no GitHub re-check is needed. Use that when reviewing your queue; use this skill for a single PR. |
 | `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
 | `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
 | `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage`. |

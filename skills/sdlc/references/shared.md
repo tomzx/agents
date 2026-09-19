@@ -405,15 +405,19 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 ### Files
 
-| Skill | Findings state | Latest rendered report |
+| Skill | Findings state | Per-run reports (latest via symlink) |
 |---|---|---|
-| `validate-pr` | `validate.yaml` | `validate-pr.report.md` |
-| `verify-pr` | `verify.yaml` | `verify-pr.report.md` |
-| `review-pr` | `review.yaml` | `review-pr.report.md`, plus `gh-pr-view.md` (raw PR cache) |
+| `validate-pr` | `validate.yaml` | `validate-pr.<sha>.md` (`validate-pr.report.md`) |
+| `verify-pr` | `verify.yaml` | `verify-pr.<sha>.md` (`verify-pr.report.md`) |
+| `review-pr` | `review.yaml` | `review-pr.<sha>.md` (`review-pr.report.md`), plus `gh-pr-view.md` (raw PR cache) |
 
 `<skill>.yaml` is the findings state, one YAML document per skill per PR with a flat header (`pr`, `updated_at`, `last_reviewed_sha`, `last_reviewed_tree`) and a `findings` list. Each finding has `title` (its identity; when a re-review matches an existing finding, update that entry instead of adding a duplicate), `description`, `severity` (`must` / `should` / `may`), `status`, and an informational `first_seen_sha`. `status` is the source of truth; the shas are provenance only. `validate-pr` and `review-pr` use `open` / `addressed` / `stale` / `wontfix`; `verify-pr` stores one finding per acceptance criterion with `conforms` / `conforms-static` / `unverified` / `fails`.
 
-`<skill>.report.md` is the rendered, human-readable report of the most recent run and embeds the HTML marker (`<!-- {"step":"<skill>","sha":...,"tree":...,"verdict":...} -->`) that the orchestrator scans. It is overwritten on each run; history lives in the state file and the GitHub comments, not in filenames.
+`<skill>.<sha>.md` is the rendered, human-readable report of a single run, named with the short (7-character) SHA of the reviewed commit so report history is preserved by filename. It embeds the HTML marker (`<!-- {"step":"<skill>","sha":...,"tree":...,"verdict":...} -->`) that the orchestrator scans.
+
+`<skill>.report.md` is a symlink to the most recent run's `<skill>.<sha>.md`, giving a stable path (for `cat`, editors, and posting to GitHub) that always resolves to the latest report. The stable name is created on every run with `ln -sf "<skill>.<sha>.md" "<skill>.report.md"`.
+
+Findings history remains in `<skill>.yaml` (the source of truth) and the GitHub comments; the per-run files preserve the rendered report for each reviewed commit.
 
 ### Re-review scope
 
@@ -438,7 +442,7 @@ Lifecycle: moved by the three skills on every completed run (including the pure-
 
 - It is a **user-global** store under `$HOME`, outside any reviewed repo. It survives worktree creation/removal and never produces untracked files in someone else's clone.
 - Despite the `.sdlc` name, it is **unrelated to the project `.sdlc/` tree and the `SDLC_DIR` mirror**: it is not governed by `SDLC_DIR` read/write resolution, is **not** committed by the automation runner's `commit-sdlc.sh`, and is **not** mirrored.
-- Cross-run/cross-machine persistence depends on `$HOME` persisting; where it does not (e.g. an ephemeral CI runner), the state file is absent and every run is a full review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, falling back to the marker inside each `<skill>.report.md`, so it is mostly unaffected by this location.
+- Cross-run/cross-machine persistence depends on `$HOME` persisting; where it does not (e.g. an ephemeral CI runner), the state file is absent and every run is a full review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, falling back to the marker inside each `<skill>.<sha>.md` (or the `<skill>.report.md` symlink), so it is mostly unaffected by this location.
 
 ## PR Feedback Recommendations (triage-pr-feedback)
 

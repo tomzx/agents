@@ -52,8 +52,8 @@ Fetch PR metadata + comments ($1)
             |
             v
   Update review.yaml findings
-  Write review-pr.report.md
-  (full or delta-focused)
+  Write review-pr.<sha>.md
+  (report.md -> latest)
              |
              v
    Post review file
@@ -335,8 +335,17 @@ Include a Coverage section built from the `/analyze-test-coverage` output: (1) *
 
 First update the review state file `$PR_REVIEW_DIR/review.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`). `title` is a finding's identity: when a delta looks like an existing finding, update that entry instead of adding a duplicate. `first_seen_sha` is informational provenance. Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
-Then write the review to `$PR_REVIEW_DIR/review-pr.report.md`, overwriting the previous report (resolving per `sdlc/references/shared.md`). A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
+Then write the review to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`). Each run gets its own file named by the reviewed commit, so report history is preserved by filename, and `review-pr.report.md` is pointed at the newest run. A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
 Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA, `HEAD_TREE` with the head commit's tree hash, and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
+
+```bash
+PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+mkdir -p "$PR_REVIEW_DIR"
+# Write the rendered review (marker first) to the per-run file, so report
+# history is preserved by filename, then point the stable name at it.
+#   "$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md"
+ln -sf "review-pr.$SHORT_SHA.md" "$PR_REVIEW_DIR/review-pr.report.md"
+```
 
 ### Example Output
 
@@ -464,9 +473,9 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-The review is saved to `$PR_REVIEW_DIR/review-pr.report.md`. Posting it as a PR comment is decided by `should-post-to-github`.
+The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`, with `$PR_REVIEW_DIR/review-pr.report.md` pointing at the most recent run. Posting it as a PR comment is decided by `should-post-to-github`.
 
-After writing `review-pr.report.md`, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
+After writing the review, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
 
 If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
@@ -513,7 +522,7 @@ PR fixes a null pointer. Review checks that the change is localized and the new 
 ```
 /review-pr 55
 ```
-`review.yaml` already carries findings from a previous run on an earlier commit (an ancestor of the new head). Review incrementally: evaluate only the delta against the previous feedback, flip the `status` of findings the new commits resolve (e.g., "Test coverage added, rate limit not yet addressed"), add findings for problems in the new code only, and render a short delta-focused `review-pr.report.md`.
+`review.yaml` already carries findings from a previous run on an earlier commit (an ancestor of the new head). Review incrementally: evaluate only the delta against the previous feedback, flip the `status` of findings the new commits resolve (e.g., "Test coverage added, rate limit not yet addressed"), add findings for problems in the new code only, and render a short delta-focused `review-pr.$SHORT_SHA.md` (with `review-pr.report.md` pointed at it).
 
 ## Useful Commands Reference
 
