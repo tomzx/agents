@@ -7,7 +7,7 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 
 # Review PR Full
 
-Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed.
+Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed. When the run finishes, it commits this PR's report directory in the user-global reviews store and pushes it (see step 6).
 
 `/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`, and the concurrent `assess-pr-risk`) can read it as evidence. `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early. It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
 
@@ -63,6 +63,10 @@ date"           |   else resolve via gh pr view)
                 |
                 v
             Clean up worktree
+                |
+                v
+            Commit + push this PR's reports
+              to the reviews store
                 |
                 v
             Emit VERDICT line + summary
@@ -221,7 +225,27 @@ After all stale steps complete (or the pipeline halts), remove the shared worktr
 git worktree remove $WORKTREE_DIR
 ```
 
-### 6. Report summary
+### 6. Commit and push the review reports
+
+The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`). Commit exactly this PR's Markdown reports and push, so the reports are durable and shareable across machines:
+
+```bash
+REVIEWS_REPO="$HOME/.sdlc"
+PR_REVIEW_DIR="$REPO/pull-requests/$PR_NUMBER"
+if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
+  git -C "$REVIEWS_REPO" add -- "$PR_REVIEW_DIR"/'*.md' 2>/dev/null || true
+  if ! git -C "$REVIEWS_REPO" diff --cached --quiet; then
+    git -C "$REVIEWS_REPO" commit -m "review-pr-full: $REPO#$PR_NUMBER"
+    git -C "$REVIEWS_REPO" push || echo "note: push failed for $REPO#$PR_NUMBER"
+  fi
+fi
+```
+
+The commit message is always `review-pr-full: {owner}/{repo}#{PR}` so every run is identifiable by repository and PR.
+
+Only Markdown files inside the PR's directory are staged (`*.md`). The findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
+
+### 7. Report summary
 
 After processing, output the summary table and finish with a single machine-readable verdict line, so a parent orchestrator (`review-requested-prs`) can aggregate results without parsing the table:
 
