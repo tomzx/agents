@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Audit Outcomes
 
-Walks the PDLC artifact chain in reverse to verify end-to-end traceability: does what shipped trace to a validated opportunity, and do the health metrics justify the original decision? This is the PDLC analog of `backpropagate-sdlc`, but it judges *outcome coherence*, not spec-to-code consistency.
+Walks the PDLC artifact chain in reverse to verify end-to-end traceability: does what shipped trace to a validated opportunity, and do the health metrics justify the original decision? This is the PDLC analog of `propagate-changes`, but it judges *outcome coherence*, not spec-to-code consistency.
 
 ## Prerequisites
 

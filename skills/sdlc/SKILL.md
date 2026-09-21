@@ -398,7 +398,7 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions surfaced during review are recorded in that review's findings body; questions that need tracking (a named answerer and a needed-by date) are promoted to question records via `/create-question`. When `backpropagate-sdlc` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions surfaced during review are recorded in that review's findings body; questions that need tracking (a named answerer and a needed-by date) are promoted to question records via `/create-question`. When `propagate-changes` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points

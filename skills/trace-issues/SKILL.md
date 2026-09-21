@@ -1,6 +1,6 @@
 ---
 name: trace-issues
-description: Build a traceability matrix across a GitHub repository by tracing each issue to its linked PRs and commits and then to the code that implements it, and verifying whether each issue's intents (and acceptance criteria, when present) are still addressed in the current codebase. Use when the user says /trace-issues, "trace issues to code", "build a traceability matrix", "which PRs implemented these issues", "trace the repository", "are the issue intents addressed in the code", or wants a per-issue table of intents, PRs, and code coverage. Works without an SDLC directory; the GitHub-native counterpart of backpropagate-sdlc.
+description: Build a traceability matrix across a GitHub repository by tracing each issue to its linked PRs and commits and then to the code that implements it, and verifying whether each issue's intents (and acceptance criteria, when present) are still addressed in the current codebase. Use when the user says /trace-issues, "trace issues to code", "build a traceability matrix", "which PRs implemented these issues", "trace the repository", "are the issue intents addressed in the code", or wants a per-issue table of intents, PRs, and code coverage. Works without an SDLC directory; the GitHub-native counterpart of propagate-changes.
 allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*), Read, Write, Glob, Grep
 argument-hint: "[owner/repo] [--state all|open|closed] [--label <name>] [--author <user>] [--query <text>] [--limit <n>] [--focus <issue-number>] [--clone] [--out <path>]"
 ---
@@ -11,8 +11,8 @@ Builds a traceability matrix across a GitHub repository.
 For every issue in scope it traces the chain issue -> PR -> commit -> code, extracts the issue's intents (and formal acceptance criteria when present), and verifies whether each intent is still addressed in the **current** codebase.
 The output is one table: per issue, its linked PRs, its intents, and a Met / Partially met / Not met verdict with code evidence.
 
-This is the GitHub-native counterpart of `backpropagate-sdlc`.
-`backpropagate-sdlc` walks the `.sdlc/` artifact chain (issue -> requirements -> spec -> plan -> tasks -> tests -> code) and requires a populated `.sdlc/` directory.
+This is the GitHub-native counterpart of `propagate-changes`.
+`propagate-changes` walks the `.sdlc/` artifact chain (issue -> requirements -> spec -> plan -> tasks -> tests -> code) in both directions and requires a populated `.sdlc/` directory.
 This skill needs no `.sdlc/`: it reconstructs the trace from GitHub's own objects (issues, PRs, commits, closing references) and the code as it exists today.
 
 It differs from neighboring skills in a single dimension each:
@@ -22,7 +22,7 @@ It differs from neighboring skills in a single dimension each:
 | `check-issues-status` | Batch "is each issue already done" triage for staleness | Does not trace to PRs, does not collect acceptance criteria, does not build a matrix |
 | `check-issue-status` | Verifies one issue against the code | Single issue, no PR trace, no repository-wide matrix |
 | `validate-pr` / `verify-pr` | Review one PR against its linked issue at PR time (validate-pr: right product; verify-pr: criteria conformance) | One PR at a time, checks the PR diff, not whether the intent survives in current code |
-| `backpropagate-sdlc` | Traceability across the `.sdlc/` artifact chain | Requires `.sdlc/`; this uses GitHub objects and works on any repo |
+| `propagate-changes` | Traceability across the `.sdlc/` artifact chain | Requires `.sdlc/`; this uses GitHub objects and works on any repo |
 
 ## Prerequisites
 
@@ -197,7 +197,7 @@ If the body is too vague to extract any intent, record the issue as `unparseable
 
 ### 6. Verify each intent against the current code
 
-The code as it exists **today** is the ground truth (the principle from `backpropagate-sdlc`).
+The code as it exists **today** is the ground truth (the principle from `propagate-changes`).
 A PR's diff shows what was added at merge time, but that code may have been renamed, moved, or deleted since.
 Verification checks the current codebase, not the historical diff.
 
@@ -251,7 +251,7 @@ If the issue has no linked PR and is open, the verdict is usually `not-addressed
 
 ### 8. Classify orphans
 
-Apply the orphan classes from `backpropagate-sdlc`, adapted to the GitHub-native trace:
+Apply the orphan classes from `propagate-changes`, adapted to the GitHub-native trace:
 
 | Class | Meaning | Severity | Default recommendation |
 |---|---|---|---|
@@ -363,7 +363,7 @@ Issue #42's Must criterion "stream rows > 1M" was implemented by merged PR #51, 
 
 | Skill | Relationship |
 |---|---|
-| `backpropagate-sdlc` | The `.sdlc/` artifact-chain counterpart. This skill is its GitHub-native twin: same reverse-trace idea, no `.sdlc/` required. |
+| `propagate-changes` | The `.sdlc/` artifact-chain counterpart. This skill is its GitHub-native twin: same trace-both-ways idea, no `.sdlc/` required. |
 | `check-issue-status` | Owns single-issue code inspection. This skill reuses its intent-extraction and Met/Partial/Not-met logic but adds PR tracing and a repository-wide matrix. |
 | `check-issues-status` | Batch "is it done" triage. This skill reuses its scope/modes and gathering, but builds traces and collects acceptance criteria instead of only verdicting. |
 | `validate-pr` / `verify-pr` | Single-PR validation against an issue at PR time. This skill verifies the current code across all issues, catching regressions that happen after a PR merges. |

@@ -60,7 +60,7 @@ The library is organized into thematic groups covering the full software develop
 |-------|---------|
 | `/sdlc` | Run the full lifecycle pipeline, from issue creation through learnings capture. |
 | `/sdlc-status` | Display a progress dashboard for SDLC features from `.sdlc/` directory data. |
-| `/backpropagate-sdlc` | Walk the artifact chain in reverse to verify end-to-end traceability. |
+| `/propagate-changes` | Propagate a change through the artifact graph in both directions: update dependents, question premises. |
 | `/initialize-sdlc-directory` | Bootstrap the `.sdlc/` directory structure in a project. |
 | `/create-project` | Interview the user to populate `.sdlc/context/` for a new or empty project. |
 | `/review-project` | Review project context files for completeness, consistency, clarity, and actionability. |
