@@ -20,6 +20,7 @@ The cheap, build-free nature of this step is intentional: it runs first as an ea
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there. Of particular interest: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These reveal the intended outcomes the PR should serve.
+- When a linked issue number is known, look for the matching feature directory under `.sdlc/features/`: the directory named `N-<slug>` where `N` is the issue number, or a directory whose `requirements.md` frontmatter `issue` field references it (resolve the read per the SDLC_DIR artifact-location rules in `skills/sdlc/references/shared.md`). When found, read its `requirements.md`; it is the reviewed statement of the need and criteria and augments, never replaces, the issue. Its absence is not a failure; proceed on the issue alone.
 
 ### Skill attribution (GitHub)
 
@@ -43,6 +44,7 @@ Create git worktree on PR branch
           |
           v
 Recover the customer need from the issue
+(+ matching .sdlc feature requirements when present)
 (problem, stakeholder, desired outcome)
           |
           v
@@ -146,6 +148,7 @@ From each linked issue body, extract:
 Augment the need from project context when available:
 - `.sdlc/context/project-overview.md` and `goals.md` for intended outcomes and objectives the PR should advance.
 - `.sdlc/context/vocabulary.md` to read the problem in the right domain language.
+- `.sdlc/features/N-<slug>/requirements.md` for the matching feature (located per the Prerequisites): it may state the need, stakeholders, and desired outcome more precisely than the issue, and its acceptance criteria may have evolved past the issue's through requirements review. Where the feature requirements and the issue disagree, record the divergence as a criteria-soundness finding (Step 4b).
 
 If the issue is a bug report, the need is the underlying problem that produces the bug, and a key validation question is whether the bug is a symptom of a deeper cause.
 
@@ -158,7 +161,7 @@ Relate three layers and look for gaps between them:
 | Layer | Source |
 |---|---|
 | **Need** | Recovered in Step 2 |
-| **Criteria** | Parsed from the issue's acceptance criteria (`## Must` / `## Should` checklists, or inferred requirements) |
+| **Criteria** | Parsed from the issue's acceptance criteria (`## Must` / `## Should` checklists, or inferred requirements), unified with the matching feature's `.sdlc/features/N-<slug>/requirements.md` acceptance criteria when the feature directory exists |
 | **Implemented behavior** | Inferred from the diff and code read in the worktree (what the PR actually changes in the product) |
 
 For each need, record which criteria and which implemented behaviors serve it. For each criterion and each implemented behavior, record which need (if any) it serves.
@@ -183,6 +186,7 @@ Do the acceptance criteria actually serve the recovered need?
 
 - Are there needs with no covering criterion? The criteria under-specify the problem.
 - Are there criteria that serve no need? They over-constrain the solution or import assumptions that belong to a different problem.
+- When the matching feature directory exists, do the issue's criteria and the feature's `requirements.md` criteria agree? Divergence between the two sources of the spec (one of them is usually stale) is a criteria-soundness finding; the reviewed feature requirements are the stronger evidence of intent.
 - Do the criteria over-prescribe the *how* when the need is about the *what*, locking the implementation into a mechanism that may not be the right way to meet the need?
 - Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that paints the next change into a corner (an unversioned data format, a closed enum, a singleton)? Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
 
@@ -219,6 +223,7 @@ BODY="$(cat <<'EOF'
 ### Summary
 
 Issue(s): #N
+Feature spec: `.sdlc/features/N-<slug>/requirements.md` / none found
 Validated commit: SHORT_SHA
 Scope: full review / delta since <short sha>
 
