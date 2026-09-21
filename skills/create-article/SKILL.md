@@ -46,6 +46,12 @@ If sources are not yet gathered, run `/research-article` first to discover the s
   Keep technical terms where they are the precise and expected choice; the goal is to avoid uncommon
   or showy words, not to lose precision. Calibrate this to the audience: write simpler for general
   readers, and allow more domain terms for expert readers.
+- **No prose, state things directly**: Write straight to the point. Every sentence must convey
+  information. Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode
+  before reaching the meaning, and avoid filler that adds rhythm but no content. For example, write
+  "Four governance problems present themselves when multiple agents work for you" rather than
+  "Four governance problems move to the center when multiple agents work for you". If a phrase
+  paints a picture instead of saying the thing, replace it with the plain statement.
 - **Name the referent**: Avoid bare referential words like "this", "that", "these", and "those" when
   the referent could be ambiguous, since they force the reader to backtrack and resolve what is meant.
   Prefer naming the thing directly. For example, write "the parser fails on nested generics" rather
@@ -166,6 +172,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 
 **Avoid:**
 - Padding: filler phrases like "In today's fast-paced world..." or "It's important to note that..."
+- Verbose or decorative prose: metaphorical phrasing ("moves to the center", "sheds light on") that must be decoded, or any sentence that could be cut without losing information
 - Hedging everything: take a position where the sources support one
 - Restating the same point in multiple sections
 - Visualizations that repeat the text instead of adding understanding
