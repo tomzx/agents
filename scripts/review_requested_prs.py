@@ -18,13 +18,18 @@ assess-pr-risk runs in parallel with the validate -> verify -> review chain:
 it is stale independently of the chain, never gates a chain step, and is
 never gated by one.
 
+Each PR also gets a blocking depth: the number of open PRs stacked on it
+(directly or transitively), an attention signal for deciding what to review
+first, since a low-risk PR blocking five others deserves attention before
+an isolated hold.
+
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
 
 Usage:
     scripts/review_requested_prs.py [pr-url ... | owner/repo ...]
         [--limit N] [--json] [--dispatch] [--dispatch-prs] [--quiet]
-        [--log-level LEVEL] [--exclude-author LOGIN ...] [--sort {id,age}]
+        [--log-level LEVEL] [--exclude-author LOGIN ...] [--sort {id,age,blocks}]
 
 Examples:
     # All PRs where you are a requested reviewer
@@ -41,6 +46,9 @@ Examples:
 
     # Just the dispatch commands, one per line
     scripts/review_requested_prs.py --dispatch
+
+    # Prioritize by how many PRs each one blocks
+    scripts/review_requested_prs.py --sort blocks
 """
 
 from __future__ import annotations
@@ -226,6 +234,7 @@ class PRReviewState:
     approvers: list[str] = field(default_factory=list)
     additions: int = 0
     deletions: int = 0
+    blocking_depth: int = 0
     stale_steps: list[str] = field(default_factory=list)
     skipped: bool = False
     skipped_reason: str = ""
@@ -689,6 +698,127 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
     return steps
 
 
+MAX_STACK_PRS_PER_REPO = 500
+
+GRAPHQL_REPO_STACK_QUERY = """
+query($owner:String!,$name:String!,$cursor:String){
+  repository(owner:$owner,name:$name){
+    pullRequests(states:OPEN,first:100,after:$cursor,orderBy:{field:UPDATED_AT,direction:DESC}){
+      nodes{number headRefName baseRefName headRepository{nameWithOwner}}
+      pageInfo{hasNextPage endCursor}
+    }
+  }
+}
+"""
+
+
+@dataclass
+class StackNode:
+    """One open PR of a repository, reduced to its branch topology."""
+
+    number: int
+    head_repo: str
+    head_branch: str
+    base_branch: str
+
+
+def fetch_repo_stacks(client: Github, repo: str) -> list[StackNode]:
+    """Fetch the open PRs of *repo* as branch-topology nodes, capped.
+
+    Only the fields the stack graph needs are requested; the cap bounds the
+    cost for very large repositories (the most recently updated PRs win).
+    """
+    owner, name = repo.split("/", 1)
+    nodes: list[StackNode] = []
+    cursor: str | None = None
+    with timed("fetch_repo_stacks", repo=repo):
+        while True:
+            _headers, data = client.requester.graphql_query(
+                GRAPHQL_REPO_STACK_QUERY,
+                {"owner": owner, "name": name, "cursor": cursor},
+            )
+            connection = data["data"]["repository"]["pullRequests"]
+            for node in connection["nodes"]:
+                nodes.append(
+                    StackNode(
+                        number=node["number"],
+                        head_repo=(node.get("headRepository") or {}).get("nameWithOwner") or repo,
+                        head_branch=node.get("headRefName") or "",
+                        base_branch=node.get("baseRefName") or "",
+                    ),
+                )
+            page_info = connection["pageInfo"]
+            cursor = page_info.get("endCursor")
+            if not page_info.get("hasNextPage") or len(nodes) >= MAX_STACK_PRS_PER_REPO:
+                break
+    return nodes
+
+
+def _fetch_repo_stacks_safe(token: str, repo: str) -> list[StackNode]:
+    """Fetch repo stacks with its own client, returning [] on failure."""
+    try:
+        return fetch_repo_stacks(create_client(token), repo)
+    except GithubException as ex:
+        log.warning("repo_stack_fetch_failed", repo=repo, error=str(ex))
+        return []
+
+
+def compute_blocking_depths(token: str, prs: list[PRReviewState]) -> None:
+    """Set ``blocking_depth`` on each PR from its repo's open-PR stack graph.
+
+    A PR's blocking depth is the number of open PRs that depend on it,
+    directly or transitively: another PR depends on this one when its base
+    branch is this PR's head branch (stacking), and dependency chains are
+    followed through stacked-on branches. Only same-repo head branches can
+    be stacked on, because a PR's base branch always lives in the base
+    repository.
+    """
+    repos = sorted({pr.repo for pr in prs})
+    if not repos:
+        return
+    if len(repos) == 1:
+        stack_map = {repos[0]: _fetch_repo_stacks_safe(token, repos[0])}
+    else:
+        with ThreadPoolExecutor(max_workers=min(len(repos), 8)) as executor:
+            stack_map = dict(
+                zip(repos, executor.map(lambda r: _fetch_repo_stacks_safe(token, r), repos)),
+            )
+
+    for pr in prs:
+        pr.blocking_depth = _blocking_depth(pr, stack_map.get(pr.repo, []))
+        log.debug("blocking_depth", repo=pr.repo, pr=pr.number, depth=pr.blocking_depth)
+
+
+def _blocking_depth(pr: PRReviewState, nodes: list[StackNode]) -> int:
+    """Count the open PRs transitively stacked on *pr* within *nodes*.
+
+    Fork-head PRs can stack onto a same-repo branch (their base lives in the
+    base repository) but nothing can stack onto a fork branch, so descent
+    only continues through same-repo heads. *seen_branches* guards against
+    base-branch cycles.
+    """
+    if not pr.head_branch or pr.head_repo != pr.repo:
+        return 0
+    by_base: dict[str, list[StackNode]] = {}
+    for node in nodes:
+        if node.base_branch:
+            by_base.setdefault(node.base_branch, []).append(node)
+
+    dependents: set[int] = set()
+    seen_branches = {pr.head_branch}
+    frontier = [pr.head_branch]
+    while frontier:
+        branch = frontier.pop()
+        for node in by_base.get(branch, ()):
+            if node.number in dependents:
+                continue
+            dependents.add(node.number)
+            if node.head_repo == pr.repo and node.head_branch not in seen_branches:
+                seen_branches.add(node.head_branch)
+                frontier.append(node.head_branch)
+    return len(dependents)
+
+
 def build_summary_table(prs: list[PRReviewState]) -> Group:
     """Build Rich tables grouped by repository, summarizing PR review states."""
     tables: list[Table] = []
@@ -705,6 +835,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table.add_column("Verify", justify="center")
         table.add_column("Review", justify="center")
         table.add_column("Risk", justify="center")
+        table.add_column("Blocks", justify="right")
         table.add_column("Status")
         table.add_column("Approver")
 
@@ -751,6 +882,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 verify_col,
                 review_col,
                 assess_col,
+                _blocking_depth_cell(pr.blocking_depth),
                 status,
                 approver_col,
             )
@@ -791,6 +923,18 @@ def _pr_cell(pr: PRReviewState) -> str:
     url = f"https://github.com/{pr.repo}/pull/{pr.number}"
     label = f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}"
     return f"[link={url}]{label}[/link]"
+
+
+def _blocking_depth_cell(depth: int) -> str:
+    """Return the Blocks column cell: open PRs stacked on this one.
+
+    Zero is dim (an isolated PR); higher counts get more attention: yellow
+    for a few, bold red for five or more.
+    """
+    if depth <= 0:
+        return "[dim]0[/dim]"
+    style = "bold red" if depth >= 5 else "yellow"
+    return f"[{style}]{depth}[/{style}]"
 
 
 def _step_report_path(pr: PRReviewState, commit_field: str) -> Path | None:
@@ -1042,11 +1186,12 @@ def main() -> int:
     )
     parser.add_argument(
         "--sort",
-        choices=("id", "age"),
+        choices=("id", "age", "blocks"),
         default="id",
-        help="Sort order: 'id' (PR number, descending, default) or 'age' "
+        help="Sort order: 'id' (PR number, descending, default), 'age' "
         "(oldest first, measured from the most recent draft -> ready "
-        "transition or from opening when there is none).",
+        "transition or from opening when there is none), or 'blocks' "
+        "(most stacked-on PRs first).",
     )
     parser.add_argument(
         "--quiet",
@@ -1123,9 +1268,16 @@ def main() -> int:
                 description=f"Processing PRs ({completed}/{len(prs)})",
             )
 
+    with timed("compute_blocking_depths"):
+        compute_blocking_depths(token, prs)
+
     if args.sort == "age":
         # Oldest first, so the largest age (descending age) comes first.
         prs.sort(key=lambda pr: ((pr.ready_at or pr.created_at) == "", pr.ready_at or pr.created_at or ""))
+    elif args.sort == "blocks":
+        # Most blocking first, then newest, so attention goes to the PRs
+        # that unblock the most stacked work.
+        prs.sort(key=lambda pr: (pr.blocking_depth, pr.number), reverse=True)
     else:
         prs.sort(key=lambda pr: pr.number, reverse=True)
 
