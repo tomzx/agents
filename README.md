@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-220-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-226-green" alt="Skill count">
 </p>
 
 ## What
@@ -206,7 +206,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
-| `/review-pr-full` | Orchestrate a full review (validate, verify, review) for a single PR, skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
+| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment in parallel with validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
 | `/review-requested-prs` | Fan out full reviews (validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. |
@@ -218,6 +218,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
 | `/validate-pr` | Judge whether the PR builds the right product (needs alignment, criteria soundness, scope). |
 | `/verify-pr` | Verify conformance to acceptance criteria: traceability plus runtime proof (build, run, record demos). |
+| `/assess-pr-risk` | Estimate a PR's risk and the confidence of that estimate, and recommend the next reviewer action. |
 | `/record-asciinema` | Record a terminal/CLI demo with asciinema and render to GIF/SVG. |
 | `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |

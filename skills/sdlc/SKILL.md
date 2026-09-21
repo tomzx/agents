@@ -117,6 +117,7 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
            │
            ▼
     /create-pr              Open a PR: description, AC coverage, issue link, reviewers (embeds pre-captured proof)
+    /assess-pr-risk         Risk + confidence estimate routing how much review the PR needs (advisory, never blocks)
     /validate-pr            Needs alignment: is the PR the right product; are the criteria sound
     /verify-pr              Conformance: criteria-to-code traceability + runtime proof per criterion
    /review-pr              Comprehensive code review of the PR
@@ -238,6 +239,7 @@ When in doubt, include more phases rather than fewer.
 5. Include `create-tests` when the change affects behavior or could regress.
 6. Include `validate-implementation` before `create-pr` whenever the change has a CLI or web UI surface; it self-reports `surface: none` (a no-op) for config and documentation-only changes, which is why those fast paths omit it.
 7. Never skip CI verification before merging.
+8. Fast paths that skip `review-pr` run `assess-pr-risk` before `merge-pr` instead: a `fast-track` or `confirm` token confirms the skip is safe, while `block` or `hold` escalates to `review-pr-full` before merging.
 
 ### Using fast paths
 
@@ -429,6 +431,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `documentation` | Implementation reviewed; code needs docs |
 | `validate-implementation` | Docs done and ready to capture visual proof + get user sign-off before opening a PR (records a CLI demo or web screenshot on the branch; no-op for non-visual changes) |
 | `pr` | Visual proof captured (or skipped); ready to open a pull request |
+| `assess-pr-risk` | PR is open; decide how much review it needs before spending review effort (advisory; also run before `merge-pr` on fast paths that skip review) |
 | `validate-pr` | PR is open; judge whether it builds the right product before spending a build |
 | `verify-pr` | Right product confirmed; verify conformance to the acceptance criteria (traceability + runtime proof) |
 | `handle-pr-ci` | PR has failing CI checks to fix |

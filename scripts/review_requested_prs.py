@@ -10,9 +10,13 @@
 """Deterministic orchestrator for the review-requested-prs skill.
 
 Discovers PRs needing review (requested from you, plus open PRs you have
-already reviewed), checks staleness of validate-pr / verify-pr / review-pr
-comment markers against each PR's HEAD commit, and outputs which review
-steps need to be dispatched.
+already reviewed), checks staleness of assess-pr-risk / validate-pr /
+verify-pr / review-pr comment markers against each PR's HEAD commit, and
+outputs which review steps need to be dispatched.
+
+assess-pr-risk runs in parallel with the validate -> verify -> review chain:
+it is stale independently of the chain, never gates a chain step, and is
+never gated by one.
 
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
@@ -116,7 +120,14 @@ LEGACY_MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
     "review-pr": re.compile(r"<!-- review-pr:([a-f0-9]+) -->"),
 }
 
-VALID_STEPS = ("validate-pr", "verify-pr", "review-pr")
+CHAIN_STEPS = ("validate-pr", "verify-pr", "review-pr")
+
+# assess-pr-risk runs in parallel with the chain: independent staleness,
+# no gating in either direction.
+PARALLEL_STEPS = ("assess-pr-risk",)
+
+# Every step the skills write markers for.
+VALID_STEPS = PARALLEL_STEPS + CHAIN_STEPS
 
 STEP_ORDER: dict[str, int] = {step: index for index, step in enumerate(VALID_STEPS)}
 
@@ -126,18 +137,21 @@ VERDICT_FIELDS: dict[str, str] = {
 }
 
 STEP_TO_FIELD: dict[str, str] = {
+    "assess-pr-risk": "assess_commit",
     "validate-pr": "validate_commit",
     "verify-pr": "verify_commit",
     "review-pr": "review_commit",
 }
 
 STEP_TO_POSTED_FIELD: dict[str, str] = {
+    "assess-pr-risk": "assess_posted",
     "validate-pr": "validate_posted",
     "verify-pr": "verify_posted",
     "review-pr": "review_posted",
 }
 
 STEP_TO_VERDICT_FIELD: dict[str, str] = {
+    "assess-pr-risk": "assess_verdict",
     "validate-pr": "validate_verdict",
     "verify-pr": "verify_verdict",
     "review-pr": "review_verdict",
@@ -154,6 +168,29 @@ VERDICT_STYLES: dict[str, str] = {
 VERDICT_DISPLAY: dict[str, str] = {
     "pass": "✅",
     "fail": "❌",
+}
+
+# assess-pr-risk report fields. Risk/confidence travel in the marker JSON
+# ("risk"/"confidence" keys) and, for reports written before those keys
+# existed, are scraped from the report body line
+# ("**Risk: High** · **Confidence: Low** · ...").
+BODY_RISK_PATTERN = re.compile(r"Risk:\s*(Low|Medium|High)\b", re.IGNORECASE)
+BODY_CONFIDENCE_PATTERN = re.compile(r"Confidence:\s*(Low|Medium|High)\b", re.IGNORECASE)
+
+RISK_STYLES: dict[str, str] = {
+    "high": "bold red",
+    "medium": "yellow",
+    "low": "green",
+}
+
+# Routing tokens colored by how much reviewer attention they ask for.
+ROUTE_STYLES: dict[str, str] = {
+    "fast-track": "green",
+    "confirm": "green",
+    "decide": "yellow",
+    "investigate": "yellow",
+    "block": "red",
+    "hold": "red",
 }
 
 
@@ -175,12 +212,17 @@ class PRReviewState:
     validate_commit: str = ""
     verify_commit: str = ""
     review_commit: str = ""
+    assess_commit: str = ""
     validate_posted: bool = False
     verify_posted: bool = False
     review_posted: bool = False
+    assess_posted: bool = False
     validate_verdict: str = ""
     verify_verdict: str = ""
     review_verdict: str = ""
+    assess_verdict: str = ""
+    assess_risk: str = ""
+    assess_confidence: str = ""
     approvers: list[str] = field(default_factory=list)
     additions: int = 0
     deletions: int = 0
@@ -488,6 +530,28 @@ def fetch_pr_data(client: Github, pr: PRReviewState) -> None:
 SDLC_REVIEW_DIR = Path.home() / ".sdlc"
 
 
+def _extract_assess_fields(text: str, data: dict, pr: PRReviewState) -> None:
+    """Pull risk and confidence for an assess-pr-risk marker into *pr*.
+
+    Prefers the marker's own ``risk``/``confidence`` keys; falls back to
+    scraping the report body line from the surrounding *text* for reports
+    written before the keys existed. Overwrites only when a value is found,
+    so the most recent report wins without erasing older data.
+    """
+    risk = str(data.get("risk", "")).lower()
+    confidence = str(data.get("confidence", "")).lower()
+    if risk not in ("low", "medium", "high"):
+        match = BODY_RISK_PATTERN.search(text)
+        risk = match.group(1).lower() if match else ""
+    if confidence not in ("low", "medium", "high"):
+        match = BODY_CONFIDENCE_PATTERN.search(text)
+        confidence = match.group(1).lower() if match else ""
+    if risk:
+        pr.assess_risk = risk
+    if confidence:
+        pr.assess_confidence = confidence
+
+
 def _parse_markers(text: str, pr: PRReviewState, posted: bool) -> None:
     """Extract marker data from text and update *pr* in place.
 
@@ -510,6 +574,8 @@ def _parse_markers(text: str, pr: PRReviewState, posted: bool) -> None:
             setattr(pr, STEP_TO_POSTED_FIELD[step], posted)
             if verdict:
                 setattr(pr, STEP_TO_VERDICT_FIELD[step], verdict)
+            if step == "assess-pr-risk":
+                _extract_assess_fields(text, data, pr)
 
     for step, pattern in LEGACY_MARKER_PATTERNS.items():
         field_name = STEP_TO_FIELD[step]
@@ -576,9 +642,13 @@ def check_local_markers(pr: PRReviewState) -> None:
         "local_markers_checked",
         repo=pr.repo,
         pr=pr.number,
+        assess_commit=pr.assess_commit[:8] or "none",
         validate_commit=pr.validate_commit[:8] or "none",
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
+        assess_verdict=pr.assess_verdict or "none",
+        assess_risk=pr.assess_risk or "none",
+        assess_confidence=pr.assess_confidence or "none",
         validate_verdict=pr.validate_verdict or "none",
         verify_verdict=pr.verify_verdict or "none",
         review_verdict=pr.review_verdict or "none",
@@ -586,28 +656,37 @@ def check_local_markers(pr: PRReviewState) -> None:
 
 
 def determine_stale_steps(pr: PRReviewState) -> list[str]:
-    """Return the ordered list of review steps that are stale for *pr*."""
+    """Return the ordered list of review steps that are stale for *pr*.
+
+    assess-pr-risk comes first so it can be dispatched concurrently with the
+    first stale chain step; it is stale independently of the chain.
+    """
     head = pr.head_commit
     if not head:
         return []
 
     if (
-        pr.validate_commit == head
+        pr.assess_commit == head
+        and pr.validate_commit == head
         and pr.verify_commit == head
         and pr.review_commit == head
     ):
         return []
 
+    steps: list[str] = []
+    if pr.assess_commit != head:
+        steps.append("assess-pr-risk")
+
     if pr.validate_commit != head:
-        return ["validate-pr", "verify-pr", "review-pr"]
+        return steps + ["validate-pr", "verify-pr", "review-pr"]
 
     if pr.verify_commit != head:
-        return ["verify-pr", "review-pr"]
+        return steps + ["verify-pr", "review-pr"]
 
     if pr.review_commit != head:
-        return ["review-pr"]
+        steps.append("review-pr")
 
-    return []
+    return steps
 
 
 def build_summary_table(prs: list[PRReviewState]) -> Group:
@@ -625,6 +704,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table.add_column("Validate", justify="center")
         table.add_column("Verify", justify="center")
         table.add_column("Review", justify="center")
+        table.add_column("Risk", justify="center")
         table.add_column("Status")
         table.add_column("Approver")
 
@@ -658,6 +738,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 pr.review_commit, pr.review_posted, pr.review_verdict, pr.head_commit,
                 _step_report_path(pr, "review_commit"),
             )
+            assess_col = _assess_cell(pr)
             table.add_row(
                 _pr_cell(pr),
                 pr.author or "[dim]—[/dim]",
@@ -669,6 +750,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 validate_col,
                 verify_col,
                 review_col,
+                assess_col,
                 status,
                 approver_col,
             )
@@ -738,6 +820,39 @@ def _step_report_path(pr: PRReviewState, commit_field: str) -> Path | None:
     return None
 
 
+def _assess_cell(pr: PRReviewState) -> str:
+    """Return the Risk column cell for assess-pr-risk.
+
+    Shows the risk/confidence letters (risk colored by severity, confidence
+    dim) followed by the routing token colored by how much reviewer attention
+    it asks for, e.g. ``H/L hold (local)``. Falls back to the plain marker
+    display when the report carries no risk data.
+    """
+    if not pr.assess_commit:
+        return "[dim]—[/dim]"
+    location = "github" if pr.assess_posted else "local"
+    parts: list[str] = []
+    if pr.assess_risk or pr.assess_confidence:
+        risk_letter = pr.assess_risk[:1].upper() if pr.assess_risk else "—"
+        conf_letter = pr.assess_confidence[:1].upper() if pr.assess_confidence else "—"
+        risk_style = RISK_STYLES.get(pr.assess_risk, "dim")
+        parts.append(f"[{risk_style}]{risk_letter}[/{risk_style}][dim]/{conf_letter}[/dim]")
+    if pr.assess_verdict:
+        route_style = ROUTE_STYLES.get(pr.assess_verdict, "dim")
+        parts.append(f"[{route_style}]{pr.assess_verdict}[/{route_style}]")
+    if parts:
+        cell = " ".join(parts) + f" [dim]({location})[/dim]"
+    else:
+        base_style = "blue" if pr.assess_posted else "dim"
+        cell = f"[{base_style}]{location}[/{base_style}]"
+    if pr.assess_commit != pr.head_commit:
+        cell += f" [red]{pr.assess_commit[:8]}[/red]"
+    report_path = _step_report_path(pr, "assess_commit")
+    if report_path:
+        return f"[link={report_path.as_uri()}]{cell}[/link]"
+    return cell
+
+
 def _marker_cell(
     commit: str,
     posted: bool,
@@ -792,12 +907,21 @@ def format_dispatch_commands(prs: list[PRReviewState]) -> str:
 
 
 def effective_stale_steps(pr: PRReviewState) -> list[str]:
-    """Return the stale steps not skipped because an earlier step failed."""
-    cutoff = len(STEP_ORDER)
+    """Return the stale steps not skipped because an earlier chain step failed.
+
+    A failed chain step cuts off the chain steps at and after it, but
+    assess-pr-risk is never cut off: it neither gates nor is gated.
+    """
+    cutoff = len(CHAIN_STEPS) + 1
     for step, field_name in VERDICT_FIELDS.items():
         if getattr(pr, field_name) == "fail":
             cutoff = STEP_ORDER[step] + 1
-    return [s for s in pr.stale_steps if STEP_ORDER[s] < cutoff]
+    chain = [
+        s for s in pr.stale_steps
+        if s in CHAIN_STEPS and STEP_ORDER[s] < cutoff
+    ]
+    parallel = [s for s in pr.stale_steps if s in PARALLEL_STEPS]
+    return parallel + chain
 
 
 def format_review_full_commands(prs: list[PRReviewState]) -> str:
@@ -868,7 +992,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Discover PRs needing review and determine which review steps "
-            "(validate-pr, verify-pr, review-pr) are stale."
+            "(assess-pr-risk, validate-pr, verify-pr, review-pr) are stale."
         ),
     )
     parser.add_argument(

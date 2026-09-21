@@ -1,13 +1,13 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
+description: Orchestrate full PR reviews (assess-pr-risk in parallel with validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*), Read, Write, Glob, Grep, Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
 # Review Requested PRs
 
-Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), computes for each PR which of `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion.
+Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), computes for each PR which of `/assess-pr-risk`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
 The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot hold up any other PR.
 
@@ -31,17 +31,18 @@ The verdict is either `pass` (continue to the next step) or `fail` (halt the pip
 
 | Step | Internal verdicts | `pass` | `fail` |
 |------|-------------------|--------|--------|
+| assess-pr-risk | fast-track, confirm, investigate, decide, block, hold | All (advisory only) | None (never gates the chain) |
 | validate-pr | Right thing, Partially right, Wrong thing, Inconclusive | Right thing, Partially right | Wrong thing, Inconclusive |
 | verify-pr | Conforms, Nonconforming | Conforms (PR conforms: Yes) | Nonconforming (PR conforms: No) |
 | review-pr | approved, changes-requested, rejected | approved | changes-requested, rejected |
 
-The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (steps after a failed prior step are not dispatched), and emits the resulting plan. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
+The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan. `assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
 
 ## Prerequisites
 
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback, and by `review-pr-full` to fetch head branches)
-- `validate-pr`, `verify-pr`, and `review-pr` skills available
+- `validate-pr`, `verify-pr`, `review-pr`, and `assess-pr-risk` skills available
 - Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
 
 ## Workflow
@@ -87,9 +88,9 @@ Useful flags:
 `--dispatch-prs` emits one self-contained `/review-pr-full` command per PR needing work, in execution order, with PR plan blocks separated by `---`:
 
 ```
-/review-pr-full 42 acme/api --steps validate-pr,verify-pr,review-pr --head-repo acme/api --head-branch feature-x
+/review-pr-full 42 acme/api --steps assess-pr-risk,validate-pr,verify-pr,review-pr --head-repo acme/api --head-branch feature-x
 ---
-/review-pr-full 88 acme/web-app --steps verify-pr,review-pr --head-repo alice/web-app --head-branch fix-cache
+/review-pr-full 88 acme/web-app --steps assess-pr-risk,verify-pr,review-pr --head-repo alice/web-app --head-branch fix-cache
 ---
 /review-pr-full 55 acme/api --steps review-pr --head-repo acme/api --head-branch add-export
 ```
@@ -160,11 +161,11 @@ Collect each subagent's final `VERDICT ...` line. Map statuses to the summary:
 
 | Repository | PR | Steps run | Result |
 |---|---|---|---|
-| owner/repo | #42 | validate, verify, review | Completed |
-| owner/repo | #88 | verify, review | Completed (validate up to date) |
-| owner/repo | #55 | review | Completed (validate, verify up to date) |
-| owner/repo | #77 | validate | Stopped at validate (wrong product) |
-| owner/repo | #33 | validate, verify | Stopped at verify (build failure) |
+| owner/repo | #42 | assess, validate, verify, review | Completed |
+| owner/repo | #88 | assess, verify, review | Completed (validate up to date) |
+| owner/repo | #55 | review | Completed (assess, validate, verify up to date) |
+| owner/repo | #77 | assess, validate | Stopped at validate (wrong product) |
+| owner/repo | #33 | assess, validate, verify | Stopped at verify (build failure) |
 | owner/repo | #11 | — | Up to date |
 
 If a subagent returns no parseable verdict, surface its raw output and mark that PR as `no-verdict`.
@@ -175,7 +176,7 @@ If a subagent returns no parseable verdict, surface its raw output and mark that
 ```
 /review-requested-prs
 ```
-Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all three steps, 1 needs only review-pr. Fans out 3 subagents, one per PR; each runs its steps to completion. A slow verify-pr build on one PR does not delay the others.
+Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all four steps, 1 needs only review-pr. Fans out 3 subagents, one per PR; each runs its steps to completion (the risk assessment concurrently with the chain). A slow verify-pr build on one PR does not delay the others.
 
 **Scenario 2: Filter to specific repositories**
 ```
@@ -211,7 +212,7 @@ A PR whose head is on a contributor's fork is emitted with `--head-repo alice/ap
 ```
 /review-requested-prs
 ```
-PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and review-pr, so the only command emitted is `--steps validate-pr`, and no time is spent verifying conformance to a wrong target.
+PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk, so the only command emitted is `--steps assess-pr-risk,validate-pr`, and no time is spent verifying conformance to a wrong target while the risk report still lands for the human deciding what to do with the PR.
 
 ## Script Reference
 

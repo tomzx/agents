@@ -410,6 +410,9 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 | `validate-pr` | `validate.yaml` | `validate-pr.<sha>.md` (`validate-pr.report.md`) |
 | `verify-pr` | `verify.yaml` | `verify-pr.<sha>.md` (`verify-pr.report.md`) |
 | `review-pr` | `review.yaml` | `review-pr.<sha>.md` (`review-pr.report.md`), plus `gh-pr-view.md` (raw PR cache) |
+| `assess-pr-risk` | none (stateless; cheap to re-run) | `assess-pr-risk.<sha>.md` (`assess-pr-risk.report.md`) |
+
+`assess-pr-risk` is dispatched by `review-pr-full` in parallel with the validate -> verify -> review chain and consumes the three skills' reports as evidence when they are current. It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
 
 `<skill>.yaml` is the findings state, one YAML document per skill per PR with a flat header (`pr`, `updated_at`, `last_reviewed_sha`, `last_reviewed_tree`) and a `findings` list. Each finding has `title` (its identity; when a re-review matches an existing finding, update that entry instead of adding a duplicate), `description`, `severity` (`must` / `should` / `may`), `status`, and an informational `first_seen_sha`. `status` is the source of truth; the shas are provenance only. `validate-pr` and `review-pr` use `open` / `addressed` / `stale` / `wontfix`; `verify-pr` stores one finding per acceptance criterion with `conforms` / `conforms-static` / `unverified` / `fails`.
 
