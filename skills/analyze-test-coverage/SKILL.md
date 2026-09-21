@@ -1,6 +1,6 @@
 ---
 name: analyze-test-coverage
-description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
+description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr-full as the first step of its review chain (before validate-pr, verify-pr, and review-pr), and delegated to by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
 allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[diff-ref | worktree-dir]"
 ---
@@ -19,6 +19,7 @@ Changing behavior without a test is a reliable way to lose that behavior in a fu
 
 - A git worktree or repository with the changes to analyze
 - If called by a parent skill, `$WORKTREE_DIR` may be set and the diff context may be provided
+- If invoked by `review-pr-full`, `$1` is the PR number and `$2` is the repository
 - If invoked directly, `$1` is either a diff ref (e.g. `origin/main..HEAD`) or a worktree directory
 
 ## Inputs
@@ -27,6 +28,7 @@ The skill accepts its context in one of these forms:
 
 | Source | How |
 |---|---|
+| Orchestrated by review-pr-full | `$1` is the PR number, `$2` is `$REPO`; `$WORKTREE_DIR` is set; diff is `origin/<base>...HEAD` inside the worktree |
 | Worktree + diff ref | `$WORKTREE_DIR` set by parent skill; diff is `git diff` against the base branch |
 | Direct invocation with diff ref | `$1` is a git ref range (e.g. `origin/main..HEAD`); run in the current repo |
 | Direct invocation with worktree | `$1` is a directory path; diff is `origin/<base>..HEAD` inside that worktree |
@@ -125,7 +127,52 @@ If invoked directly (not by a parent skill), include these findings in the repor
 
 ### 6. Return the analysis
 
-Return the three tables and the findings list. If called by a parent skill, the parent embeds them into its own report. If invoked directly, output the full report.
+Return the three tables and the findings list. If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes nothing. If invoked directly or orchestrated by review-pr-full, continue with the orchestrated-run contract below.
+
+## Orchestrated runs (review-pr-full)
+
+When dispatched by `review-pr-full` (the first step of its review chain, before `validate-pr`, `verify-pr`, and `review-pr`), the analysis is a standalone, tracked report instead of tables handed to a parent. The worktree already exists at `$WORKTREE_DIR`; use it and do not create or remove one.
+
+1. Resolve the PR context:
+
+```bash
+PR_NUMBER="$1"; REPO="$2"
+BASE_BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName)
+HEAD_COMMIT=$(git -C "$WORKTREE_DIR" rev-parse HEAD)
+HEAD_TREE=$(git -C "$WORKTREE_DIR" rev-parse HEAD^{tree})
+SHORT_SHA="${HEAD_COMMIT:0:7}"
+```
+
+2. Resolve the diff inside the worktree (merge-base diff against the PR base branch):
+
+```bash
+git -C "$WORKTREE_DIR" fetch origin "$BASE_BRANCH"
+DIFF_REF="origin/${BASE_BRANCH}...HEAD"
+```
+
+3. Produce the three tables and findings as usual, then set the marker verdict: `pass` when every behavior change is covered and the uncovered-code table is empty; `fail` when any change-coverage row is `No` or any uncovered code is listed.
+
+4. Write the report per `sdlc/references/shared.md` (PR Review Reports): define `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"`, `mkdir -p` it, and save the analysis to `$PR_REVIEW_DIR/analyze-test-coverage.$SHORT_SHA.md`, starting the file with the marker so the orchestrator can detect which commit was analyzed:
+
+```markdown
+<!-- {"step":"analyze-test-coverage","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
+
+## Test Coverage Analysis
+...
+```
+
+Then point the stable name at it: `ln -sf "analyze-test-coverage.$SHORT_SHA.md" "$PR_REVIEW_DIR/analyze-test-coverage.report.md"`.
+
+5. Post the report as a PR comment, decided by `should-post-to-github`. If `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"` exits 1, skip posting (the report is already saved). If it exits 0:
+
+```bash
+FOOTER="Posted with [analyze-test-coverage](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
+gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat "$PR_REVIEW_DIR/analyze-test-coverage.report.md")
+
+${FOOTER}"
+```
+
+The verdict never gates anything: review-pr-full runs this step first and reports the verdict to the human reviewer, while the later chain steps can read the posted report as evidence.
 
 ## Output Format
 
@@ -181,6 +228,7 @@ The diff contains only source changes, no test files. Reports "No tests introduc
 
 | Skill | Relationship |
 |---|---|
+| `review-pr-full` | Dispatches this skill as the first step of its review chain (before validate-pr, verify-pr, and review-pr); the standalone report carries the commit marker the staleness script tracks |
 | `review-pr` | Calls this skill to produce the Coverage section of its PR review report |
 | `review-implementation` | Calls this skill to produce the Test Coverage section of its implementation review |
 | `verify-pr` | Calls this skill to produce the test inventory alongside criteria conformance |

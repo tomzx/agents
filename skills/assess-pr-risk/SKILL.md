@@ -19,7 +19,7 @@ This skill judges neither code craft (that is `/review-pr`), conformance (`/veri
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
 - Optional but confidence-raising: prior `validate-pr`, `verify-pr`, or `review-pr` reports for this PR under `$PR_REVIEW_DIR`
-- Orchestrators (`review-pr-full`, `review-requested-prs`) dispatch this skill concurrently with the validate -> verify -> review chain and provide `WORKTREE_DIR`; sibling reports may still be missing at run time, which the confidence rubric reflects honestly. Re-running the skill after the chain completes raises confidence, which is why it is listed first in the dispatch order.
+- Orchestrators (`review-pr-full`, `review-requested-prs`) dispatch this skill concurrently with the analyze-test-coverage -> validate -> verify -> review chain and provide `WORKTREE_DIR`; sibling reports may still be missing at run time, which the confidence rubric reflects honestly. Re-running the skill after the chain completes raises confidence, which is why it is listed first in the dispatch order.
 
 ### Skill attribution (GitHub)
 
@@ -38,7 +38,7 @@ Create git worktree on PR branch
           |
           v
 Gather evidence
-(sibling reports: validate / verify / review;
+(sibling reports: coverage / validate / verify / review;
  diff, codebase, churn of touched files)
           |
           v
@@ -105,7 +105,7 @@ If worktree creation fails, stop.
 
 Three evidence sources, in order:
 
-**Sibling reports.** Read `validate-pr.report.md`, `verify-pr.report.md`, and `review-pr.report.md` from `$PR_REVIEW_DIR` when present.
+**Sibling reports.** Read `analyze-test-coverage.report.md`, `validate-pr.report.md`, `verify-pr.report.md`, and `review-pr.report.md` from `$PR_REVIEW_DIR` when present.
 A report is **current** when its marker `sha` equals `HEAD_COMMIT`; if its `sha` is an ancestor of `HEAD_COMMIT`, treat it as current and note the delta in the report.
 From each current report, extract what it contributes: the validate verdict (Right / Partially right / Wrong / Inconclusive), the verify statuses (which Must criteria conform at runtime, which are static-only or unverified), and the review findings (severity counts, coverage tables, reversibility and compatibility notes).
 Missing reports are recorded as missing evidence; never infer their content.
@@ -133,7 +133,7 @@ Trace findings end to end before scoring them: a suspicion you did not confirm b
 | **Security sensitivity** | None touched | Input validation, security config, or PII handling | Authentication, authorization, cryptography, or secrets handling |
 | **Reversibility** | Fully reversible by revert | Migration or config change with a documented rollback | Destructive or irreversible operation (data drop, permanent transform, one-way door) |
 | **Operational exposure** | Internal only | Behavior change behind a flag or config | Hot path, externally triggered behavior change, or rollout with no guard |
-| **Coverage gap** | Changed behavior covered by tests | Partial coverage, edge cases untested | Core behavior with no test (use the review-pr coverage tables when current, else inspect the diff) |
+| **Coverage gap** | Changed behavior covered by tests | Partial coverage, edge cases untested | Core behavior with no test (use the analyze-test-coverage or review-pr coverage tables when current, else inspect the diff) |
 | **Churn** | Files stable (few touches in 12 months) | Monthly-level activity | Hotspot: touched weekly or by many authors |
 
 Rollup rules, applied in order:

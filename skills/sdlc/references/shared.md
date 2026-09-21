@@ -389,7 +389,7 @@ Rules:
 
 Context-level review skills (`review-goals`, `review-roadmap`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md`, `.sdlc/context/review-roadmap.md`, and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
 
-## PR Review Reports (validate-pr / verify-pr / review-pr)
+## PR Review Reports (validate-pr / verify-pr / review-pr / analyze-test-coverage)
 
 PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The local file is the reviewer's personal copy. Whether it is posted as a GitHub comment is decided by `should-post-to-github` (see `~/.sdlc/config.yaml`: `post_github_comments`, `excluded_owners`, `excluded_repos`, `excluded_authors`). When posting is disabled the report is saved locally only.
 
@@ -411,8 +411,11 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 | `verify-pr` | `verify.yaml` | `verify-pr.<sha>.md` (`verify-pr.report.md`) |
 | `review-pr` | `review.yaml` | `review-pr.<sha>.md` (`review-pr.report.md`), plus `gh-pr-view.md` (raw PR cache) |
 | `assess-pr-risk` | none (stateless; cheap to re-run) | `assess-pr-risk.<sha>.md` (`assess-pr-risk.report.md`) |
+| `analyze-test-coverage` | none (stateless; cheap to re-run) | `analyze-test-coverage.<sha>.md` (`analyze-test-coverage.report.md`) |
 
-`assess-pr-risk` is dispatched by `review-pr-full` in parallel with the validate -> verify -> review chain and consumes the three skills' reports as evidence when they are current. It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
+`assess-pr-risk` is dispatched by `review-pr-full` in parallel with the analyze-test-coverage -> validate -> verify -> review chain and consumes the skills' reports as evidence when they are current. It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
+
+`analyze-test-coverage` is the first chain step (before `validate-pr`, `verify-pr`, and `review-pr`), so its report exists as evidence before anything else judges the change. It writes the same per-run report and marker (`pass` when every behavior change is covered and no uncovered code is listed, `fail` otherwise), and its verdict never gates anything. When delegated to by `review-pr`, `verify-pr`, or `review-implementation`, it writes nothing and only returns its tables to the parent.
 
 `<skill>.yaml` is the findings state, one YAML document per skill per PR with a flat header (`pr`, `updated_at`, `last_reviewed_sha`, `last_reviewed_tree`) and a `findings` list. Each finding has `title` (its identity; when a re-review matches an existing finding, update that entry instead of adding a duplicate), `description`, `severity` (`must` / `should` / `may`), `status`, and an informational `first_seen_sha`. `status` is the source of truth; the shas are provenance only. `validate-pr` and `review-pr` use `open` / `addressed` / `stale` / `wontfix`; `verify-pr` stores one finding per acceptance criterion with `conforms` / `conforms-static` / `unverified` / `fails`.
 

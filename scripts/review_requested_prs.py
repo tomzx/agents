@@ -10,13 +10,13 @@
 """Deterministic orchestrator for the review-requested-prs skill.
 
 Discovers PRs needing review (requested from you, plus open PRs you have
-already reviewed), checks staleness of assess-pr-risk / validate-pr /
-verify-pr / review-pr comment markers against each PR's HEAD commit, and
-outputs which review steps need to be dispatched.
+already reviewed), checks staleness of assess-pr-risk / analyze-test-coverage /
+validate-pr / verify-pr / review-pr comment markers against each PR's HEAD
+commit, and outputs which review steps need to be dispatched.
 
-assess-pr-risk runs in parallel with the validate -> verify -> review chain:
-it is stale independently of the chain, never gates a chain step, and is
-never gated by one.
+assess-pr-risk runs in parallel with the analyze-test-coverage -> validate ->
+verify -> review chain: it is stale independently of the chain, never gates a
+chain step, and is never gated by one.
 
 Each PR also gets a blocking depth: the number of open PRs stacked on it
 (directly or transitively), an attention signal for deciding what to review
@@ -126,9 +126,10 @@ LEGACY_MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
     "validate-pr": re.compile(r"<!-- validate-pr:([a-f0-9]+) -->"),
     "verify-pr": re.compile(r"<!-- verify-pr:([a-f0-9]+) -->"),
     "review-pr": re.compile(r"<!-- review-pr:([a-f0-9]+) -->"),
+    "analyze-test-coverage": re.compile(r"<!-- analyze-test-coverage:([a-f0-9]+) -->"),
 }
 
-CHAIN_STEPS = ("validate-pr", "verify-pr", "review-pr")
+CHAIN_STEPS = ("analyze-test-coverage", "validate-pr", "verify-pr", "review-pr")
 
 # assess-pr-risk runs in parallel with the chain: independent staleness,
 # no gating in either direction.
@@ -142,6 +143,7 @@ STEP_ORDER: dict[str, int] = {step: index for index, step in enumerate(VALID_STE
 VERDICT_FIELDS: dict[str, str] = {
     "validate-pr": "validate_verdict",
     "verify-pr": "verify_verdict",
+    "review-pr": "review_verdict",
 }
 
 STEP_TO_FIELD: dict[str, str] = {
@@ -149,6 +151,7 @@ STEP_TO_FIELD: dict[str, str] = {
     "validate-pr": "validate_commit",
     "verify-pr": "verify_commit",
     "review-pr": "review_commit",
+    "analyze-test-coverage": "coverage_commit",
 }
 
 STEP_TO_POSTED_FIELD: dict[str, str] = {
@@ -156,6 +159,7 @@ STEP_TO_POSTED_FIELD: dict[str, str] = {
     "validate-pr": "validate_posted",
     "verify-pr": "verify_posted",
     "review-pr": "review_posted",
+    "analyze-test-coverage": "coverage_posted",
 }
 
 STEP_TO_VERDICT_FIELD: dict[str, str] = {
@@ -163,6 +167,7 @@ STEP_TO_VERDICT_FIELD: dict[str, str] = {
     "validate-pr": "validate_verdict",
     "verify-pr": "verify_verdict",
     "review-pr": "review_verdict",
+    "analyze-test-coverage": "coverage_verdict",
 }
 
 FIELD_TO_STEP: dict[str, str] = {v: k for k, v in STEP_TO_FIELD.items()}
@@ -220,14 +225,17 @@ class PRReviewState:
     validate_commit: str = ""
     verify_commit: str = ""
     review_commit: str = ""
+    coverage_commit: str = ""
     assess_commit: str = ""
     validate_posted: bool = False
     verify_posted: bool = False
     review_posted: bool = False
+    coverage_posted: bool = False
     assess_posted: bool = False
     validate_verdict: str = ""
     verify_verdict: str = ""
     review_verdict: str = ""
+    coverage_verdict: str = ""
     assess_verdict: str = ""
     assess_risk: str = ""
     assess_confidence: str = ""
@@ -655,20 +663,24 @@ def check_local_markers(pr: PRReviewState) -> None:
         validate_commit=pr.validate_commit[:8] or "none",
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
+        coverage_commit=pr.coverage_commit[:8] or "none",
         assess_verdict=pr.assess_verdict or "none",
         assess_risk=pr.assess_risk or "none",
         assess_confidence=pr.assess_confidence or "none",
         validate_verdict=pr.validate_verdict or "none",
         verify_verdict=pr.verify_verdict or "none",
         review_verdict=pr.review_verdict or "none",
+        coverage_verdict=pr.coverage_verdict or "none",
     )
 
 
 def determine_stale_steps(pr: PRReviewState) -> list[str]:
     """Return the ordered list of review steps that are stale for *pr*.
 
-    assess-pr-risk comes first so it can be dispatched concurrently with the
-    first stale chain step; it is stale independently of the chain.
+    assess-pr-risk comes first so it can be dispatched concurrently with
+    the first stale chain step; it is stale independently of the chain.
+    The chain runs analyze-test-coverage before the other steps so its
+    report exists as evidence for them; a coverage fail never gates them.
     """
     head = pr.head_commit
     if not head:
@@ -676,6 +688,7 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
 
     if (
         pr.assess_commit == head
+        and pr.coverage_commit == head
         and pr.validate_commit == head
         and pr.verify_commit == head
         and pr.review_commit == head
@@ -685,6 +698,9 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
     steps: list[str] = []
     if pr.assess_commit != head:
         steps.append("assess-pr-risk")
+
+    if pr.coverage_commit != head:
+        steps.append("analyze-test-coverage")
 
     if pr.validate_commit != head:
         return steps + ["validate-pr", "verify-pr", "review-pr"]
@@ -831,6 +847,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table.add_column("Last comment", justify="right")
         table.add_column("HEAD", justify="center")
         table.add_column("Diff", justify="right")
+        table.add_column("Coverage", justify="center")
         table.add_column("Validate", justify="center")
         table.add_column("Verify", justify="center")
         table.add_column("Review", justify="center")
@@ -857,6 +874,10 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 if pr.head_commit
                 else "[dim]—[/dim]"
             )
+            coverage_col = _marker_cell(
+                pr.coverage_commit, pr.coverage_posted, pr.coverage_verdict, pr.head_commit,
+                _step_report_path(pr, "coverage_commit"),
+            )
             validate_col = _marker_cell(
                 pr.validate_commit, pr.validate_posted, pr.validate_verdict, pr.head_commit,
                 _step_report_path(pr, "validate_commit"),
@@ -878,6 +899,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 _age_cell(pr.last_comment_at, pr.last_comment_by),
                 head_col,
                 f"[green]+{pr.additions}[/green] [red]-{pr.deletions}[/red]",
+                coverage_col,
                 validate_col,
                 verify_col,
                 review_col,
@@ -1055,6 +1077,8 @@ def effective_stale_steps(pr: PRReviewState) -> list[str]:
 
     A failed chain step cuts off the chain steps at and after it, but
     assess-pr-risk is never cut off: it neither gates nor is gated.
+    analyze-test-coverage is advisory (its fail never cuts) and precedes
+    validate-pr, so a validate fail does not cut it either.
     """
     cutoff = len(CHAIN_STEPS) + 1
     for step, field_name in VERDICT_FIELDS.items():
@@ -1136,7 +1160,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Discover PRs needing review and determine which review steps "
-            "(assess-pr-risk, validate-pr, verify-pr, review-pr) are stale."
+            "(assess-pr-risk, analyze-test-coverage, validate-pr, verify-pr, "
+            "review-pr) are stale."
         ),
     )
     parser.add_argument(

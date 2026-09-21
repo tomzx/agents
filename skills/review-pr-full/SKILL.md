@@ -1,13 +1,15 @@
 ---
 name: review-pr-full
-description: Orchestrate a full PR review for a single PR, running assess-pr-risk in parallel with the validate-pr -> verify-pr -> review-pr chain. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
+description: Orchestrate a full PR review for a single PR, running assess-pr-risk in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
 argument-hint: "<pr-number> [repository] | <pr-url>"
 ---
 
 # Review PR Full
 
-Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed.
+Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed.
+
+`/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`, and the concurrent `assess-pr-risk`) can read it as evidence. `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early. It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
 
 The risk assessment is independent of the chain: it never halts the chain and is never halted by it. Its verdict token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`) is advisory for the human reviewer, and because it runs early it reads whichever sibling reports exist when it gathers evidence, saying in its report what would raise its confidence.
 
@@ -19,7 +21,7 @@ When called by `review-requested-prs`, the staleness check and head-ref resoluti
 
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback)
-- `validate-pr`, `verify-pr`, `review-pr`, and `assess-pr-risk` skills available
+- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, and `assess-pr-risk` skills available
 
 ## Workflow
 
@@ -55,7 +57,8 @@ date"           |   else resolve via gh pr view)
             Dispatch stale steps:
               assess-pr-risk concurrently
               with the chain:
-              validate-pr -> verify-pr -> review-pr
+              analyze-test-coverage -> validate-pr
+              -> verify-pr -> review-pr
             Check for blocking verdict after each chain step
                 |
                 v
@@ -103,6 +106,7 @@ The `--dispatch` flag makes the script output one command per line for each stal
 
 ```
 /assess-pr-risk 42 acme/api
+/analyze-test-coverage 42 acme/api
 /validate-pr 42 acme/api
 /verify-pr 42 acme/api
 /review-pr 42 acme/api
@@ -116,7 +120,7 @@ Each line has the format:
 /{skill} {PR_NUMBER} {REPO}
 ```
 
-The steps are already in the correct execution order. `assess-pr-risk` is listed first so it can be dispatched concurrently with the first stale chain step; the chain steps follow in their sequential order (validate-pr before verify-pr before review-pr). Set `STALE_STEPS` to the ordered list of step names.
+The steps are already in the correct execution order. `assess-pr-risk` is listed first so it can be dispatched concurrently with the first stale chain step; the chain steps follow in their sequential order (analyze-test-coverage before validate-pr before verify-pr before review-pr). Set `STALE_STEPS` to the ordered list of step names.
 
 ### 3. Create the shared worktree
 
@@ -148,11 +152,11 @@ If the worktree already exists (e.g. from a previous run), skip creation and reu
 
 Dispatch each skill in `STALE_STEPS` as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
 
-Use the `general` subagent type for all four steps.
+Use the `general` subagent type for all five steps.
 
 **Parallel dispatch of assess-pr-risk.** When `STALE_STEPS` contains `assess-pr-risk`, dispatch it concurrently with the first stale chain step: put the two Task calls in a single message so they run at the same time. The risk assessment is cheap (no build, static analysis only) and independent of the chain.
 
-The chain steps run sequentially (validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize chain steps, because each step may halt the pipeline. If `assess-pr-risk` is stale but no chain step is (or the chain halts before finishing), the risk assessment still runs and stands on its own.
+The chain steps run sequentially (analyze-test-coverage, then validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize chain steps, because each step may halt the pipeline. If `assess-pr-risk` is stale but no chain step is (or the chain halts before finishing), the risk assessment still runs and stands on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
 
@@ -167,6 +171,17 @@ The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path
 
 Never gate anything on its result and never halt because of it: a `block` or `hold` token is information for the human reviewer, not a pipeline failure. Because it runs concurrently, it may finish before the chain does; sibling reports that appear later are picked up by the next run of the skill, and its report states what would raise its confidence.
 
+#### analyze-test-coverage
+
+Dispatch first among the chain steps (concurrently with assess-pr-risk when both are stale). Dispatch a subagent with this exact prompt:
+
+```
+Run the analyze-test-coverage skill: /analyze-test-coverage {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
+```
+
+The coverage step is static analysis only (no build, no test execution) and never halts the pipeline: nothing is gated by its verdict. A `fail` verdict means at least one behavior change or code path is uncovered; report it in the summary so the human reviewer can weigh it. Its report is saved under `$PR_REVIEW_DIR` and carries the same commit marker as the other steps, so staleness tracking works identically, and because it is written before the rest of the chain runs, the later steps can read it as evidence.
+
 #### validate-pr
 
 Dispatch a subagent with this exact prompt:
@@ -176,7 +191,7 @@ Run the validate-pr skill: /validate-pr {PR} {REPO}
 The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
-If validate-pr returns a **Wrong thing** verdict, stop the chain. Do not run verify-pr or review-pr, because verifying conformance to, or the craft of, the wrong target is wasted effort. The concurrent assess-pr-risk report (already running or completed) is unaffected and stands. Record the failure in the summary.
+If validate-pr returns a **Wrong thing** verdict, stop the chain. Do not run verify-pr or review-pr, because verifying conformance to, or the craft of, the wrong target is wasted effort. The coverage report (already posted) and the concurrent assess-pr-risk report are unaffected and stand. Record the failure in the summary.
 
 #### verify-pr
 
@@ -218,33 +233,34 @@ VERDICT <status> | PR #{PR} | {REPO} | steps={STALE_STEPS} | <short note>
 
 | Status | Meaning |
 |---|---|
-| `completed` | Every stale step ran and passed (or there were none left to run after a partial pass); includes a run whose only stale step was assess-pr-risk |
+| `completed` | Every stale step ran and passed (or there were none left to run after a partial pass); includes runs whose only stale step was assess-pr-risk or analyze-test-coverage |
 | `up-to-date` | Nothing was stale; all steps already match the current HEAD |
-| `stopped-validate` | validate-pr returned Wrong thing or Inconclusive; later chain steps not run (assess-pr-risk unaffected) |
+| `stopped-validate` | validate-pr returned Wrong thing or Inconclusive; later chain steps not run (analyze-test-coverage already ran; assess-pr-risk unaffected) |
 | `stopped-verify` | verify-pr failed (build failure, nonconforming, missing issue/criteria); review-pr not run |
 | `stopped-review` | review-pr returned changes-requested or rejected |
 | `error` | The pipeline could not run (worktree setup failed, script error) |
 
-The risk assessment never changes the status: its verdict token is reported in the summary and the table, and routing on it is the human reviewer's call.
+The risk assessment never changes the status: its verdict token is reported in the summary and the table, and routing on it is the human reviewer's call. The same applies to analyze-test-coverage: it is the first chain step and nothing is gated on it, so even a coverage `fail` verdict leaves the status `completed`, with the outcome reported in the summary note and the table.
 
 Then show the table:
 
 | Repository | PR | Steps run | Result |
 |---|---|---|---|
-| owner/repo | #42 | assess, validate, verify, review | Completed |
-| owner/repo | #42 | verify, review | Completed (assess, validate up to date) |
+| owner/repo | #42 | assess, coverage, validate, verify, review | Completed |
+| owner/repo | #42 | verify, review | Completed (assess, coverage, validate up to date) |
 | owner/repo | #42 | assess | Completed (chain up to date) |
+| owner/repo | #42 | coverage | Completed (rest up to date; gaps found, see note) |
 | owner/repo | #42 | — | Skipped (all up to date) |
-| owner/repo | #42 | assess, validate | Stopped at validate (wrong product) |
-| owner/repo | #42 | assess, validate, verify | Stopped at verify (build failure) |
+| owner/repo | #42 | assess, coverage, validate | Stopped at validate (wrong product) |
+| owner/repo | #42 | assess, coverage, validate, verify | Stopped at verify (build failure) |
 
 ## Example Usage
 
-**Scenario 1: Fresh PR, all four steps needed**
+**Scenario 1: Fresh PR, all five steps needed**
 ```
 /review-pr-full 42 acme/api
 ```
-No prior markers found. Dispatches assess-pr-risk concurrently with validate-pr, then verify-pr and review-pr in sequence. All pass. Summary shows "Completed".
+No prior markers found. Dispatches assess-pr-risk concurrently with analyze-test-coverage, then validate-pr, verify-pr, and review-pr in sequence. All pass. Summary shows "Completed".
 
 **Scenario 2: PR URL**
 ```
@@ -262,19 +278,19 @@ The caller already ran the staleness check and resolved the head refs. The skill
 ```
 /review-pr-full 42 acme/api
 ```
-The validate-pr, verify-pr, and assess-pr-risk markers match HEAD, but review-pr is stale. Runs only `/review-pr 42 acme/api`. Summary shows "Completed (assess, validate, verify up to date)".
+The validate-pr, verify-pr, analyze-test-coverage, and assess-pr-risk markers match HEAD, but review-pr is stale. Runs only `/review-pr 42 acme/api`. Summary shows "Completed (assess, coverage, validate, verify up to date)".
 
 **Scenario 5: All steps up to date**
 ```
 /review-pr-full 42 acme/api
 ```
-All four markers match HEAD. Script outputs nothing. Reports "All review steps are up to date for PR #42 in acme/api".
+All five markers match HEAD. Script outputs nothing. Reports "All review steps are up to date for PR #42 in acme/api".
 
 **Scenario 6: validate-pr returns Wrong thing**
 ```
 /review-pr-full 15 acme/api
 ```
-validate-pr judges the PR to be the wrong product. It posts its Wrong-thing verdict. verify-pr and review-pr are not run; the concurrent assess-pr-risk completed and its report stands (useful context for the human deciding what to do with the PR). Summary shows "Stopped at validate (wrong product)".
+validate-pr judges the PR to be the wrong product. It posts its Wrong-thing verdict. verify-pr and review-pr are not run; the coverage report was already posted first and the concurrent assess-pr-risk completed, so both reports stand (useful context for the human deciding what to do with the PR). Summary shows "Stopped at validate (wrong product)".
 
 **Scenario 7: verify-pr build failure**
 ```
@@ -292,7 +308,13 @@ validate-pr passes. verify-pr fails to build. Notes the build failure and stops 
 ```
 /review-pr-full 55 acme/api
 ```
-The chain markers match HEAD (the pipeline ran before assess-pr-risk existed), but the assess marker is old. Dispatches only `/assess-pr-risk 55 acme/api`, which reads the three current sibling reports for full evidence. Summary shows "Completed (chain up to date)".
+The chain markers match HEAD (the pipeline ran before assess-pr-risk existed), but the assess marker is old. Dispatches only `/assess-pr-risk 55 acme/api`, which reads the current sibling reports for full evidence. Summary shows "Completed (chain up to date)".
+
+**Scenario 10: Only the coverage step is stale**
+```
+/review-pr-full 77 acme/api
+```
+The assess and chain markers match HEAD, but the analyze-test-coverage marker is missing (the pipeline ran before the coverage step existed). Dispatches only `/analyze-test-coverage 77 acme/api`. It finds two uncovered behavior changes and posts its report with a `fail` verdict. Summary shows "Completed" with a note that coverage found gaps; the human reviewer decides whether to request tests.
 
 ## Script Reference
 
@@ -307,6 +329,7 @@ The chain markers match HEAD (the pipeline ran before assess-pr-risk existed), b
 | `review-requested-prs` | Multi-PR counterpart: discovers all review-requested PRs and fans out one `review-pr-full` session per PR in parallel, passing a precomputed plan so no GitHub re-check is needed. Use that when reviewing your queue; use this skill for a single PR. |
 | `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
 | `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
-| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage`. |
+| `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage` for its Coverage section. |
+| `analyze-test-coverage` | Coverage sub-skill and first chain step (introduced tests, change coverage, uncovered code), so its report exists as evidence before validate/verify/review run. Static analysis only; never halts the pipeline. |
 | `assess-pr-risk` | Risk and confidence assessment dispatched concurrently with the chain; advisory only, never halts the pipeline. |
 | `quick-pr-review` | Lightweight counterpart: rapid auto-approve to unblock. Use this skill when you need deep review, not rapid unblocking. |

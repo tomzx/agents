@@ -1,13 +1,13 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (assess-pr-risk in parallel with validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
+description: Orchestrate full PR reviews (assess-pr-risk in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*), Read, Write, Glob, Grep, Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
 # Review Requested PRs
 
-Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), computes for each PR which of `/assess-pr-risk`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
+Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
 The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot hold up any other PR.
 
@@ -35,14 +35,15 @@ The verdict is either `pass` (continue to the next step) or `fail` (halt the pip
 | validate-pr | Right thing, Partially right, Wrong thing, Inconclusive | Right thing, Partially right | Wrong thing, Inconclusive |
 | verify-pr | Conforms, Nonconforming | Conforms (PR conforms: Yes) | Nonconforming (PR conforms: No) |
 | review-pr | approved, changes-requested, rejected | approved | changes-requested, rejected |
+| analyze-test-coverage | pass, fail | Fully covered (every behavior change covered, no uncovered code) | At least one uncovered change or code path |
 
-The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan. `assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
+The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan. `assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step. `analyze-test-coverage` also sits outside the cutoff: it runs before `validate-pr`, its `fail` verdict never gates anything, and a failed `validate-pr` does not drop it. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
 
 ## Prerequisites
 
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback, and by `review-pr-full` to fetch head branches)
-- `validate-pr`, `verify-pr`, `review-pr`, and `assess-pr-risk` skills available
+- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, and `assess-pr-risk` skills available
 - Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
 
 ## Workflow
@@ -88,11 +89,11 @@ Useful flags:
 `--dispatch-prs` emits one self-contained `/review-pr-full` command per PR needing work, in execution order, with PR plan blocks separated by `---`:
 
 ```
-/review-pr-full 42 acme/api --steps assess-pr-risk,validate-pr,verify-pr,review-pr --head-repo acme/api --head-branch feature-x
+/review-pr-full 42 acme/api --steps assess-pr-risk,analyze-test-coverage,validate-pr,verify-pr,review-pr --head-repo acme/api --head-branch feature-x
 ---
 /review-pr-full 88 acme/web-app --steps assess-pr-risk,verify-pr,review-pr --head-repo alice/web-app --head-branch fix-cache
 ---
-/review-pr-full 55 acme/api --steps review-pr --head-repo acme/api --head-branch add-export
+/review-pr-full 55 acme/api --steps analyze-test-coverage,review-pr --head-repo acme/api --head-branch add-export
 ```
 
 If the script outputs nothing, print "nothing to dispatch" and stop. Every discovered PR is already fully reviewed for its current HEAD.
@@ -176,7 +177,7 @@ If a subagent returns no parseable verdict, surface its raw output and mark that
 ```
 /review-requested-prs
 ```
-Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all four steps, 1 needs only review-pr. Fans out 3 subagents, one per PR; each runs its steps to completion (the risk assessment concurrently with the chain). A slow verify-pr build on one PR does not delay the others.
+Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all five steps, 1 needs only analyze-test-coverage and review-pr. Fans out 3 subagents, one per PR; each runs its steps to completion (the risk assessment concurrently with the chain). A slow verify-pr build on one PR does not delay the others.
 
 **Scenario 2: Filter to specific repositories**
 ```
@@ -188,7 +189,7 @@ Searches only those two repos. Fans out one subagent per PR with stale steps.
 ```
 /review-requested-prs https://github.com/acme/api/pull/42
 ```
-Processes only PR #42. validate-pr and verify-pr are current, review-pr is stale, so the script emits `/review-pr-full 42 acme/api --steps review-pr --head-repo ... --head-branch ...` and one subagent runs it.
+Processes only PR #42. validate-pr and verify-pr are current, analyze-test-coverage and review-pr are stale, so the script emits `/review-pr-full 42 acme/api --steps analyze-test-coverage,review-pr --head-repo ... --head-branch ...` and one subagent runs it.
 
 **Scenario 4: Multiple PR URLs**
 ```
@@ -212,7 +213,7 @@ A PR whose head is on a contributor's fork is emitted with `--head-repo alice/ap
 ```
 /review-requested-prs
 ```
-PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk, so the only command emitted is `--steps assess-pr-risk,validate-pr`, and no time is spent verifying conformance to a wrong target while the risk report still lands for the human deciding what to do with the PR.
+PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk and analyze-test-coverage (coverage precedes validate and is never gated), so the only command emitted is `--steps assess-pr-risk,analyze-test-coverage,validate-pr`, and no time is spent verifying conformance to a wrong target while the risk and coverage reports still land for the human deciding what to do with the PR.
 
 ## Script Reference
 
@@ -229,3 +230,4 @@ PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and 
 | `validate-pr` | Needs-alignment sub-skill (does the PR solve the right problem; are the acceptance criteria sound). Build-free early gate. |
 | `verify-pr` | Conformance sub-skill (criteria-to-code traceability plus runtime proof that each criterion is met). Owns the build. |
 | `review-pr` | Code-craft sub-skill (quality, architecture, security, tests, operational concerns). Delegates test coverage analysis to `/analyze-test-coverage`. |
+| `analyze-test-coverage` | Coverage sub-skill (introduced tests, change coverage, uncovered code). First chain step (before validate-pr); its verdict never halts the pipeline. |
