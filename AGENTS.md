@@ -5,11 +5,17 @@
 * Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing, real
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
+# Memory
+* At the start of each session, if a MEMORY.md file exists in the project root, read it before starting work.
+* Whenever you think something would be worth knowing or remembering for future sessions (decisions, conventions, gotchas, project facts), write it down in the project's MEMORY.md file.
+* Keep entries concise and dated, and avoid recording secrets or session-specific noise.
+
 # Code implementation and iteration
 * Ignore any AGENTS.md from the project that states a different approach than the one in this section.
 * Always get a working feature first. This is the most critical. We don't want to spend time on operations that aren't getting us to a working feature. No linting, no type checking, no formatting, etc.
 * Only lint, type check, format, go vet, etc. prior to committing, never during the implementation process.
 * Only run tests on the minimal set of tests to make progress. Avoid running tests that are likely to take a while to complete.
+* When a set of changes appears completed and ensuring consistency across artifacts (issue, requirements, specification, plan, tasks, tests, code, documentation) would be appropriate, recommend running the propagate-changes skill.
 
 # Python
 * Use uv for package management
