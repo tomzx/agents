@@ -24,7 +24,9 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import html
+import json
 import re
+import subprocess
 import tempfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -165,6 +167,51 @@ def discover(root: Path) -> list[FeedbackItem]:
     return items
 
 
+def fetch_pr_states(prs: list[tuple[str, str]]) -> dict[tuple[str, str], str]:
+    """Map (repo, pr) to a normalized state: ``open`` or ``closed``.
+
+    States are fetched from GitHub with a single batched ``gh api graphql``
+    call. On any failure (no ``gh``, offline, bad auth) the returned map is
+    empty, so callers treat the state as unknown and keep items visible under
+    the default "active" filter.
+    """
+    keys: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for repo, pr in prs:
+        key = (repo, str(pr))
+        if repo and pr and key not in seen:
+            seen.add(key)
+            keys.append(key)
+    if not keys:
+        return {}
+
+    fields: list[str] = []
+    for i, (repo, pr) in enumerate(keys):
+        owner, name = repo.split("/", 1)
+        fields.append(
+            f"p{i}: repository(owner:{json.dumps(owner)}, name:{json.dumps(name)}) "
+            f"{{ pullRequest(number:{int(pr)}) {{ state }} }}"
+        )
+    query = "query {" + " ".join(fields) + "}"
+    try:
+        result = subprocess.run(
+            ["gh", "api", "graphql", "-f", f"query={query}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+    except (FileNotFoundError, subprocess.CalledProcessError, json.JSONDecodeError):
+        return {}
+    data = payload.get("data") or {}
+    states: dict[tuple[str, str], str] = {}
+    for i, key in enumerate(keys):
+        state = ((data.get(f"p{i}") or {}).get("pullRequest") or {}).get("state")
+        if state:
+            states[key] = "open" if str(state).upper() == "OPEN" else "closed"
+    return states
+
+
 def find_item(root: Path, feedback_id: str) -> Path:
     for path in root.glob("**/pull-requests/*/feedback/*.md"):
         if path.stem == feedback_id:
@@ -240,7 +287,7 @@ def _sections_html(item: FeedbackItem) -> str:
     return "\n".join(blocks)
 
 
-def _card(item: FeedbackItem) -> str:
+def _card(item: FeedbackItem, state: str = "") -> str:
     rec = item.recommendation or "none"
     rec_color = RECOMMENDATION_COLORS.get(rec, "#8b949e")
     decision = item.decision
@@ -255,8 +302,13 @@ def _card(item: FeedbackItem) -> str:
         pr_url = f"https://github.com/{item.repo}/pull/{item.pr}"
 
     search_blob = (
-        f"{item.title} {item.repo} {item.pr} {item.author} {item.kind} {item.recommendation}"
+        f"{item.title} {item.repo} {item.pr} {item.author} {item.kind}"
+        f" {item.recommendation} {state}"
     ).lower()
+
+    state_pill = (
+        '<span class="pill state-closed">closed</span>' if state == "closed" else ""
+    )
 
     def btn(value: str, label: str) -> str:
         active = " active" if (item.decision or "pending") == value else ""
@@ -276,6 +328,7 @@ def _card(item: FeedbackItem) -> str:
   data-author="{esc(item.author)}"
   data-rec="{esc(item.recommendation)}"
   data-status="{esc(item.status)}"
+  data-state="{esc(state)}"
   data-title="{esc(item.title)}"
   data-date="{esc(item.created_at)}"
   data-confidence="{esc(item.confidence)}"
@@ -289,6 +342,7 @@ def _card(item: FeedbackItem) -> str:
         <span class="pill rec" style="--c:{rec_color}">{esc(item.recommendation or "n/a")}</span>
         <span class="pill confidence">{esc(item.confidence or "?")} confidence</span>
         <span class="pill kind">{esc(item.kind or "comment")}</span>
+        {state_pill}
         <span class="pill decision" data-role="decision-pill" style="--c:{decision_color}">{esc(item.status)}</span>
       </div>
       <div class="card-when">{esc((item.created_at or "")[:10])}</div>
@@ -315,9 +369,24 @@ def _card(item: FeedbackItem) -> str:
 </article>"""
 
 
-def render_page(items: list[FeedbackItem], root: Path) -> str:
+def render_page(
+    items: list[FeedbackItem], root: Path, state_default: str = "active"
+) -> str:
+    states = fetch_pr_states([(i.repo, i.pr) for i in items])
     repos = sorted({i.repo for i in items if i.repo})
     repo_options = "".join(f'<option value="{esc(r)}">{esc(r)}</option>' for r in repos)
+    state_labels = {
+        "active": "Active PRs",
+        "all": "All PRs",
+        "closed": "Closed PRs",
+    }
+    if state_default not in state_labels:
+        state_default = "active"
+    state_options = "".join(
+        f'<option value="{esc(value)}"'
+        f'{" selected" if value == state_default else ""}>{esc(label)}</option>'
+        for value, label in state_labels.items()
+    )
     author_counts: dict[str, int] = {}
     for i in items:
         if i.author:
@@ -331,7 +400,9 @@ def render_page(items: list[FeedbackItem], root: Path) -> str:
     counts = {"pending": 0, "implement": 0, "decline": 0, "defer": 0}
     for i in items:
         counts[i.status] = counts.get(i.status, 0) + 1
-    cards = "\n".join(_card(i) for i in items) or (
+    cards = "\n".join(
+        _card(i, states.get((i.repo, str(i.pr)), "")) for i in items
+    ) or (
         f'<p class="empty">No feedback files found under <code>{esc(root)}</code>.</p>'
     )
     generated = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -461,6 +532,7 @@ main {{ padding:20px 24px; flex:1; min-width:0; max-width:1100px; }}
   color:var(--muted); text-transform:lowercase;
 }}
 .pill.rec, .pill.decision {{ color:var(--c); border-color:var(--c); font-weight:600; }}
+.pill.state-closed {{ color:#8b949e; border-color:#484f58; font-style:italic; }}
 .pill.decision {{ text-transform:uppercase; letter-spacing:.04em; }}
 .card-when {{ color:var(--muted); font-size:12px; white-space:nowrap; }}
 h2 {{ font-size:15px; margin:10px 0 4px; line-height:1.4; }}
@@ -539,6 +611,7 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
   </div>
   <div class="controls">
     <input id="search" type="search" placeholder="Search title, author, repo, id...">
+    <select id="state-filter" title="Filter by PR state">{state_options}</select>
     <select id="repo-filter"><option value="">All repos</option>{repo_options}</select>
     <details class="filter-menu" id="author-menu">
       <summary id="author-summary">All authors</summary>
@@ -597,6 +670,7 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
 const cards = Array.from(document.querySelectorAll('.card'));
 const search = document.getElementById('search');
 const repoFilter = document.getElementById('repo-filter');
+const stateFilter = document.getElementById('state-filter');
 const authorMenu = document.getElementById('author-menu');
 const authorSummary = document.getElementById('author-summary');
 const authorBoxes = Array.from(document.querySelectorAll('[data-author-box]'));
@@ -763,11 +837,14 @@ function renderGroups() {{
 function applyFilters() {{
   const q = search.value.trim().toLowerCase();
   const repo = repoFilter.value;
+  const state = stateFilter.value;
   const status = statusFilter.value;
   const rec = recFilter.value;
   for (const card of cards) {{
     let show = true;
     if (q && !card.dataset.search.includes(q)) show = false;
+    if (state === 'active' && card.dataset.state === 'closed') show = false;
+    if (state === 'closed' && card.dataset.state !== 'closed') show = false;
     if (repo && card.dataset.repo !== repo) show = false;
     if (selectedAuthors.size && !selectedAuthors.has(card.dataset.author)) show = false;
     if (status && card.dataset.status !== status) show = false;
@@ -855,7 +932,7 @@ document.addEventListener('click', (e) => {{
 }});
 
 search.addEventListener('input', applyFilters);
-[repoFilter, statusFilter, recFilter].forEach(el => el.addEventListener('change', applyFilters));
+[repoFilter, stateFilter, statusFilter, recFilter].forEach(el => el.addEventListener('change', applyFilters));
 [groupBy, sortBy].forEach(el => el.addEventListener('change', renderGroups));
 
 document.getElementById('reload').addEventListener('click', () => location.reload());
@@ -887,12 +964,12 @@ applyFilters();
 </html>"""
 
 
-def build_app(root: Path) -> FastAPI:
+def build_app(root: Path, state_default: str = "active") -> FastAPI:
     app = FastAPI(title="PR Feedback Dashboard")
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> HTMLResponse:
-        return HTMLResponse(render_page(discover(root), root))
+        return HTMLResponse(render_page(discover(root), root, state_default))
 
     @app.get("/api/items")
     def api_items() -> JSONResponse:
@@ -930,6 +1007,12 @@ def main() -> None:
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8787)
+    parser.add_argument(
+        "--state",
+        choices=("active", "all", "closed"),
+        default="active",
+        help="Which PRs to show initially: active/open (default), all, or closed.",
+    )
     args = parser.parse_args()
 
     root = Path(args.dir).expanduser().resolve()
@@ -937,7 +1020,12 @@ def main() -> None:
         raise SystemExit(f"SDLC root not found: {root}")
 
     print(f"PR feedback dashboard on http://{args.host}:{args.port}  (root: {root})")
-    uvicorn.run(build_app(root), host=args.host, port=args.port, log_level="warning")
+    uvicorn.run(
+        build_app(root, args.state),
+        host=args.host,
+        port=args.port,
+        log_level="warning",
+    )
 
 
 if __name__ == "__main__":
