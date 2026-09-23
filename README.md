@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-226-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-227-green" alt="Skill count">
 </p>
 
 ## What
@@ -216,6 +216,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/handle-failing-pr-ci` | List my open PRs' CI status, then fix failing CI across all of them in parallel, one `handle-pr-ci` session per PR. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
 | `/merge-pr` | Check approval and CI, then merge and clean up. |
+| `/prune-merged-worktrees` | Remove local worktrees (and branches) whose PR was merged, verified against GitHub instead of git ancestry. |
 | `/validate-pr` | Judge whether the PR builds the right product (needs alignment, criteria soundness, scope). |
 | `/verify-pr` | Verify conformance to acceptance criteria: traceability plus runtime proof (build, run, record demos). |
 | `/assess-pr-risk` | Estimate a PR's risk and the confidence of that estimate, and recommend the next reviewer action. |
