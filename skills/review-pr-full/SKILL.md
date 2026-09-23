@@ -9,9 +9,9 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 
 Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed. When the run finishes, it commits this PR's report directory in the user-global reviews store and pushes it (see step 6).
 
-`/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`, and the concurrent `assess-pr-risk`) can read it as evidence. `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early. It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
+`/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`) can read it as evidence. `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early. It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
 
-The risk assessment is independent of the chain: it never halts the chain and is never halted by it. Its verdict token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`) is advisory for the human reviewer, and because it runs early it reads whichever sibling reports exist when it gathers evidence, saying in its report what would raise its confidence.
+The risk assessment is independent of the chain: it never halts the chain and is never halted by it, and it shares no evidence with the chain steps (it is self-contained: diff, codebase, churn of the touched files). Its verdict token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`) is advisory for the human reviewer, and its report says what would raise its confidence.
 
 Staleness checking is handled by the same deterministic Python script used by `review-requested-prs` (`~/.agents/scripts/review_requested_prs.py`). It checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. Only stale steps are run, so re-running after a partial completion picks up where it left off.
 
@@ -173,7 +173,7 @@ Run the assess-pr-risk skill: /assess-pr-risk {PR} {REPO}
 The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
-Never gate anything on its result and never halt because of it: a `block` or `hold` token is information for the human reviewer, not a pipeline failure. Because it runs concurrently, it may finish before the chain does; sibling reports that appear later are picked up by the next run of the skill, and its report states what would raise its confidence.
+Never gate anything on its result and never halt because of it: a `block` or `hold` token is information for the human reviewer, not a pipeline failure. Because it is self-contained, it never waits on the chain, and its report states what would raise its confidence.
 
 #### analyze-test-coverage
 
@@ -332,7 +332,7 @@ validate-pr passes. verify-pr fails to build. Notes the build failure and stops 
 ```
 /review-pr-full 55 acme/api
 ```
-The chain markers match HEAD (the pipeline ran before assess-pr-risk existed), but the assess marker is old. Dispatches only `/assess-pr-risk 55 acme/api`, which reads the current sibling reports for full evidence. Summary shows "Completed (chain up to date)".
+The chain markers match HEAD (the pipeline ran before assess-pr-risk existed), but the assess marker is old. Dispatches only `/assess-pr-risk 55 acme/api`, which is self-contained and needs no chain reports. Summary shows "Completed (chain up to date)".
 
 **Scenario 10: Only the coverage step is stale**
 ```
