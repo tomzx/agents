@@ -213,6 +213,10 @@ def esc(value: object) -> str:
     return html.escape(str(value), quote=True)
 
 
+def _slug(value: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9]+", "-", value).strip("-").lower() or "group"
+
+
 def _sections_html(item: FeedbackItem) -> str:
     ordered = [s for s in SECTION_ORDER if s in item.sections]
     ordered += [s for s in item.sections if s not in SECTION_ORDER]
@@ -272,6 +276,10 @@ def _card(item: FeedbackItem) -> str:
   data-author="{esc(item.author)}"
   data-rec="{esc(item.recommendation)}"
   data-status="{esc(item.status)}"
+  data-title="{esc(item.title)}"
+  data-date="{esc(item.created_at)}"
+  data-confidence="{esc(item.confidence)}"
+  data-kind="{esc(item.kind)}"
   data-search="{esc(search_blob)}"
   style="--rec-color:{rec_color};--decision-color:{decision_color}">
   <div class="card-rail"></div>
@@ -310,6 +318,16 @@ def _card(item: FeedbackItem) -> str:
 def render_page(items: list[FeedbackItem], root: Path) -> str:
     repos = sorted({i.repo for i in items if i.repo})
     repo_options = "".join(f'<option value="{esc(r)}">{esc(r)}</option>' for r in repos)
+    author_counts: dict[str, int] = {}
+    for i in items:
+        if i.author:
+            author_counts[i.author] = author_counts.get(i.author, 0) + 1
+    author_checkboxes = "".join(
+        f'<label class="menu-item"><input type="checkbox" '
+        f'value="{esc(a)}" data-author-box>'
+        f'<span>{esc(a)}</span><span class="menu-count">{author_counts[a]}</span></label>'
+        for a in sorted(author_counts)
+    )
     counts = {"pending": 0, "implement": 0, "decline": 0, "defer": 0}
     for i in items:
         counts[i.status] = counts.get(i.status, 0) + 1
@@ -357,12 +375,75 @@ h1 {{ font-size:17px; margin:0; font-weight:600; }}
   border-radius:6px; padding:7px 10px; font-size:13px;
 }}
 .controls input {{ flex:1; min-width:200px; }}
+.filter-menu {{ position:relative; }}
+.filter-menu > summary {{
+  list-style:none; cursor:pointer; background:var(--panel); color:var(--fg);
+  border:1px solid var(--border); border-radius:6px; padding:7px 10px;
+  font-size:13px; user-select:none;
+}}
+.filter-menu > summary::-webkit-details-marker {{ display:none; }}
+.filter-menu > summary::after {{ content:" \\25BE"; color:var(--muted); }}
+.filter-menu-body {{
+  position:absolute; top:calc(100% + 4px); left:0; z-index:30; min-width:220px;
+  max-height:320px; overflow:auto; background:var(--panel);
+  border:1px solid var(--border); border-radius:8px; padding:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}}
+.menu-actions {{ display:flex; gap:10px; padding:2px 6px 8px; }}
+.menu-link {{ background:none; border:0; color:var(--accent); font-size:12px; padding:0; }}
+.menu-item {{
+  display:flex; align-items:center; gap:8px; padding:5px 6px;
+  border-radius:5px; font-size:13px; cursor:pointer;
+}}
+.menu-item:hover {{ background:var(--panel2); }}
+.menu-item .menu-count {{
+  margin-left:auto; color:var(--muted); font-size:12px;
+  font-variant-numeric:tabular-nums;
+}}
+.menu-item input {{
+  flex:none; min-width:0; width:15px; height:15px; margin:0; padding:0;
+  background:none; border:0; accent-color:var(--accent);
+}}
 button {{ cursor:pointer; font-size:13px; }}
 .reload-btn {{
   background:var(--accent); color:#04121f; border:0; border-radius:6px;
   padding:7px 12px; font-weight:600;
 }}
-main {{ padding:20px; max-width:1100px; margin:0 auto; }}
+.layout {{ display:flex; align-items:flex-start; }}
+.sidebar {{
+  position:sticky; top:var(--header-h,0px); flex:none; width:250px;
+  height:calc(100vh - var(--header-h,0px)); overflow-y:auto;
+  padding:16px 12px; border-right:1px solid var(--border);
+  background:var(--panel);
+}}
+.sidebar-title {{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--muted); margin:0 6px 8px;
+}}
+.nav-item {{
+  display:flex; align-items:center; gap:8px; padding:6px 8px;
+  border-radius:6px; text-decoration:none; color:var(--muted);
+  font-size:12.5px; margin-bottom:2px;
+}}
+.nav-item:hover {{ background:var(--panel2); color:var(--fg); }}
+.nav-item.active {{ background:var(--panel2); color:var(--fg); }}
+.nav-item .nav-label {{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
+.nav-item .nav-count {{
+  margin-left:auto; flex:none; font-size:11px; color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}}
+main {{ padding:20px 24px; flex:1; min-width:0; max-width:1100px; }}
+.group {{ margin-bottom:30px; }}
+.group + .group {{ border-top:1px solid var(--border); padding-top:26px; }}
+.group-head {{
+  display:flex; align-items:baseline; gap:10px; margin-bottom:14px;
+  scroll-margin-top:calc(var(--header-h,0px) + 12px);
+}}
+.group-head > a, .group-head > span:first-child {{
+  color:var(--fg); font-weight:600; font-size:15px; text-decoration:none;
+}}
+.group-head > a:hover {{ color:var(--accent); }}
+.group-head .group-count {{ color:var(--muted); font-size:12px; }}
 .card {{
   display:flex; background:var(--panel); border:1px solid var(--border);
   border-radius:10px; margin-bottom:16px; overflow:hidden;
@@ -459,6 +540,16 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
   <div class="controls">
     <input id="search" type="search" placeholder="Search title, author, repo, id...">
     <select id="repo-filter"><option value="">All repos</option>{repo_options}</select>
+    <details class="filter-menu" id="author-menu">
+      <summary id="author-summary">All authors</summary>
+      <div class="filter-menu-body">
+        <div class="menu-actions">
+          <button type="button" class="menu-link" data-author-all>Select all</button>
+          <button type="button" class="menu-link" data-author-none>Clear</button>
+        </div>
+        <div class="menu-items">{author_checkboxes}</div>
+      </div>
+    </details>
     <select id="status-filter">
       <option value="">All statuses</option>
       <option value="pending">Pending</option>
@@ -473,20 +564,201 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
       <option value="clarify">clarify</option>
       <option value="no-action">no-action</option>
     </select>
+    <select id="group-by" title="Group feedback into sections by">
+      <option value="pr">Group: pull request</option>
+      <option value="repo">Group: repository</option>
+      <option value="author">Group: author</option>
+      <option value="recommendation">Group: recommendation</option>
+      <option value="status">Group: status</option>
+      <option value="kind">Group: type</option>
+    </select>
+    <select id="sort-by" title="Sort items within each group">
+      <option value="date-desc">Sort: newest first</option>
+      <option value="date-asc">Sort: oldest first</option>
+      <option value="title">Sort: title</option>
+      <option value="confidence">Sort: confidence</option>
+      <option value="recommendation">Sort: recommendation</option>
+      <option value="author">Sort: author</option>
+    </select>
     <button class="reload-btn" id="reload">Reload</button>
   </div>
 </header>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sidebar-title" id="sidebar-title">Pull requests</div>
+  <nav id="sidebar-nav"></nav>
+</aside>
 <main id="cards">
 {cards}
 </main>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 const cards = Array.from(document.querySelectorAll('.card'));
 const search = document.getElementById('search');
 const repoFilter = document.getElementById('repo-filter');
+const authorMenu = document.getElementById('author-menu');
+const authorSummary = document.getElementById('author-summary');
+const authorBoxes = Array.from(document.querySelectorAll('[data-author-box]'));
+const selectedAuthors = new Set();
 const statusFilter = document.getElementById('status-filter');
 const recFilter = document.getElementById('rec-filter');
 const toast = document.getElementById('toast');
+const cardsContainer = document.getElementById('cards');
+const sidebarTitle = document.getElementById('sidebar-title');
+const sidebarNav = document.getElementById('sidebar-nav');
+const groupBy = document.getElementById('group-by');
+const sortBy = document.getElementById('sort-by');
+
+const CONF_RANK = {{ high:0, medium:1, low:2 }};
+const REC_RANK = {{ implement:0, reject:1, clarify:2, 'no-action':3 }};
+const STATUS_RANK = {{ pending:0, implement:1, decline:2, defer:3 }};
+
+function slugify(value) {{
+  return 'g-' + String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}}
+
+const GROUPINGS = {{
+  pr: {{
+    title: 'Pull requests',
+    key: c => (c.dataset.repo || '?') + '#' + (c.dataset.pr || '?'),
+    link: c => (c.dataset.repo && c.dataset.pr)
+      ? 'https://github.com/' + c.dataset.repo + '/pull/' + c.dataset.pr : null
+  }},
+  repo: {{
+    title: 'Repositories',
+    key: c => c.dataset.repo || '(none)',
+    link: c => c.dataset.repo ? 'https://github.com/' + c.dataset.repo : null
+  }},
+  author: {{ title:'Authors', key:c => c.dataset.author || '(none)' }},
+  recommendation: {{
+    title:'Recommendations',
+    key:c => c.dataset.rec || '(none)',
+    order:['implement','reject','clarify','no-action']
+  }},
+  status: {{
+    title:'Statuses',
+    key:c => c.dataset.status || 'pending',
+    order:['pending','implement','decline','defer']
+  }},
+  kind: {{ title:'Comment types', key:c => c.dataset.kind || '(none)' }}
+}};
+
+const SORTS = {{
+  'date-desc': (a,b) => (b.dataset.date || '').localeCompare(a.dataset.date || ''),
+  'date-asc': (a,b) => (a.dataset.date || '').localeCompare(b.dataset.date || ''),
+  'title': (a,b) => (a.dataset.title || '').localeCompare(b.dataset.title || '', undefined, {{sensitivity:'base'}}),
+  'confidence': (a,b) => (CONF_RANK[a.dataset.confidence] ?? 9) - (CONF_RANK[b.dataset.confidence] ?? 9),
+  'recommendation': (a,b) => (REC_RANK[a.dataset.rec] ?? 9) - (REC_RANK[b.dataset.rec] ?? 9),
+  'author': (a,b) => (a.dataset.author || '').localeCompare(b.dataset.author || '', undefined, {{sensitivity:'base'}})
+}};
+
+let spy = null;
+if ('IntersectionObserver' in window) {{
+  spy = new IntersectionObserver(entries => {{
+    for (const entry of entries) {{
+      if (!entry.isIntersecting) continue;
+      const id = entry.target.dataset.group;
+      document.querySelectorAll('.nav-item')
+        .forEach(a => a.classList.toggle('active', a.dataset.target === id));
+    }}
+  }}, {{ rootMargin: '-120px 0px -70% 0px', threshold: 0 }});
+}}
+
+function observeGroups() {{
+  if (!spy) return;
+  spy.disconnect();
+  document.querySelectorAll('.group').forEach(g => spy.observe(g));
+}}
+
+function makeNavItem(label, count, slug) {{
+  const nav = document.createElement('a');
+  nav.className = 'nav-item';
+  nav.href = '#' + slug;
+  nav.dataset.target = slug;
+  const name = document.createElement('span');
+  name.className = 'nav-label';
+  name.textContent = label;
+  const num = document.createElement('span');
+  num.className = 'nav-count';
+  num.textContent = count;
+  nav.appendChild(name);
+  nav.appendChild(num);
+  return nav;
+}}
+
+function renderGroups() {{
+  const grouping = GROUPINGS[groupBy.value] || GROUPINGS.pr;
+  const compare = SORTS[sortBy.value] || SORTS['date-desc'];
+  const visible = cards.filter(c => !c.classList.contains('hidden'));
+
+  const groups = new Map();
+  for (const card of visible) {{
+    const key = grouping.key(card) || '(none)';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(card);
+  }}
+
+  let keys = Array.from(groups.keys());
+  if (grouping.order) {{
+    keys.sort((a,b) => {{
+      const ia = grouping.order.indexOf(a), ib = grouping.order.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    }});
+  }} else {{
+    keys.sort((a,b) => a.localeCompare(b, undefined, {{ numeric:true, sensitivity:'base' }}));
+  }}
+
+  cardsContainer.innerHTML = '';
+  sidebarNav.innerHTML = '';
+  sidebarTitle.textContent = grouping.title;
+
+  for (const key of keys) {{
+    const items = groups.get(key).slice().sort(compare);
+    const slug = slugify(key);
+    const section = document.createElement('section');
+    section.className = 'group';
+    section.dataset.group = slug;
+
+    const head = document.createElement('div');
+    head.className = 'group-head';
+    head.id = slug;
+    const url = grouping.link ? grouping.link(items[0]) : null;
+    let titleEl;
+    if (url) {{
+      titleEl = document.createElement('a');
+      titleEl.href = url;
+      titleEl.target = '_blank';
+      titleEl.rel = 'noopener';
+    }} else {{
+      titleEl = document.createElement('span');
+    }}
+    titleEl.textContent = key;
+    const pending = items.filter(c => c.dataset.status === 'pending').length;
+    const meta = document.createElement('span');
+    meta.className = 'group-count';
+    meta.textContent = items.length + ' item' + (items.length === 1 ? '' : 's')
+      + (pending ? ' · ' + pending + ' pending' : '');
+    head.appendChild(titleEl);
+    head.appendChild(meta);
+    section.appendChild(head);
+
+    for (const card of items) section.appendChild(card);
+    cardsContainer.appendChild(section);
+    sidebarNav.appendChild(makeNavItem(key, items.length, slug));
+  }}
+
+  if (!visible.length) {{
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = cards.length
+      ? 'No items match the current filters.'
+      : 'No feedback files found.';
+    cardsContainer.appendChild(empty);
+  }}
+
+  observeGroups();
+}}
 
 function applyFilters() {{
   const q = search.value.trim().toLowerCase();
@@ -497,10 +769,12 @@ function applyFilters() {{
     let show = true;
     if (q && !card.dataset.search.includes(q)) show = false;
     if (repo && card.dataset.repo !== repo) show = false;
+    if (selectedAuthors.size && !selectedAuthors.has(card.dataset.author)) show = false;
     if (status && card.dataset.status !== status) show = false;
     if (rec && card.dataset.rec !== rec) show = false;
     card.classList.toggle('hidden', !show);
   }}
+  renderGroups();
 }}
 
 function updateStats() {{
@@ -544,6 +818,7 @@ async function setDecision(id, decision) {{
     btn.classList.toggle('active', btn.dataset.decision === status);
   }});
   updateStats();
+  renderGroups();
   showToast(`${{id}} -> ${{status}}`);
 }}
 
@@ -551,8 +826,37 @@ document.querySelectorAll('.decision-btn').forEach(btn => {{
   btn.addEventListener('click', () => setDecision(btn.dataset.id, btn.dataset.decision));
 }});
 
+function syncAuthors() {{
+  if (selectedAuthors.size === 0) authorSummary.textContent = 'All authors';
+  else if (selectedAuthors.size === 1) authorSummary.textContent = Array.from(selectedAuthors)[0];
+  else authorSummary.textContent = `${{selectedAuthors.size}} authors`;
+  applyFilters();
+}}
+
+authorBoxes.forEach(box => box.addEventListener('change', () => {{
+  if (box.checked) selectedAuthors.add(box.value);
+  else selectedAuthors.delete(box.value);
+  syncAuthors();
+}}));
+
+document.querySelector('[data-author-all]').addEventListener('click', (e) => {{
+  e.preventDefault();
+  authorBoxes.forEach(box => {{ box.checked = true; selectedAuthors.add(box.value); }});
+  syncAuthors();
+}});
+document.querySelector('[data-author-none]').addEventListener('click', (e) => {{
+  e.preventDefault();
+  authorBoxes.forEach(box => {{ box.checked = false; }});
+  selectedAuthors.clear();
+  syncAuthors();
+}});
+document.addEventListener('click', (e) => {{
+  if (authorMenu.open && !authorMenu.contains(e.target)) authorMenu.open = false;
+}});
+
 search.addEventListener('input', applyFilters);
 [repoFilter, statusFilter, recFilter].forEach(el => el.addEventListener('change', applyFilters));
+[groupBy, sortBy].forEach(el => el.addEventListener('change', renderGroups));
 
 document.getElementById('reload').addEventListener('click', () => location.reload());
 
@@ -567,6 +871,15 @@ document.querySelectorAll('.copy-btn').forEach(btn => {{
     }} catch {{ showToast('Copy failed'); }}
   }});
 }});
+
+const headerEl = document.querySelector('header.top');
+function setHeaderH() {{
+  if (headerEl) {{
+    document.documentElement.style.setProperty('--header-h', headerEl.offsetHeight + 'px');
+  }}
+}}
+setHeaderH();
+window.addEventListener('resize', setHeaderH);
 
 applyFilters();
 </script>
