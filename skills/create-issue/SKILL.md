@@ -57,10 +57,11 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
 ## Steps
 
-1. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
-2. If the issue is a feature request, determine the current version on the default branch (main/master) so the issue records what commit the request was filed against. Use `gh api repos/{owner}/{repo} --jq '.default_branch'` to find the default branch, then get the short SHA via `gh api repos/{owner}/{repo}/commits/<default_branch> --jq '.sha[0:7]'`.
-3. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`. A public repository is treated as open source; omit the **Time budget** section. A private repository includes it.
-4. **Determine the issue type**. Query the repository for available issue types:
+1. **Search for duplicates** first, before any codebase investigation. The user's report alone supplies the keywords (error messages, command, skill, or feature names, component names); run 2-3 different searches: `ghx issue list --repo $1 --search "<keywords>" --state all --limit 10`. If a duplicate is found, stop and inform the user with the existing issue URL. Do not create a new issue unless the user confirms it is not a duplicate. Only once the search comes back empty (or the user confirms the report is not a duplicate anyway) do the later steps and any code investigation begin.
+2. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
+3. If the issue is a feature request, determine the current version on the default branch (main/master) so the issue records what commit the request was filed against. Use `gh api repos/{owner}/{repo} --jq '.default_branch'` to find the default branch, then get the short SHA via `gh api repos/{owner}/{repo}/commits/<default_branch> --jq '.sha[0:7]'`.
+4. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`. A public repository is treated as open source; omit the **Time budget** section. A private repository includes it.
+5. **Determine the issue type**. Query the repository for available issue types:
     ```
     gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first:20) { nodes { name id } } } }'
     ```
@@ -69,13 +70,12 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     - Feature requests → `Feature`
     - Everything else → `Task`
     If the query returns `null` or an empty list, the repository does not support issue types; skip type assignment.
-5. **Choose labels and verify they exist**. Determine the desired labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead. Then query the repository for existing labels:
+6. **Choose labels and verify they exist**. Determine the desired labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead. Then query the repository for existing labels:
     ```
     gh label list [--repo $1] --json name --jq '.[].name'
     ```
     Filter the desired labels to only those that exist in the repository. If none of the desired labels exist, create the issue without labels and note which labels were skipped. Do not attempt to create labels.
-6. **Search for duplicates** before creating. Using the issue title and keywords, run 2-3 different searches: `ghx issue list --repo $1 --search "<keywords from title>" --state all --limit 10`. If a duplicate is found, stop and inform the user with the existing issue URL. Do not create a new issue unless the user confirms it is not a duplicate.
-7. Create the issue with the structured body. For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 2. Omit `--repo` if no repository was provided (gh will infer it from the cwd). Only include `--label` flags for labels confirmed to exist in step 5:
+7. Create the issue with the structured body. For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 3. Omit `--repo` if no repository was provided (gh will infer it from the cwd). Only include `--label` flags for labels confirmed to exist in step 6:
     ```
     gh issue create [--repo $1] --title "<title>" --body "$(cat <<'EOF'
     # Summary
@@ -121,12 +121,12 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     ```
     Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command. Omit all `--label` flags if no desired labels exist in the repository.
 8. **Post detailed code analysis as a follow-up comment** (if applicable). If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body. Use `gh issue comment <number> [--repo $1] --body "..."`. Include the same attribution footer as the issue body.
-9. **Assign the issue type** (if the repository supports issue types from step 4). After the issue is created, get its `node_id` and set the type:
+9. **Assign the issue type** (if the repository supports issue types from step 5). After the issue is created, get its `node_id` and set the type:
     ```
     NODE_ID=$(gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id')
     gh api graphql -f query='mutation($id:ID!, $typeId:ID!) { updateIssue(input:{id:$id, issueTypeId:$typeId}) { issue { url issueType { name } } } }' -f id="$NODE_ID" -f typeId="<issue_type_node_id>"
     ```
-    Use the `id` of the matching issue type from step 4 (e.g., the Bug type's node ID for bug reports).
+    Use the `id` of the matching issue type from step 5 (e.g., the Bug type's node ID for bug reports).
 
 ## Example Usage
 
@@ -152,7 +152,7 @@ User provides a list of requirements. Convert each into a checklist item, then s
 
 Before finishing, confirm:
 
-- [ ] Duplicate search run before creating (no existing issue matches)
+- [ ] Duplicate search ran first, before any codebase investigation (no existing issue matches)
 - [ ] Summary section included only when the description exceeds 200 words; less than 200 words, at most 5 sentences, one sentence per line
 - [ ] Time budget included only for private repos; Should section omitted when empty
 - [ ] Detailed code analysis posted as a follow-up comment, not in the issue body
