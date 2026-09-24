@@ -6,9 +6,14 @@
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
 # Memory
-* At the start of each session, if a MEMORY.md file exists in the project root, read it before starting work.
-* Whenever you think something would be worth knowing or remembering for future sessions (decisions, conventions, gotchas, project facts), write it down in the project's MEMORY.md file.
+* Two memory files exist: the global MEMORY.md sits beside this AGENTS.md (resolve the real path of this file to find it), and each project keeps its own MEMORY.md in the project root.
+* At the start of each session, read both memory files when they exist before starting work.
+* When something would be worth knowing or remembering for future sessions (decisions, conventions, gotchas), write it to the right file: facts about the current repository go in the project's MEMORY.md, cross-project lessons (workflow and process preferences that apply everywhere) go in the global one.
 * Keep entries concise and dated, and avoid recording secrets or session-specific noise.
+* Only record what a future session cannot cheaply rediscover from the repository itself: never persist command lists, file locations, module naming, structure overviews, or anything else derivable from the code, help output, or docs.
+* Do not persist transient state that a near-term commit would invalidate: failing tests, in-flight refactors, stale artifacts, or known gaps. Fix them, file an issue, or mention them in conversation instead.
+* Record conclusions, not session narration: leave out how you verified something, what commands you ran, or what you observed mid-task.
+* Before writing an entry, check it will still be true and still be useful in a month; if either answer is no, do not write it.
 
 # Code implementation and iteration
 * Ignore any AGENTS.md from the project that states a different approach than the one in this section.
