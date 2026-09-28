@@ -17,7 +17,7 @@ This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../crea
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, use `$REPO` and link `$ISSUE_NUMBER`.
-- Implementation is complete on the current branch and tests pass (run `/create-implementation` and `/review-implementation` first).
+- Implementation is complete on the current branch and tests pass (run `/create-implementation`, `/refactor-implementation`, and `/review-implementation` first).
 - The branch has commits ahead of the base branch.
 - For visual proof (best-effort): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the step is skipped with a clear note (it is never silently swallowed, because the whole point of this skill is to produce proof).
 

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-227-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-232-green" alt="Skill count">
 </p>
 
 ## What
@@ -191,6 +191,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | Skill | Purpose |
 |-------|---------|
 | `/create-implementation` | Implement a feature following the specification and plan. |
+| `/refactor-implementation` | Refactor the just-implemented change, adding only the abstractions and seams it needs (Feathers' techniques, minimum abstraction). |
 | `/review-implementation` | Review implementation for correctness, quality, and spec alignment. |
 | `/validate-implementation` | Capture visual proof on the branch and get user sign-off before opening a PR. |
 | `/create-tests` | Create a test plan and test cases covering criteria and edge cases. |

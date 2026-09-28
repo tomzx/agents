@@ -1,5 +1,11 @@
 # Memory
 
+## 2026-09-28: refactor-implementation sits inside the implementation phase
+
+- The SDLC pipeline runs `refactor-implementation` between `create-implementation` and `review-implementation`; it refines the just-implemented diff with only the abstractions and seams it needs.
+- In `.github/llmaw/flows.yml` it runs in the same `feat-implementation` rule, on the `impl/` branch, before `merge-pr.sh`, so the refactoring rides the implementation PR.
+- Its `## Outcome` deliberately writes nothing to `$OUTCOME_YAML` when there is no implementation diff, so it cannot overwrite `create-implementation`'s routing verdict (approved -> merge, else -> needs-human). Do not "fix" it to always emit a verdict.
+
 ## 2026-09-24: scheduled runs and interactive sessions collide in one repo
 
 - Repos with scheduled agent tasks (e.g. the blog's daily 03:00 refresh) can have a scheduled run commit mid-way through an interactive owner-driven session; twice in one day the scheduled run's wholesale `git add agents/` swept finished-but-uncommitted files from the concurrent session into its own commit.

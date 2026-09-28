@@ -142,6 +142,7 @@ Not every line needs a test. Skip boilerplate, trivial accessors, and code the f
 - [ ] Important parts of the diff covered by tests (new public code, changed logic, regression tests for fixes)
 - [ ] No linting or type errors
 - [ ] No dead code or commented-out code introduced
+- [ ] Ready for `/refactor-implementation`: no speculative abstraction or single-implementation indirection was added
 - [ ] Public contracts and persisted data tolerate future additions (forward compatible)
 - [ ] Existing tests still pass (no regressions)
 - [ ] Branch rebased on latest `main`
@@ -180,7 +181,8 @@ Locate the defect, implement the fix, write a regression test that would have ca
 
 ## Next Step
 
-A review subagent is dispatched automatically to run `/review-implementation` to audit correctness, quality, security, and spec alignment before moving on.
+Continue with `/refactor-implementation` to add only the abstractions and seams the change needs, keeping behavior identical.
+It then dispatches the review subagent that runs `/review-implementation` to audit correctness, quality, security, and spec alignment.
 Once findings are resolved, continue with `/create-documentation`, then `/validate-implementation` to capture visual proof and get user sign-off before opening a PR, then `/create-pr`.
 
 ## Useful Commands Reference

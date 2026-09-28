@@ -46,7 +46,7 @@
 #         -> tasks-approved + create-tests
 #       [create-tests]              -> review-tests
 #         -> tests-approved + create-implementation
-#       [create-implementation] (impl PR, auto-merged by merge-pr.sh)
+#       [create-implementation + refactor-implementation] (impl PR, auto-merged by merge-pr.sh)
 #         -> shipped + finished (-> learnings)
 #       [create-learnings]
 #
@@ -609,16 +609,23 @@ flows:
         when: { event: issues, action: labeled, label: llmaw:create-implementation }
         run:
           - shell: .github/llmaw/scripts/ensure-branch.sh
-          # create-implementation opens an impl/ PR; merge-pr.sh auto-merges it
-          # (no human gate). Its merge (on-impl-merged) advances the flow, so
-          # approved is a no-op. merge-pr.sh no-ops when no PR was opened,
-          # letting on_outcome route the non-approved verdict to needs-human.
+          # create-implementation opens an impl/ PR; refactor-implementation
+          # then refines that change in place on the same branch (minimal
+          # abstractions and seams, behavior preserved) and merge-pr.sh
+          # auto-merges the PR (no human gate). Its merge (on-impl-merged)
+          # advances the flow, so approved is a no-op. merge-pr.sh no-ops when
+          # no PR was opened, letting on_outcome route the non-approved verdict
+          # to needs-human. refactor-implementation leaves $OUTCOME_YAML as
+          # create-implementation wrote it when there is no diff to refine.
           - skill: create-implementation
           - shell: [.github/llmaw/scripts/commit-sdlc.sh, "draft implementation"]
+          - skill: refactor-implementation
+          - shell: [.github/llmaw/scripts/commit-sdlc.sh, "record refactorings"]
           - shell: .github/llmaw/scripts/merge-pr.sh
           - labels: { remove: [llmaw:create-implementation] }
           - on_outcome:
               approved: {}
+              changes-requested: { labels: { add: [llmaw:needs-human] }, comment: "Refactoring needs human attention.", post_reason: true }
               _:        { labels: { add: [llmaw:needs-human] }, comment: "Implementation produced no PR; needs review." }
 
       # Implementation PR merged -> GitHub auto-closes via `closes #N`;

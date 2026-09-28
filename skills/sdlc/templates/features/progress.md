@@ -41,6 +41,7 @@ last_updated: "<YYYY-MM-DD>"
 | Development & Testing | create-tests | — |
 | Development & Testing | review-tests | — |
 | Development & Testing | create-implementation | — |
+| Development & Testing | refactor-implementation | — |
 | Development & Testing | review-implementation | — |
 | Development & Testing | create-documentation | — |
 | Development & Testing | review-documentation | — |

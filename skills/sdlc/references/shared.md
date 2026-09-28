@@ -83,6 +83,9 @@ Every `create-*` skill that has a `review-*` counterpart dispatches its review a
 | create-pr | review-pr |
 | create-article | review-article |
 
+`refactor-implementation` runs between `create-implementation` and `review-implementation`: it refines the implemented change (only the abstractions and seams it needs) and then dispatches the implementation review.
+The `create-implementation` -> `review-implementation` pair above still names the phase; the refinement sits inside it.
+
 ## SDLC Telemetry
 
 Every SDLC skill records one telemetry event when it executes, so over time you can analyze where your SDLC time goes and surface bottlenecks. This applies to every `create-*`/`review-*` pipeline skill, the setup skills, the maintenance skills, and the knowledge-record skills. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or alter the skill's work. Ignore a non-zero exit from the recorder.

@@ -106,6 +106,7 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
           │
           ▼
   /create-implementation  Implement following spec + plan, run tests
+  /refactor-implementation Introduce only the abstractions and seams the change needs (behavior-preserving, minimum abstraction)
   /review-implementation  Audit correctness, quality, security, spec alignment
           │
           ▼
@@ -227,7 +228,7 @@ When in doubt, include more phases rather than fewer.
 | **Hotfix** | Patch a production incident, revert a bad deploy | `create-implementation` → `validate-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
 | **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
 | **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
-| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `refactor-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
 | **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
 
 ### Rules for fast paths
@@ -668,6 +669,7 @@ Each phase consumes output from the previous phase:
 | create-tests | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) + `telemetry.md` + `observability.md` | `.sdlc/features/N-<slug>/tests.md` (`status: draft`) |
 | review-tests | `.sdlc/features/N-<slug>/tests.md` | Findings → `review-tests.md` |
 | create-implementation | `.sdlc/features/N-<slug>/tasks/` + `specification.md` + `lifecycle.md` (if produced) + `tests.md` + `telemetry.md` + `observability.md` | Working code; task files updated to `status: in-progress` then `status: done`; `progress.md` Task Progress table updated |
+| refactor-implementation | The implemented change (diff) + `tests.md` | Working code with only the justified abstractions and seams; `.sdlc/features/N-<slug>/refactorings.md` (`status: draft`) |
 | review-implementation | Code + spec + telemetry + observability | Findings → `review-implementation.md` |
 | create-documentation | Implemented feature | Documentation |
 | review-documentation | Documentation | Findings → `review-documentation.md` |
