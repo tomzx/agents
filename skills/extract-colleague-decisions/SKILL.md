@@ -20,7 +20,7 @@ Slack for each colleague's authored messages in a day, then reads them and pulls
 out the decisions, so you can catch up on what changed without reading every thread.
 
 The judgement is the point: telling a decision from chatter is a reading task, not
-a keyword match. `slackx search` only gets the messages in front of you; you decide
+a keyword match. `slackx conversations search` only gets the messages in front of you; you decide
 what counts.
 
 ## Prerequisites
@@ -38,6 +38,9 @@ what counts.
   fi
   ```
 - `jq` for filtering the search JSON.
+- Optional: the `devx` toolchain, only for the `classify_message.py` accelerator
+  (it reads an LLM Gateway key via `devx llm-gateway print-token --key`). Skip it
+  if you classify by reading.
 
 ## Workflow
 
@@ -69,11 +72,11 @@ is `alice`). If a search comes back empty, confirm the handle exists before
 concluding the person was silent:
 
 ```bash
-slackx show-users --json --no-fetch \
+slackx users list --json --no-fetch --fields name,real_name,payload \
   | jq -r '.users[] | select(.name=="<handle>") | "\(.name) | \(.real_name) | \(.payload.profile.email)"'
 ```
 
-`--no-fetch` reads the cache; drop it (or run `slackx fetch-users` once) to refresh.
+`--no-fetch` reads the cache; drop it (or run `slackx users fetch` once) to refresh.
 If a handle does not resolve, say so and ask the user for the correct one.
 
 While you are here, build a handle-to-real-name map and use the **real name**
@@ -82,9 +85,9 @@ Mixing handles and real names splits one person into two entries in the
 aggregated web page (e.g. `Tom Rochette` and `tom.rochette`):
 
 ```bash
-slackx fetch-users   # refresh once so the cache is complete
-slackx show-users --json --no-fetch \
-  | jq -r '.users[] | "\(.name)\t\(.real_name // .payload.profile.real_name // .name)"'
+slackx users fetch   # refresh once so the cache is complete
+slackx users list --json --no-fetch \
+  | jq -r '.users[] | "\(.name)\t\(.real_name // .name)"'
 ```
 
 Name each person by the second column. If a real name is empty, fall back to the
@@ -93,7 +96,7 @@ time rather than writing a handle in one place and a real name in another.
 
 ### 3. Search each colleague's messages for the day
 
-`slackx search` is the only tool used to find messages. Search is a live API call.
+`slackx conversations search` is the only tool used to find messages. Search is a live API call.
 Run one search per colleague and save the JSON, using `--fields` to keep only the
 fields this skill needs. The available fields are `channel`, `channel_name`,
 `ts`, `thread_ts`, `user`, `user_name`, `text`, `permalink`, and `payload`; the
@@ -106,12 +109,12 @@ Pass `--full-threads` so that every thread a matched message belongs to is cache
 with all of its replies. A colleague's top-level message is often just the start
 of the story: the decision, the pushback, and the endorsements all live in the
 replies, and without them the extraction misses support. `--full-threads` makes
-that content available to `slackx show` in the next step:
+that content available to `slackx conversations show` in the next step:
 
 ```bash
 mkdir -p /tmp/extract-colleague-decisions
 echo "$COLLEAGUES" | tr ',' '\n' | while read -r c; do
-  slackx search "from:@${c} after:${PREV} before:${NEXT}" \
+  slackx conversations search "from:@${c} after:${PREV} before:${NEXT}" \
     --count 200 --full-threads \
     --fields ts,channel,channel_name,text,permalink --json 2>/dev/null \
     > "/tmp/extract-colleague-decisions/${c}.json"
@@ -138,29 +141,30 @@ thread, and the reasoning is in between. Before classifying anything, pull the
 full thread for every message that has one so the whole conversation is in front
 of you.
 
-`--full-threads` on the search already cached every reply, so `slackx show`
-serves them from the cache. Run `slackx fetch-users` once first so `show` renders
-each author as a name and handle (e.g. `Alice Smith (alice)`) rather than a raw
-user id, which is what the **Supported by** list needs:
+`--full-threads` on the search already cached every reply, so
+`slackx conversations show` serves them from the cache. Run `slackx users fetch`
+once first so `show` renders each author as a name and handle
+(e.g. `Alice Smith (alice)`) rather than a raw user id, which is what the
+**Supported by** list needs:
 
 ```bash
 # Optional but recommended: resolve author names for the thread renders.
-slackx fetch-users
+slackx users fetch
 
 # Read the whole thread behind one message (auto-fetches if not cached).
-slackx show "<permalink>"
+slackx conversations show "<permalink>"
 ```
 
 Use `show --json` instead when you want to process many threads programmatically;
 it returns a `messages` array but authors appear as raw `user` ids, so resolve
-them with `slackx show-users --json`. To batch the human-readable reads, collect
+them with `slackx users list --json`. To batch the human-readable reads, collect
 the permalinks and loop:
 
 ```bash
 jq -r '.matches[].permalink' "/tmp/extract-colleague-decisions/${c}.json" \
   | sort -u \
   | while read -r url; do
-      slackx show "$url" >> "/tmp/extract-colleague-decisions/${c}.threads.md"
+      slackx conversations show "$url" >> "/tmp/extract-colleague-decisions/${c}.threads.md"
     done
 ```
 
@@ -209,19 +213,49 @@ Cluster each person's decision-bearing messages into four buckets:
 Attribute every item to a person. When several people converge on one decision,
 say so rather than listing it repeatedly.
 
-Also track **support**: an endorsement, approval, or seconding of someone else's
-decision ("endorse", "I'm in favor", "you can proceed", "go ahead", "+1 on this
-one"). A message can both make a decision and support another. For each decision,
-record the people who supported it, excluding the decision's author. Support from
-a colleague outside `COLLEAGUES` counts too; use the name as it appears in the
-message. This is what lets the aggregated web page answer *"who backed this?"*.
+Also track two kinds of reaction to someone else's decision, each recorded on
+the decision itself and excluding its author:
 
-Most support lives in the thread replies, not in the messages you searched for,
-so mine the threads from step 4 for it: a reply by someone other than the author
-that endorses, approves, or seconds a decision attaches that person to the
-decision's **Supported by** list. A reply can also carry its own decision or
-commitment; attribute it to the reply's author and file it in that person's
-section, even if they are outside `COLLEAGUES`.
+- **Support**: an endorsement, approval, or seconding ("endorse", "I'm in favor",
+  "you can proceed", "go ahead", "+1 on this one"). Recorded as **Supported by**.
+- **Opposition**: a rejection, objection, or pushback ("I disagree", "I'm not in
+  favor", "recommend against", "too broad", "should not", "-1"). Recorded as
+  **Opposed by**. Note that a counter-proposal is opposition, not a separate
+  decision; record the person as an opponent of the decision they pushed back on.
+
+A message can both make a decision and react to another. A person outside
+`COLLEAGUES` counts too; use the name as it appears in the message. These lists
+are what let the aggregated web page answer *"who backed this?"* and *"who pushed
+back?"*.
+
+Most reactions live in the thread replies, not in the messages you searched for,
+so mine the threads from step 4: a reply by someone other than the author that
+endorses or approves attaches that person to the decision's **Supported by**
+list, and one that objects or pushes back attaches them to **Opposed by**. A
+reply can also carry its own decision or commitment; attribute it to the reply's
+author and file it in that person's section, even if they are outside
+`COLLEAGUES`.
+
+Optional accelerator: for a long day, [`classify_message.py`](classify_message.py)
+turns the "is this decision-bearing, and which bucket?" call into one API
+round-trip. It applies the same definitions above and returns one of
+`decision_made`, `decision_deferred`, `open_question`, `commitment`, `support`,
+`opposition`, or `chatter` (plus a `bucket` label matching this report's
+`**Decided:**`/`**Deferred:**`/`**Open:**`/`**Committed:**` lines). Pass
+`--thread-file` so reactions are judged with the thread in front of it, and
+`--author`/`--decision-author` so a message is not counted as its author's own
+support. It exits non-zero on `chatter` (or low confidence), so a shell loop can
+filter cheaply:
+
+```bash
+uv run ~/.agents/skills/extract-colleague-decisions/classify_message.py \
+  --thread-file "/tmp/extract-colleague-decisions/${c}.threads.md" \
+  --author "$name" "$text"
+```
+
+The classification is a hint, not the answer: read the message yourself before
+filing it, and keep both the decision text and the permalink from the source
+rather than the script's label.
 
 ### 6. Write the report
 
@@ -233,9 +267,9 @@ people with no decision-bearing messages, but list them once at the end so the
 user knows they were checked.
 
 Name every person by their Slack **real name** (resolved in step 2), both for
-section headings and in `Supported by` lists. Do not write a handle in one place
-and a real name in another: that is what makes the same person show up twice in
-the web page's matrix and sidebar.
+section headings and in the `Supported by` / `Opposed by` lists. Do not write a
+handle in one place and a real name in another: that is what makes the same
+person show up twice in the web page's matrix and sidebar.
 
 The output path follows the same layout as the other summary skills:
 
@@ -258,6 +292,7 @@ Searched N colleagues over <TARGET> (window after:<PREV> before:<NEXT>).
 **Headline:** <the single most important thing they decided, if any>
 - **Decided:** <choice>. <reason>  <permalink>
   - **Supported by:** <name1>, <name2>
+  - **Opposed by:** <name3>, <name4>
 - **Deferred:** <what> (<why/when>).  <permalink>
 - **Open:** <question>.  <permalink>
 - **Committed:** <who> to <do what>.  <permalink>
@@ -269,10 +304,11 @@ Searched N colleagues over <TARGET> (window after:<PREV> before:<NEXT>).
 <Optional: the same decision reached by multiple people, or themes across people.>
 ```
 
-The `**Supported by:**` line is optional and indented under the decision it backs;
-omit it when nobody supported the item. Keep names comma-separated, without a
-leading `@`. This layout is parsed by `scripts/colleague_decisions_page.py`, so
-keep the `**Decided:**`/`**Deferred:**`/`**Open:**`/`**Committed:**` labels and the
+The `**Supported by:**` and `**Opposed by:**` lines are optional and indented
+under the decision they refer to; omit one when nobody supported or opposed the
+item. Keep names comma-separated, without a leading `@`. This layout is parsed by
+`scripts/colleague_decisions_page.py`, so keep the
+`**Decided:**`/`**Deferred:**`/`**Open:**`/`**Committed:**` labels and the
 indentation exactly as shown.
 
 ### 7. Render the aggregated web page (optional)
@@ -287,13 +323,14 @@ uv run ~/.agents/scripts/colleague_decisions_page.py
 
 It scans `NOTES_DIR` for `decisions/YYYY/MM/DD.md` reports and writes
 `{NOTES_DIR}/colleague-decisions.html`, a self-contained page (no server, no
-network) showing each decision, who made it, and who supported it. It relies on
-the report using consistent names (see step 2): a person written once as a handle
-and once as a real name shows up twice. The page has views by author, by
-supporter, and a support matrix (click a cell to list the decisions for that
-author/supporter pair), plus in-page filters for date
-range (from/to inputs and 7/30/90-day presets) and status (Decided/Deferred/Open/
-Committed), and a sidebar to jump to a person. Pass `--open` to launch it, or
+network) showing each decision, who made it, who supported it, and who opposed
+it. It relies on the report using consistent names (see step 2): a person written
+once as a handle and once as a real name shows up twice. The page has views by
+author, by supporter, and by opponent, plus a matrix with a Support/Oppose toggle
+(click a cell to list the decisions for that author/person pair), in-page filters
+for date range (from/to inputs and 7/30/90-day presets) and status
+(Decided/Deferred/Open/Committed), and a sidebar to jump to a person. Pass
+`--open` to launch it, or
 `--since`/`--until` to bake a narrower date range into the page. Report the HTML
 path to the user.
 
@@ -326,14 +363,15 @@ found" and everyone listed under "Not heard from".
 |---|---|
 | `~/.agents/scripts/get-env COLLEAGUES` | Resolve the comma-separated colleague list |
 | `~/.agents/scripts/get-env NOTES_DIR` | Resolve the notes directory for optional persistence |
-| `slackx search "from:@<handle> after:<PREV> before:<NEXT>" --count 200 --full-threads --fields ts,channel,channel_name,text,permalink --json` | Find a colleague's messages for the day and cache every thread they belong to |
-| `slackx show "<permalink>"` | Read the full thread behind a message, with author names resolved (use `--json` for raw structure) |
-| `slackx fetch "<permalink>"` | Force a live refresh of a thread when the cache may be stale |
-| `slackx show-users --json --no-fetch` | Confirm a handle resolves to a user |
-| `slackx fetch-users` | Refresh the cached user list so thread authors render as names |
+| `slackx conversations search "from:@<handle> after:<PREV> before:<NEXT>" --count 200 --full-threads --fields ts,channel,channel_name,text,permalink --json` | Find a colleague's messages for the day and cache every thread they belong to |
+| `slackx conversations show "<permalink>"` | Read the full thread behind a message, with author names resolved (use `--json` for raw structure) |
+| `slackx conversations fetch "<permalink>"` | Force a live refresh of a thread when the cache may be stale |
+| `slackx users list --json --no-fetch` | Confirm a handle resolves to a user |
+| `slackx users fetch` | Refresh the cached user list so thread authors render as names |
 | `date -d "$TARGET - 1 day" +%Y-%m-%d` | Compute the exclusive lower bound |
 | `date -d "$TARGET + 1 day" +%Y-%m-%d` | Compute the exclusive upper bound |
 | `uv run ~/.agents/scripts/colleague_decisions_page.py [--open] [--since D] [--until D]` | Aggregate every report into a static decisions web page |
+| `uv run ~/.agents/skills/extract-colleague-decisions/classify_message.py [--thread-file F] [--author A] [--decision-author D] "<text>"` | Optional: classify one message into a decision bucket or chatter |
 
 ## Notes on cost and safety
 

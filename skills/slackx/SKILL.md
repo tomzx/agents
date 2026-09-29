@@ -1,7 +1,7 @@
 ---
 name: slackx
 description: >
-  Use the `slackx` CLI to cache and read Slack threads, channel history,
+  Use the `slackx` CLI to cache and read Slack threads, channel history, DMs,
   users, and channels from a local SQLite database. It fetches threads via
   `conversations.replies`, channel history via `conversations.history`, and
   workspace users/channels, storing everything locally so subsequent reads are
@@ -14,16 +14,51 @@ description: >
 
 # slackx Skill
 
-`slackx` is a small Python CLI that caches Slack threads, channel
-messages, users, and channels to a local SQLite database. Given a Slack thread
-URL (or an explicit channel id and root timestamp), it fetches the thread via
-`conversations.replies` and stores every message. On subsequent runs it only
+`slackx` is a small Python CLI (package name `slack-cached`) that caches Slack
+threads, channel messages, DMs, users, and channels to a local SQLite database.
+Given a Slack permalink (or a channel and root timestamp), it fetches the thread
+via `conversations.replies` and stores every message. On subsequent runs it only
 fetches new replies (and detects edits) by passing `oldest` to the API based on
 the highest cached `ts`.
 
-It is the single source of Slack thread content for every other Slack skill:
-`slack-resolve-threads` reads threads through `slackx show`, and the
-knowledge-base skills use it to cache and render conversations.
+It is the single source of Slack thread content for the other Slack skills:
+`slack-resolve-threads` reads threads through `slackx conversations show`, and
+the knowledge-base skills use it to cache and render conversations.
+
+---
+
+## Command tree
+
+The CLI is grouped into subcommands. The old flat commands (`fetch`, `show`,
+`search`, `poll`, `fetch-users`, `fetch-channels`, `show-users`,
+`show-channels`, `show-channel`) no longer exist.
+
+```
+slackx
+  conversations   fetch | show | search | poll
+  channels        fetch | list
+  users           fetch | list
+  cache           status | clear
+  serve
+```
+
+Every command takes `--help` (or `-h`) and shows its own options and
+positional arguments.
+
+### Options live on the leaf command
+
+`--db`, `--workspace`, `--api-base-url`, and `--log-level` are options on each
+leaf command, not on `slackx` itself. Put them after the command:
+
+```bash
+slackx cache status --db /tmp/x.db --log-level debug
+slackx users list --json --workspace acme
+```
+
+The equivalent environment variables (for example `SLACK_API_BASE_URL`) still
+apply process-wide and are the easiest way to point every command at an
+alternate API. There is no top-level `-v/--verbose`; use `--log-level`
+(`debug`, `info`, `warning`, `error`, `critical`, default `info`).
 
 ---
 
@@ -40,9 +75,9 @@ if ! command -v slackx &>/dev/null; then
 fi
 ```
 
-If `uv tool install` isn't desired, run it in place with
-`uv run --project /tmp/slackx slackx ...`. Confirm it works:
-`slackx --help`.
+The install provides two binaries, `slackx` and `slack-fake-server`. If
+`uv tool install` isn't desired, run it in place with
+`uv run --project /tmp/slackx slackx ...`. Confirm it works: `slackx --help`.
 
 ### Authentication
 
@@ -83,99 +118,115 @@ Each Slack workspace gets its own cache database at
 automatically via `auth.test`; select one explicitly with `--workspace <name>`,
 or point at a specific file with `--db /path/to/file.db`.
 
-All commands accept `-v/--verbose` for debug logging on stderr, `--db` or
-`--workspace` to control the cache location, and `--api-base-url` to override
-the Slack API base URL (defaults to `https://slack.com/api`; also settable via
-`SLACK_API_BASE_URL`).
+---
+
+## Targeting a conversation
+
+`conversations fetch` and `conversations show` take a `TARGET` positional that
+is one of:
+
+- a Slack permalink (thread or channel),
+- a channel id (`C...`, `G...`, `D...`), a channel name (e.g. `general`), or a
+  `#`-prefixed name (e.g. `#general`),
+- a DM, given a user id (e.g. `U001`) or an `@handle`.
+
+Add `--ts <root_ts>` to read a specific thread from a channel or DM target.
+Without `--ts`, the command operates on the channel's recent messages.
+
+Run `slackx channels fetch` first if you want to resolve channels by name, and
+`slackx users fetch` to resolve `@handle` DMs.
 
 ---
 
-## Threads
+## Conversations
 
-### Cache or refresh a thread
+### Fetch (cache or refresh)
 
-`fetch` always reaches out to Slack. It prints only a summary on stderr; no
-thread output goes to stdout.
-
-```bash
-slackx fetch https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
-```
-
-Or with explicit channel/ts:
+`conversations fetch` always reaches out to Slack. It prints a summary; the
+summary and logs go to stderr, and no conversation output goes to stdout.
 
 ```bash
-slackx fetch --channel C0123ABCDEF --ts 1700000000.123456
+# a thread by permalink
+slackx conversations fetch https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
+
+# a thread by channel and ts
+slackx conversations fetch C0123ABCDEF --ts 1700000000.123456
+
+# recent channel messages (lookback defaults to 1d)
+slackx conversations fetch C0123ABCDEF
+slackx conversations fetch C0123ABCDEF --last 7d
+
+# every reply for every thread in the channel
+slackx conversations fetch C0123ABCDEF --full-threads --last all
 ```
 
-### Show a cached thread
+`--last` accepts `24h`, `2d5h30m`, `90m`, or `all` for full history.
 
-`show` prints a cached thread to stdout (human-readable by default). It
-auto-fetches if the thread is missing; pass `--no-fetch` to disable that.
+### Show (read from cache)
+
+`conversations show` prints a thread or channel to stdout (human-readable by
+default). It auto-fetches when not already cached; pass `--no-fetch` to read
+only the cache.
 
 ```bash
-slackx show https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
-slackx show --json https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
-slackx show --jsonl --channel C0123ABCDEF --ts 1700000000.123456 >> threads.jsonl
+slackx conversations show https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
+slackx conversations show --json https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
+slackx conversations show C0123ABCDEF --ts 1700000000.123456 --jsonl >> threads.jsonl
+slackx conversations show C0123ABCDEF --last all
+slackx conversations show C0123ABCDEF --last all --with-thread-message
 ```
 
-Output formats:
+Options:
 
-- **human** (default): one block per message with timestamp, author, and text.
-- **`--json`**: pretty-printed JSON with `channel`, `thread_ts`,
-  `message_count`, and a `messages` array (each message carries its full Slack
-  `payload`, including `reactions`).
-- **`--jsonl`**: the whole payload as a single compact JSON line, easy to
-  append to a file.
+- `--fetch/--no-fetch`: auto-fetch on a cache miss (default on).
+- `--json`: pretty-printed JSON.
+- `--jsonl`: the whole payload as a single compact JSON line, easy to append to
+  a file.
+- `--with-thread-message`: when showing a channel, also include thread replies,
+  rendered marked as belonging to their thread (default is top-level messages
+  only).
+- `--last`: channel lookback window (default `1d`).
+
+Output shapes:
+
+- **thread `--json`**: keys `channel`, `channel_name`, `thread_ts`,
+  `message_count`, `messages`. Each message carries `ts`, `user`, `text`,
+  `user_name`, and the full Slack `payload` (including `reactions`).
+- **channel `--json`**: keys `channel`, `channel_name`, `message_count`,
+  `messages`. Each message carries `ts`, `user`, `text`, `thread_ts`,
+  `is_thread_reply`, `user_name` (no full `payload`).
+- **human**: one block per message with timestamp, author, and text.
 
 When the thread's authors are present in the cached users, `show` renders their
 real name and handle (e.g. `Alice Smith (alice)`) instead of raw user ids. Run
-`fetch-users` once to populate names.
+`slackx users fetch` once to populate names.
 
----
-
-## Channel messages
-
-A channel URL (no message timestamp) or `--channel` alone fetches the channel's
-recent history via `conversations.history`:
-
-```bash
-slackx fetch https://acme.slack.com/archives/C0B6CQN0G6B
-slackx fetch --channel C0B6CQN0G6B
-slackx show https://acme.slack.com/archives/C0B6CQN0G6B
-slackx show --json https://acme.slack.com/archives/C0B6CQN0G6B
-```
-
-Control the lookback window with `--last` (e.g. `24h`, `2d5h30m`, `90m`;
-default `1d`; use `all` for full history):
-
-```bash
-slackx fetch --channel C0B6CQN0G6B --last 7d
-slackx show  --channel C0B6CQN0G6B --last 7d
-```
-
-Add `--full-threads` to also fetch every reply for messages that have replies:
-
-```bash
-slackx fetch --channel C0B6CQN0G6B --full-threads
-slackx fetch --channel C0B6CQN0G6B --full-threads --last all
-```
-
-This works for enterprise grid workspaces too (e.g.
-`https://acme.enterprise.slack.com/archives/C0B6CQN0G6B`).
-
----
-
-## Search
+### Search
 
 Search the workspace with the same query syntax as the Slack search box. Every
 matched message is cached under its `(channel, thread_ts)` so it can be
 revisited later with `show`. Search is always a live API call.
 
 ```bash
-slackx search "deploy failed"
-slackx search "from:@alice after:2024-01-01" --json
-slackx search "incident" --jsonl
+slackx conversations search "deploy failed"
+slackx conversations search "from:@alice after:2024-01-01" --json
+slackx conversations search "incident" --jsonl
+slackx conversations search "incident" --full-threads
 ```
+
+Options:
+
+- `--count`: maximum results per page (default 20).
+- `--limit`: maximum total matches to fetch (default 200; `0` for no limit).
+  Broad queries can span hundreds of pages, so the cap keeps them from taking a
+  very long time under Slack's rate limits.
+- `--sort` (`score` or `timestamp`, default `timestamp`) and `--sort-dir`
+  (`asc` or `desc`, default `desc`).
+- `--full-threads`: also fetch every reply for each matched thread.
+- `--fields`: comma-separated fields to include, in order:
+  `channel,channel_name,ts,thread_ts,user,user_name,text,permalink,payload`
+  (default `channel,channel_name,ts,thread_ts,user,user_name,text,permalink`).
+- `--json` / `--jsonl`.
 
 `after:` and `before:` are exclusive date bounds. To search a single day
 (e.g. `2026-09-18`), bracket it with the day before and the day after:
@@ -183,80 +234,112 @@ slackx search "incident" --jsonl
 that day itself.
 
 ```bash
-slackx search "after:2026-09-17 before:2026-09-19" --json
+slackx conversations search "after:2026-09-17 before:2026-09-19" --json
 ```
 
-Add `--full-threads` to also fetch every reply for each thread a match belongs
-to:
+The `--json` payload has keys `query`, `match_count`, `matches`, where each
+match carries the configured fields.
+
+### Poll
+
+Poll multiple channels concurrently in a loop for new messages. Uses
+`httpx.AsyncClient` with an `asyncio.Semaphore` for concurrent, non-blocking
+HTTP requests. Reads `X-RateLimit-Remaining` headers to proactively throttle
+before hitting 429s. Stops gracefully with `Ctrl+C`.
 
 ```bash
-slackx search "incident" --full-threads
+slackx conversations poll --channels C001,#general,random --interval 5m --last 5m --concurrency 3
 ```
 
-Tune result paging and ordering with `--count`, `--sort` (`score` or
-`timestamp`, default `timestamp`), and `--sort-dir` (`asc` or `desc`, default
-`desc`):
-
-```bash
-slackx search "RFC" --count 5 --sort score --sort-dir asc
-```
+`--channels` is required. Each entry may be a channel id, a bare name, or a
+`#`-prefixed name. Names are resolved against cached channels, so run
+`slackx channels fetch` first if resolving by name. Add `--full-threads` to
+expand threads, and `--json` for per-cycle JSON summaries on stdout.
 
 ---
 
-## Polling channels
+## Channels
 
-Poll multiple channels concurrently for new messages. Uses `httpx.AsyncClient`
-with an `asyncio.Semaphore` for concurrent, non-blocking HTTP requests. Reads
-`X-RateLimit-Remaining` headers to proactively throttle before hitting 429s.
-Stops gracefully with `Ctrl+C`.
+Cache or refresh every visible channel, or a single channel by id or name:
 
 ```bash
-slackx poll --channels C001,#general,random --interval 5m --last 5m --concurrency 3
+slackx channels fetch
+slackx channels fetch C001
 ```
 
-Each `--channels` entry may be a channel id (e.g. `C001`), a bare name (e.g.
-`general`), or a `#`-prefixed name (e.g. `#general`). Names are resolved
-against the cached channels, so run `fetch-channels` first if resolving by
-name.
-
-Add `--full-threads` to expand threads, and `--json` to get per-cycle JSON
-summaries on stdout.
-
----
-
-## Users and channels
-
-Cache or refresh every workspace user or visible channel:
+Print cached channels (human-readable by default, `--json` for pretty JSON,
+`--jsonl` for a single compact JSON line). Pass a channel id, name, or URL to
+show only that channel; it is fetched from Slack via `conversations.info` when
+not cached, unless `--no-fetch` is given.
 
 ```bash
-slackx fetch-users
-slackx fetch-channels
+slackx channels list
+slackx channels list C001 --json
+slackx channels list general --jsonl
+slackx channels list https://acme.slack.com/archives/C001
 ```
 
-Show cached users or channels (human-readable by default, `--json` for pretty
-JSON, `--jsonl` for a single compact JSON line; both auto-fetch when empty
-unless `--no-fetch` is given):
-
-```bash
-slackx show-users
-slackx show-channels --json
-slackx show-channels --jsonl
-```
-
-Show a single channel's information (name, topic, purpose, members, archived,
-created, creator) given an id, a cached name, or a channel URL. It fetches the
-channel live via `conversations.info` and caches it; pass `--no-fetch` to render
-a previously cached channel instead (errors when not cached):
-
-```bash
-slackx show-channel C0B6CQN0G6B
-slackx show-channel C0B6CQN0G6B --json
-slackx show-channel general --jsonl
-slackx show-channel https://acme.slack.com/archives/C0B6CQN0G6B
-```
+Options: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields`
+(`id,name,is_private,display_name,fetched_at,payload`, default
+`id,name,is_private`). The `--json` payload has keys `channel_count` and
+`channels`.
 
 Unknown or inaccessible channels surface a clean `channel_not_found` error
 (exit code 1) rather than a traceback.
+
+---
+
+## Users
+
+Cache or refresh every workspace user, or a single user by id:
+
+```bash
+slackx users fetch
+slackx users fetch U001
+```
+
+Print cached users (human-readable by default). Pass a user id to show only
+that user; it is fetched from Slack via `users.info` when not cached, unless
+`--no-fetch` is given.
+
+```bash
+slackx users list
+slackx users list --json
+slackx users list --jsonl
+slackx users list U001 --json
+```
+
+Options: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields`
+(`id,name,real_name,fetched_at,payload`, default `id,name,real_name`). The
+`--json` payload has keys `user_count` and `users`.
+
+---
+
+## Cache management
+
+Inspect and clear the local cache without calling Slack.
+
+```bash
+slackx cache status
+slackx cache status --json
+slackx cache status --jsonl
+```
+
+`cache status` prints counts and last update per entity (channels, users,
+threads, messages).
+
+```bash
+slackx cache clear                 # asks for confirmation on a TTY
+slackx cache clear messages
+slackx cache clear channels --yes
+slackx cache clear users -y
+slackx cache clear all --yes
+```
+
+`cache clear` takes an optional `TARGET` of `all` (default), `messages`,
+`channels`, or `users`, and `--yes/-y` to skip the confirmation prompt.
+Clearing messages also clears their thread metadata, so the threads are
+refetched on next use.
 
 ---
 
@@ -268,6 +351,7 @@ credentials are configured):
 
 ```bash
 slackx serve --port 8280
+slackx serve --host 0.0.0.0 --port 8280
 ```
 
 ---
@@ -289,19 +373,19 @@ reply's `ts`, and the actual thread root `ts` is in the `thread_ts` query
 parameter. The tool returns the thread root so `conversations.replies` fetches
 the entire thread.
 
-For explicit channel ids without a URL, use `--channel <ID>` (optionally with
-`--ts <TS>` for a single thread).
+For explicit channel ids without a URL, pass the channel id as the target
+(optionally with `--ts <TS>` for a single thread).
 
 ---
 
 ## Refresh behavior
 
-`fetch` always reaches out to Slack. If the thread is already cached, it
-requests `conversations.replies` with `oldest=<latest_cached_ts>` so the API
-returns only new replies (and any recent edits at that boundary). Messages are
-upserted by `ts`, so edits replace the older version in place.
+`conversations fetch` always reaches out to Slack. If the thread is already
+cached, it requests `conversations.replies` with `oldest=<latest_cached_ts>` so
+the API returns only new replies (and any recent edits at that boundary).
+Messages are upserted by `ts`, so edits replace the older version in place.
 
-For a channel URL, `fetch` requests `conversations.history` with
+For a channel target, `fetch` requests `conversations.history` with
 `oldest=<now - lookback>`, so only recent top-level messages are fetched. Each
 top-level message is stored as its own thread root; messages with replies are
 expanded via `conversations.replies` when `--full-threads` is given.
@@ -322,28 +406,32 @@ uv run slack-fake-server --port 8199 --num-threads 50
 It serves deterministic workspace data (`conversations.list`,
 `conversations.replies`, `conversations.history`, `conversations.info`,
 `users.list`) and can simulate Slack-tier rate limiting with `--rate-limits`.
+Other options include `--host`, `--seed`, `--num-users`, `--num-channels`,
+`--num-ims`, `--messages-per-thread`, `--activity-ratio`, and `--epoch-base`.
 
-Point `slackx` at it with:
+Point `slackx` at it with the API base URL option on the leaf command (or the
+environment variable):
 
 ```bash
-slackx --api-base-url http://localhost:8199/api fetch ...
+slackx conversations fetch C001 --api-base-url http://localhost:8199/api
 ```
 
 ---
 
 ## Tips
 
-- Run `fetch-users` once at the start of a session so every later `show`
+- Run `slackx users fetch` once at the start of a session so every later `show`
   renders author names instead of raw user ids.
-- Use `show --json` when a consuming skill needs the full Slack payload (e.g.
-  `reactions` on the root message for `slack-resolve-threads`).
-- Use `show --jsonl` when appending many threads to a single file for batch
+- Use `conversations show --json` on a thread when a consuming skill needs the
+  full Slack `payload` (e.g. `reactions` on the root message for
+  `slack-resolve-threads`).
+- Use `--jsonl` when appending many threads to a single file for batch
   processing.
 - `show` auto-fetches on a cache miss, but an existing cached thread only
-  refreshes on its reply boundary. Run an explicit `fetch` first when you need
-  the current live state.
-- Run `fetch-channels` before `poll` if you want to reference channels by name
-  instead of id.
+  refreshes on its reply boundary. Run an explicit `conversations fetch` first
+  when you need the current live state.
+- Run `slackx channels fetch` before `conversations poll` if you want to
+  reference channels by name instead of id.
 - For inline review comments or PR operations, use `ghx`, not this tool; this
   tool is Slack-only and read-only (no write/reaction path).
 

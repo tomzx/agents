@@ -142,4 +142,4 @@ Skills like **start-day** and **end-day** post automated daily updates and are a
 | `uv run post_slack_message.py ... --thread-ts <ts> "<text>"` | Post as a thread reply. |
 | `uv run post_slack_message.py ... --dry-run "<text>"` | Resolve channel and preview without sending. |
 | `echo "<text>" \| uv run post_slack_message.py --channel <id> --stdin` | Post a message read from stdin. |
-| `slackx show-channels` | Look up a channel name/id. |
+| `slackx channels list` | Look up a channel name/id. |

@@ -1,5 +1,9 @@
 # Memory
 
+## 2026-09-29: zsh does not word-split unquoted variables
+
+- The `shell` tool runs under zsh, so `c="a b"; cmd $c` passes `"a b"` as one argument (unlike bash). Use `cmd ${=c}` or quote each word explicitly, otherwise loops silently invoke the wrong command.
+
 ## 2026-09-28: refactor-implementation sits inside the implementation phase
 
 - The SDLC pipeline runs `refactor-implementation` between `create-implementation` and `review-implementation`; it refines the just-implemented diff with only the abstractions and seams it needs.
