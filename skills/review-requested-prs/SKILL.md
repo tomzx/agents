@@ -1,13 +1,13 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (assess-pr-risk in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer, or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
+description: Orchestrate full PR reviews (assess-pr-risk in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer (including PRs where a team request was later dropped), or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*), Read, Write, Glob, Grep, Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
 # Review Requested PRs
 
-Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
+Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
 The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot hold up any other PR.
 
@@ -75,16 +75,21 @@ Run the script to discover PRs and get one ready-to-run command per PR with stal
 ```
 
 The script accepts the same arguments as the skill:
-- No arguments: searches all open PRs where you are a requested reviewer (plus open PRs you have already reviewed)
+- No arguments: searches all open PRs where you are a requested reviewer (plus open PRs you have already reviewed). Notification-based discovery is off unless `--notifications` is passed
 - `owner/repo` arguments: scopes the search to those repos
 - PR URL arguments: processes only those specific PRs
 - Mixed: processes the union of explicit PRs and search results
 
 Useful flags:
-- `--limit N`: cap the number of PRs discovered (default 100)
-- `--workers N`: number of PRs to process in parallel for staleness checks (default 8)
+- `--limit N`: cap the number of PRs discovered per source (default 100)
+- `--notifications`: enable notification-based discovery of dropped review requests (per repo when `owner/repo` is given, global otherwise). Off by default; needs the notifications or repo scope and can be slow
+- `--workers N`: number of PRs and drop-check batches to process in parallel (default 8)
 - `--draft`: include draft PRs (excluded by default)
 - `--log-level debug`: see API call timings for debugging
+
+### Dropped team review requests
+
+When a review is requested from a team, GitHub removes the team request for every member as soon as one teammate comments or reviews. The PR then stops matching `review-requested:@me` and `team-review-requested:`, but its `review_requested` notification survives. With `--notifications`, the script recovers those PRs from notifications: per repo for explicit `owner/repo` targets, or globally when no repo is given. They appear in the summary table with a `team-dropped` source and the team that was requested, and flow through the normal staleness and dispatch path. This is off by default.
 
 `--dispatch-prs` emits one self-contained `/review-pr-full` command per PR needing work, in execution order, with PR plan blocks separated by `---`:
 
@@ -219,7 +224,7 @@ PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and 
 
 | Script | Description |
 |---|---|
-| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs, checks marker staleness (GitHub comments + local `.sdlc` files), resolves head repos/branches, and outputs dispatch commands. Run with `--dispatch-prs` for one self-contained `/review-pr-full` command per PR (used by this skill), `--dispatch` for raw per-step commands, `--json` for structured data, `--log-level debug` for timings. |
+| `~/.agents/scripts/review_requested_prs.py` | Discovers PRs (review-requested, already-reviewed, and, with `--notifications`, dropped team review requests from notifications), checks marker staleness (GitHub comments + local `.sdlc` files), resolves head repos/branches, and outputs dispatch commands. Run with `--dispatch-prs` for one self-contained `/review-pr-full` command per PR (used by this skill), `--dispatch` for raw per-step commands, `--json` for structured data, `--notifications` to enable notification-based dropped-request discovery, `--log-level debug` for timings. |
 
 ## Related Skills
 

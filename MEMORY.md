@@ -1,5 +1,10 @@
 # Memory
 
+## 2026-09-30: dropped team review requests are only discoverable via notifications
+
+- When a review is requested from a team, any teammate comment or review removes the team request for every member; afterwards the PR matches neither `review-requested:@me` nor `team-review-requested:` (verified on Shopify/davies#1633).
+- The `review_requested` notification and the PR's `REVIEW_REQUESTED_EVENT` timeline item survive, so notifications are the only discovery source. The notifications REST endpoint has no `query` param (`repo:`/`reason:` filtering is web-inbox only) and GraphQL exposes no notifications at all.
+
 ## 2026-09-29: zsh does not word-split unquoted variables
 
 - The `shell` tool runs under zsh, so `c="a b"; cmd $c` passes `"a b"` as one argument (unlike bash). Use `cmd ${=c}` or quote each word explicitly, otherwise loops silently invoke the wrong command.
@@ -18,6 +23,16 @@
 ## 2026-09-24: duplicate search before codebase investigation
 
 - When filing an issue (create-issue or similar), run the duplicate search before any codebase investigation: the bug report itself usually provides enough search keywords, and deep code tracing only pays off once no duplicate exists or filing is confirmed.
+
+## 2026-09-29: gs has no line-comment flag but gs api can post inline comments
+
+- `gs pr comment` and `gs pr review` have no `--file`/`--line`/`--position` flag; they cannot anchor a new comment to a line.
+- Workaround (verified on shop/world PR 2109620): `gs api repos/{owner}/{repo}/pulls/<N>/comments -F body=... -F commit_id=<head sha> -F path=<file> -F line=<n> -F side=RIGHT`. gitstream mirrors the GitHub review-comment API and returns line/side plus an `x_gitstream.thread_id`; `gs pr view <N> -c` renders it at that line. Delete test comments with `gs api repos/{owner}/{repo}/pulls/comments/<id> -X DELETE`.
+- Existing inline threads can be replied to with `gs pr comment <N> --reply-to <thread-uuid>` and resolved with `gs pr resolve/unresolve <N> <thread-id>`.
+
+## 2026-09-29: skill-creator and find-skills are broken symlinks
+
+- `skills/skill-creator` and `skills/find-skills` symlink to `../../../../.agents/skills/<name>`, which resolves to `/Users/tom.rochette/.agents/skills/<name>` and symlinks back to itself (infinite loop). Do not try to read them; author skills directly, using `gh-stack`/`ghx` as structure models.
 
 ## 2026-09-23: handle-pr-reviewer-feedback owns the reviewer-feedback contract
 

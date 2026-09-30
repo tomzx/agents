@@ -9,10 +9,19 @@
 # ///
 """Deterministic orchestrator for the review-requested-prs skill.
 
-Discovers PRs needing review (requested from you, plus open PRs you have
-already reviewed), checks staleness of assess-pr-risk / analyze-test-coverage /
-validate-pr / verify-pr / review-pr comment markers against each PR's HEAD
-commit, and outputs which review steps need to be dispatched.
+Discovers PRs needing review (requested from you, open PRs you have already
+reviewed, plus PRs where a team you belong to was requested and the request was
+later dropped because a teammate answered it), checks staleness of
+assess-pr-risk / analyze-test-coverage / validate-pr / verify-pr / review-pr
+comment markers against each PR's HEAD commit, and outputs which review steps
+need to be dispatched.
+
+Dropped team requests are invisible to search: once any member of a requested
+team comments or reviews, GitHub removes the team request for everyone, so
+``review-requested:@me`` and ``team-review-requested:`` stop matching while the
+``review_requested`` notification survives. Those PRs are recovered from
+notifications only when ``--notifications`` is passed, per repo for explicit
+``owner/repo`` targets and globally when no repo is given.
 
 assess-pr-risk runs in parallel with the analyze-test-coverage -> validate ->
 verify -> review chain: it is stale independently of the chain, never gates a
@@ -49,6 +58,9 @@ Examples:
 
     # Prioritize by how many PRs each one blocks
     scripts/review_requested_prs.py --sort blocks
+
+    # Also recover dropped review requests from notifications
+    scripts/review_requested_prs.py --notifications
 """
 
 from __future__ import annotations
@@ -188,7 +200,9 @@ VERDICT_DISPLAY: dict[str, str] = {
 # existed, are scraped from the report body line
 # ("**Risk: High** · **Confidence: Low** · ...").
 BODY_RISK_PATTERN = re.compile(r"Risk:\s*(Low|Medium|High)\b", re.IGNORECASE)
-BODY_CONFIDENCE_PATTERN = re.compile(r"Confidence:\s*(Low|Medium|High)\b", re.IGNORECASE)
+BODY_CONFIDENCE_PATTERN = re.compile(
+    r"Confidence:\s*(Low|Medium|High)\b", re.IGNORECASE
+)
 
 RISK_STYLES: dict[str, str] = {
     "high": "bold red",
@@ -243,6 +257,8 @@ class PRReviewState:
     additions: int = 0
     deletions: int = 0
     blocking_depth: int = 0
+    request_source: str = ""
+    requested_team: str = ""
     stale_steps: list[str] = field(default_factory=list)
     skipped: bool = False
     skipped_reason: str = ""
@@ -334,6 +350,7 @@ def _search_prs(
     query: str,
     limit: int,
     seen: set[tuple[str, int]],
+    source: str = "",
 ) -> list[PRReviewState]:
     """Run a search query and return PRs not already in *seen*.
 
@@ -360,10 +377,406 @@ def _search_prs(
                         number=issue.number,
                         title=issue.title,
                         author=issue.user.login if issue.user else "",
+                        request_source=source,
                     ),
                 )
         except GithubException as ex:
             log.debug("search_failed", query=query, error=str(ex))
+    return found
+
+
+NOTIFICATION_REASON = "review_requested"
+NOTIFICATION_PR_URL = re.compile(r"/repos/([^/]+/[^/]+)/pulls/(\d+)$")
+OPEN_CHECK_BATCH_SIZE = 50
+OPEN_CHECK_BODY = "state"
+DROP_CHECK_BATCH_SIZE = 20
+
+# Fields the drop check needs from each candidate PR. Kept minimal so a batch
+# of aliases stays well under the GraphQL query size limit.
+DROP_CHECK_BODY = """
+      state
+      author { login }
+      reviewRequests(first: 100) {
+        nodes {
+          requestedReviewer {
+            __typename
+            ... on User { login }
+            ... on Team { slug organization { login } }
+          }
+        }
+      }
+      reviews(last: 100) { nodes { author { login } } }
+      timelineItems(itemTypes: [REVIEW_REQUESTED_EVENT], last: 50) {
+        nodes {
+          ... on ReviewRequestedEvent {
+            requestedReviewer {
+              __typename
+              ... on Team { slug organization { login } }
+            }
+          }
+        }
+      }
+"""
+
+
+def _notification_candidate(thread: object) -> tuple[str, int] | None:
+    """Return ``(owner/repo, number)`` for a review-request notification."""
+    if getattr(thread, "reason", "") != NOTIFICATION_REASON:
+        return None
+    subject = getattr(thread, "subject", None)
+    if subject is None or subject.type != "PullRequest" or not subject.url:
+        return None
+    match = NOTIFICATION_PR_URL.search(subject.url)
+    if not match:
+        return None
+    return match.group(1), int(match.group(2))
+
+
+def _notification_keys(
+    threads: Iterator[object],
+    limit: int,
+    owner_filter: set[str],
+) -> list[tuple[str, int]]:
+    """Collect up to *limit* review-request PR keys from notification threads."""
+    keys: list[tuple[str, int]] = []
+    seen: set[tuple[str, int]] = set()
+    for thread in threads:
+        if len(keys) >= limit:
+            break
+        key = _notification_candidate(thread)
+        if key is None or key in seen:
+            continue
+        if owner_filter and key[0].split("/", 1)[0].lower() not in owner_filter:
+            continue
+        seen.add(key)
+        keys.append(key)
+    return keys
+
+
+def _repo_notification_keys(token: str, repo: str, limit: int) -> list[tuple[str, int]]:
+    """Return review-request PR keys from one repo's notifications."""
+    try:
+        with timed("repo_notifications", repo=repo):
+            threads = create_client(token).get_repo(repo).get_notifications(all=True)
+            return _notification_keys(islice(threads, limit), limit, set())
+    except GithubException as ex:
+        log.warning("repo_notifications_failed", repo=repo, error=str(ex))
+        return []
+
+
+def _global_notification_keys(
+    token: str,
+    limit: int,
+    owner_filter: set[str],
+) -> list[tuple[str, int]]:
+    """Return review-request PR keys from the global notifications feed."""
+    try:
+        with timed("global_notifications"):
+            threads = create_client(token).get_user().get_notifications(all=True)
+            return _notification_keys(islice(threads, limit), limit, owner_filter)
+    except GithubException as ex:
+        log.warning("global_notifications_failed", error=str(ex))
+        return []
+
+
+def collect_notification_candidates(
+    token: str,
+    repos: list[str],
+    owners: list[str],
+    limit: int,
+    workers: int = 8,
+) -> list[tuple[str, int]]:
+    """Return PR keys carrying a review-request notification.
+
+    Per-repo notifications are read for explicit *repos* and fetched
+    concurrently, one client per repo. When no repo is given the global feed is
+    read instead, since it is the only way to cover all repos; it can span
+    thousands of threads and needs the ``notifications`` or ``repo`` scope.
+    """
+    owner_set = {owner.lower() for owner in owners}
+    global_scope = not repos
+    task_count = len(repos) + (1 if global_scope else 0)
+
+    if task_count == 0:
+        log.debug("notification_candidates", count=0, repos=0, global_scope=False)
+        return []
+
+    with ThreadPoolExecutor(max_workers=min(workers, task_count)) as executor:
+        futures = [
+            executor.submit(_repo_notification_keys, token, repo, limit)
+            for repo in repos
+        ]
+        if global_scope:
+            futures.append(
+                executor.submit(_global_notification_keys, token, limit, owner_set)
+            )
+        batches = [future.result() for future in futures]
+
+    candidates: dict[tuple[str, int], None] = {}
+    for batch in batches:
+        for key in batch:
+            if len(candidates) >= limit:
+                break
+            candidates[key] = None
+
+    log.debug(
+        "notification_candidates",
+        count=len(candidates),
+        repos=len(repos),
+        global_scope=global_scope,
+        workers=min(workers, task_count),
+    )
+    return list(candidates)
+
+
+def fetch_viewer_teams(client: Github) -> set[tuple[str, str]]:
+    """Return the viewer's teams as lowercased ``(org_login, slug)`` keys."""
+    try:
+        teams = {
+            (team.organization.login.lower(), team.slug.lower())
+            for team in client.get_user().get_teams()
+        }
+    except GithubException as ex:
+        log.warning("viewer_teams_failed", error=str(ex))
+        return set()
+    log.debug("viewer_teams", count=len(teams))
+    return teams
+
+
+def _team_key(reviewer: dict) -> tuple[str, str]:
+    """Return a lowercased ``(org_login, slug)`` key for a Team reviewer."""
+    organization = reviewer.get("organization") or {}
+    return (organization.get("login", "").lower(), (reviewer.get("slug") or "").lower())
+
+
+def _graphql_batch_query(candidates: list[tuple[str, int]], body: str) -> str:
+    """Build a batched GraphQL query over many PRs with one alias each."""
+    parts: list[str] = []
+    for index, (repo, number) in enumerate(candidates):
+        owner, name = repo.split("/", 1)
+        parts.append(
+            f"a{index}: repository(owner: {json.dumps(owner)}, name: {json.dumps(name)})"
+            " { pullRequest(number: " + str(number) + ") {" + body + "} }"
+        )
+    return "query {" + " ".join(parts) + "}"
+
+
+def _dropped_team_request(
+    pull: dict | None,
+    viewer: str,
+    teams: set[tuple[str, str]],
+) -> str:
+    """Return the dropped team as ``org/slug`` for *pull*, or ``""``.
+
+    A pull qualifies when it is open, was not authored or reviewed by the
+    viewer, is no longer requested from the viewer or one of their teams, and
+    its timeline still records a team review request for one of their teams.
+    That is the signature of a team request a teammate answered, which removes
+    the request for every member.
+    """
+    if not pull or pull.get("state") != "OPEN":
+        return ""
+    if (pull.get("author") or {}).get("login") == viewer:
+        return ""
+
+    for review in (pull.get("reviews") or {}).get("nodes") or []:
+        if (review.get("author") or {}).get("login") == viewer:
+            return ""
+
+    for node in (pull.get("reviewRequests") or {}).get("nodes") or []:
+        reviewer = node.get("requestedReviewer") or {}
+        if reviewer.get("login") == viewer:
+            return ""
+        if reviewer.get("__typename") == "Team" and _team_key(reviewer) in teams:
+            return ""
+
+    for node in (pull.get("timelineItems") or {}).get("nodes") or []:
+        reviewer = node.get("requestedReviewer") or {}
+        if reviewer.get("__typename") != "Team":
+            continue
+        if teams and _team_key(reviewer) not in teams:
+            continue
+        organization = (reviewer.get("organization") or {}).get("login", "")
+        return f"{organization}/{reviewer.get('slug', '')}".strip("/")
+    return ""
+
+
+def _run_graphql_batch(
+    token: str,
+    batch: list[tuple[str, int]],
+    body: str,
+    label: str,
+) -> dict[tuple[str, int], dict]:
+    """Run one batched GraphQL query on its own client.
+
+    Returns each candidate's ``pullRequest`` data. Partial data returned
+    alongside GraphQL errors (for example a candidate that no longer resolves)
+    is salvaged; a batch with no usable data is split in half and retried so
+    one bad key cannot discard the rest.
+    """
+    client = create_client(token)
+    action = f"{label}_batch"
+    results: dict[tuple[str, int], dict] = {}
+
+    def run(keys: list[tuple[str, int]]) -> None:
+        if not keys:
+            return
+        query = _graphql_batch_query(keys, body)
+        prs = " ".join(f"{repo}#{number}" for repo, number in keys)
+        try:
+            with timed(action, batch=len(keys), query_chars=len(query), prs=prs):
+                _headers, data = client.requester.graphql_query(query, {})
+            payload = data.get("data")
+        except GithubException as ex:
+            # GitHub returns partial data alongside errors (for example when one
+            # candidate no longer resolves), so salvage what did resolve instead
+            # of discarding the batch. Only a batch with no usable data splits.
+            body_data = getattr(ex, "data", None)
+            payload = body_data.get("data") if isinstance(body_data, dict) else None
+            if not isinstance(payload, dict):
+                log.warning(f"{action}_failed", count=len(keys), prs=prs, error=str(ex))
+                if len(keys) == 1:
+                    return
+                middle = len(keys) // 2
+                run(keys[:middle])
+                run(keys[middle:])
+                return
+            log.debug(f"{action}_partial", count=len(keys), error=str(ex))
+        if payload is None:
+            log.debug(f"{action}_null", batch=len(keys), prs=prs)
+            if len(keys) == 1:
+                return
+            middle = len(keys) // 2
+            run(keys[:middle])
+            run(keys[middle:])
+            return
+        resolved = 0
+        for index, key in enumerate(keys):
+            node = payload.get(f"a{index}")
+            pull = node.get("pullRequest") if node else None
+            if pull is not None:
+                results[key] = pull
+                resolved += 1
+        log.debug(f"{action}_parsed", batch=len(keys), resolved=resolved)
+
+    run(batch)
+    return results
+
+
+def _run_graphql_batches(
+    token: str,
+    candidates: list[tuple[str, int]],
+    body: str,
+    batch_size: int,
+    label: str,
+    workers: int,
+) -> dict[tuple[str, int], dict]:
+    """Run batched GraphQL queries concurrently, one client per batch.
+
+    Each batch gets its own client (like the search phase), so the requests run
+    in parallel and wall time stays close to a single batch.
+    """
+    batches = [
+        candidates[start : start + batch_size]
+        for start in range(0, len(candidates), batch_size)
+    ]
+    if not batches:
+        return {}
+    log.debug(
+        f"{label}_start",
+        candidates=len(candidates),
+        batches=len(batches),
+        batch_size=batch_size,
+        workers=min(workers, len(batches)),
+    )
+    results: dict[tuple[str, int], dict] = {}
+    with ThreadPoolExecutor(max_workers=min(workers, len(batches))) as executor:
+        futures = [
+            executor.submit(_run_graphql_batch, token, batch, body, label)
+            for batch in batches
+        ]
+        for future in as_completed(futures):
+            results.update(future.result())
+    return results
+
+
+def filter_open_prs(
+    token: str,
+    candidates: list[tuple[str, int]],
+    workers: int,
+) -> list[tuple[str, int]]:
+    """Return only the candidates that are still open.
+
+    A cheap state-only query runs first so the heavier drop check only touches
+    open PRs; most notification candidates are already closed or merged.
+    """
+    if not candidates:
+        return []
+    data = _run_graphql_batches(
+        token,
+        candidates,
+        OPEN_CHECK_BODY,
+        OPEN_CHECK_BATCH_SIZE,
+        "open_check",
+        workers,
+    )
+    open_keys = [
+        key for key in candidates if (data.get(key) or {}).get("state") == "OPEN"
+    ]
+    log.debug("open_check_done", candidates=len(candidates), open=len(open_keys))
+    return open_keys
+
+
+def discover_team_dropped_prs(
+    client: Github,
+    token: str,
+    candidates: list[tuple[str, int]],
+    seen: set[tuple[str, int]],
+    limit: int,
+    workers: int,
+) -> list[PRReviewState]:
+    """Return states for dropped team review requests among *candidates*.
+
+    Mutates *seen* so the caller does not re-add these keys.
+    """
+    if not candidates:
+        return []
+    viewer = client.get_user().login
+    teams = fetch_viewer_teams(client)
+    log.debug(
+        "drop_check_scope", viewer=viewer, teams=len(teams), candidates=len(candidates)
+    )
+    with timed("drop_check", candidates=len(candidates)):
+        open_candidates = filter_open_prs(token, candidates, workers)
+        data = _run_graphql_batches(
+            token,
+            open_candidates,
+            DROP_CHECK_BODY,
+            DROP_CHECK_BATCH_SIZE,
+            "drop_check",
+            workers,
+        )
+
+    found: list[PRReviewState] = []
+    for key in open_candidates:
+        if key in seen:
+            continue
+        team = _dropped_team_request(data.get(key), viewer, teams)
+        if not team:
+            continue
+        repo, number = key
+        found.append(
+            PRReviewState(
+                repo=repo,
+                number=number,
+                request_source="team-dropped",
+                requested_team=team,
+            ),
+        )
+        seen.add(key)
+        if len(found) >= limit:
+            break
+    log.debug("team_dropped_prs", count=len(found))
     return found
 
 
@@ -376,16 +789,24 @@ def discover_prs(
     limit: int,
     include_drafts: bool = False,
     exclude_authors: list[str] | None = None,
+    notifications: bool = False,
+    workers: int = 8,
 ) -> list[PRReviewState]:
     """Build the list of target PRs from explicit URLs and/or repo search.
 
-    Discovery combines two search queries: PRs requesting the user's review
-    and open PRs the user has already reviewed. The second query keeps PRs
-    whose review request was consumed (e.g. by submitting a comment review)
-    visible until they are closed or fully approved. The two queries run
-    concurrently, each against its own client; their results are merged with
-    review-requested PRs taking priority, and the overall *limit* applies
-    across both.
+    Discovery combines two search queries (PRs requesting the user's review
+    and open PRs the user has already reviewed) with, when *notifications* is
+    set, per-repo notification reads, all running concurrently, each against
+    its own client. The second query keeps PRs whose review request was
+    consumed (e.g. by submitting a comment review) visible until they are
+    closed or fully approved. Search results are merged with review-requested
+    PRs taking priority, and the overall *limit* applies across them.
+
+    Notifications recover dropped team review requests: PRs where a team the
+    user belongs to was requested and the request was later removed (typically
+    because a teammate commented or reviewed). They are off by default; when
+    *notifications* is set they are read per repo for explicit *repos*, or
+    globally when no repo is given.
     """
     prs: list[PRReviewState] = []
     seen: set[tuple[str, int]] = set()
@@ -413,15 +834,38 @@ def discover_prs(
             filters += f" -author:{author}"
 
         queries = (
-            f"is:pr is:open review-requested:@me -author:@me{filters}",
-            f"is:pr is:open reviewed-by:@me -author:@me sort:updated-desc{filters}",
+            ("requested", f"is:pr is:open review-requested:@me -author:@me{filters}"),
+            (
+                "reviewed",
+                f"is:pr is:open reviewed-by:@me -author:@me sort:updated-desc{filters}",
+            ),
         )
-        with ThreadPoolExecutor(max_workers=len(queries)) as executor:
-            futures = [
-                executor.submit(_search_prs, create_client(token), query, limit, seen)
-                for query in queries
+        # The searches and the notification reads are independent, so run them
+        # together; per-repo notifications are themselves fetched concurrently.
+        # Notification reads are skipped entirely unless opted in.
+        with ThreadPoolExecutor(max_workers=len(queries) + 1) as executor:
+            search_futures = [
+                executor.submit(
+                    _search_prs, create_client(token), query, limit, seen, source
+                )
+                for source, query in queries
             ]
-            batches = [future.result() for future in futures]
+            notifications_future = (
+                executor.submit(
+                    collect_notification_candidates,
+                    token,
+                    repos,
+                    owners,
+                    limit,
+                    workers,
+                )
+                if notifications
+                else None
+            )
+            batches = [future.result() for future in search_futures]
+            notification_keys = (
+                notifications_future.result() if notifications_future else []
+            )
 
         # Review-requested PRs take priority; previously-reviewed PRs fill the
         # remaining slots up to the overall limit.
@@ -437,11 +881,23 @@ def discover_prs(
             if len(prs) >= limit:
                 break
 
+        # Dropped team review requests are invisible to search (the team
+        # request is removed for everyone once a teammate answers it), so
+        # recover them from notifications. This is additive: a full page of
+        # still-pending requests must not hide a dropped one.
+        candidates = [key for key in notification_keys if key not in seen]
+        prs.extend(
+            discover_team_dropped_prs(client, token, candidates, seen, limit, workers)
+        )
+
     log.debug(
         "discovered_prs",
         count=len(prs),
         from_urls=len(pr_urls),
-        from_search=len(prs) - len(pr_urls),
+        from_search=sum(
+            1 for p in prs if p.request_source in ("requested", "reviewed")
+        ),
+        team_dropped=sum(1 for p in prs if p.request_source == "team-dropped"),
     )
     return prs
 
@@ -535,7 +991,11 @@ def fetch_pr_data(client: Github, pr: PRReviewState) -> None:
             login = (review.get("author") or {}).get("login", "")
             _note_last_comment(pr, _parse_iso(review.get("submittedAt")), login)
             _parse_markers(review.get("body") or "", pr, posted=True)
-            if login and review["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+            if login and review["state"] in (
+                "APPROVED",
+                "CHANGES_REQUESTED",
+                "DISMISSED",
+            ):
                 latest_state[login] = review["state"]
         pr.approvers = sorted(u for u, s in latest_state.items() if s == "APPROVED")
 
@@ -604,7 +1064,9 @@ def _parse_markers(text: str, pr: PRReviewState, posted: bool) -> None:
             setattr(pr, STEP_TO_POSTED_FIELD[step], posted)
 
 
-def _note_last_comment(pr: PRReviewState, when: datetime | None, login: str | None) -> None:
+def _note_last_comment(
+    pr: PRReviewState, when: datetime | None, login: str | None
+) -> None:
     """Record *when* as the PR's last comment if it is newer than what is stored."""
     if when is None:
         return
@@ -747,8 +1209,10 @@ def fetch_repo_stacks(client: Github, repo: str) -> list[StackNode]:
     owner, name = repo.split("/", 1)
     nodes: list[StackNode] = []
     cursor: str | None = None
+    page = 0
     with timed("fetch_repo_stacks", repo=repo):
         while True:
+            page += 1
             _headers, data = client.requester.graphql_query(
                 GRAPHQL_REPO_STACK_QUERY,
                 {"owner": owner, "name": name, "cursor": cursor},
@@ -758,15 +1222,26 @@ def fetch_repo_stacks(client: Github, repo: str) -> list[StackNode]:
                 nodes.append(
                     StackNode(
                         number=node["number"],
-                        head_repo=(node.get("headRepository") or {}).get("nameWithOwner") or repo,
+                        head_repo=(node.get("headRepository") or {}).get(
+                            "nameWithOwner"
+                        )
+                        or repo,
                         head_branch=node.get("headRefName") or "",
                         base_branch=node.get("baseRefName") or "",
                     ),
                 )
             page_info = connection["pageInfo"]
             cursor = page_info.get("endCursor")
+            log.debug(
+                "fetch_repo_stacks_page",
+                repo=repo,
+                page=page,
+                nodes=len(nodes),
+                has_next=bool(page_info.get("hasNextPage")),
+            )
             if not page_info.get("hasNextPage") or len(nodes) >= MAX_STACK_PRS_PER_REPO:
                 break
+    log.debug("fetch_repo_stacks_nodes", repo=repo, nodes=len(nodes), pages=page)
     return nodes
 
 
@@ -797,9 +1272,14 @@ def compute_blocking_depths(token: str, prs: list[PRReviewState]) -> None:
     else:
         with ThreadPoolExecutor(max_workers=min(len(repos), 8)) as executor:
             stack_map = dict(
-                zip(repos, executor.map(lambda r: _fetch_repo_stacks_safe(token, r), repos)),
+                zip(
+                    repos,
+                    executor.map(lambda r: _fetch_repo_stacks_safe(token, r), repos),
+                ),
             )
 
+    for repo, nodes in stack_map.items():
+        log.debug("repo_stacks", repo=repo, nodes=len(nodes))
     for pr in prs:
         pr.blocking_depth = _blocking_depth(pr, stack_map.get(pr.repo, []))
         log.debug("blocking_depth", repo=pr.repo, pr=pr.number, depth=pr.blocking_depth)
@@ -842,6 +1322,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table = Table(title=repo, title_style="bold cyan", show_header=True)
         table.add_column("PR", style="blue", justify="right")
         table.add_column("Author")
+        table.add_column("Source")
         table.add_column("Age", justify="right")
         table.add_column("Commit age", justify="right")
         table.add_column("Last comment", justify="right")
@@ -875,25 +1356,38 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 else "[dim]—[/dim]"
             )
             coverage_col = _marker_cell(
-                pr.coverage_commit, pr.coverage_posted, pr.coverage_verdict, pr.head_commit,
+                pr.coverage_commit,
+                pr.coverage_posted,
+                pr.coverage_verdict,
+                pr.head_commit,
                 _step_report_path(pr, "coverage_commit"),
             )
             validate_col = _marker_cell(
-                pr.validate_commit, pr.validate_posted, pr.validate_verdict, pr.head_commit,
+                pr.validate_commit,
+                pr.validate_posted,
+                pr.validate_verdict,
+                pr.head_commit,
                 _step_report_path(pr, "validate_commit"),
             )
             verify_col = _marker_cell(
-                pr.verify_commit, pr.verify_posted, pr.verify_verdict, pr.head_commit,
+                pr.verify_commit,
+                pr.verify_posted,
+                pr.verify_verdict,
+                pr.head_commit,
                 _step_report_path(pr, "verify_commit"),
             )
             review_col = _marker_cell(
-                pr.review_commit, pr.review_posted, pr.review_verdict, pr.head_commit,
+                pr.review_commit,
+                pr.review_posted,
+                pr.review_verdict,
+                pr.head_commit,
                 _step_report_path(pr, "review_commit"),
             )
             assess_col = _assess_cell(pr)
             table.add_row(
                 _pr_cell(pr),
                 pr.author or "[dim]—[/dim]",
+                _source_cell(pr),
                 _age_cell(pr.ready_at or pr.created_at),
                 _age_cell(pr.last_commit_at),
                 _age_cell(pr.last_comment_at, pr.last_comment_by),
@@ -928,7 +1422,9 @@ def _age_cell(created_at: str, by: str = "") -> str:
     """Return a compact age string (e.g. 3h, 2d by alice) for a timestamp."""
     if not created_at:
         return "[dim]—[/dim]"
-    seconds = (datetime.now(timezone.utc) - datetime.fromisoformat(created_at)).total_seconds()
+    seconds = (
+        datetime.now(timezone.utc) - datetime.fromisoformat(created_at)
+    ).total_seconds()
     style = "bold red" if seconds >= 86400 else "dim"
     if seconds < 3600:
         age = f"{int(seconds // 60)}m"
@@ -945,6 +1441,25 @@ def _pr_cell(pr: PRReviewState) -> str:
     url = f"https://github.com/{pr.repo}/pull/{pr.number}"
     label = f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}"
     return f"[link={url}]{label}[/link]"
+
+
+def _source_cell(pr: PRReviewState) -> str:
+    """Return the Source column cell: how the PR entered the queue.
+
+    ``team-dropped`` marks a PR where a team the viewer belongs to was
+    requested and the request was later removed (for example because a
+    teammate answered), which review-requested search no longer matches.
+    """
+    if pr.request_source == "team-dropped":
+        label = "team-dropped"
+        if pr.requested_team:
+            label += f" ({pr.requested_team})"
+        return f"[magenta]{label}[/magenta]"
+    if pr.request_source == "requested":
+        return "[dim]requested[/dim]"
+    if pr.request_source == "reviewed":
+        return "[dim]reviewed[/dim]"
+    return "[dim]—[/dim]"
 
 
 def _blocking_depth_cell(depth: int) -> str:
@@ -1002,7 +1517,9 @@ def _assess_cell(pr: PRReviewState) -> str:
         risk_letter = pr.assess_risk[:1].upper() if pr.assess_risk else "—"
         conf_letter = pr.assess_confidence[:1].upper() if pr.assess_confidence else "—"
         risk_style = RISK_STYLES.get(pr.assess_risk, "dim")
-        parts.append(f"[{risk_style}]{risk_letter}[/{risk_style}][dim]/{conf_letter}[/dim]")
+        parts.append(
+            f"[{risk_style}]{risk_letter}[/{risk_style}][dim]/{conf_letter}[/dim]"
+        )
     if pr.assess_verdict:
         route_style = ROUTE_STYLES.get(pr.assess_verdict, "dim")
         parts.append(f"[{route_style}]{pr.assess_verdict}[/{route_style}]")
@@ -1084,10 +1601,7 @@ def effective_stale_steps(pr: PRReviewState) -> list[str]:
     for step, field_name in VERDICT_FIELDS.items():
         if getattr(pr, field_name) == "fail":
             cutoff = STEP_ORDER[step] + 1
-    chain = [
-        s for s in pr.stale_steps
-        if s in CHAIN_STEPS and STEP_ORDER[s] < cutoff
-    ]
+    chain = [s for s in pr.stale_steps if s in CHAIN_STEPS and STEP_ORDER[s] < cutoff]
     parallel = [s for s in pr.stale_steps if s in PARALLEL_STEPS]
     return parallel + chain
 
@@ -1140,7 +1654,9 @@ def process_pr(
             if exclude_authors and pr.author in exclude_authors:
                 pr.skipped = True
                 pr.skipped_reason = "excluded_author"
-                log.info("skip_excluded_author", repo=pr.repo, pr=pr.number, author=pr.author)
+                log.info(
+                    "skip_excluded_author", repo=pr.repo, pr=pr.number, author=pr.author
+                )
                 return pr
             if pr.draft and not include_drafts:
                 pr.skipped = True
@@ -1177,7 +1693,19 @@ def main() -> int:
         "--limit",
         type=int,
         default=100,
-        help="Maximum number of PRs to discover via search (default: 100).",
+        help=(
+            "Maximum number of PRs to discover via search, and via "
+            "notifications when enabled (default: 100)."
+        ),
+    )
+    parser.add_argument(
+        "--notifications",
+        action="store_true",
+        help=(
+            "Enable notification-based discovery of dropped review requests "
+            "(per repo when owner/repo is given, global otherwise). Off by "
+            "default; needs the notifications or repo scope and can be slow."
+        ),
     )
     parser.add_argument(
         "--json",
@@ -1233,7 +1761,10 @@ def main() -> int:
         "--workers",
         type=int,
         default=8,
-        help="Number of PRs to process in parallel (default: 8).",
+        help=(
+            "Number of PRs (and drop-check batches) to process in parallel "
+            "(default: 8)."
+        ),
     )
     args = parser.parse_args()
 
@@ -1256,6 +1787,8 @@ def main() -> int:
         args.limit,
         include_drafts=args.draft,
         exclude_authors=args.exclude_author,
+        notifications=args.notifications,
+        workers=args.workers,
     )
 
     if not prs:
@@ -1282,7 +1815,8 @@ def main() -> int:
             total=len(prs),
         )
         futures = {
-            executor.submit(process_pr, token, pr, args.draft, args.exclude_author): pr for pr in prs
+            executor.submit(process_pr, token, pr, args.draft, args.exclude_author): pr
+            for pr in prs
         }
         for future in as_completed(futures):
             future.result()
@@ -1298,7 +1832,12 @@ def main() -> int:
 
     if args.sort == "age":
         # Oldest first, so the largest age (descending age) comes first.
-        prs.sort(key=lambda pr: ((pr.ready_at or pr.created_at) == "", pr.ready_at or pr.created_at or ""))
+        prs.sort(
+            key=lambda pr: (
+                (pr.ready_at or pr.created_at) == "",
+                pr.ready_at or pr.created_at or "",
+            )
+        )
     elif args.sort == "blocks":
         # Most blocking first, then newest, so attention goes to the PRs
         # that unblock the most stacked work.
