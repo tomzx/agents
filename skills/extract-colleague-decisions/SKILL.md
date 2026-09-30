@@ -38,9 +38,9 @@ what counts.
   fi
   ```
 - `jq` for filtering the search JSON.
-- Optional: the `devx` toolchain, only for the `classify_message.py` accelerator
-  (it reads an LLM Gateway key via `devx llm-gateway print-token --key`). Skip it
-  if you classify by reading.
+- Optional: `JEV_ENDPOINT` and `JEV_TOKEN` in the environment, only for the
+  `classify_message.py` accelerator. The script reads them (or `--endpoint`/
+  `--token`) and has no host baked in. Skip them if you classify by reading.
 
 ## Workflow
 
@@ -245,7 +245,11 @@ round-trip. It applies the same definitions above and returns one of
 `--thread-file` so reactions are judged with the thread in front of it, and
 `--author`/`--decision-author` so a message is not counted as its author's own
 support. It exits non-zero on `chatter` (or low confidence), so a shell loop can
-filter cheaply:
+filter cheaply.
+
+The script takes the endpoint and token from outside: `--endpoint`/`--token`, or
+`JEV_ENDPOINT`/`JEV_TOKEN` in the environment. It has no host baked in and shells
+out to nothing, so make sure those two variables are set before calling:
 
 ```bash
 uv run ~/.agents/skills/extract-colleague-decisions/classify_message.py \
@@ -371,7 +375,7 @@ found" and everyone listed under "Not heard from".
 | `date -d "$TARGET - 1 day" +%Y-%m-%d` | Compute the exclusive lower bound |
 | `date -d "$TARGET + 1 day" +%Y-%m-%d` | Compute the exclusive upper bound |
 | `uv run ~/.agents/scripts/colleague_decisions_page.py [--open] [--since D] [--until D]` | Aggregate every report into a static decisions web page |
-| `uv run ~/.agents/skills/extract-colleague-decisions/classify_message.py [--thread-file F] [--author A] [--decision-author D] "<text>"` | Optional: classify one message into a decision bucket or chatter |
+| `JEV_ENDPOINT=... JEV_TOKEN=... uv run ~/.agents/skills/extract-colleague-decisions/classify_message.py [--thread-file F] [--author A] [--decision-author D] "<text>"` | Optional: classify one message into a decision bucket or chatter (endpoint/token from the environment) |
 
 ## Notes on cost and safety
 
