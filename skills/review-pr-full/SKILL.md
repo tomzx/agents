@@ -152,6 +152,12 @@ When a precomputed plan was given, skip the `ISSUE_NUMBER` lookup (it is a namin
 
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.
 
+Capture the short SHA of the commit under review, which is the worktree HEAD (the fetched PR head). This is used in the commit message in step 6, after the worktree has been removed:
+
+```bash
+HEAD_SHORT_SHA=$(git -C "$WORKTREE_DIR" rev-parse --short HEAD)
+```
+
 ### 4. Dispatch stale review steps
 
 Dispatch each skill in `STALE_STEPS` as a subagent task via the Task tool. The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description. Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt. Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
@@ -227,7 +233,7 @@ git worktree remove $WORKTREE_DIR
 
 ### 6. Commit and push the review reports
 
-The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`). Commit exactly this PR's Markdown reports and push, so the reports are durable and shareable across machines:
+The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`). Commit exactly this PR's Markdown reports and push, so the reports are durable and shareable across machines. Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in step 3) so the commit records which revision it covers:
 
 ```bash
 REVIEWS_REPO="$HOME/.sdlc"
@@ -235,13 +241,13 @@ PR_REVIEW_DIR="$REPO/pull-requests/$PR_NUMBER"
 if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
   git -C "$REVIEWS_REPO" add -- "$PR_REVIEW_DIR"/'*.md' 2>/dev/null || true
   if ! git -C "$REVIEWS_REPO" diff --cached --quiet; then
-    git -C "$REVIEWS_REPO" commit -m "review-pr-full: $REPO#$PR_NUMBER"
+    git -C "$REVIEWS_REPO" commit -m "review-pr-full: $REPO#$PR_NUMBER @ $HEAD_SHORT_SHA"
     git -C "$REVIEWS_REPO" push || echo "note: push failed for $REPO#$PR_NUMBER"
   fi
 fi
 ```
 
-The commit message is always `review-pr-full: {owner}/{repo}#{PR}` so every run is identifiable by repository and PR.
+The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}` so every run is identifiable by repository, PR, and the commit it reviewed.
 
 Only Markdown files inside the PR's directory are staged (`*.md`). The findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
 
