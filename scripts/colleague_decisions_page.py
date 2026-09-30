@@ -35,6 +35,7 @@ _DECISION_RE = re.compile(
     r"^\s*[-*]\s+\*\*(Decided|Deferred|Open|Committed):\*\*\s*(.*)$"
 )
 _SUPPORT_RE = re.compile(r"^\s*[-*]\s+\*\*Supported by:\*\*\s*(.*)$")
+_OPPOSE_RE = re.compile(r"^\s*[-*]\s+\*\*Opposed by:\*\*\s*(.*)$")
 _HEADLINE_RE = re.compile(r"^\*\*Headline:\*\*\s*(.*)$")
 _SECTION_RE = re.compile(r"^##\s+(.*)$")
 _URL_RE = re.compile(r"https?://[^\s)>\]]+")
@@ -52,6 +53,7 @@ class Decision:
     text: str
     permalink: str = ""
     supported_by: list[str] = field(default_factory=list)
+    opposed_by: list[str] = field(default_factory=list)
     source: str = ""
 
 
@@ -137,13 +139,12 @@ def parse_report(path: Path, text: str) -> Report:
 
         if current is not None:
             support = _SUPPORT_RE.match(line)
-            if support:
-                for name in _split_names(support.group(1)):
-                    if (
-                        name.casefold() != person.casefold()
-                        and name not in current.supported_by
-                    ):
-                        current.supported_by.append(name)
+            oppose = _OPPOSE_RE.match(line)
+            if support or oppose:
+                target = current.supported_by if support else current.opposed_by
+                for name in _split_names((support or oppose).group(1)):
+                    if name.casefold() != person.casefold() and name not in target:
+                        target.append(name)
                 continue
             if not current.permalink:
                 _, url = _extract_url(line)
@@ -262,9 +263,11 @@ def build_payload(reports: list[Report], since: str | None, until: str | None) -
         key=lambda d: (d.date, d.author, BUCKETS.index(d.bucket)), reverse=True
     )
 
-    heard = {d.author.casefold() for d in decisions} | {
-        s.casefold() for d in decisions for s in d.supported_by
-    }
+    heard = (
+        {d.author.casefold() for d in decisions}
+        | {s.casefold() for d in decisions for s in d.supported_by}
+        | {s.casefold() for d in decisions for s in d.opposed_by}
+    )
     not_heard = sorted(
         {
             name
@@ -287,6 +290,7 @@ def build_payload(reports: list[Report], since: str | None, until: str | None) -
             "decisions": len(decisions),
             "people": len({d.author for d in decisions}),
             "supporters": len({s for d in decisions for s in d.supported_by}),
+            "opponents": len({s for d in decisions for s in d.opposed_by}),
         },
         "range": {"start": days[0], "end": days[-1]} if days else None,
         "decisions": [asdict(d) for d in decisions],
@@ -411,6 +415,9 @@ section[id] { scroll-margin-top:calc(var(--header-h) + 12px); }
 .chip { background:var(--panel2); border:1px solid var(--border); border-radius:999px;
   padding:1px 9px; font-size:12px; color:var(--fg); }
 .chip.author { border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+.chip.yes { border-color:color-mix(in srgb, var(--decided) 45%, transparent); }
+.chip.no { border-color:color-mix(in srgb, #f85149 55%, transparent); color:#f85149; }
+.matrix-mode { margin-bottom:12px; width:max-content; }
 .meta { margin-top:8px; font-size:12px; }
 .empty { color:var(--muted); text-align:center; padding:60px 0; }
 table { border-collapse:collapse; width:100%; font-size:12.5px; }
@@ -425,6 +432,8 @@ td .n { font-weight:600; }
 td.diag { background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent); }
 td.pct { background:color-mix(in srgb, var(--b) 22%, transparent); color:var(--b); }
 td.clickable { cursor:pointer; }
+td .sub { display:block; font-size:10.5px; color:var(--muted); font-weight:400; font-variant-numeric:tabular-nums; }
+td.selected .sub { color:inherit; }
 td.clickable:hover { background:color-mix(in srgb, var(--accent) 22%, transparent); }
 td.selected { box-shadow:inset 0 0 0 2px var(--accent); }
 .matrix-legend { margin:10px 0 0; }
@@ -446,6 +455,7 @@ footer { color:var(--muted); font-size:12px; margin-top:40px; }
     <div class="tabs" id="tabs">
       <button data-view="decisions" class="active">By author</button>
       <button data-view="supporters">By supporter</button>
+      <button data-view="opponents">By opponent</button>
       <button data-view="matrix">Matrix</button>
     </div>
   </div>
@@ -478,7 +488,7 @@ footer { color:var(--muted); font-size:12px; margin-top:40px; }
 <script>
 const DATA = /*__DATA__*/;
 const COLORS = {Decided:'var(--decided)', Deferred:'var(--deferred)', Open:'var(--open)', Committed:'var(--committed)'};
-const state = { view:'decisions', q:'', from:'', to:'', preset:'', buckets:new Set(), cell:null };
+const state = { view:'decisions', q:'', from:'', to:'', preset:'', buckets:new Set(), cell:null, matrixMode:'support' };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key = s => String(s ?? '').toLowerCase();
 const slug = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -493,7 +503,7 @@ function inRange(d) {
 function baseMatch(d) {
   if (!inRange(d)) return false;
   if (!state.q) return true;
-  const hay = [d.text, d.author, d.bucket, d.date, d.supported_by.join(' ')].join(' ').toLowerCase();
+  const hay = [d.text, d.author, d.bucket, d.date, d.supported_by.join(' '), d.opposed_by.join(' ')].join(' ').toLowerCase();
   return hay.includes(state.q);
 }
 function bucketMatch(d) { return !state.buckets.size || state.buckets.has(d.bucket); }
@@ -509,17 +519,23 @@ function badge(d) {
   return `<span class="badge" style="--b:${COLORS[d.bucket] || 'var(--muted)'}">${esc(d.bucket)}</span>`;
 }
 
-function card(d, showAuthor) {
-  const supporter = d.supported_by.length
-    ? `<div class="support"><span class="label">Supported by</span>${d.supported_by.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>`
+function relation(field, label, cls) {
+  return field.length
+    ? `<div class="support"><span class="label">${label}</span>${field.map(s => `<span class="chip ${cls}">${esc(s)}</span>`).join('')}</div>`
     : '';
+}
+
+function card(d, showAuthor) {
+  const supporters = relation(d.supported_by, 'Supported by', 'yes');
+  const opponents = relation(d.opposed_by, 'Opposed by', 'no');
   const author = showAuthor ? `<span class="chip author">${esc(d.author)}</span>` : '';
-  const link = d.permalink ? ` · <a href="${esc(d.permalink)}" target="_blank" rel="noopener">Open in Slack</a>` : '';
+  const link = d.permalink ? `<a href="${esc(d.permalink)}" target="_blank" rel="noopener">Open in Slack</a>` : '';
   return `<article class="card" style="--b:${COLORS[d.bucket] || 'var(--muted)'}">
     <div class="top">${badge(d)}${author}<span class="when">${esc(d.date)}</span></div>
     <div class="text">${esc(d.text)}</div>
-    ${supporter}
-    <div class="meta">${link.replace(' · ', '')}</div>
+    ${supporters}
+    ${opponents}
+    <div class="meta">${link}</div>
   </article>`;
 }
 
@@ -542,37 +558,63 @@ function renderDecisions(list) {
   }).join('');
 }
 
-function renderSupporters(list) {
-  const bySupporter = new Map();
+function renderByPerson(list, field, idPrefix, summary, emptyText) {
+  const byPerson = new Map();
   for (const d of list) {
-    for (const s of d.supported_by) {
-      if (!bySupporter.has(s)) bySupporter.set(s, []);
-      bySupporter.get(s).push(d);
+    for (const name of d[field]) {
+      if (!byPerson.has(name)) byPerson.set(name, []);
+      byPerson.get(name).push(d);
     }
   }
-  const supporters = [...bySupporter.keys()].sort((a, b) => bySupporter.get(b).length - bySupporter.get(a).length || a.localeCompare(b));
-  if (!supporters.length) return `<p class="empty">No support recorded in the selected decisions.</p>`;
-  return supporters.map(s => {
-    const items = bySupporter.get(s);
-    return `<section id="supporter-${slug(s)}">
-      <div class="person"><h2>${esc(s)}</h2><span class="pill-count">backed ${items.length} decision${items.length === 1 ? '' : 's'}</span></div>
+  const people = [...byPerson.keys()].sort((a, b) => byPerson.get(b).length - byPerson.get(a).length || a.localeCompare(b));
+  if (!people.length) return `<p class="empty">${emptyText}</p>`;
+  return people.map(name => {
+    const items = byPerson.get(name);
+    return `<section id="${idPrefix}-${slug(name)}">
+      <div class="person"><h2>${esc(name)}</h2><span class="pill-count">${summary(items.length)}</span></div>
       ${items.map(d => card(d, true)).join('')}
     </section>`;
   }).join('');
 }
 
+function renderSupporters(list) {
+  return renderByPerson(
+    list, 'supported_by', 'supporter',
+    n => `backed ${n} decision${n === 1 ? '' : 's'}`,
+    'No support recorded in the selected decisions.');
+}
+
+function renderOpponents(list) {
+  return renderByPerson(
+    list, 'opposed_by', 'opponent',
+    n => `opposed ${n} decision${n === 1 ? '' : 's'}`,
+    'No opposition recorded in the selected decisions.');
+}
+
+function matrixRelation() {
+  const oppose = state.matrixMode === 'oppose';
+  return {
+    field: oppose ? 'opposed_by' : 'supported_by',
+    noun: oppose ? 'opponent' : 'supporter',
+    pct: oppose ? 'Opposed' : 'Supported',
+    verb: oppose ? 'opposed by' : 'supported by',
+    mode: oppose ? 'oppose' : 'support',
+  };
+}
+
 function cellSelected(a, p) {
   const c = state.cell;
   if (!c || c.author !== a) return false;
-  return p === a ? Boolean(c.diagonal) : c.supporter === p;
+  return p === a ? Boolean(c.diagonal) : c.person === p;
 }
 
 function renderCellDetail(list) {
   const c = state.cell;
-  const items = list.filter(d => d.author === c.author && (c.diagonal || d.supported_by.includes(c.supporter)));
+  const rel = matrixRelation();
+  const items = list.filter(d => d.author === c.author && (c.diagonal || d[rel.field].includes(c.person)));
   const title = c.diagonal
     ? `${esc(c.author)}: ${items.length} decision${items.length === 1 ? '' : 's'} made`
-    : `${esc(c.author)} supported by ${esc(c.supporter)}: ${items.length} decision${items.length === 1 ? '' : 's'}`;
+    : `${esc(c.author)} ${rel.verb} ${esc(c.person)}: ${items.length} decision${items.length === 1 ? '' : 's'}`;
   const body = items.length
     ? items.map(d => card(d, false)).join('')
     : `<p class="empty">No decisions for this combination under the current filter.</p>`;
@@ -584,47 +626,54 @@ function renderCellDetail(list) {
 }
 
 function renderMatrix(list) {
+  const rel = matrixRelation();
   const authors = [...new Set(list.map(d => d.author))].sort((a, b) => a.localeCompare(b));
-  const people = [...new Set([...authors, ...list.flatMap(d => d.supported_by)])].sort((a, b) => a.localeCompare(b));
-  if (!authors.length || !people.length) return `<p class="empty">Not enough data for a support matrix yet.</p>`;
+  const people = [...new Set([...authors, ...list.flatMap(d => d[rel.field])])].sort((a, b) => a.localeCompare(b));
+  if (!authors.length || !people.length) return `<p class="empty">Not enough data for a ${rel.mode} matrix yet.</p>`;
   const made = new Map();
-  const supported = new Map();
+  const engaged = new Map();
   const counts = new Map();
   for (const d of list) {
     made.set(d.author, (made.get(d.author) || 0) + 1);
-    if (d.supported_by.length) {
-      supported.set(d.author, (supported.get(d.author) || 0) + 1);
+    if (d[rel.field].length) {
+      engaged.set(d.author, (engaged.get(d.author) || 0) + 1);
     }
-    for (const s of new Set(d.supported_by)) {
+    for (const s of new Set(d[rel.field])) {
       const k = d.author + '\\u0000' + s;
       counts.set(k, (counts.get(k) || 0) + 1);
     }
   }
+  const mode = `<div class="tabs matrix-mode" id="matrix-mode">
+      <button type="button" data-mode="support" class="${rel.mode === 'support' ? 'active' : ''}">Support</button>
+      <button type="button" data-mode="oppose" class="${rel.mode === 'oppose' ? 'active' : ''}">Oppose</button>
+    </div>`;
   const head = people.map(p => `<th>${esc(p)}</th>`).join('');
   const rows = authors.map(a => {
     let received = 0;
+    const total = made.get(a) || 0;
     const cells = people.map(p => {
       if (p === a) {
         const sel = cellSelected(a, p) ? ' selected' : '';
-        return `<td class="diag clickable${sel}" data-author="${esc(a)}" data-supporter="${esc(a)}" title="Decisions made"><span class="n">${made.get(a) || 0}</span></td>`;
+        return `<td class="diag clickable${sel}" data-author="${esc(a)}" data-person="${esc(a)}" title="Decisions made"><span class="n">${total}</span></td>`;
       }
       const n = counts.get(a + '\\u0000' + p) || 0;
       received += n;
       if (!n) return `<td class="zero">·</td>`;
+      const cellPct = total ? Math.round((n / total) * 100) : 0;
       const sel = cellSelected(a, p) ? ' selected' : '';
-      return `<td class="clickable${sel}" data-author="${esc(a)}" data-supporter="${esc(p)}"><span class="n">${n}</span></td>`;
+      return `<td class="clickable${sel}" data-author="${esc(a)}" data-person="${esc(p)}" title="${n} of ${total} decisions (${cellPct}%)"><span class="n">${n}</span><span class="sub">${cellPct}%</span></td>`;
     }).join('');
-    const total = made.get(a) || 0;
-    const got = supported.get(a) || 0;
+    const got = engaged.get(a) || 0;
     const pct = total ? Math.round((got / total) * 100) : 0;
     const hue = Math.round((pct / 100) * 120);
     const pctColor = `hsl(${hue}, 65%, 48%)`;
-    const pctCell = `<td class="pct" style="--b:${pctColor}" title="${got} of ${total} decisions supported (${pct}%)"><span class="n">${pct}%</span></td>`;
+    const pctCell = `<td class="pct" style="--b:${pctColor}" title="${got} of ${total} decisions ${rel.pct.toLowerCase()} (${pct}%)"><span class="n">${pct}%</span></td>`;
     return `<tr><th class="row">${esc(a)}</th>${cells}${pctCell}<td><span class="n">${received}</span></td></tr>`;
   }).join('');
   const detail = state.cell ? renderCellDetail(list) : '';
-  return `<div class="matrix-wrap"><table><thead><tr><th class="row">Author \\\\ Supporter</th>${head}<th>Supported</th><th>Received</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="section-title matrix-legend">Rows are decision authors, columns are supporters. Diagonal = decisions made; off-diagonal = decisions by the row's author supported by the column's supporter. Supported = share of the author's decisions with at least one supporter; Received = total endorsements. Click a cell to list its decisions.</div>
+  return `${mode}
+    <div class="matrix-wrap"><table><thead><tr><th class="row">Author \\\\ ${rel.pct === 'Opposed' ? 'Opponent' : 'Supporter'}</th>${head}<th>${rel.pct}</th><th>Received</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="section-title matrix-legend">Rows are decision authors, columns are ${rel.noun}s. Diagonal = decisions made; off-diagonal = decisions by the row's author ${rel.verb} the column's ${rel.noun}, shown as a count and as a share of that author's decisions. ${rel.pct} = share of the author's decisions with at least one ${rel.noun}; Received = total. Click a cell to list its decisions.</div>
     ${detail}`;
 }
 
@@ -635,23 +684,27 @@ function empty() {
 function renderPeople(list) {
   const authors = new Map();
   const supporters = new Map();
+  const opponents = new Map();
   for (const d of list) {
     authors.set(d.author, (authors.get(d.author) || 0) + 1);
     for (const s of new Set(d.supported_by)) supporters.set(s, (supporters.get(s) || 0) + 1);
+    for (const s of new Set(d.opposed_by)) opponents.set(s, (opponents.get(s) || 0) + 1);
   }
   const group = (title, map, kind) => {
     if (!map.size) return '';
     const rows = [...map.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([name, count]) => {
-        const target = (kind === 'author' ? 'author-' : 'supporter-') + slug(name);
+        const target = `${kind}-${slug(name)}`;
         return `<a class="person-link" href="#" data-kind="${kind}" data-target="${esc(target)}">` +
           `<span>${esc(name)}</span><span class="cnt">${count}</span></a>`;
       }).join('');
     return `<div class="group"><div class="group-title">${title}</div>${rows}</div>`;
   };
   document.getElementById('people').innerHTML =
-    group('Authors', authors, 'author') + group('Supporters', supporters, 'supporter') ||
+    group('Authors', authors, 'author') +
+      group('Supporters', supporters, 'supporter') +
+      group('Opponents', opponents, 'opponent') ||
     `<div class="group"><div class="group-title">No matches</div></div>`;
 }
 
@@ -708,6 +761,7 @@ function render() {
   const app = document.getElementById('app');
   if (state.view === 'decisions') app.innerHTML = renderDecisions(list);
   else if (state.view === 'supporters') app.innerHTML = renderSupporters(list);
+  else if (state.view === 'opponents') app.innerHTML = renderOpponents(list);
   else app.innerHTML = renderMatrix(list);
   renderPeople(list);
   renderStatusFilter(base);
@@ -718,11 +772,12 @@ function render() {
     ? ` · showing ${state.from || 'start'} to ${state.to || 'end'}`
     : '';
   document.getElementById('sub').textContent =
-    `${c.decisions} decisions · ${c.people} people · ${c.supporters} supporters · ${range} · generated ${DATA.generated}${span}`;
+    `${c.decisions} decisions · ${c.people} people · ${c.supporters} supporters · ${c.opponents} opponents · ${range} · generated ${DATA.generated}${span}`;
   document.getElementById('stats').innerHTML = [
     ['Decisions', list.length + (active ? ' / ' + c.decisions : '')],
     ['People', active ? new Set(list.map(d => d.author)).size + ' / ' + c.people : c.people],
     ['Supporters', active ? new Set(list.flatMap(d => d.supported_by)).size + ' / ' + c.supporters : c.supporters],
+    ['Opponents', active ? new Set(list.flatMap(d => d.opposed_by)).size + ' / ' + c.opponents : c.opponents],
     ['Reports', DATA.reports],
   ].map(([label, value]) => `<div class="stat"><b>${esc(value)}</b><span>${esc(label)}</span></div>`).join('');
 
@@ -739,7 +794,7 @@ function render() {
 }
 
 function setView(view) {
-  if (!['decisions', 'supporters', 'matrix'].includes(view)) return;
+  if (!['decisions', 'supporters', 'opponents', 'matrix'].includes(view)) return;
   state.view = view;
   [...document.querySelectorAll('#tabs button')].forEach(b => b.classList.toggle('active', b.dataset.view === view));
   render();
@@ -779,15 +834,22 @@ document.getElementById('presets').addEventListener('click', e => {
   applyRange(shiftDays(DATA.range.end, -(days - 1)), DATA.range.end, btn.dataset.days);
 });
 document.getElementById('app').addEventListener('click', e => {
+  const modeBtn = e.target.closest('#matrix-mode button[data-mode]');
+  if (modeBtn) {
+    state.matrixMode = modeBtn.dataset.mode;
+    state.cell = null;
+    render();
+    return;
+  }
   if (e.target.closest('#cell-clear')) { state.cell = null; render(); return; }
   const td = e.target.closest('td[data-author]');
   if (!td) return;
   const author = td.dataset.author;
-  const supporter = td.dataset.supporter;
-  const diagonal = author === supporter;
+  const person = td.dataset.person;
+  const diagonal = author === person;
   const c = state.cell;
-  const same = c && c.author === author && c.diagonal === diagonal && (diagonal || c.supporter === supporter);
-  state.cell = same ? null : { author, supporter, diagonal };
+  const same = c && c.author === author && c.diagonal === diagonal && (diagonal || c.person === person);
+  state.cell = same ? null : { author, person, diagonal };
   render();
   const detail = document.getElementById('cell-detail');
   if (detail) detail.scrollIntoView({ behavior:'smooth', block:'nearest' });
@@ -796,7 +858,7 @@ document.getElementById('people').addEventListener('click', e => {
   const link = e.target.closest('a.person-link');
   if (!link) return;
   e.preventDefault();
-  setView(link.dataset.kind === 'author' ? 'decisions' : 'supporters');
+  setView({ author:'decisions', supporter:'supporters', opponent:'opponents' }[link.dataset.kind] || 'decisions');
   const target = document.getElementById(link.dataset.target);
   if (target) target.scrollIntoView({ behavior:'smooth', block:'start' });
   highlightTarget();
