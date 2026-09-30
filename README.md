@@ -210,8 +210,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment in parallel with validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
 | `/review-requested-prs` | Fan out full reviews (validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
-| `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. |
-| `/triage-pr-feedback` | Proactively scan your open PRs for new reviewer feedback, write a recommendation file per comment, then prompt for decisions; built to run on a 10-15 minute schedule. |
+| `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. Owns the feedback contract and the analyze-only / execute modes. |
+| `/triage-pr-feedback` | Orchestrate reviewer-feedback triage: scan your open PRs for new feedback, run `handle-pr-reviewer-feedback --analyze-only` per PR, then prompt for decisions and hand off execution; built to run on a 10-15 minute schedule. |
 | `/handle-pr-author-feedback` | As the reviewer, verify the author's fixes address your comments; resolve fixed threads, reply on the rest. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
 | `/handle-failing-pr-ci` | List my open PRs' CI status, then fix failing CI across all of them in parallel, one `handle-pr-ci` session per PR. |

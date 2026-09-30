@@ -453,9 +453,9 @@ Lifecycle: moved by the three skills on every completed run (including the pure-
 - Despite the `.sdlc` name, it is **unrelated to the project `.sdlc/` tree and the `SDLC_DIR` mirror**: it is not governed by `SDLC_DIR` read/write resolution, is **not** committed by the automation runner's `commit-sdlc.sh`, and is **not** mirrored.
 - Cross-run/cross-machine persistence depends on `$HOME` persisting; where it does not (e.g. an ephemeral CI runner), the state file is absent and every run is a full review. The `review-requested-prs` orchestrator's skip logic keys off the **GitHub comment markers**, falling back to the marker inside each `<skill>.<sha>.md` (or the `<skill>.report.md` symlink), so it is mostly unaffected by this location.
 
-## PR Feedback Recommendations (triage-pr-feedback)
+## Reviewer-Feedback Analysis Files (owned by handle-pr-reviewer-feedback)
 
-`triage-pr-feedback` analyzes reviewer feedback left on PRs you authored and writes one recommendation file per comment, so the decision can be made without re-reading the threads.
+`handle-pr-reviewer-feedback` analyzes reviewer feedback left on PRs you authored and writes one analysis file per comment, so the decision can be made without re-reading the threads. This is the single source of truth for the artifact; `triage-pr-feedback` orchestrates the skill's analyze-only mode on a schedule and must not restate the format or vocabulary defined here and in the skill.
 
 ### Location
 
@@ -482,7 +482,7 @@ The body carries the verbatim comment, an analysis grounded in `file:line`, a re
 
 ### State semantics
 
-There is no separate state file: the presence of a recommendation file is the "already analyzed" marker, and the presence of a `decision` key is the "already decided" marker. This is what makes a 10-15 minute scheduled run idempotent and quiet. The store is user-global like the PR review reports: outside any repo, not governed by `SDLC_DIR`, and never committed.
+There is no separate state file: the presence of an analysis file is the "already analyzed" marker, and the presence of a `decision` key is the "already decided" marker. This is what makes a 10-15 minute scheduled run idempotent and quiet. The store is user-global like the PR review reports: outside any repo, not governed by `SDLC_DIR`, and never committed.
 
 ## Revision Mode (create-* skills)
 

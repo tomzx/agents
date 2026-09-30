@@ -19,6 +19,10 @@
 
 - When filing an issue (create-issue or similar), run the duplicate search before any codebase investigation: the bug report itself usually provides enough search keywords, and deep code tracing only pays off once no duplicate exists or filing is confirmed.
 
+## 2026-09-23: handle-pr-reviewer-feedback owns the reviewer-feedback contract
+
+- The analysis-file artifact, its location/ids/format, and the `implement | decline | defer` vocabulary are owned by `skills/handle-pr-reviewer-feedback/SKILL.md` (also mirrored in `skills/sdlc/references/shared.md`). `triage-pr-feedback` is an orchestrator only: it runs the discovery script, fans out `handle-pr-reviewer-feedback --analyze-only` per PR, prompts, and hands execution back. Do not restate the file format or vocabulary in `triage-pr-feedback`.
+
 ## 2026-09-23: assess-pr-risk is self-contained
 
 - `assess-pr-risk` deliberately never consumes `analyze-test-coverage` / `validate-pr` / `verify-pr` / `review-pr` reports: the orchestrators dispatch it in parallel with the chain, so those reports do not exist yet when it runs. Do not "fix" it back to reading sibling reports.
