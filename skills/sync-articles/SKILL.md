@@ -129,11 +129,13 @@ EOF
 Compare the broken set against the pre-run baseline (capture it before launching, or `git stash` compare).
 Only new breakage in changed files blocks the run.
 
-Style on added lines (no em-dashes, no banned terms):
+Style on added lines (no em-dashes, no banned terms, the latter read from `banned-terms.txt` at the skills library root so the check stays in sync):
 
 ```bash
-git diff -U0 -- "*.md" | grep -E "^\+" | grep -P " —|— " && echo "EM-DASH FOUND"
-git diff -U0 -- "*.md" | grep -E "^\+" | grep -Pi "\b(shape|honest|load[ -]bearing|substrate|posture)\b" && echo "BANNED TERM FOUND"
+git diff -U0 -- "*.md" | rg '^\+' | rg ' —|— ' && echo "EM-DASH FOUND"
+BANNED_FILE="<skills-library-root>/banned-terms.txt"
+banned=$(sed 's/ /[ -]/g' "$BANNED_FILE" | paste -sd'|' -)
+git diff -U0 -- "*.md" | rg '^\+' | rg -i "\b($banned)\b" && echo "BANNED TERM FOUND"
 ```
 
 Front matter parses and required fields survive:

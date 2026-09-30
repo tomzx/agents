@@ -2,9 +2,12 @@
 * Be concise
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
-* Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing, real
 * Avoid running `find /` (or similarly broad filesystem scans) unless really necessary, as it is generally a waste of time; scope the search to a specific path or add a proper depth limit instead.
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
+
+# Banned terms
+* Avoid the terms listed in `banned-terms.txt` at the skills library root (one term per line), unless one is genuinely the most appropriate term.
+* That file is the single source of truth: do not inline the list in AGENTS.md or in skills. The article skills (`create-article`, `sync-articles`) read it directly so they stay in sync when the list changes.
 
 # Memory
 * Two memory files exist: the global MEMORY.md sits beside this AGENTS.md (resolve the real path of this file to find it), and each project keeps its own MEMORY.md in the project root.
