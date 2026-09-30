@@ -132,6 +132,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | Skill | Purpose |
 |-------|---------|
 | `/create-issue` | Create a GitHub issue with background, criteria, and time budget. |
+| `/create-discussion` | Create a GitHub Discussion (for repos that route feature requests there) with background, criteria, and time budget. |
 | `/create-issue-internal` | Create an internal issue as a local file in `~/.sdlc/<owner>/<repo>/internal-issues` instead of posting to GitHub. |
 | `/create-placeholder-issue` | Promote a pending (p-prefixed) SDLC feature to an issue-driven one by creating a placeholder GitHub issue and renaming its directory. |
 | `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
