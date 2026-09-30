@@ -3,6 +3,7 @@
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
 * Avoid using the following terms (unless it is the most appropriate): shape, honest, load bearing, real
+* Avoid running `find /` (or similarly broad filesystem scans) unless really necessary, as it is generally a waste of time; scope the search to a specific path or add a proper depth limit instead.
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
 # Memory
