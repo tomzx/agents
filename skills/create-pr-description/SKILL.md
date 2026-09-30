@@ -20,6 +20,10 @@ Generates a structured PR description from the current branch's diff against its
 
 Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `create-pr-description` to the end of the description body. This footer travels with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Workflow
 
 ```

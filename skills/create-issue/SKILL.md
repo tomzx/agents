@@ -19,6 +19,10 @@ Creates a structured GitHub issue in the specified repository with background, p
 
 Before creating an issue with `gh issue create`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Created with** footer for `SKILL_DIR` = `create-issue` to the issue body.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 When this skill is invoked as part of an `sdlc` pipeline run, also include the **SDLC phase footer** described in `github-post-attribution/SKILL.md` (prepend the `SDLC phase: <phase> (<FEAT-id> #<issue>)` line above the `Created with` line).
 
 ## Formatting

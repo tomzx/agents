@@ -17,6 +17,10 @@ Replies to a comment on a GitHub issue with a relevant, context-aware response d
 
 Before posting any issue comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `handle-issue-comment`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Steps
 
 1. Fetch the issue and all its comments:

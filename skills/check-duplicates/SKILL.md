@@ -24,6 +24,10 @@ It does not modify the issue or create any branches.
 
 If posting a comment about a duplicate, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `check-duplicates`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Steps
 
 ### 1. Fetch the issue

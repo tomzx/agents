@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-232-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-234-green" alt="Skill count">
 </p>
 
 ## What
@@ -253,6 +253,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 |-------|---------|
 | `/what-they-need` | Reframe a message into the underlying need before responding. |
 | `/create-message` | Improve a message by removing negative tone. |
+| `/communication-guidelines` | Shared guidelines for concise, high-signal outbound communication (GitHub, Slack, email). |
 
 ### Observability & Telemetry
 

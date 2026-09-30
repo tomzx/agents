@@ -24,6 +24,10 @@ This skill owns the iterative clarification loop. It stops when the issue is ful
 
 Before posting any comment with `gh`, read [`../github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `qualify-issue`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Workflow
 
 ```

@@ -25,6 +25,10 @@ This skill judges neither code craft (that is `/review-pr`), conformance (`/veri
 
 Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `assess-pr-risk`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Workflow
 
 ```

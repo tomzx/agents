@@ -21,6 +21,10 @@ Answers the **craft** question: "is this code well-built?" Covers approach and s
 
 Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `review-pr`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Workflow
 
 ```

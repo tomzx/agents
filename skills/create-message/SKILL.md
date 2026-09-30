@@ -12,6 +12,7 @@ Takes a draft message and improves it by removing negative tone, reformulating w
 - **Draft message**: The message the user wants to send (provided inline or in a file)
 - **Recipient** (optional): Who the message is for (e.g., "a colleague", "a manager", "a client"), used to calibrate tone
 - **Context** (optional): Any background that helps understand the intent (e.g., "they missed a deadline", "I want to decline a meeting")
+- Apply the shared communication guidelines in `skills/communication-guidelines/SKILL.md` when rewriting for concision.
 
 ## Steps
 

@@ -29,6 +29,10 @@ Designed to be safe to run unattended: ambiguous conflicts and PRs that fail ver
 
 Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `resolve-pr-conflicts`. Each sub-agent appends the same footer for its own PR comment.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Arguments and Flags
 
 - `$1` (optional): target repository in `owner/repo` form. If omitted, resolved from `gh repo set-default --view`, then from the `origin` remote of the current directory.

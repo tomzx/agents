@@ -28,6 +28,10 @@ To actually trigger a reported bug at runtime, use `reproduce-issue`.
 
 Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `check-issue-status`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Steps
 
 ### 1. Fetch the issue

@@ -19,13 +19,17 @@ Posts individual PR review comments to GitHub by file and line number using the 
 
 Before each `pr-comment.py` invocation, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `pr-review-send` to the `--comment` text.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Steps
 
 1. Navigate to the automation directory:
    ```
    cd $HOME/repos/git/personal-automation
    ```
-2. Compose each review comment (including the **Skill attribution** footer).
+2. Compose each review comment, applying [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md) for concision (including the **Skill attribution** footer).
 3. Decide whether to post: get the PR author with `gh pr view <pr-number> --repo <owner>/<repo> --json author --jq .author.login`, then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 1, present the comments to the user and stop without posting.
 4. If it exits 0, post a review comment (`--comment` includes main text plus **Skill attribution** footer):
    ```

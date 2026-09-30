@@ -22,6 +22,10 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 
 Before posting the issue comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `publish-plan`.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 Because `publish-plan` always runs within the `sdlc` pipeline, include the **SDLC phase footer** described in `github-post-attribution/SKILL.md` (prepend the `SDLC phase: plan (<FEAT-id> #<issue>)` line above the `Posted with` line).
 
 ## Workflow

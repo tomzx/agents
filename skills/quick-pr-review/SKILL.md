@@ -17,6 +17,7 @@ Whether the review comment is posted to GitHub (and the PR approved) is decided 
 - `gh` CLI authenticated with write access to the target repository
 - `$1`: repository in `owner/repo` format
 - `$2`: PR number identifying an open pull request
+- Apply the shared communication guidelines in `skills/communication-guidelines/SKILL.md` when composing the review comment.
 
 ## Workflow
 

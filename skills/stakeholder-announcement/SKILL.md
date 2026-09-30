@@ -13,6 +13,7 @@ Drafts a structured progress announcement from recent work context (overall summ
 - `SLACK_TOKEN`, `SLACK_COOKIE`, and `SLACK_USER` in `.env` (same credentials used by `slack-kb-individual`)
 - **post-slack-message** skill available
 - Activity context: either an overall summary file (e.g., `{NOTES_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md`), a GitHub activity file, or an explicit topic description from the user
+- Apply the shared communication guidelines in `skills/communication-guidelines/SKILL.md` when composing the announcement.
 
 ## Inputs
 

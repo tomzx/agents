@@ -20,6 +20,10 @@ This is the promotion step defined by the Feature Directory Naming convention in
 
 Before creating the issue, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Created with** footer for `SKILL_DIR` = `create-placeholder-issue` to the issue body.
 
+### Communication guidelines (outbound text)
+
+Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+
 ## Formatting
 
 - Straight ASCII quotes only, no curly/typographic quotation marks (same rule as `/create-issue`).

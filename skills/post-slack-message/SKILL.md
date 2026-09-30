@@ -19,6 +19,7 @@ Posts a message to a Slack channel or as a thread reply using `post_slack_messag
 
 - `SLACK_TOKEN` set. A bot token (`xoxb-`) only needs the token; a web/browser token (`xoxc-`) also needs `SLACK_COOKIE` (the `xoxd-` value), the same credentials used by `slack-kb-individual` and `slackx`. Place them in `.env` at the repo root or export them in the environment.
 - The target channel: a channel id, a Slack archive URL, or a channel name.
+- Apply the shared communication guidelines in `skills/communication-guidelines/SKILL.md` when composing the message.
 
 ## Inputs
 
