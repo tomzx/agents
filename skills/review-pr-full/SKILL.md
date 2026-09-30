@@ -7,7 +7,7 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 
 # Review PR Full
 
-Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed. When the run finishes, it commits this PR's report directory in the user-global reviews store and pushes it (see step 6).
+Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?). Each step posts its own report and marks the commit it reviewed. When the run finishes, it commits this PR's report directory (reports plus any assets they reference, such as screenshots and casts) in the user-global reviews store and pushes it (see step 6).
 
 `/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`) can read it as evidence. `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early. It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
 
@@ -66,7 +66,7 @@ date"           |   else resolve via gh pr view)
                 |
                 v
             Commit + push this PR's reports
-              to the reviews store
+              and assets to the reviews store
                 |
                 v
             Emit VERDICT line + summary
@@ -233,13 +233,16 @@ git worktree remove $WORKTREE_DIR
 
 ### 6. Commit and push the review reports
 
-The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`). Commit exactly this PR's Markdown reports and push, so the reports are durable and shareable across machines. Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in step 3) so the commit records which revision it covers:
+The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`). Commit exactly this PR's Markdown reports **and every asset they reference** and push, so the reports are durable and shareable across machines. Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in step 3) so the commit records which revision it covers:
 
 ```bash
 REVIEWS_REPO="$HOME/.sdlc"
 PR_REVIEW_DIR="$REPO/pull-requests/$PR_NUMBER"
 if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
-  git -C "$REVIEWS_REPO" add -- "$PR_REVIEW_DIR"/'*.md' 2>/dev/null || true
+  git -C "$REVIEWS_REPO" add -- "$PR_REVIEW_DIR"/'*.md' \
+    "$PR_REVIEW_DIR"/'*.png' "$PR_REVIEW_DIR"/'*.jpg' "$PR_REVIEW_DIR"/'*.jpeg' \
+    "$PR_REVIEW_DIR"/'*.gif' "$PR_REVIEW_DIR"/'*.svg' "$PR_REVIEW_DIR"/'*.webp' \
+    "$PR_REVIEW_DIR"/'*.cast' "$PR_REVIEW_DIR"/'*.webm' "$PR_REVIEW_DIR"/'*.mp4' 2>/dev/null || true
   if ! git -C "$REVIEWS_REPO" diff --cached --quiet; then
     git -C "$REVIEWS_REPO" commit -m "review-pr-full: $REPO#$PR_NUMBER @ $HEAD_SHORT_SHA"
     git -C "$REVIEWS_REPO" push || echo "note: push failed for $REPO#$PR_NUMBER"
@@ -249,7 +252,7 @@ fi
 
 The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}` so every run is identifiable by repository, PR, and the commit it reviewed.
 
-Only Markdown files inside the PR's directory are staged (`*.md`). The findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
+Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was left behind. Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions above (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`). Findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
 
 ### 7. Report summary
 
