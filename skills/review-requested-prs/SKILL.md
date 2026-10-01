@@ -39,6 +39,8 @@ The verdict is either `pass` (continue to the next step) or `fail` (halt the pip
 
 The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan. `assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step. `analyze-test-coverage` also sits outside the cutoff: it runs before `validate-pr`, its `fail` verdict never gates anything, and a failed `validate-pr` does not drop it. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
 
+Run without `--dispatch-prs`, the script prints a human summary table whose PR number carries an auto-approve light (🟢 could be approved automatically, 🟡 needs attention, 🔴 blocked) derived from the same signals: chain verdicts, review-step staleness, approvals, changes requested, and the assess-pr-risk route. An existing approval is not required for green; the light decides whether to approve, not whether approval already happened.
+
 ## Prerequisites
 
 - `uv` installed (for running the Python script)

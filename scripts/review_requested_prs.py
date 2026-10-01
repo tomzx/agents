@@ -32,6 +32,12 @@ Each PR also gets a blocking depth: the number of open PRs stacked on it
 first, since a low-risk PR blocking five others deserves attention before
 an isolated hold.
 
+The human summary table puts a merge-readiness light beside each PR number,
+derived from the collected signals (review-step staleness, chain verdicts,
+approvals, changes requested, and the assess-pr-risk route): green when the
+PR could be approved automatically, yellow when something still needs
+attention, red when a signal blocks approval.
+
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
 
@@ -220,6 +226,20 @@ ROUTE_STYLES: dict[str, str] = {
     "hold": "red",
 }
 
+# Risk routes that block a merge outright versus ones that only ask the
+# reviewer to look closer before deciding.
+BLOCKING_ROUTES = {"block", "hold"}
+SLOW_ROUTES = {"decide", "investigate"}
+
+# Merge-readiness light shown beside each PR number: green when the PR could
+# be approved automatically, yellow when something still needs attention, red
+# when a collected signal blocks approval.
+READINESS_SIGNALS: dict[str, str] = {
+    "green": "🟢",
+    "yellow": "🟡",
+    "red": "🔴",
+}
+
 
 @dataclass
 class PRReviewState:
@@ -254,6 +274,7 @@ class PRReviewState:
     assess_risk: str = ""
     assess_confidence: str = ""
     approvers: list[str] = field(default_factory=list)
+    changes_requested: list[str] = field(default_factory=list)
     additions: int = 0
     deletions: int = 0
     blocking_depth: int = 0
@@ -998,6 +1019,9 @@ def fetch_pr_data(client: Github, pr: PRReviewState) -> None:
             ):
                 latest_state[login] = review["state"]
         pr.approvers = sorted(u for u, s in latest_state.items() if s == "APPROVED")
+        pr.changes_requested = sorted(
+            u for u, s in latest_state.items() if s == "CHANGES_REQUESTED"
+        )
 
         check_local_markers(pr)
 
@@ -1436,10 +1460,48 @@ def _age_cell(created_at: str, by: str = "") -> str:
     return f"[{style}]{age}{suffix}[/{style}]"
 
 
+def readiness_signal(pr: PRReviewState) -> str:
+    """Classify whether a PR could be approved automatically from its signals.
+
+    Returns ``green``, ``yellow``, or ``red``. Red is a hard blocker: a fetch
+    error, a failing chain verdict, a standing changes-requested review, or an
+    assess-pr-risk ``block``/``hold`` route. Green means the PR could be
+    approved automatically: not a draft, no stale review steps, a passing
+    review verdict, no advisory coverage fail, and no ``decide``/``investigate``
+    route asking for a closer look. Everything else is yellow. An existing
+    approval is not required for green; this light decides whether to approve,
+    not whether approval already happened.
+    """
+    if pr.error:
+        return "red"
+    if any(
+        verdict == "fail"
+        for verdict in (pr.validate_verdict, pr.verify_verdict, pr.review_verdict)
+    ):
+        return "red"
+    if pr.changes_requested or pr.assess_verdict in BLOCKING_ROUTES:
+        return "red"
+    if (
+        not pr.draft
+        and not pr.stale_steps
+        and pr.review_verdict == "pass"
+        and pr.coverage_verdict != "fail"
+        and pr.assess_verdict not in SLOW_ROUTES
+    ):
+        return "green"
+    return "yellow"
+
+
 def _pr_cell(pr: PRReviewState) -> str:
-    """Return the PR number cell as a hyperlink to the GitHub pull request."""
+    """Return the PR cell: readiness light plus a hyperlink to the PR.
+
+    The light is green when the PR could be approved automatically, yellow
+    when it still needs attention, and red when a collected signal blocks
+    approval.
+    """
     url = f"https://github.com/{pr.repo}/pull/{pr.number}"
-    label = f"#{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}"
+    signal = READINESS_SIGNALS[readiness_signal(pr)]
+    label = f"{signal} #{pr.number}{' [dim](draft)[/dim]' if pr.draft else ''}"
     return f"[link={url}]{label}[/link]"
 
 
