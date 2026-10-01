@@ -9,6 +9,7 @@ description: >
   cache, comment on a PR (especially inline / on a specific file or line), reply
   to a review thread, manage a pending review, stash review comments, or
   edit/delete a comment.
+cli: ghx
 ---
 
 # ghx Skill

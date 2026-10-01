@@ -311,7 +311,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/find-dead-code` | Find unused functions, classes, exports, and config keys. |
 | `/find-documentation-gaps` | Find public APIs and modules lacking documentation. |
 | `/find-type-gaps` | Find functions and modules missing type annotations. |
-| `/review-skills` | Audit the skill directory for duplicates and broken references. |
+| `/review-skills` | Audit the skill directory for duplicates, broken references, and CLI drift. |
 
 ### Daily / Weekly / Monthly Cadence
 

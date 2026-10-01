@@ -10,6 +10,7 @@ description: >
   names, search the workspace and cache matches, or says "slackx" explicitly.
   Other Slack skills (slack-resolve-threads,
   slack-kb-channel, slack-kb-individual) build on top of this tool.
+cli: slackx
 ---
 
 # slackx Skill

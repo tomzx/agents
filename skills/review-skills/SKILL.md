@@ -1,13 +1,13 @@
 ---
 name: review-skills
-description: Audit a skill directory for duplicates, broken references, circular dependencies, orphaned skills, composability issues, and skill gaps. Use when the user says /review-skills or wants to audit their skill library.
+description: Audit a skill directory for duplicates, broken references, circular dependencies, orphaned skills, composability issues, CLI drift, and skill gaps. Use when the user says /review-skills or wants to audit their skill library.
 allowed-tools: Bash, Read, Glob, Grep
 argument-hint: "[skills-directory]"
 ---
 
 # Review Skills
 
-Audits a directory of skills for structural and semantic issues across seven categories: duplicates, broken references, circular dependencies, orphaned skills, composability, re-run safety, and skill gaps.
+Audits a directory of skills for structural and semantic issues across eight categories: duplicates, broken references, circular dependencies, orphaned skills, composability, re-run safety, CLI drift, and skill gaps.
 Produces a prioritized report with concrete remediation steps.
 
 ## Prerequisites
@@ -25,6 +25,7 @@ Produces a prioritized report with concrete remediation steps.
 | Orphaned skills | Skills never referenced or invoked by any other skill |
 | Composability | Skills that cannot be composed because of conflicting interfaces, missing prerequisites, or incompatible tool constraints |
 | Re-run safety | Skills that may behave incorrectly or destructively when invoked multiple times on the same inputs |
+| CLI drift | CLI-backed skills whose documented commands or flags no longer match the installed CLI |
 | Skill gaps | Common agent workflows that lack a corresponding skill |
 
 ## Steps
@@ -170,7 +171,48 @@ Classify each skill:
 
 For skills rated Caution or Unsafe, suggest a specific fix (e.g., "check for existing branch before creating", "use overwrite instead of append", "add existence check before `gh issue create`").
 
-### 9. Check for skill gaps
+### 9. Check CLI-backed skills against the installed CLI
+
+Some skills document a purpose-built command-line tool rather than a workflow. When that CLI changes (renamed commands, new or removed flags, shifted subcommand paths, changed defaults), the skill silently drifts out of date. Audit every CLI-backed skill against the CLI actually installed on this machine.
+
+**Identify CLI-backed skills.** A skill is CLI-backed when it documents commands for a specific executable. Detect in order of confidence:
+
+1. A frontmatter `cli:` field listing one or more shell command prefixes (comma-separated). This is the explicit, preferred declaration; the prefix is usually just the executable (`ghx`, `slackx`, `wt`) but may include a subcommand or runner (`gh stack`, `npx hyperframes`). Probe each with `<prefix> --help`.
+2. A Prerequisites "Binary" section, or any `command -v <tool>` / `which <tool>` check.
+3. A description that names an executable ("the `wt` CLI", "use the `slackx` CLI").
+4. Several bash blocks that all invoke the same leading command.
+
+Focus on the purpose-built CLIs a skill wraps (`ghx`, `slackx`, `wt`, `gh stack`, `hyperframes`, `asciinema`, `agg`, `mmdc`, ...). Do not audit generic, ubiquitous tools (`git`, `gh`, `bash`, `ls`, `npm`) that no single skill owns; a CLI counts only when a skill is its primary documentation.
+
+For a skill that clearly wraps a specific CLI but has no `cli:` frontmatter, record a **Low**-priority finding: "add `cli: <tool>` to the frontmatter so this skill is auditable."
+
+**Probe the local CLI (read-only, never install).** For each detected executable:
+
+```bash
+command -v <tool> || echo "NOT INSTALLED"
+<tool> --version 2>/dev/null || <tool> version 2>/dev/null || echo "no version"
+<tool> --help 2>/dev/null
+```
+
+If the binary is not installed, record it as such and skip the drift comparison for that skill. Do not install the tool and do not fail the audit over a missing binary.
+
+**Enumerate the real command surface.** From `<tool> --help`, list the top-level commands. Then, for each command path the skill documents, run `<tool> <path> --help` to get its subcommands and flags. Bound the traversal (for example, stop after two levels or at commands with no further subcommands) so a large CLI does not consume the whole audit. Prefer a machine-readable command tree, completion output, or `--help` in JSON when the tool offers one; otherwise parse the human help.
+
+**Compare the skill against the CLI.** Extract the commands, subcommands, and flags the skill documents (from bash code blocks, any command-tree block, and option tables) and compare in both directions:
+
+| Drift | Meaning | Severity |
+|-------|---------|----------|
+| **Removed** | The skill documents a command or flag the CLI no longer accepts (absent from help, or help reports it as unknown) | High |
+| **Renamed/moved** | A documented command now lives under a different name or path (e.g. flat `slackx fetch` becoming `slackx conversations fetch`) | High |
+| **Changed behavior** | The help text contradicts the skill's description (a different default, newly mutually exclusive flags, a changed output shape) | Medium |
+| **Undocumented** | The CLI exposes a top-level command or notable flag the skill never mentions | Low |
+| **Unverifiable** | The CLI is not installed, or its help output cannot be parsed | Low |
+
+Only flag **Removed** or **Undocumented** when the evidence is unambiguous: a documented flag is absent from `--help`, or `--help` lists a top-level command the skill's command tree omits. Never infer removal from a wording difference alone.
+
+For each finding, record the exact command the skill documents, the CLI's current equivalent (or "no equivalent"), and the CLI version tested, so the drift can be reproduced.
+
+### 10. Check for skill gaps
 
 Analyze the skill library holistically:
 
@@ -184,18 +226,18 @@ Analyze the skill library holistically:
 4. **Missing documentation**: Skills without an Example Usage section or without an output format template
 5. **Missing prerequisites**: Skills that reference tools, scripts, or environment variables without listing them in Prerequisites
 
-### 10. Prioritize findings
+### 11. Prioritize findings
 
 Rank each finding using this priority scheme:
 
 | Priority | Criteria |
 |----------|----------|
 | **Critical** | Broken reference that will cause a skill to fail at runtime; circular dependency that causes infinite loops |
-| **High** | Duplicate that confuses the agent; composability issue between frequently composed skills; missing prerequisites |
-| **Medium** | Orphaned skill; near-duplicate that adds maintenance burden; missing review pair; skill gap in a common workflow; re-run safety concern without data loss |
-| **Low** | Missing documentation; stylistic inconsistency; long chain that could be simplified; re-run creates minor duplicates |
+| **High** | Duplicate that confuses the agent; composability issue between frequently composed skills; missing prerequisites; CLI drift where the skill documents a command or flag the CLI no longer accepts |
+| **Medium** | Orphaned skill; near-duplicate that adds maintenance burden; missing review pair; skill gap in a common workflow; re-run safety concern without data loss; CLI behavior drift (changed default or output shape) |
+| **Low** | Missing documentation; stylistic inconsistency; long chain that could be simplified; re-run creates minor duplicates; undocumented CLI capability; CLI-backed skill missing a `cli:` declaration; CLI not installed so drift is unverifiable |
 
-### 11. Print the report
+### 12. Print the report
 
 ```
 ## Skill Library Review — {SKILLS_DIR}
@@ -206,6 +248,7 @@ Rank each finding using this priority scheme:
 - Skills with references to other skills: N
 - Skills referenced by others: N
 - Orphaned skills: N
+- CLI-backed skills: N (N verified, N not installed)
 - Total findings: N (N critical, N high, N medium, N low)
 
 ### Duplicates
@@ -256,6 +299,14 @@ Rank each finding using this priority scheme:
 
 <Or "All skills are re-run safe.">
 
+### CLI Drift
+
+| Skill | CLI | Version | Drift | Documented | Current | Priority |
+|-------|-----|---------|-------|------------|---------|----------|
+| `<name>` | `<tool>` | `<version or not installed>` | removed / renamed / changed / undocumented / unverifiable / missing `cli:` | `<command or flag from the skill>` | `<CLI equivalent, or "no equivalent">` | high/medium/low |
+
+<Or "No CLI drift found.">
+
 ### Skill Gaps
 
 | Gap | Description | Suggested Name | Priority |
@@ -281,6 +332,10 @@ Rank each finding using this priority scheme:
 | Max dependency depth | N |
 | Skills with review pairs | N / N create skills |
 | Skills re-run safe | N safe, N caution, N unsafe |
+| CLI-backed skills | N |
+| CLI-backed skills with a `cli:` declaration | N |
+| CLI-backed skills verified against the local CLI | N installed, N not installed |
+| CLI drift findings | N |
 
 ### Adoption Checklist
 
@@ -321,3 +376,9 @@ Scans the user's skills directory, finds a near-duplicate pair (`start-day` vs `
 /review-skills
 ```
 Run periodically to track the health of the skill library. The statistics section provides metrics to compare across runs.
+
+**Scenario 4: Catch CLI drift**
+```
+/review-skills
+```
+Sees `cli: ghx` and `cli: slackx` in the frontmatter, runs `ghx --help` and `slackx --help` locally, and reports that the `slackx` skill still documents the flat `slackx fetch` command that now lives under `slackx conversations fetch`, plus a new `slackx cache status` subcommand the skill never mentions.
