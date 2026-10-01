@@ -1,6 +1,6 @@
 ---
 name: git-commit-staged
-description: Generate a git commit message based on the staged changes in the repository.
+description: Generate a Conventional Commits-formatted commit message from only the staged changes, leaving unstaged changes untouched. Use when the user says "commit staged", "commit staged changes", or wants to commit only what is already staged.
 ---
 
 # Generate Git Commit from Staged Changes

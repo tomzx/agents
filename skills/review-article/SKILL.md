@@ -18,11 +18,13 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 ## Steps
 
 1. Read the article thoroughly.
-2. Cross-reference claims against provided sources if available.
-3. Compare claims, figures, and terminology against other related articles in context if available.
-4. Identify issues in each category below.
-5. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-6. Report findings using the output format. Omit categories with no findings.
+2. Summarize the message the article is trying to convey in two to three sentences, as you understood it.
+   This serves as a comprehension check: if the summary diverges from what the author intended, the clarity or structure sections will explain why.
+3. Cross-reference claims against provided sources if available.
+4. Compare claims, figures, and terminology against other related articles in context if available.
+5. Identify issues in each category below.
+6. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
+7. Report findings using the output format. Omit categories with no findings.
 
 ## Review Checklist
 
@@ -74,6 +76,11 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 ## Summary
 
 🔴 / 🟢 <Overall assessment in one sentence.>
+
+## Message Summary
+
+<Two to three sentences capturing the message the article conveys, as you understood it.
+The author should verify this matches their intent; a mismatch indicates a clarity or structure problem.>
 
 ## Accuracy
 

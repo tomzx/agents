@@ -73,6 +73,8 @@ ghx cache                            # default: stale after 60 min
 ghx cache --repo owner/repo
 ghx cache --cache-duration 120       # stale after 2 hours
 ghx cache --cache-duration 0         # always re-fetch (delta)
+ghx cache --since 2026-09-01         # refresh entries created/updated since a date
+ghx cache --type issues              # refresh only issues (or prs)
 ghx cache --force                    # force full re-fetch
 ```
 
@@ -132,7 +134,7 @@ ghx repo list                        # locally cached repositories
 
 | Command | Cache behaviour |
 |---|---|
-| `cache` | Fetches all issues/PRs (all states, with comments); writes one JSON file each. Skips when younger than `--cache-duration`. |
+| `cache` | Fetches all issues/PRs (all states, with comments); writes one JSON file each. Skips when younger than `--cache-duration`. `--since <date>` refreshes only entries created/updated on or after the date. `--type issues` or `--type prs` refreshes one portion only. Explicit `--since`/`--type` bypass the freshness check; `--since` cannot combine with `--force`. |
 | `issue list` / `pr list` | Reads all cached files and filters in memory when the full cache is fresh; falls back to the GitHub API otherwise. |
 | `issue view` / `pr view` | Serves from the per-item file when it is < 60 min old; fetches from the API and updates the cache otherwise. `--refresh` bypasses all cache checks, always fetches from the API, and updates the cache. |
 

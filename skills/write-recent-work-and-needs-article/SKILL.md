@@ -9,7 +9,16 @@ Produces a personal status article with two sections: what you have been working
 
 ## Steps
 
-### 1. Gather Recent Work
+### 1. Summarize the Previous Article
+
+Before gathering new information, find the previous article in this series (the most recent article in the blog repository following this structure). Take its "What I Currently Need" section and summarize it as one bullet point per paragraph. This summary serves two purposes:
+
+- It refreshes what was needed last time, so continuity is not lost
+- It gives the user a checklist to react to: resolved needs can be dropped, unresolved ones carried into the new article
+
+Present the summary to the user before moving on to gathering recent work.
+
+### 2. Gather Recent Work
 
 Ask the user:
 
@@ -20,7 +29,7 @@ Prompt for specifics if the response is vague:
 - What changed or was delivered?
 - Anything that surprised you or turned out harder than expected?
 
-### 2. Gather Current Needs
+### 3. Gather Current Needs
 
 Ask the user:
 
@@ -30,7 +39,7 @@ Prompt for specifics if the response is vague:
 - Who needs to act for the blocker to clear?
 - What exactly is ambiguous, and what would clarity enable?
 
-### 3. Produce the Article
+### 4. Produce the Article
 
 Using the information gathered, write the article according to the structure below.
 
@@ -41,7 +50,7 @@ Using the information gathered, write the article according to the structure bel
 - Use the same formatting style for both sections. If one section uses bold lead paragraphs, the other should too. Do not mix lists and paragraphs.
 - When mentioning named tools, skills, or projects that have a public URL, link to them on first mention.
 
-### 4. Confirm and Deliver
+### 5. Confirm and Deliver
 
 Present the draft to the user. Ask if anything should be added, removed, or reworded before finalizing.
 

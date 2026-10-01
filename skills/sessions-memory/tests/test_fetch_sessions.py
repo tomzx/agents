@@ -240,6 +240,68 @@ def test_list_sessions_filters_by_agent_and_date(tmp_path: Path) -> None:
     assert {r["id"] for r in rows} == {"c1"}
 
 
+def test_list_sessions_min_user_messages(tmp_path: Path) -> None:
+    conn = make_db(tmp_path)
+    insert_session(conn, "one", user_message_count=1)
+    insert_session(conn, "two", user_message_count=2)
+    insert_session(conn, "five", user_message_count=5)
+    rows = fs.list_sessions(conn, fs.Filters(min_user_messages=2))
+    assert {r["id"] for r in rows} == {"two", "five"}
+    # Unset keeps every session, preserving the memory-extraction behavior.
+    assert {r["id"] for r in fs.list_sessions(conn)} == {"one", "two", "five"}
+
+
+def test_list_sessions_excludes_scheduled_runs(tmp_path: Path) -> None:
+    conn = make_db(tmp_path)
+    insert_session(conn, "interactive", first_message="fix the search bug")
+    insert_session(
+        conn,
+        "scheduled",
+        first_message="Resolve PR conflicts 2026-09-12 15:00",
+    )
+    rows = fs.list_sessions(conn)
+    assert {r["id"] for r in rows} == {"interactive"}
+    kept = fs.list_sessions(conn, include_scheduled=True)
+    assert {r["id"] for r in kept} == {"interactive", "scheduled"}
+
+
+def test_is_scheduled_run_matches_title_timestamp(tmp_path: Path) -> None:
+    conn = make_db(tmp_path)
+    insert_session(
+        conn,
+        "sched",
+        first_message="agents-section-daily-refresh 2026-08-26 09:00",
+    )
+    insert_session(
+        conn,
+        "sched-body",
+        first_message="Resolve PR conflicts 2026-09-12 15:00\nResolve every open PR.",
+    )
+    insert_session(
+        conn,
+        "human",
+        first_message="On 2026-09-12 15:00 we fixed the deploy, then shipped.",
+    )
+    insert_session(conn, "no-ts", first_message="fix the login bug")
+    rows = fs.list_sessions(conn, include_scheduled=True)
+    detected = {r["id"]: fs.is_scheduled_run(r) for r in rows}
+    assert detected == {
+        "sched": True,
+        "sched-body": True,
+        "human": False,
+        "no-ts": False,
+    }
+
+
+def test_cli_accepts_new_filter_flags() -> None:
+    parser = fs.build_parser()
+    args = parser.parse_args(
+        ["fetch", "--min-user-messages", "2", "--include-scheduled"]
+    )
+    assert args.min_user_messages == 2
+    assert args.include_scheduled is True
+
+
 # --- payload building -------------------------------------------------------
 
 
@@ -341,6 +403,26 @@ def test_cli_fetch_commit_status_cycle(
     assert "cli-1" in wm["processed"]
     # pending file is cleared after commit
     assert not (mem_root / "memory" / ".sessions-memory-pending.json").exists()
+
+
+def test_list_sessions_until_date_is_inclusive(tmp_path: Path) -> None:
+    """--until 2026-07-14 must include sessions started later that same day."""
+    conn = make_db(tmp_path)
+    insert_session(
+        conn,
+        "s1",
+        started_at="2026-07-14T22:30:00.000Z",
+        ended_at="2026-07-14T23:00:00.000Z",
+    )
+    rows = fs.list_sessions(conn, fs.Filters(since="2026-07-14", until="2026-07-14"))
+    assert {r["id"] for r in rows} == {"s1"}
+
+
+def test_expand_date_bound_passes_full_timestamps_through() -> None:
+    full = "2026-07-14T10:00:00.000Z"
+    assert fs._expand_date_bound(full, end=True) == full
+    assert fs._expand_date_bound("2026-07-14", end=True) == "2026-07-14T23:59:59.999Z"
+    assert fs._expand_date_bound("2026-07-14", end=False) == "2026-07-14T00:00:00.000Z"
 
 
 def test_resolve_db_path_precedence(monkeypatch: pytest.MonkeyPatch) -> None:

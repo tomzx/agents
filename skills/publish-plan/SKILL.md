@@ -14,7 +14,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with write access to the repository
-- A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/N-<slug>/plan.md`; falls back to `plan.md` in the working directory)
+- A reviewed plan file in context or at `$2` (defaults to `.sdlc/features/N-<slug>/plan.md` for a unified plan, or `.sdlc/features/N-<slug>/plan/index.md` for a split plan; falls back to `plan.md` in the working directory)
 - Issue URL or number (`$1`)
 - Clean or committable working tree
 
@@ -31,7 +31,7 @@ Because `publish-plan` always runs within the `sdlc` pipeline, include the **SDL
 ## Workflow
 
 ```
-Read plan file ($2 or plan.md)
+Read plan file ($2, plan.md, or plan/index.md)
            |
            v
 Create branch: plan/<issue-number>
@@ -57,8 +57,7 @@ Post comment on issue (links to PR)
    ```
    Extract the issue number and repository (`owner/repo`).
 
-2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/N-<slug>/plan.md` (where `<feature>` matches the issue number), then fall back to `plan.md` in the current directory.
-   Stop and inform the user if no plan file is found.
+2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/N-<slug>/plan.md` (unified), then `.sdlc/features/N-<slug>/plan/index.md` (split), then fall back to `plan.md` in the current directory. Stop and inform the user if no plan file is found. Step 4 commits the entire `.sdlc/features/N-<slug>/` directory, so a split `plan/` directory is captured automatically.
 
 3. Create and switch to a plan branch:
    ```
@@ -140,7 +139,7 @@ Posted with [publish-plan]({SKILL_FILE_URL}) (`SKILL_SHORT_SHA`)
 ```
 /publish-plan https://github.com/owner/repo/issues/42
 ```
-Finds `.sdlc/42-<slug>/plan.md`, commits the full `.sdlc/42-<slug>/` directory, creates branch `plan/42`, pushes, opens draft PR, posts issue comment.
+Finds `.sdlc/42-<slug>/plan.md` (or `.sdlc/42-<slug>/plan/index.md` for a split plan), commits the full `.sdlc/42-<slug>/` directory, creates branch `plan/42`, pushes, opens draft PR, posts issue comment.
 
 **Scenario 2: Explicit plan file path**
 ```

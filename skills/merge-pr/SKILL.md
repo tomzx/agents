@@ -40,6 +40,9 @@ PR      (fix, then re-check)
 Delete remote branch
   |
   v
+Delete prs/<n>/review tag
+  |
+  v
 Confirm issue closed
 ```
 
@@ -67,12 +70,17 @@ Confirm issue closed
    gh api repos/{owner}/{repo}/git/refs/heads/{branch} -X DELETE
    ```
 
-7. Confirm the linked issue was closed automatically (via `Closes #N` in the PR description). If not, close it manually:
+7. Delete the review checkpoint tag left by validate-pr / verify-pr / review-pr (see `sdlc/references/shared.md`, Review checkpoint tags):
+   ```
+   git tag -d "prs/$1/review" 2>/dev/null || true
+   ```
+
+8. Confirm the linked issue was closed automatically (via `Closes #N` in the PR description). If not, close it manually:
    ```
    gh issue close <issue-number>
    ```
 
-8. Report the merge SHA and a link to the merged PR.
+9. Report the merge SHA and a link to the merged PR.
 
 ## Example Usage
 
@@ -80,7 +88,7 @@ Confirm issue closed
 ```
 /merge-pr 42
 ```
-PR has 2 approvals, all CI checks green. Present summary, confirm with user, squash-merge, delete branch, confirm issue closed.
+PR has 2 approvals, all CI checks green. Present summary, confirm with user, squash-merge, delete branch, delete the `prs/42/review` tag, confirm issue closed.
 
 **Scenario 2: Missing approval**
 ```
@@ -100,4 +108,5 @@ Tests job is failing. Report: "CI check `test` is failing — resolve before mer
 |---|---|
 | `gh pr view <pr-number> --json state,reviews,statusCheckRollup,mergeStateStatus,headRefName,closingIssuesReferences` | Fetch PR approval and CI status |
 | `gh pr merge <pr-number> --squash --delete-branch` | Squash-merge and delete the branch |
+| `git tag -d "prs/<pr-number>/review"` | Delete the review checkpoint tag after merging |
 | `gh issue close <issue-number>` | Close the linked issue if not auto-closed |

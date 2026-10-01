@@ -9,6 +9,10 @@
 
 - The `shell` tool runs under zsh, so `c="a b"; cmd $c` passes `"a b"` as one argument (unlike bash). Use `cmd ${=c}` or quote each word explicitly, otherwise loops silently invoke the wrong command.
 
+## 2026-09-29: Playwright lives in the bun global install
+
+- Browser verification (screenshots, real canvas/DOM behaviour) can be run anywhere with `require("/home/tomzx/.bun/install/global/node_modules/playwright")`, Chromium 1.62 is already downloaded under `~/.cache/ms-playwright`; there is no per-project dependency and no `npx playwright` install step needed.
+
 ## 2026-09-28: refactor-implementation sits inside the implementation phase
 
 - The SDLC pipeline runs `refactor-implementation` between `create-implementation` and `review-implementation`; it refines the just-implemented diff with only the abstractions and seams it needs.

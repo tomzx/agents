@@ -37,8 +37,12 @@ moves the just-presented sessions into the watermark only after the agent has
 written memory, so a crash mid-run re-presents the same work idempotently.
 
 By default the script excludes deleted sessions, automated runs
-(`is_automated = 1`), and pure subagent sessions (`relationship_type =
-'subagent'`). Override with `--include-automated` / `--include-subagents`.
+(`is_automated = 1`), pure subagent sessions (`relationship_type =
+'subagent'`), and scheduler-triggered runs (their title line ends with the
+run timestamp; the archive has no column for them). Override with
+`--include-automated` / `--include-subagents` / `--include-scheduled`, and
+use `--min-user-messages N` to keep only sessions with at least N user
+messages.
 
 ## Steps
 

@@ -40,10 +40,21 @@ Usage:
   uv run fetch_sessions.py status
   uv run fetch_sessions.py fetch --limit 10
   uv run fetch_sessions.py fetch --since 2026-07-01 --agent claude --max-content 1500
+  uv run fetch_sessions.py fetch --since 2026-07-01 --min-user-messages 2
   uv run fetch_sessions.py timeline --since 2026-07-01 --until 2026-07-15
   uv run fetch_sessions.py show opencode:ses_abc123
   uv run fetch_sessions.py commit
   uv run fetch_sessions.py reset
+
+Noise exclusion:
+
+  By default the script skips deleted sessions, automated runs
+  (is_automated = 1), pure subagent sessions, and scheduler-triggered runs
+  (their title line ends with the run timestamp, e.g. "Resolve PR conflicts
+  2026-09-12 15:00"; the archive has no column for them). Pass
+  --include-automated, --include-subagents, or --include-scheduled to
+  re-include a group, and --min-user-messages N to keep only sessions with at
+  least N user messages (2 = initial prompt plus at least one follow-up).
 
 Path resolution:
 
@@ -57,6 +68,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sqlite3
 import sys
 from collections import defaultdict
@@ -103,6 +115,7 @@ class FetchOptions:
     include_tool_input: bool = False
     include_automated: bool = False
     include_subagents: bool = False
+    include_scheduled: bool = False
 
 
 @dataclass
@@ -114,6 +127,20 @@ class Filters:
     agent: str | None = None
     project: str | None = None
     limit: int | None = None
+    min_user_messages: int | None = None
+
+
+# Scheduler-triggered prompts (OpenChamber and similar) carry their run
+# timestamp at the end of the title line, e.g. "Resolve PR conflicts
+# 2026-09-12 15:00". The archive has no column for this: is_automated stays 0
+# and entrypoint/session_kind are empty, so the title pattern is the signal.
+SCHEDULED_TITLE_RE = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}$")
+
+
+def is_scheduled_run(row: sqlite3.Row) -> bool:
+    """True when the session looks triggered by a scheduler."""
+    first_line = (row["first_message"] or "").strip().splitlines()
+    return bool(first_line) and bool(SCHEDULED_TITLE_RE.search(first_line[0].strip()))
 
 
 def resolve_db_path(override: str | None = None) -> Path:
@@ -192,12 +219,27 @@ def _base_session_query(where: str = "") -> str:
     return f"SELECT {cols} FROM sessions {clause} ORDER BY started_at ASC, id ASC"
 
 
+def _expand_date_bound(value: str, *, end: bool) -> str:
+    """Expand a date-only bound (YYYY-MM-DD) to an inclusive timestamp.
+
+    agentsview stores started_at as a full UTC ISO timestamp
+    (2026-07-14T10:00:00.000Z). A date-only --until of 2026-07-14 must include
+    sessions later that same day, but the raw lexicographic compare
+    '2026-07-14T10:...' <= '2026-07-14' is false. Expand date-only bounds to
+    start/end of day so the common case behaves intuitively.
+    """
+    if len(value) == 10 and value[4] == "-" and value[7] == "-":
+        return f"{value}T23:59:59.999Z" if end else f"{value}T00:00:00.000Z"
+    return value
+
+
 def list_sessions(
     conn: sqlite3.Connection,
     filters: Filters | None = None,
     *,
     include_automated: bool = False,
     include_subagents: bool = False,
+    include_scheduled: bool = False,
 ) -> list[sqlite3.Row]:
     """Return session rows matching filters, ordered oldest first."""
     filters = filters or Filters()
@@ -207,12 +249,15 @@ def list_sessions(
         clauses.append("is_automated = 0")
     if not include_subagents:
         clauses.append("(relationship_type IS NULL OR relationship_type != 'subagent')")
+    if filters.min_user_messages is not None:
+        clauses.append("user_message_count >= ?")
+        params.append(filters.min_user_messages)
     if filters.since:
         clauses.append("started_at >= ?")
-        params.append(filters.since)
+        params.append(_expand_date_bound(filters.since, end=False))
     if filters.until:
         clauses.append("started_at <= ?")
-        params.append(filters.until)
+        params.append(_expand_date_bound(filters.until, end=True))
     if filters.agent:
         clauses.append("agent = ?")
         params.append(filters.agent)
@@ -222,7 +267,10 @@ def list_sessions(
     query = _base_session_query(" AND ".join(clauses))
     if filters.limit is not None:
         query += f" LIMIT {int(filters.limit)}"
-    return list(conn.execute(query, params))
+    rows = list(conn.execute(query, params))
+    if not include_scheduled:
+        rows = [row for row in rows if not is_scheduled_run(row)]
+    return rows
 
 
 def fetch_messages(conn: sqlite3.Connection, session_id: str) -> list[sqlite3.Row]:
@@ -458,6 +506,7 @@ def cmd_status(args: argparse.Namespace) -> int:
             conn,
             include_automated=args.include_automated,
             include_subagents=args.include_subagents,
+            include_scheduled=args.include_scheduled,
         )
     total = len(rows)
     unproc = select_unprocessed(rows, processed)
@@ -483,6 +532,7 @@ def cmd_fetch(args: argparse.Namespace) -> int:
         include_tool_input=args.include_tool_input,
         include_automated=args.include_automated,
         include_subagents=args.include_subagents,
+        include_scheduled=args.include_scheduled,
     )
     filters = Filters(
         since=args.since,
@@ -490,6 +540,7 @@ def cmd_fetch(args: argparse.Namespace) -> int:
         agent=args.agent,
         project=args.project,
         limit=args.limit,
+        min_user_messages=args.min_user_messages,
     )
     try:
         conn = open_db(db_path)
@@ -502,6 +553,7 @@ def cmd_fetch(args: argparse.Namespace) -> int:
             filters,
             include_automated=opts.include_automated,
             include_subagents=opts.include_subagents,
+            include_scheduled=opts.include_scheduled,
         )
         unproc = select_unprocessed(rows, wm.get("processed", {}))
         output = build_fetch_output(conn, unproc, opts, db_path)
@@ -521,6 +573,7 @@ def cmd_timeline(args: argparse.Namespace) -> int:
         max_content=args.max_content,
         include_automated=args.include_automated,
         include_subagents=args.include_subagents,
+        include_scheduled=args.include_scheduled,
     )
     filters = Filters(
         since=args.since,
@@ -528,6 +581,7 @@ def cmd_timeline(args: argparse.Namespace) -> int:
         agent=args.agent,
         project=args.project,
         limit=args.limit,
+        min_user_messages=args.min_user_messages,
     )
     try:
         conn = open_db(db_path)
@@ -540,6 +594,7 @@ def cmd_timeline(args: argparse.Namespace) -> int:
             filters,
             include_automated=opts.include_automated,
             include_subagents=opts.include_subagents,
+            include_scheduled=opts.include_scheduled,
         )
         md = format_timeline(conn, rows, opts)
     print(md)
@@ -622,6 +677,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_status = sub.add_parser("status", help="show processing counts")
     p_status.add_argument("--include-automated", action="store_true")
     p_status.add_argument("--include-subagents", action="store_true")
+    p_status.add_argument("--include-scheduled", action="store_true")
     p_status.set_defaults(func=cmd_status)
 
     def add_session_filters(p: argparse.ArgumentParser) -> None:
@@ -630,6 +686,12 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--agent", help="filter by agent type (e.g. claude)")
         p.add_argument("--project", help="filter by project name")
         p.add_argument("--limit", type=int, help="cap number of sessions")
+        p.add_argument(
+            "--min-user-messages",
+            type=int,
+            help="only sessions with at least N user messages "
+            "(2 = initial prompt plus a follow-up)",
+        )
 
     def add_content_flags(p: argparse.ArgumentParser) -> None:
         p.add_argument(
@@ -643,6 +705,7 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--include-tool-input", action="store_true")
         p.add_argument("--include-automated", action="store_true")
         p.add_argument("--include-subagents", action="store_true")
+        p.add_argument("--include-scheduled", action="store_true")
 
     p_fetch = sub.add_parser(
         "fetch", help="emit unprocessed sessions as JSON (grouped by day)"
@@ -658,6 +721,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_tl.add_argument("--max-content", type=int, default=2000)
     p_tl.add_argument("--include-automated", action="store_true")
     p_tl.add_argument("--include-subagents", action="store_true")
+    p_tl.add_argument("--include-scheduled", action="store_true")
     p_tl.set_defaults(func=cmd_timeline)
 
     p_show = sub.add_parser("show", help="full detail of one session")
