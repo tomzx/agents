@@ -5,6 +5,7 @@ description: >
   Use for stack creation, viewing, edits, push, submit, sync, rebase, merge, or checkout;
   when asked to split or isolate work for review; whenever a user mentions a stack,
   branch layers, dependent PRs, or gh stack; or when a stack is checked out.
+cli: gh stack
 metadata:
   author: github
   version: "0.1.0"
