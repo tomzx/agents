@@ -1,0 +1,1930 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDLC, an interactive guide</title>
+<meta name="description" content="An interactive introduction to the SDLC skill: a software development lifecycle encoded as composable agent skills.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050c15;
+    --bg-2: #0a1626;
+    --panel: rgba(17, 30, 49, 0.72);
+    --panel-2: rgba(12, 23, 39, 0.86);
+    --panel-solid: #101d30;
+    --border: rgba(104, 148, 196, 0.22);
+    --border-soft: rgba(104, 148, 196, 0.13);
+    --text: #eaf2fb;
+    --muted: #9db0c6;
+    --muted-2: #6f8399;
+    --accent: #4fd1c5;
+    --accent-2: #f6ad55;
+    --accent-3: #6ea8fe;
+    --accent-dim: rgba(79, 209, 197, 0.13);
+    --accent-2-dim: rgba(246, 173, 85, 0.12);
+    --danger: #fc8181;
+    --ok: #68d391;
+    --radius: 14px;
+    --shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.85);
+    --shadow-lg: 0 42px 90px -52px rgba(0, 0, 0, 0.9);
+    --sidebar: 292px;
+    --mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Ambient aurora + dot grid */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -25%;
+    z-index: -2;
+    background:
+      radial-gradient(44rem 30rem at 8% -10%, rgba(79, 209, 197, 0.16), transparent 62%),
+      radial-gradient(38rem 26rem at 104% 4%, rgba(246, 173, 85, 0.10), transparent 60%),
+      radial-gradient(52rem 42rem at 62% 118%, rgba(110, 168, 254, 0.13), transparent 62%);
+    animation: drift 38s ease-in-out infinite alternate;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(150, 190, 235, 0.055) 1px, transparent 1.4px);
+    background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 100%);
+  }
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(2.2%, 1.6%, 0) scale(1.07); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body::before { animation: none; }
+    * { scroll-behavior: auto !important; }
+  }
+
+  ::selection { background: rgba(79, 209, 197, 0.3); color: #ffffff; }
+
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(104, 148, 196, 0.24); border: 3px solid transparent; background-clip: content-box; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(79, 209, 197, 0.5); background-clip: content-box; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+    letter-spacing: -0.01em;
+    color: var(--accent-2);
+    background: rgba(246, 173, 85, 0.09);
+    border: 1px solid rgba(246, 173, 85, 0.16);
+    border-radius: 6px;
+    padding: 0.1em 0.42em;
+    white-space: nowrap;
+  }
+  h1, h2, h3, h4 { line-height: 1.18; margin: 0 0 0.5em; font-weight: 700; letter-spacing: -0.022em; }
+  h1 { font-size: clamp(2rem, 4.2vw, 3rem); font-weight: 800; }
+  h2 { font-size: clamp(1.4rem, 2.6vw, 1.95rem); }
+  h3 { font-size: 1.06rem; letter-spacing: -0.012em; }
+  p { margin: 0 0 1em; }
+  ul { margin: 0 0 1em; padding-left: 1.15em; }
+  li { margin-bottom: 0.4em; }
+  strong, b { font-weight: 650; }
+
+  /* ---------- Layout ---------- */
+  .app { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    padding: 26px 18px;
+    border-right: 1px solid var(--border-soft);
+    background: linear-gradient(180deg, rgba(9, 19, 32, 0.86), rgba(5, 12, 21, 0.9));
+    backdrop-filter: blur(14px) saturate(1.2);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    min-width: 0;
+    z-index: 30;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 2px 4px; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 11px; flex: none;
+    background: linear-gradient(140deg, #6ee7da, #2f9e8f 70%);
+    display: grid; place-items: center;
+    color: #032018; font-weight: 800; font-size: 0.66rem; letter-spacing: 0.02em;
+    box-shadow: 0 0 0 1px rgba(79, 209, 197, 0.45), 0 10px 26px rgba(79, 209, 197, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  .brand b { display: block; font-size: 0.98rem; letter-spacing: -0.02em; }
+  .brand span { display: block; font-size: 0.72rem; color: var(--muted-2); }
+
+  .nav { display: flex; flex-direction: column; gap: 3px; position: relative; }
+  .nav a {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 11px; border-radius: 10px;
+    color: var(--muted); font-size: 0.9rem; font-weight: 500;
+    text-decoration: none; border: 1px solid transparent; position: relative;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.18s;
+  }
+  .nav a:hover { background: rgba(79, 209, 197, 0.07); color: var(--text); text-decoration: none; transform: translateX(2px); }
+  .nav a.active {
+    background: linear-gradient(90deg, rgba(79, 209, 197, 0.16), rgba(79, 209, 197, 0.03));
+    color: #c9fff8; border-color: rgba(79, 209, 197, 0.32);
+    box-shadow: inset 3px 0 0 var(--accent), 0 10px 30px -18px rgba(79, 209, 197, 0.9);
+  }
+  .nav a .dot {
+    width: 20px; height: 20px; flex: none; border-radius: 50%;
+    border: 1px solid var(--border); display: grid; place-items: center;
+    font-size: 0.6rem; font-family: var(--mono); color: var(--muted-2);
+    transition: all 0.18s;
+  }
+  .nav a.active .dot { border-color: var(--accent); color: #032018; background: var(--accent); box-shadow: 0 0 14px rgba(79, 209, 197, 0.6); }
+  .nav a.done .dot { border-color: var(--ok); color: var(--ok); }
+  .nav a.done .dot::after { content: "\2713"; }
+  .nav a.done .dot span { display: none; }
+  .sidebar-foot { margin-top: auto; font-size: 0.73rem; color: var(--muted-2); line-height: 1.55; padding: 0 4px; }
+
+  .main { min-width: 0; padding: 52px clamp(20px, 5vw, 68px) 100px; }
+  .view { max-width: 1080px; margin: 0 auto; animation: fade 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .view { animation: none; } }
+
+  /* Scroll progress bar */
+  .progress {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 60;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, var(--accent), var(--accent-3) 60%, var(--accent-2));
+    box-shadow: 0 0 18px rgba(79, 209, 197, 0.55);
+  }
+
+  .kicker {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 14px; font-weight: 600;
+  }
+  .kicker::before { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .lede { font-size: 1.09rem; color: var(--muted); max-width: 66ch; }
+
+  /* ---------- Reusable bits ---------- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 14px; font-size: 0.78rem; color: var(--muted);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .pill b { color: var(--accent); font-weight: 700; }
+  .pill.amber b { color: var(--accent-2); }
+
+  .grid { display: grid; gap: 16px; }
+  .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 900px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
+
+  .card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0) 42%), var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 19px 21px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .card h3 { color: var(--accent); margin-bottom: 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card p, .card li { color: var(--muted); font-size: 0.93rem; }
+  .card.hoverable:hover {
+    border-color: rgba(79, 209, 197, 0.45);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(79, 209, 197, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(140deg, #62dccf, #35a99c);
+    color: #032018; border: none;
+    border-radius: 10px; padding: 10px 17px; font-size: 0.9rem; font-weight: 650;
+    font-family: inherit; cursor: pointer; letter-spacing: -0.01em;
+    box-shadow: 0 12px 28px -14px rgba(79, 209, 197, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    transition: filter 0.16s, transform 0.16s, box-shadow 0.16s;
+  }
+  .btn:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 18px 34px -14px rgba(79, 209, 197, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost {
+    background: var(--panel-2); color: var(--muted);
+    border: 1px solid var(--border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  }
+  .btn.ghost:hover { color: var(--text); border-color: rgba(79, 209, 197, 0.5); filter: none; transform: translateY(-1px); }
+  .btn.ghost.on { color: var(--accent); border-color: rgba(79, 209, 197, 0.55); background: var(--accent-dim); box-shadow: 0 0 0 1px rgba(79, 209, 197, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+  .btn.small { padding: 7px 13px; font-size: 0.82rem; }
+  .btn:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .section-head { margin-bottom: 30px; }
+  .section-head h1 { margin-bottom: 12px; }
+  .section-head h1, .hero h1 {
+    background: linear-gradient(120deg, #ffffff 8%, #d6f6f2 42%, #8fb8e8 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .spacer { flex: 1; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 22px;
+    padding: clamp(30px, 4.4vw, 54px);
+    margin-bottom: 30px;
+    overflow: hidden;
+    background:
+      radial-gradient(42rem 24rem at 86% -34%, rgba(79, 209, 197, 0.20), transparent 62%) padding-box,
+      linear-gradient(158deg, rgba(20, 35, 56, 0.96), rgba(7, 15, 26, 0.97)) padding-box,
+      linear-gradient(135deg, rgba(79, 209, 197, 0.6), rgba(110, 168, 254, 0.22) 46%, rgba(246, 173, 85, 0.5)) border-box;
+    box-shadow: 0 46px 90px -56px rgba(79, 209, 197, 0.65), var(--shadow-lg);
+  }
+  .hero::before {
+    content: "";
+    position: absolute; width: 340px; height: 340px; right: -90px; top: -150px;
+    background: radial-gradient(circle, rgba(79, 209, 197, 0.34), transparent 68%);
+    filter: blur(22px);
+    animation: float 16s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(160, 200, 240, 0.07) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(90% 80% at 90% 0%, #000, transparent 72%);
+    mask-image: radial-gradient(90% 80% at 90% 0%, #000, transparent 72%);
+  }
+  @keyframes float { from { transform: translateY(-10px); } to { transform: translateY(24px); } }
+  @media (prefers-reduced-motion: reduce) { .hero::before { animation: none; } }
+  .hero > * { position: relative; z-index: 1; }
+  .hero h1 { max-width: 34ch; }
+  .hero .row { margin-top: 24px; }
+  .hero-cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 40px; }
+  @media (max-width: 720px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 46%), var(--panel);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 17px 19px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat:hover { border-color: rgba(246, 173, 85, 0.4); transform: translateY(-2px); }
+  .stat b {
+    display: block; font-size: 1.8rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
+    background: linear-gradient(120deg, #ffd9a8, #f6ad55);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat span { display: block; margin-top: 4px; font-size: 0.8rem; color: var(--muted); }
+
+  /* ---------- Pipeline ---------- */
+  .pipeline-layout { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 980px) { .pipeline-layout { grid-template-columns: 1fr; } }
+
+  .stages { position: relative; display: flex; flex-direction: column; gap: 11px; }
+  .stage {
+    position: relative;
+    display: grid; grid-template-columns: 46px 1fr auto; gap: 15px; align-items: center;
+    text-align: left;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 44%), var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: var(--radius); padding: 14px 17px;
+    color: var(--text); font-family: inherit; cursor: pointer;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: border-color 0.18s, background 0.18s, opacity 0.25s, transform 0.18s, box-shadow 0.18s;
+    width: 100%;
+  }
+  .stage + .stage::before {
+    content: ""; position: absolute; left: 36px; top: -11px; height: 11px; width: 2px;
+    background: linear-gradient(180deg, transparent, rgba(104, 148, 196, 0.45)); border-radius: 2px;
+  }
+  .stage:hover { border-color: rgba(79, 209, 197, 0.5); border-left-color: var(--accent); transform: translateX(3px); }
+  .stage.active {
+    border-color: rgba(79, 209, 197, 0.6); border-left-color: var(--accent);
+    background: linear-gradient(90deg, rgba(79, 209, 197, 0.16), rgba(17, 30, 49, 0.72) 62%);
+    box-shadow: 0 20px 50px -30px rgba(79, 209, 197, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .stage.playing { border-color: rgba(246, 173, 85, 0.6); border-left-color: var(--accent-2); box-shadow: 0 20px 50px -30px rgba(246, 173, 85, 0.9); }
+  .stage.dim { opacity: 0.38; filter: saturate(0.6); }
+  .stage.hit { border-left-color: var(--accent-2); }
+  .stage-num {
+    width: 40px; height: 40px; border-radius: 12px; flex: none;
+    display: grid; place-items: center;
+    background: linear-gradient(150deg, rgba(79, 209, 197, 0.16), rgba(79, 209, 197, 0.05));
+    border: 1px solid rgba(79, 209, 197, 0.32);
+    color: var(--accent); font-family: var(--mono); font-weight: 700; font-size: 0.98rem;
+    transition: all 0.18s;
+  }
+  .stage.active .stage-num, .stage.playing .stage-num {
+    background: linear-gradient(150deg, #6ee7da, #2f9e8f); color: #032018; border-color: transparent;
+    box-shadow: 0 0 0 4px rgba(79, 209, 197, 0.14), 0 10px 24px -10px rgba(79, 209, 197, 0.9);
+  }
+  .stage.playing .stage-num { background: linear-gradient(150deg, #ffd9a8, #e08b2e); box-shadow: 0 0 0 4px rgba(246, 173, 85, 0.16), 0 10px 24px -10px rgba(246, 173, 85, 0.9); }
+  .stage-body b { display: block; font-size: 0.99rem; letter-spacing: -0.015em; }
+  .stage-body span { display: block; font-size: 0.82rem; color: var(--muted); }
+  .stage-flag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.66rem; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 600;
+    color: var(--accent-2); border: 1px solid rgba(246, 173, 85, 0.4); border-radius: 999px; padding: 3px 10px;
+    background: rgba(246, 173, 85, 0.09); white-space: nowrap;
+  }
+  .stage-flag::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .stage-flag.stop { color: var(--danger); border-color: rgba(252, 129, 129, 0.45); background: rgba(252, 129, 129, 0.1); }
+
+  .detail {
+    position: sticky; top: 26px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%), var(--panel-2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; min-height: 220px;
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+  }
+  .detail h2 { font-size: 1.28rem; margin-bottom: 6px; }
+  .detail .stage-tag { font-size: 0.8rem; color: var(--accent); margin-bottom: 15px; letter-spacing: 0.01em; }
+  .detail .gate {
+    position: relative;
+    border: 1px solid rgba(246, 173, 85, 0.38); background: linear-gradient(180deg, rgba(246, 173, 85, 0.14), rgba(246, 173, 85, 0.06));
+    border-radius: 11px; padding: 12px 14px 12px 16px; font-size: 0.86rem; color: #f6d6ac; margin: 16px 0;
+  }
+  .detail .gate::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent-2); }
+  .detail .gate.stop { border-color: rgba(252, 129, 129, 0.42); background: linear-gradient(180deg, rgba(252, 129, 129, 0.14), rgba(252, 129, 129, 0.05)); color: #f8c3c3; }
+  .detail .gate.stop::before { background: var(--danger); }
+  .detail .gate b { display: block; margin-bottom: 4px; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.68rem; opacity: 0.9; }
+  .skill-line { display: grid; grid-template-columns: auto 1fr; gap: 4px 13px; padding: 9px 8px; margin: 0 -8px; border-radius: 9px; border-bottom: 1px dashed var(--border-soft); transition: background 0.15s; }
+  .skill-line:hover { background: rgba(79, 209, 197, 0.06); }
+  .skill-line:last-child { border-bottom: none; }
+  .skill-line code { justify-self: start; align-self: start; }
+  .skill-line span { font-size: 0.86rem; color: var(--muted); }
+  .artifact-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .artifact-chips code { font-size: 0.77em; }
+  .detail .label { display: flex; align-items: center; gap: 8px; font-size: 0.67rem; letter-spacing: 0.17em; text-transform: uppercase; color: var(--muted-2); margin: 20px 0 6px; }
+  .detail .label::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-soft), transparent); }
+
+  /* ---------- Paths ---------- */
+  .scenario-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .path-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 18px 0; }
+  .path-step {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--panel-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .path-step.gate { border-color: rgba(246, 173, 85, 0.5); color: var(--accent-2); }
+  .path-arrow { color: var(--muted-2); font-size: 0.9rem; }
+
+  /* ---------- Artifacts tree ---------- */
+  .tree {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%), var(--panel-2);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 10px;
+    font-family: var(--mono); font-size: 0.85rem;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  }
+  .tree-node { border-radius: 8px; }
+  .tree-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; cursor: pointer; color: var(--muted); transition: background 0.15s, color 0.15s; }
+  .tree-row:hover { background: rgba(79, 209, 197, 0.08); color: var(--text); }
+  .tree-row.selected { background: var(--accent-dim); color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+  .tree-row .tw { width: 12px; color: var(--muted-2); flex: none; font-size: 0.68rem; }
+  .tree-row.dir { color: var(--text); font-weight: 600; }
+  .tree-row.dir .tw { color: var(--accent-2); }
+  .tree-children { margin-left: 17px; border-left: 1px dashed var(--border-soft); padding-left: 7px; }
+  .tree-children.collapsed { display: none; }
+  .tree-detail {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 32%), var(--panel-2);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .tree-detail h3 { font-family: var(--mono); color: var(--accent-2); font-size: 0.98rem; word-break: break-word; }
+  .tree-detail p { color: var(--muted); }
+
+  /* ---------- Skills explorer ---------- */
+  .search {
+    width: 100%; background: var(--panel-solid); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 16px 13px 42px; color: var(--text);
+    font-family: inherit; font-size: 0.95rem; margin-bottom: 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--shadow);
+    transition: border-color 0.18s, box-shadow 0.18s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236f8399' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.2-3.2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 15px center;
+  }
+  .search::placeholder { color: var(--muted-2); }
+  .search:focus { border-color: rgba(79, 209, 197, 0.55); box-shadow: 0 0 0 4px rgba(79, 209, 197, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03); outline: none; }
+  .family-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 22px; }
+  .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .skill-card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 44%), var(--panel);
+    border: 1px solid var(--border); border-radius: 12px; padding: 15px 16px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  }
+  .skill-card::before {
+    content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px; border-radius: 2px;
+    background: var(--fam, var(--accent)); opacity: 0.55; transition: opacity 0.18s;
+  }
+  .skill-card:hover { border-color: color-mix(in srgb, var(--fam, var(--accent)) 55%, var(--border)); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .skill-card:hover::before { opacity: 1; }
+  .skill-card code { font-size: 0.82em; }
+  .skill-card p { margin: 9px 0 0; font-size: 0.85rem; color: var(--muted); }
+  .skill-card .fam { display: inline-flex; align-items: center; gap: 6px; font-size: 0.64rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted-2); margin-top: 10px; font-weight: 600; }
+  .fam-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--fam, var(--accent)); box-shadow: 0 0 8px var(--fam, var(--accent)); }
+  .empty { color: var(--muted); padding: 34px; text-align: center; }
+
+  /* ---------- Getting started ---------- */
+  .steps { display: flex; flex-direction: column; gap: 15px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 17px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 40%), var(--panel);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 19px 21px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .step:hover { border-color: rgba(79, 209, 197, 0.35); transform: translateY(-2px); }
+  .step-num {
+    width: 44px; height: 44px; border-radius: 13px;
+    background: linear-gradient(150deg, #6ee7da, #2f9e8f); color: #032018;
+    display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 1.05rem;
+    box-shadow: 0 0 0 4px rgba(79, 209, 197, 0.1), 0 12px 26px -12px rgba(79, 209, 197, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+  .step h3 { margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: 0.93rem; }
+  .cmd {
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    background: linear-gradient(180deg, #081422, #050e18); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 13px; margin: 7px 0; font-family: var(--mono); font-size: 0.86rem; color: var(--accent);
+    overflow-x: auto; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .cmd::before { content: "$"; color: var(--muted-2); flex: none; }
+  .cmd > span { flex: 1; text-align: left; }
+  .cmd .copy { flex: none; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 4px 10px; font-size: 0.71rem; cursor: pointer; font-family: inherit; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+  .cmd .copy:hover { color: var(--accent); border-color: var(--accent); background: rgba(79, 209, 197, 0.08); }
+
+  /* ---------- Quiz ---------- */
+  .quiz-q {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 40%), var(--panel);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 21px; margin-bottom: 15px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  }
+  .quiz-q h3 { color: var(--text); font-size: 1rem; letter-spacing: -0.01em; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 13px; }
+  .choice {
+    position: relative; text-align: left; background: rgba(9, 18, 31, 0.6); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 15px 11px 40px; color: var(--muted); font-family: inherit;
+    font-size: 0.9rem; cursor: pointer; transition: border-color 0.16s, color 0.16s, background 0.16s, transform 0.16s;
+  }
+  .choice::before {
+    content: ""; position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border); transition: all 0.16s;
+  }
+  .choice:hover:not(:disabled) { border-color: rgba(79, 209, 197, 0.55); color: var(--text); transform: translateX(2px); }
+  .choice:hover:not(:disabled)::before { border-color: var(--accent); }
+  .choice:disabled { cursor: default; }
+  .choice.correct { border-color: rgba(104, 211, 145, 0.6); background: rgba(104, 211, 145, 0.1); color: #c6f3d7; }
+  .choice.correct::before { content: "\2713"; border-color: var(--ok); background: var(--ok); color: #04220f; display: grid; place-items: center; font-size: 0.6rem; font-weight: 700; }
+  .choice.wrong { border-color: rgba(252, 129, 129, 0.6); background: rgba(252, 129, 129, 0.09); color: #f8c3c3; }
+  .choice.wrong::before { content: "\00d7"; border-color: var(--danger); background: var(--danger); color: #2a0808; display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; }
+  .explain { margin-top: 13px; font-size: 0.88rem; color: var(--muted); border-left: 2px solid var(--accent); padding: 2px 0 2px 13px; }
+  .score { font-size: 1.15rem; font-weight: 700; background: linear-gradient(120deg, #ffffff, #8fe6dc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* ---------- Pager ---------- */
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--border-soft); }
+  .pager a {
+    display: flex; flex-direction: column; gap: 3px; padding: 13px 17px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--muted);
+    font-size: 0.78rem; text-decoration: none; max-width: 48%; min-width: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: border-color 0.18s, transform 0.18s, background 0.18s;
+  }
+  .pager a:hover { color: var(--accent); border-color: rgba(79, 209, 197, 0.45); text-decoration: none; transform: translateY(-2px); }
+  .pager a b { color: var(--text); font-size: 0.95rem; letter-spacing: -0.01em; }
+  .pager a.next { text-align: right; margin-left: auto; }
+  .pager a .ph { color: var(--muted-2); }
+
+  .footer-note { margin-top: 40px; font-size: 0.8rem; color: var(--muted-2); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar {
+      position: sticky; top: 0; height: auto; z-index: 40;
+      flex-direction: row; align-items: center; gap: 14px;
+      padding: 11px 14px; overflow-x: auto; overflow-y: hidden;
+      border-right: none; border-bottom: 1px solid var(--border-soft);
+      background: rgba(6, 14, 24, 0.9);
+    }
+    .sidebar { scrollbar-width: none; }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .brand span, .sidebar-foot { display: none; }
+    .brand { padding: 0; }
+    .brand-mark { width: 32px; height: 32px; }
+    .nav { flex-direction: row; gap: 6px; }
+    .nav a { white-space: nowrap; padding: 8px 12px; }
+    .nav a:hover { transform: none; }
+    .nav a .dot { display: none; }
+    .nav a.active { box-shadow: inset 0 -2px 0 var(--accent); }
+    .main { padding: 28px 18px 76px; }
+    .detail { position: static; }
+    .hero { border-radius: 18px; }
+  }
+
+  /* ===================== v3 polish ===================== */
+  .ico { display: inline-block; vertical-align: middle; }
+  svg.ico { width: 1em; height: 1em; }
+
+  /* Hero grid + terminal */
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr); gap: 40px; align-items: center; }
+  @media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; gap: 30px; } }
+  .hero h1 { max-width: none; font-size: clamp(1.95rem, 3.7vw, 2.85rem); }
+  .hero-copy .lede { max-width: 48ch; }
+
+  .hero-visual { position: relative; }
+  .hero-visual::before {
+    content: ""; position: absolute; inset: -34px -24px; z-index: 0; pointer-events: none;
+    background: radial-gradient(58% 58% at 68% 30%, rgba(79, 209, 197, 0.24), transparent 72%);
+    filter: blur(20px);
+  }
+  .terminal {
+    position: relative; z-index: 1; border-radius: 14px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(11, 22, 37, 0.96), rgba(5, 11, 20, 0.98));
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden; font-family: var(--mono); font-size: 0.79rem; line-height: 1.75;
+  }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; border-bottom: 1px solid var(--border-soft); background: rgba(255, 255, 255, 0.022); }
+  .term-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .term-bar .dot.r { background: #ff5f57; }
+  .term-bar .dot.y { background: #febc2e; }
+  .term-bar .dot.g { background: #28c840; }
+  .term-title { margin-left: 8px; color: var(--muted-2); font-size: 0.71rem; letter-spacing: 0.08em; }
+  .term-body { padding: 15px 17px 17px; display: flex; flex-direction: column; gap: 8px; }
+  .term-line { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .term-line .prompt { color: var(--accent); margin-right: 9px; }
+  .term-line .ok { color: var(--ok); margin-right: 9px; }
+  .term-line .next { color: var(--accent-2); margin-right: 9px; }
+  .term-line .dim { color: var(--muted-2); }
+  .term-line .cmd-text { color: var(--text); }
+  .term-line.first { padding-bottom: 4px; }
+  .cursor { display: inline-block; width: 8px; height: 1.05em; background: var(--accent); vertical-align: -3px; animation: blink 1.1s steps(1) infinite; box-shadow: 0 0 10px rgba(79, 209, 197, 0.7); }
+  @keyframes blink { 50% { opacity: 0; } }
+  .term-badges { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; justify-content: flex-end; }
+  .term-badges span { font-size: 0.7rem; color: var(--muted-2); border: 1px solid var(--border-soft); border-radius: 999px; padding: 3px 11px; background: rgba(255, 255, 255, 0.02); }
+
+  /* Idea cards with icon tiles */
+  .idea { display: grid; grid-template-columns: 46px 1fr; gap: 15px; align-items: start; }
+  .idea-ico {
+    width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: var(--accent);
+    background: linear-gradient(150deg, rgba(79, 209, 197, 0.18), rgba(79, 209, 197, 0.04));
+    border: 1px solid rgba(79, 209, 197, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 10px 24px -16px rgba(79, 209, 197, 0.9);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .idea:hover .idea-ico { transform: translateY(-2px) scale(1.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 18px 32px -16px rgba(79, 209, 197, 1); }
+  .idea-ico .ico { width: 22px; height: 22px; }
+  .idea-body h3 { margin-bottom: 6px; }
+
+  /* Stage icons */
+  .stage-ico { display: inline-flex; color: var(--accent); margin-right: 9px; vertical-align: -2px; opacity: 0.9; }
+  .stage-ico .ico { width: 15px; height: 15px; }
+
+  /* Stat icons */
+  .stat-top { position: absolute; top: 15px; right: 16px; color: var(--muted-2); opacity: 0.55; transition: color 0.2s, opacity 0.2s; }
+  .stat:hover .stat-top { color: var(--accent-2); opacity: 1; }
+  .stat-top .ico { width: 18px; height: 18px; }
+
+  /* Pointer spotlight */
+  .spotlight { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(560px circle at var(--mx, 50%) var(--my, 12%), rgba(79, 209, 197, 0.07), transparent 42%); }
+
+  /* Scroll reveal (staggered as elements enter the viewport) */
+  .view.revealing .card, .view.revealing .stat, .view.revealing .stage, .view.revealing .skill-card,
+  .view.revealing .step, .view.revealing .quiz-q, .view.revealing .tree, .view.revealing .tree-detail {
+    opacity: 0; translate: 0 14px;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), translate 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .view.revealing .card.in, .view.revealing .stat.in, .view.revealing .stage.in, .view.revealing .skill-card.in,
+  .view.revealing .step.in, .view.revealing .quiz-q.in, .view.revealing .tree.in, .view.revealing .tree-detail.in {
+    opacity: 1; translate: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view.revealing .card, .view.revealing .stat, .view.revealing .stage, .view.revealing .skill-card,
+    .view.revealing .step, .view.revealing .quiz-q, .view.revealing .tree, .view.revealing .tree-detail {
+      opacity: 1; translate: none; transition: none;
+    }
+    .cursor { animation: none; }
+  }
+
+  /* ===================== v4 ===================== */
+  /* Per-section accent hue */
+  :root { --sec: #4fd1c5; }
+  .kicker { color: var(--sec); }
+  .kicker::before { background: linear-gradient(90deg, var(--sec), transparent); }
+  .section-head h1 {
+    background: linear-gradient(115deg, #ffffff 0%, #ffffff 34%, var(--sec) 155%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .detail .stage-tag { color: var(--sec); }
+  .progress { background: linear-gradient(90deg, var(--sec), color-mix(in srgb, var(--sec) 50%, #ffffff)); }
+  .nav a.active {
+    background: linear-gradient(90deg, rgba(79, 209, 197, 0.16), rgba(79, 209, 197, 0.03));
+    background: linear-gradient(90deg, color-mix(in srgb, var(--sec) 16%, transparent), color-mix(in srgb, var(--sec) 3%, transparent));
+    border-color: color-mix(in srgb, var(--sec) 34%, transparent);
+    color: var(--text);
+    box-shadow: inset 3px 0 0 var(--sec), 0 10px 30px -18px var(--sec);
+  }
+  .nav a.active .dot { border-color: var(--sec); background: var(--sec); color: #04202b; box-shadow: 0 0 14px var(--sec); }
+
+  /* Editorial ghost numeral */
+  .section-head { position: relative; }
+  .ghost-num {
+    position: absolute; top: -24px; right: 0; font-family: var(--mono); font-weight: 700;
+    font-size: clamp(3.4rem, 8vw, 6.2rem); line-height: 1; letter-spacing: -0.05em;
+    color: var(--sec); opacity: 0.1; pointer-events: none; user-select: none;
+    -webkit-mask-image: linear-gradient(180deg, #000, transparent 78%);
+    mask-image: linear-gradient(180deg, #000, transparent 78%);
+  }
+  @media (max-width: 700px) { .ghost-num { display: none; } }
+
+  /* Film grain */
+  .grain {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Richer hero tint */
+  .hero {
+    background:
+      radial-gradient(42rem 24rem at 86% -34%, rgba(79, 209, 197, 0.20), transparent 62%) padding-box,
+      radial-gradient(32rem 22rem at 4% 120%, rgba(110, 168, 254, 0.17), transparent 60%) padding-box,
+      linear-gradient(158deg, rgba(20, 35, 56, 0.96), rgba(7, 15, 26, 0.97)) padding-box,
+      linear-gradient(135deg, rgba(79, 209, 197, 0.6), rgba(110, 168, 254, 0.22) 46%, rgba(246, 173, 85, 0.5)) border-box;
+  }
+
+  /* Site footer */
+  .site-foot {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border-soft);
+    font-size: 0.79rem; color: var(--muted-2);
+  }
+  .site-foot .foot-links { display: flex; flex-wrap: wrap; gap: 16px; }
+  .site-foot a { color: var(--muted); }
+  .site-foot a:hover { color: var(--sec); }
+
+  /* Artifact tree icons */
+  .tree-ico { display: inline-flex; color: var(--muted-2); flex: none; transition: color 0.15s; }
+  .tree-row.dir .tree-ico { color: var(--accent-2); }
+  .tree-row:hover .tree-ico, .tree-row.selected .tree-ico { color: var(--sec); }
+  .tree-ico .ico { width: 14px; height: 14px; }
+
+  /* Family-colored chips */
+  a.btn { text-decoration: none; }
+  a.btn:hover { text-decoration: none; }
+  a.btn .ico { width: 16px; height: 16px; }
+
+  .family-chips .btn .fam-dot { margin-right: 1px; }
+  .family-chips .btn.ghost.on {
+    color: var(--fam, var(--accent));
+    border-color: color-mix(in srgb, var(--fam, var(--accent)) 55%, transparent);
+    background: color-mix(in srgb, var(--fam, var(--accent)) 14%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--fam, var(--accent)) 18%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Button shine */
+  .btn { position: relative; overflow: hidden; }
+  .btn::after {
+    content: ""; position: absolute; top: -20%; left: -140%; width: 60%; height: 140%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: skewX(-18deg); transition: left 0.55s ease;
+  }
+  .btn:hover::after { left: 150%; }
+  .btn.ghost::after { display: none; }
+
+  /* Copy success */
+  .cmd .copy.done { color: var(--ok); border-color: rgba(104, 211, 145, 0.55); background: rgba(104, 211, 145, 0.1); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SDLC</div>
+      <div>
+        <b>SDLC guide</b>
+        <span>an interactive tour</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections"></nav>
+    <div class="sidebar-foot">
+      Generated from <code>skills/sdlc/SKILL.md</code>.<br>
+      Press <b>&larr;</b> / <b>&rarr;</b> to move between sections.
+    </div>
+  </aside>
+  <main class="main">
+    <div class="view" id="view" tabindex="-1"></div>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Data
+   ============================================================ */
+
+const PIPELINE = [
+  {
+    id: "issue", n: 1, title: "Issue", tagline: "Capture and classify the work",
+    summary: "Turn an idea or a bug report into a structured, reviewable GitHub issue. Triage and prioritization keep the backlog focused on what matters.",
+    gate: null,
+    skills: [
+      ["create-issue", "Draft a structured issue with background, prioritized acceptance criteria, and a justified time budget."],
+      ["review-issue", "Audit the issue for completeness, clarity, and acceptance-criteria quality before any work starts."],
+      ["qualify-issue", "Drive a multi-round Q&A loop with an external reporter until the issue is fully understood."],
+      ["triage-issues", "Classify and label incoming issues by type, component, platform, urgency, and importance."],
+      ["prioritize-issues", "Rank the backlog by RICE: reach, impact, confidence, and effort."],
+      ["check-duplicates", "Search for duplicate issues and existing fix PRs before investing effort."]
+    ],
+    artifacts: ["GitHub issue", "labels", "RICE score"],
+    entries: ["issue", "issues", "qualify", "bugfix", "reproduce"]
+  },
+  {
+    id: "needs", n: 2, title: "Needs validation", tagline: "Should we build this at all?",
+    summary: "Assess whether the feature addresses a genuine need before spending effort on requirements. This is the first gate, and stopping here is a success, not a failure.",
+    gate: { kind: "stop", label: "Gate: stop if not needed", text: "A \"not needed\" verdict stops the pipeline and records the findings on the issue, so the decision is preserved for when conditions change." },
+    skills: [
+      ["create-needs-assessment", "Evaluate the problem, stakeholders, alternatives, and the cost of inaction."],
+      ["review-needs-assessment", "Audit evidence rigor, stakeholder coverage, alternative paths, and verdict soundness."]
+    ],
+    artifacts: ["needs-assessment.md", "review-needs-assessment.md"],
+    entries: ["needs"]
+  },
+  {
+    id: "requirements", n: 3, title: "Requirements & research", tagline: "What are we building, and is it viable?",
+    summary: "Write testable requirements, design any CLI surface, survey prior art, analyze the internal code you will touch, and confirm feasibility. Feasibility is the second gate.",
+    gate: { kind: "stop", label: "Gate: stop if not feasible", text: "If the feature is not technically, financially, or operationally viable, stop before design and record the findings on the issue." },
+    skills: [
+      ["create-requirements", "Draft functional and non-functional requirements with acceptance criteria."],
+      ["create-cli-design", "Design the command tree, options, exit codes, and example terminal sessions."],
+      ["review-requirements", "Audit clarity, completeness, testability, and conflicts."],
+      ["create-existing-solutions", "Survey libraries, products, internal code, and prior art, then recommend adopt, extend, or build."],
+      ["review-existing-solutions", "Audit search coverage, evaluation rigor, and recommendation soundness."],
+      ["create-codebase-analysis", "Analyze the internal code and architecture the feature will touch, with changeability per component."],
+      ["review-codebase-analysis", "Audit coverage, accuracy, changeability rigor, and migration impact."],
+      ["create-feasibility", "Assess technical, financial, and operational viability."],
+      ["review-feasibility", "Audit completeness, risk coverage, and the go/no-go decision."]
+    ],
+    artifacts: ["requirements.md", "cli-design.md", "existing-solutions.md", "codebase-analysis.md", "feasibility.md"],
+    entries: ["requirements", "existing-solutions", "codebase-analysis", "feasibility"]
+  },
+  {
+    id: "design", n: 4, title: "Design", tagline: "Decide how it will work",
+    summary: "Turn requirements into a technical design: specification, lifecycle, mockups, telemetry, observability, and a plan. Validate the risky assumptions, then decompose into tasks.",
+    gate: { kind: "signoff", label: "Gate: plan sign-off", text: "The author approves the published plan before implementation begins. An invalidated critical assumption sends you back to the design phase that owns it." },
+    skills: [
+      ["create-specifications", "Define architecture, data models, and API contracts."],
+      ["review-specifications", "Audit for ambiguities, inconsistencies, and gaps."],
+      ["create-lifecycle", "Document resource states, transitions, invariants, and retention."],
+      ["create-mockups", "Define UI wireframes, screens, states, and flows."],
+      ["create-telemetry", "Define analytics events, success metrics, and funnels."],
+      ["create-observability", "Define logging, metrics, tracing, alerts, and SLOs."],
+      ["create-plan", "Lay out phases, milestones, dependencies, and a risk register."],
+      ["publish-plan", "Commit the plan to a branch, open a draft PR, and comment on the issue."],
+      ["validate-assumptions", "Design and run minimal code experiments against the riskiest technical assumptions."],
+      ["create-tasks-decomposition", "Break the plan into XS to L tasks with a critical path."],
+      ["review-tasks-decomposition", "Audit granularity, completeness, and dependencies."]
+    ],
+    artifacts: ["specification.md", "api.yaml", "lifecycle.md", "mockups.md", "telemetry.md", "observability.md", "alerts.yaml", "plan.md", "assumption-validation.md", "tasks/N-<slug>.md"],
+    entries: ["specifications", "lifecycle", "mockups", "telemetry", "observability", "plan", "publish-plan", "validate-assumptions", "tasks"]
+  },
+  {
+    id: "build", n: 5, title: "Development & testing", tagline: "Tests, then code, then proof",
+    summary: "Tests are written before implementation. After the code comes a refactor pass, a review, docs, and visual proof, then a PR that is validated, verified, reviewed, and shepherded to merge.",
+    gate: { kind: "signoff", label: "Gate: proof and sign-off", text: "Visual proof and user sign-off are captured on the branch before the PR opens. CI must be green and reviewer comments addressed before merge." },
+    skills: [
+      ["create-tests", "Write a test plan covering acceptance criteria and edge cases."],
+      ["review-tests", "Audit coverage, correctness, and maintainability."],
+      ["create-implementation", "Implement following the spec and plan, and run the tests."],
+      ["refactor-implementation", "Introduce only the abstractions and seams the change needs, preserving behavior."],
+      ["review-implementation", "Audit correctness, quality, security, and spec alignment."],
+      ["create-documentation", "Write Divio-structured docs: tutorial, how-to, reference, explanation."],
+      ["validate-implementation", "Capture a CLI demo or web capture on the branch and get sign-off before the PR."],
+      ["create-pr", "Open a PR with description, acceptance-criteria coverage, issue link, and reviewers."],
+      ["assess-pr-risk", "Estimate risk and confidence to route how much review the PR needs (advisory)."],
+      ["validate-pr", "Judge whether the PR builds the right product."],
+      ["verify-pr", "Prove conformance to the acceptance criteria with traceability and runtime evidence."],
+      ["review-pr", "Run the full code-craft review."],
+      ["handle-pr-ci", "Diagnose failing checks, fix, push, and confirm green."],
+      ["handle-pr-reviewer-feedback", "Address reviewer comments, push, and re-request review."],
+      ["merge-pr", "Verify approvals and CI, merge, delete the branch, and confirm the issue closed."]
+    ],
+    artifacts: ["tests.md", "refactorings.md", "review-implementation.md", "docs", "captured-proof.json", "Pull request"],
+    entries: ["implementation", "documentation", "validate-implementation", "pr", "assess-pr-risk", "validate-pr", "verify-pr", "handle-pr-ci", "handle-pr-reviewer-feedback", "merge-pr"]
+  },
+  {
+    id: "deploy", n: 6, title: "Deployment", tagline: "Ship it safely",
+    summary: "Deploy the merged change to the target environment, run smoke tests, and verify the rollback plan before you walk away.",
+    gate: null,
+    skills: [
+      ["deploy-pr", "Deploy merged changes, run smoke tests, and confirm the rollback plan."],
+      ["observe-production", "Watch SLOs, error rates, latency, and throughput for the deployed feature."]
+    ],
+    artifacts: ["deployed change", "smoke test results"],
+    entries: ["deploy"]
+  },
+  {
+    id: "learn", n: 7, title: "Learnings", tagline: "Close the loop",
+    summary: "Reflect on what went well, the root causes of what did not, and the actions that follow. This turns one feature's experience into durable knowledge.",
+    gate: null,
+    skills: [
+      ["create-learnings", "Capture a structured retrospective."],
+      ["review-learnings", "Audit actionability, specificity, completeness, and balance."]
+    ],
+    artifacts: ["learnings/N-<slug>.md"],
+    entries: ["learnings"]
+  }
+];
+
+const IDEAS = [
+  { icon: "\u21c4", title: "Create / review pairing", body: "Every create-* skill has a matching review-* skill that audits it in a fresh subagent context. 25+ pairs. The verdict is approved, changes-requested, or rejected, and it lives in a file beside the artifact." },
+  { icon: "\u25a4", title: "File-first, traceable", body: "Requirements, specs, plans, and findings are files under .sdlc/, not chat history. IDs like FEAT-42, FR-1, and TC-5 link issue to requirement to test to code." },
+  { icon: "\u26a0", title: "Gates and backtracking", body: "Phases stop when the work is not needed or not feasible. A failure backtracks to the nearest phase that owns the root cause, never silently skipping ahead." },
+  { icon: "\u2192", title: "Proportionality", body: "Small work takes a fast path: a typo does not need a specification. When in doubt, include more phases rather than fewer." },
+  { icon: "\u21ba", title: "Resumable state", body: "A state file and a per-feature progress log mean any session, on any machine, can pick up exactly where the last one stopped." },
+  { icon: "\u25c9", title: "Knowledge records", body: "Assumptions, decisions, questions, and learnings can be captured at any phase. They survive the feature and answer the question \"why is it like this?\" months later." },
+  { icon: "\u2248", title: "Measured process", body: "Each skill records one telemetry event to a local SQLite database, so you can see where your SDLC time actually goes and where it bottlenecks." },
+  { icon: "\u29bf", title: "Concurrent-safe", body: "Skills re-read shared .sdlc/ files at each step instead of trusting an earlier read, because other sessions may have changed them." }
+];
+
+const SCENARIOS = [
+  { id: "feature", label: "Full feature", blurb: "A new capability that needs design, review, and sign-off. The default path.", stages: ["issue", "needs", "requirements", "design", "build", "deploy", "learn"], steps: ["create-issue", "create-needs-assessment", "create-requirements", "create-specifications", "create-plan", "create-tests", "create-implementation", "create-pr", "merge-pr", "deploy-pr", "create-learnings"] },
+  { id: "bug", label: "Bug fix", blurb: "A reported defect. Reproduce it first, fix it, then prove the before and after with recordings.", stages: ["issue", "build"], steps: ["check-duplicates", "reproduce-issue", "create-implementation", "validate-implementation", "create-pr"] },
+  { id: "hotfix", label: "Hotfix", blurb: "A production incident that cannot wait for the full pipeline.", stages: ["build", "deploy"], steps: ["create-implementation", "validate-implementation", "create-pr", "merge-pr", "deploy-pr"] },
+  { id: "config", label: "Config change", blurb: "A threshold, a feature flag, or a YAML value.", stages: ["build", "deploy"], steps: ["create-implementation", "create-pr", "merge-pr", "deploy-pr"] },
+  { id: "dep", label: "Dependency update", blurb: "Bump a library or patch a CVE in a transitive dependency.", stages: ["build"], steps: ["create-implementation", "validate-implementation", "create-pr", "review-pr", "merge-pr"] },
+  { id: "refactor", label: "Refactor", blurb: "A behavior-preserving change: rename, extract a helper, improve naming.", stages: ["build"], steps: ["create-tests", "create-implementation", "refactor-implementation", "validate-implementation", "create-pr", "review-pr", "merge-pr"] },
+  { id: "docs", label: "Docs only", blurb: "Fix a typo or add a missing example.", stages: ["build"], steps: ["create-documentation", "create-pr", "merge-pr"] }
+];
+
+const FAST_PATH_RULES = [
+  "Create an issue when the change needs context, discussion, or prioritization. For self-explanatory changes, the PR description is enough traceability.",
+  "Always open a PR, even for a hotfix, so CI runs and the change is reviewable after the fact.",
+  "Skip requirements, specification, plan, and tasks only when the change is well understood and fits in a single commit.",
+  "Include review-implementation when the fix is non-trivial or touches security-adjacent code.",
+  "Include create-tests when the change affects behavior or could regress.",
+  "Never skip CI verification before merging. Fast paths that skip review-pr run assess-pr-risk before merge instead."
+];
+
+const ARTIFACT_TREE = {
+  name: ".sdlc/", desc: "All lifecycle artifacts live here, versioned with the code and reviewable in a PR.",
+  children: [
+    { name: ".gitignore", desc: "Excludes local-only state: state.yml and features/*/progress.md." },
+    { name: "state.yml", desc: "Orchestrator run state. current_phase always holds the next phase to run, plus github_ref and the feature directory. Local-only, never committed." },
+    { name: "context/", desc: "Project-level context that every artifact aligns to.", children: [
+      { name: "project-overview.md", desc: "Project goals, scope, and key stakeholders." },
+      { name: "architecture.md", desc: "System topology, components, entity relationships, and data flow." },
+      { name: "conventions.md", desc: "Naming, structure, and coding standards. The source of style rules applied to every document." },
+      { name: "vocabulary.md", desc: "Domain and technical terms, so agents and humans share one language." },
+      { name: "infrastructure.md", desc: "Technology stack, development tooling, CI/CD, environments, and deployment." },
+      { name: "schema.dbml", desc: "Database schema in DBML, present when the project uses a database." },
+      { name: "goals.md, roadmap.md, service-levels.md", desc: "Objectives and KPIs, sequenced initiatives, and SLOs. Optional, each created by its own create-* skill." }
+    ] },
+    { name: "features/", desc: "One directory per feature, named after its issue number.", children: [
+      { name: "N-<slug>/", desc: "Example: 42-notification-system for issue #42. A p-prefix such as p1-onboarding marks a pending feature with no GitHub issue yet.", children: [
+        { name: "needs-assessment.md", desc: "Does this address a genuine need? The first gate." },
+        { name: "requirements.md", desc: "Functional and non-functional requirements. IDs FR-1 and NFR-2." },
+        { name: "cli-design.md", desc: "Command tree, options, exit codes, and example sessions, when the feature has a CLI." },
+        { name: "existing-solutions.md", desc: "Prior-art survey with an adopt, extend, or build recommendation." },
+        { name: "codebase-analysis.md", desc: "The internal code and architecture the feature will touch, with changeability per component." },
+        { name: "feasibility.md", desc: "Technical, financial, and operational viability. The second gate." },
+        { name: "specification.md", desc: "Architecture, data models, and API contracts. Companion api.yaml when there is an API." },
+        { name: "lifecycle.md", desc: "Resource states, transitions, invariants, and retention." },
+        { name: "mockups.md", desc: "UI wireframes, screens, states, and flows." },
+        { name: "telemetry.md", desc: "Analytics events, success metrics, and the funnel." },
+        { name: "observability.md", desc: "Logging, metrics, tracing, alerts, and SLOs. Companion alerts.yaml when alerts are defined." },
+        { name: "plan.md", desc: "Phases, milestones, dependencies, and a risk register. Published for author sign-off." },
+        { name: "assumption-validation.md", desc: "Minimal experiments run against the riskiest technical assumptions." },
+        { name: "tasks/", desc: "One file per task. Status flows draft, pending, in-progress, blocked, done, cancelled." },
+        { name: "tests.md", desc: "Test plan covering acceptance criteria and edge cases. IDs TC-5." },
+        { name: "refactorings.md", desc: "The abstractions and seams the change actually justified." },
+        { name: "review-<artifact>.md", desc: "Findings beside each artifact, with a verdict: approved, changes-requested, or rejected." },
+        { name: "progress.md", desc: "Pipeline status, task progress, and the session log. Local-only, never committed." }
+      ] }
+    ] },
+    { name: "knowledge/", desc: "Cross-cutting records you can create at any phase.", children: [
+      { name: "assumptions/", desc: "Basis, risk, and validation plan. Active to Validated, Invalidated, or Deferred." },
+      { name: "decisions/", desc: "Context, alternatives, trade-offs, and consequences. Proposed to Accepted, Deprecated, or Superseded." },
+      { name: "questions/", desc: "A named answerer, what it blocks, and a needed-by date. Open to Resolved, Deferred, or Dismissed." },
+      { name: "learnings/", desc: "Structured retrospectives after a feature." }
+    ] },
+    { name: "templates/", desc: "Editable defaults used by the create-* skills, kept in sync by /update-sdlc-templates." }
+  ]
+};
+
+const SKILLS = [
+  // Setup and maintenance
+  ["sdlc", "Setup", "The orchestrator. Runs phases in sequence, handles review cycles, and manages backtracking."],
+  ["sync-sdlc", "Setup", "Create or update .sdlc/ by reconciling the codebase with existing artifacts."],
+  ["initialize-sdlc-directory", "Setup", "Bootstrap the .sdlc/ structure and populate templates."],
+  ["update-sdlc-templates", "Setup", "Pull upstream template improvements and merge them with your edits."],
+  ["configure-labels", "Setup", "Create or update the standard issue label taxonomy in the repository."],
+  ["onboard-repository", "Setup", "Bootstrap SDLC, configure triaging, and apply standardization to a repository."],
+  ["sdlc-status", "Setup", "Show a progress dashboard for features without modifying any artifacts."],
+  ["propagate-changes", "Setup", "Restore consistency in both directions across the artifact chain after a change."],
+  ["sync-repository", "Setup", "Run the skills that keep code, SDLC, and documentation consistent."],
+
+  // Issue intake
+  ["create-issue", "Issue intake", "Create a GitHub issue with background, prioritized acceptance criteria, and a time budget."],
+  ["review-issue", "Issue intake", "Audit an issue for completeness, clarity, and acceptance-criteria quality."],
+  ["qualify-issue", "Issue intake", "Run a Q&A loop with an external reporter until the issue is fully understood."],
+  ["triage-issue", "Issue intake", "Classify and label a single issue."],
+  ["triage-issues", "Issue intake", "Classify and label incoming issues by type, component, platform, urgency, and importance."],
+  ["prioritize-issues", "Issue intake", "Score and rank a backlog by RICE: reach, impact, confidence, and effort."],
+  ["check-duplicates", "Issue intake", "Check for duplicate issues and existing fix PRs before investing effort."],
+  ["check-issue-status", "Issue intake", "Determine whether an issue is already addressed in the codebase."],
+  ["check-issues-status", "Issue intake", "Batch-check which issues are already addressed in the code."],
+  ["create-discussion", "Issue intake", "Create a GitHub Discussion for a feature request routed away from issues."],
+  ["label-issue", "Issue intake", "Add relevant labels to an issue based on its description."],
+
+  // Requirements and research
+  ["create-needs-assessment", "Requirements & research", "Evaluate whether a proposed feature addresses a genuine need."],
+  ["review-needs-assessment", "Requirements & research", "Audit evidence rigor, stakeholder coverage, and verdict soundness."],
+  ["create-requirements", "Requirements & research", "Draft functional and non-functional requirements from a brief or issue."],
+  ["review-requirements", "Requirements & research", "Audit requirements for clarity, completeness, testability, and conflicts."],
+  ["create-cli-design", "Requirements & research", "Design the command tree, options, exit codes, and example sessions."],
+  ["create-existing-solutions", "Requirements & research", "Survey prior art and recommend adopt, extend, or build."],
+  ["review-existing-solutions", "Requirements & research", "Audit search coverage, evaluation rigor, and recommendation soundness."],
+  ["create-codebase-analysis", "Requirements & research", "Analyze the internal code and architecture a feature will touch."],
+  ["review-codebase-analysis", "Requirements & research", "Audit coverage, accuracy, changeability rigor, and migration impact."],
+  ["create-feasibility", "Requirements & research", "Assess technical, financial, and operational viability."],
+  ["review-feasibility", "Requirements & research", "Audit completeness, risk coverage, and the go/no-go decision."],
+  ["create-domain-model", "Requirements & research", "Model an unfamiliar domain: entities, relationships, glossary, and invariants."],
+  ["review-domain-model", "Requirements & research", "Audit entity coverage, relationships, vocabulary, and invariants."],
+
+  // Design
+  ["create-specifications", "Design", "Define architecture, data models, and API contracts from requirements."],
+  ["review-specifications", "Design", "Audit a specification for ambiguities, inconsistencies, and gaps."],
+  ["create-lifecycle", "Design", "Document how resources evolve: states, transitions, invariants, and retention."],
+  ["review-lifecycle", "Design", "Audit a lifecycle document for completeness and transition correctness."],
+  ["create-mockups", "Design", "Create UI mockups, wireframes, and screen designs from the spec."],
+  ["review-mockups", "Design", "Audit mockups for coverage, usability, accessibility, and spec fidelity."],
+  ["create-telemetry", "Design", "Define analytics events, success metrics, and the funnel."],
+  ["review-telemetry", "Design", "Audit a telemetry plan for completeness, measurability, and actionability."],
+  ["create-observability", "Design", "Define logging, metrics, tracing, and alerting for a feature."],
+  ["review-observability", "Design", "Audit an observability plan for completeness and actionability."],
+  ["create-plan", "Design", "Create an implementation plan with phases, dependencies, and risks."],
+  ["review-plan", "Design", "Audit a plan for completeness, feasibility, and risk coverage."],
+  ["publish-plan", "Design", "Commit the plan, open a draft PR, and comment on the issue for sign-off."],
+  ["validate-assumptions", "Design", "Run minimal code experiments against the riskiest assumptions."],
+  ["review-assumption-validation", "Design", "Audit experiment quality, result rigor, and the proceed or backtrack decision."],
+  ["create-tasks-decomposition", "Design", "Break a plan into discrete tasks with effort estimates and dependencies."],
+  ["review-tasks-decomposition", "Design", "Audit granularity, completeness, and dependency clarity."],
+
+  // Build and PR
+  ["create-tests", "Build & PR", "Create a test plan and cases covering acceptance criteria and edge cases."],
+  ["review-tests", "Build & PR", "Audit a test suite or plan for coverage, quality, and maintainability."],
+  ["create-implementation", "Build & PR", "Implement following the specification and plan, with tests."],
+  ["refactor-implementation", "Build & PR", "Refine the implemented diff to only the abstractions and seams it needs."],
+  ["review-implementation", "Build & PR", "Review an implementation for correctness, quality, security, and spec alignment."],
+  ["create-documentation", "Build & PR", "Create documentation following the Divio framework."],
+  ["review-documentation", "Build & PR", "Audit documentation for completeness, accuracy, and clarity."],
+  ["validate-implementation", "Build & PR", "Capture visual proof on the branch and get sign-off before the PR."],
+  ["create-pr", "Build & PR", "Open a PR with description, acceptance-criteria coverage, and reviewers."],
+  ["create-pr-description", "Build & PR", "Generate a PR description from the changes."],
+  ["write-pr-description", "Build & PR", "Draft a concise, reviewer-focused PR description."],
+  ["update-pr-description", "Build & PR", "Keep an existing PR description accurate after new commits."],
+  ["assess-pr-risk", "Build & PR", "Estimate risk and confidence to route how much review a PR needs."],
+  ["validate-pr", "Build & PR", "Judge whether a PR builds the right product."],
+  ["verify-pr", "Build & PR", "Verify conformance to acceptance criteria with runtime proof."],
+  ["review-pr", "Build & PR", "Conduct the full code-craft review of a pull request."],
+  ["review-pr-full", "Build & PR", "Orchestrate the complete review chain for a single PR."],
+  ["analyze-test-coverage", "Build & PR", "Produce a test-coverage report for a set of changes."],
+  ["handle-pr-ci", "Build & PR", "Diagnose failing CI, fix the root cause, push, and confirm green."],
+  ["handle-pr-reviewer-feedback", "Build & PR", "Address reviewer comments, push, and re-request review."],
+  ["handle-pr-comment", "Build & PR", "Reply to a PR comment, implementing changes when appropriate."],
+  ["handle-pr-author-feedback", "Build & PR", "Verify that an author's commits address your review comments."],
+  ["merge-pr", "Build & PR", "Check approvals and CI, then merge and clean up the branch."],
+  ["quick-pr-review", "Build & PR", "Rapidly review and approve a PR to unblock others."],
+  ["resolve-pr-conflicts", "Build & PR", "Resolve merge conflicts across your open PRs in parallel."],
+  ["pr-review-send", "Build & PR", "Send review comments to GitHub by file and line number."],
+
+  // Bug fixes
+  ["fix-issue", "Bug fixes", "Orchestrate a bug fix from issue to PR: duplicates, reproduce, fix, proof."],
+  ["reproduce-issue", "Bug fixes", "Reproduce a reported bug in a worktree and record the before state."],
+  ["check-linked-pr", "Bug fixes", "Detect a PR someone else linked to the issue before duplicating work."],
+
+  // Deploy and learn
+  ["deploy-pr", "Deploy & learn", "Deploy merged changes, run smoke tests, and verify the rollback plan."],
+  ["observe-production", "Deploy & learn", "Check SLOs, error rates, latency, and throughput for a deployed feature."],
+  ["create-learnings", "Deploy & learn", "Capture a retrospective after a feature, sprint, or project."],
+  ["review-learnings", "Deploy & learn", "Audit a learnings document for actionability and specificity."],
+
+  // Project context
+  ["create-project", "Project context", "Interview the user to populate the .sdlc/context/ files for a new project."],
+  ["review-project", "Project context", "Review the project context files for completeness and consistency."],
+  ["create-goals", "Project context", "Define objectives, key results, and KPIs the project aligns to."],
+  ["review-goals", "Project context", "Audit goals for measurability, ownership, and alignment."],
+  ["create-roadmap", "Project context", "Sequence initiatives across Now, Next, and Later horizons."],
+  ["review-roadmap", "Project context", "Audit a roadmap for alignment, sequencing, and focus."],
+  ["create-service-levels", "Project context", "Define SLOs, SLIs, SLAs, and error budgets."],
+  ["review-service-levels", "Project context", "Audit service levels for measurability and policy soundness."],
+  ["identify-feature-opportunities", "Project context", "Generate and rank new feature opportunities from the software surface."],
+
+  // Cross-cutting records
+  ["create-assumption", "Cross-cutting records", "Record an assumption with its basis, risk, and validation plan."],
+  ["review-assumption", "Cross-cutting records", "Audit an assumption for specificity, basis, and risk."],
+  ["create-decision", "Cross-cutting records", "Record a decision with context, alternatives, and consequences."],
+  ["review-decision", "Cross-cutting records", "Audit a decision record for clarity and reasoning quality."],
+  ["supersede-decision", "Cross-cutting records", "Mark a decision as superseded by a newer one."],
+  ["create-question", "Cross-cutting records", "Record an open question with answerer, impact, and needed-by date."],
+  ["review-question", "Cross-cutting records", "Audit a question and record its resolution."],
+
+  // Maintenance and audits
+  ["audit-sdlc", "Maintenance & audits", "Run multiple audits and produce a unified findings report."],
+  ["audit-dependencies", "Maintenance & audits", "Audit dependencies for CVEs, outdated versions, and license issues."],
+  ["audit-security", "Maintenance & audits", "Scan for hardcoded secrets, injection risks, and insecure patterns."],
+  ["audit-observability", "Maintenance & audits", "Find missing logging, metrics, tracing, and alerting."],
+  ["audit-reliability", "Maintenance & audits", "Find swallowed exceptions, missing timeouts, and fragile integrations."],
+  ["audit-performance-efficiency", "Maintenance & audits", "Find N+1 queries, unbounded operations, and missing backpressure."],
+  ["audit-maintainability", "Maintenance & audits", "Compute coupling, fan-out, and circular dependencies."],
+  ["audit-functional-suitability", "Maintenance & audits", "Check that the software does what it should, completely and correctly."],
+  ["audit-compatibility", "Maintenance & audits", "Find hardcoded shared resources and missing API versioning."],
+  ["audit-portability", "Maintenance & audits", "Find hardcoded paths, vendor lock-in, and config baked into code."],
+  ["audit-usability", "Maintenance & audits", "Audit CLI, API, and UI for learnability and error protection."],
+  ["analyze-git-churn", "Maintenance & audits", "Identify high-churn files and suggest targeted improvements."],
+  ["find-complexity-hotspots", "Maintenance & audits", "Find high-complexity functions and modules to refactor."],
+  ["find-dead-code", "Maintenance & audits", "Find unused functions, exports, flags, and config keys."],
+  ["find-code-duplication", "Maintenance & audits", "Identify copy-pasted blocks to extract into shared helpers."],
+  ["find-coverage-gaps", "Maintenance & audits", "Find files with missing or insufficient test coverage."],
+  ["find-type-gaps", "Maintenance & audits", "Find functions and modules missing type annotations."],
+  ["find-documentation-gaps", "Maintenance & audits", "Find public APIs and options that lack documentation."],
+  ["improve-codebase", "Maintenance & audits", "Make a bounded set of safe, verified improvements each run."],
+  ["sync-documentation", "Maintenance & audits", "Reconcile docs with the codebase and fix drift."]
+];
+
+const START_STEPS = [
+  { title: "Bootstrap the .sdlc/ tree", body: "Run setup once per project. It creates the .sdlc/ directory, populates the templates, and writes a short SDLC anchor into your AGENTS.md so every future agent session knows where the artifacts live.", cmds: ["/sdlc setup", "/sync-sdlc"] },
+  { title: "Add project context", body: "The pipeline reads .sdlc/context/ before producing any artifact. create-project interviews you to fill in project-overview, architecture, conventions, vocabulary, and infrastructure.", cmds: ["/sdlc project", "/create-project"] },
+  { title: "Set up labels", body: "The triage skills expect a standard label taxonomy. Configure it once per repository.", cmds: ["/sdlc configure-labels"] },
+  { title: "Run your first feature", body: "Give the orchestrator a feature idea and let it walk through create, review, and the next phase. Watch the rhythm: draft, review, address findings, advance. Getting comfortable with that loop is most of using the system.", cmds: ['/sdlc issue "Add dark mode toggle"', "/sdlc bugfix 57"] },
+  { title: "Resume any time", body: "Status and continue are read-only and safe. They show where you are and resume exactly where the last session stopped.", cmds: ["/sdlc status", "/sdlc continue"] }
+];
+
+const QUIZ = [
+  { q: "A review returns the verdict changes-requested. What happens next?",
+    choices: ["The artifact is deleted and the phase restarts from scratch", "The create skill re-enters in revision mode and makes the minimum changes that resolve every finding", "The pipeline stops permanently", "The review verdict is ignored and the phase advances"],
+    answer: 1,
+    why: "Revision mode amends the existing artifact to address each finding, preserving what the findings did not challenge, then re-reviews." },
+  { q: "Where do review findings live?",
+    choices: ["Only in the chat history", "In a review-<artifact>.md file beside the artifact", "In the GitHub issue body", "In the review skill's SKILL.md"],
+    answer: 1,
+    why: "Findings persist as a file beside the artifact, so the verdict survives across sessions and machines and downstream phases can gate on it." },
+  { q: "What does current_phase in state.yml always hold?",
+    choices: ["The phase that just finished", "The next phase to run", "The current calendar week", "A list of every completed phase"],
+    answer: 1,
+    why: "The single rule is that current_phase always holds what comes next, which makes resuming unambiguous." },
+  { q: "Which path is right for a one-line typo in the docs?",
+    choices: ["The full pipeline, including specification and plan", "create-documentation, create-pr, merge-pr", "fix-issue with a reproduction recording", "Nothing, edit it directly without a PR"],
+    answer: 1,
+    why: "Documentation-only changes take a fast path. You still open a PR so CI runs and the change is reviewable." },
+  { q: "A critical assumption is invalidated during validate-assumptions. What should happen?",
+    choices: ["Continue to implementation and hope for the best", "Backtrack to the design phase that owns the root cause, revise, and re-derive downstream artifacts", "Delete the assumption record", "Open a bug issue and stop the feature"],
+    answer: 1,
+    why: "Invalidated assumptions send you back to the nearest phase that owns the root cause. Downstream artifacts are re-derived, and the backtrack is recorded as a decision." },
+  { q: "How does a p-prefixed feature differ from an issue-driven one?",
+    choices: ["It uses a different folder structure", "It has no GitHub issue yet and is a candidate for later promotion", "It skips all reviews", "It is stored outside the repository"],
+    answer: 1,
+    why: "A p-prefix such as p1-onboarding marks a pending feature. It can be promoted later with /create-placeholder-issue, which renames the directory to the new issue number." }
+];
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const $ = (sel, root) => (root || document).querySelector(sel);
+
+const FAMILY_COLORS = {
+  "Setup": "#4fd1c5",
+  "Issue intake": "#6ea8fe",
+  "Requirements & research": "#a78bfa",
+  "Design": "#f6ad55",
+  "Build & PR": "#68d391",
+  "Bug fixes": "#fc8181",
+  "Deploy & learn": "#38b2ac",
+  "Project context": "#b794f4",
+  "Cross-cutting records": "#f6e05e",
+  "Maintenance & audits": "#8aa0b8"
+};
+
+function skillCard(s) {
+  const color = FAMILY_COLORS[s[1]] || "var(--accent)";
+  return `<div class="skill-card" style="--fam:${color}"><code>${esc(s[0])}</code><p>${esc(s[2])}</p><span class="fam"><i class="fam-dot"></i>${esc(s[1])}</span></div>`;
+}
+
+const ICONS = {
+  loop: '<path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  arrow: '<circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/><line x1="8" y1="12" x2="16" y2="12"/>',
+  refresh: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  chart: '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+  nodes: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>',
+  check: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  pen: '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
+  code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  cap: '<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/>',
+  terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  github: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>'
+};
+
+function icon(name, cls) {
+  const p = ICONS[name];
+  if (!p) return "";
+  return `<svg class="ico${cls ? " " + cls : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+
+const STAGE_ICONS = { issue: "target", needs: "check", requirements: "list", design: "pen", build: "code", deploy: "rocket", learn: "cap" };
+const IDEA_ICONS = {
+  "Create / review pairing": "loop",
+  "File-first, traceable": "file",
+  "Gates and backtracking": "alert",
+  "Proportionality": "arrow",
+  "Resumable state": "refresh",
+  "Knowledge records": "layers",
+  "Measured process": "chart",
+  "Concurrent-safe": "nodes"
+};
+
+const SECTIONS = [
+  { id: "overview", label: "Overview", num: "0" },
+  { id: "pipeline", label: "The pipeline", num: "1" },
+  { id: "ideas", label: "Core ideas", num: "2" },
+  { id: "paths", label: "Fast paths", num: "3" },
+  { id: "artifacts", label: "Artifacts", num: "4" },
+  { id: "skills", label: "Skill explorer", num: "5" },
+  { id: "start", label: "Getting started", num: "6" },
+  { id: "quiz", label: "Check yourself", num: "7" }
+];
+
+const state = {
+  section: "overview",
+  rendered: null,
+  stage: "issue",
+  playing: false,
+  scenario: null,
+  treeOpen: {
+    ".sdlc/": true,
+    ".sdlc/context/": true,
+    ".sdlc/features/": true,
+    ".sdlc/features/N-<slug>/": false,
+    ".sdlc/knowledge/": true
+  },
+  treeSel: null,
+  skillQuery: "",
+  skillFamily: "All",
+  answers: {},
+  visited: new Set(["overview"])
+};
+
+let playTimer = null;
+
+/* ============================================================
+   Section renderers
+   ============================================================ */
+
+function renderOverview() {
+  const pills = [
+    "<b>1</b> orchestrator",
+    "<b>25+</b> create/review pairs",
+    "<b>7</b> pipeline stages",
+    "<b>4</b> knowledge record types"
+  ];
+  return `
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="kicker">An interactive tour</p>
+          <h1>Ship work through a lifecycle that any agent can pick up.</h1>
+          <p class="lede">The SDLC is a software development lifecycle encoded as composable agent skills.
+          One orchestrator, <code>/sdlc</code>, runs focused sub-skills in sequence, each phase consuming the previous phase's output.
+          Every artifact is a markdown file under <code>.sdlc/</code>: versioned, reviewable, and resumable.</p>
+          <div class="row">${pills.map((p) => `<span class="pill">${p}</span>`).join("")}</div>
+          <div class="hero-cta">
+            <button class="btn" data-action="go" data-section="pipeline">Walk the pipeline</button>
+            <button class="btn ghost" data-action="go" data-section="start">Get started</button>
+            <a class="btn ghost" href="https://github.com/tomzx/agents" target="_blank" rel="noopener">${icon("github")}View on GitHub</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="terminal">
+            <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">sdlc</span></div>
+            <div class="term-body">
+              <div class="term-line first"><span class="prompt">$</span><span class="cmd-text">/sdlc issue "Add dark mode toggle"</span></div>
+              <div class="term-line"><span class="ok">&#10003;</span>create-issue<span class="dim">&nbsp;issue #142 opened</span></div>
+              <div class="term-line"><span class="ok">&#10003;</span>review-issue<span class="dim">&nbsp;approved</span></div>
+              <div class="term-line"><span class="ok">&#10003;</span>create-needs-assessment<span class="dim">&nbsp;approved</span></div>
+              <div class="term-line"><span class="next">&#8594;</span>create-requirements<span class="dim">&nbsp;drafting...</span></div>
+              <div class="term-line"><span class="cursor"></span></div>
+            </div>
+          </div>
+          <div class="term-badges"><span>git-versioned</span><span>reviewable</span><span>resumable</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="stat-strip">
+      <div class="stat"><span class="stat-top">${icon("terminal")}</span><b>/sdlc</b><span>Enter any phase, or resume with /sdlc continue</span></div>
+      <div class="stat"><span class="stat-top">${icon("shield")}</span><b>2 gates</b><span>Needs and feasibility can stop work early</span></div>
+      <div class="stat"><span class="stat-top">${icon("folder")}</span><b>.sdlc/</b><span>Every artifact is a file, not chat history</span></div>
+      <div class="stat"><span class="stat-top">${icon("activity")}</span><b>1 event</b><span>Each skill records telemetry, best-effort</span></div>
+    </div>
+
+    <h2>What this system is</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>An orchestrator plus focused skills</h3>
+        <p><code>/sdlc</code> runs sub-skills in sequence and manages review cycles and backtracking.
+        You can also invoke any skill directly, like <code>/create-pr</code> or <code>/review-implementation</code>, when you want just one phase.</p>
+      </div>
+      <div class="card">
+        <h3>Files you can review</h3>
+        <p>Requirements, specifications, plans, and findings are files under <code>.sdlc/</code>.
+        Cross-reference IDs (<code>FEAT-42</code>, <code>FR-1</code>, <code>TC-5</code>) link an issue to its requirements, tests, and code.</p>
+      </div>
+      <div class="card">
+        <h3>Review built into every phase</h3>
+        <p>Each <code>create-*</code> skill is paired with a <code>review-*</code> skill that audits it in a fresh context.
+        A review returns approved, changes-requested, or rejected, and the verdict is saved beside the artifact.</p>
+      </div>
+      <div class="card">
+        <h3>Proportional to the work</h3>
+        <p>A typo does not need a specification. Fast paths exist so the full pipeline stays affordable for the work that needs it.
+        When in doubt, include more phases rather than fewer.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top:34px">How to read this guide</h2>
+    <p class="lede">Start with <b>The pipeline</b> to see the seven stages and what each one produces.
+    Then browse the <b>core ideas</b>, try the <b>fast paths</b> picker, and explore the <b>artifacts</b> and the <b>skills</b>.
+    Finish with <b>Getting started</b> and a short <b>quiz</b> to check your understanding.</p>
+  `;
+}
+
+function renderPipeline() {
+  const stageButtons = PIPELINE.map((s) => {
+    const isActive = state.stage === s.id;
+    const dim = state.scenario && !SCENARIOS.find((x) => x.id === state.scenario).stages.includes(s.id) ? " dim" : "";
+    const hit = state.scenario && SCENARIOS.find((x) => x.id === state.scenario).stages.includes(s.id) ? " hit" : "";
+    const flag = s.gate ? `<span class="stage-flag ${s.gate.kind === "stop" ? "stop" : ""}">${s.gate.kind === "stop" ? "gate" : "sign-off"}</span>` : "";
+    return `
+      <button class="stage${isActive ? " active" : ""}${state.playing && isActive ? " playing" : ""}${dim}${hit}" data-action="select-stage" data-id="${s.id}" aria-pressed="${isActive}">
+        <span class="stage-num">${s.n}</span>
+        <span class="stage-body"><b><span class="stage-ico">${icon(STAGE_ICONS[s.id] || "target")}</span>${s.title}</b><span>${s.tagline}</span></span>
+        ${flag}
+      </button>`;
+  }).join("");
+
+  return `
+    <div class="section-head">
+      <p class="kicker">Stage by stage</p>
+      <h1>The pipeline</h1>
+      <p class="lede">Seven stages run from an issue to a retrospective. Click any stage to see the skills it runs, its gate, and the artifacts it produces.
+      Or press <b>Play walkthrough</b> to step through the whole flow.</p>
+    </div>
+    <div class="row" style="margin-bottom:20px">
+      <button class="btn ${state.playing ? "ghost" : ""}" data-action="play">${state.playing ? "Pause walkthrough" : "Play walkthrough"}</button>
+      <button class="btn ghost small" data-action="reset-pipeline">Reset</button>
+      <span class="spacer"></span>
+      <span class="pill">${state.playing ? "Playing" : "Click a stage"}</span>
+    </div>
+    <div class="pipeline-layout">
+      <div class="stages">${stageButtons}</div>
+      <div class="detail" id="stage-detail">${renderStageDetail()}</div>
+    </div>
+    <h2 style="margin-top:44px">Other flows</h2>
+    <div class="grid cols-3">
+      <div class="card"><h3>Setup</h3><p>Run once per project: <code>sync-sdlc</code>, <code>initialize-sdlc-directory</code>, <code>update-sdlc-templates</code>, <code>configure-labels</code>.</p></div>
+      <div class="card"><h3>Bug fix fast path</h3><p><code>fix-issue</code> orchestrates <code>check-duplicates</code>, <code>reproduce-issue</code>, the fix, and a PR with before/after proof.</p></div>
+      <div class="card"><h3>Cross-cutting records</h3><p>Assumptions, decisions, questions, and learnings can be captured at any point in any flow.</p></div>
+      <div class="card"><h3>Project context</h3><p>Goals, roadmap, service levels, and feature opportunities align features to outcomes.</p></div>
+      <div class="card"><h3>Maintenance</h3><p>Audits and find-* skills surface technical debt, which feeds back into issue creation and prioritization.</p></div>
+      <div class="card"><h3>Guard</h3><p>Before every phase, the Linked-PR Guard checks for a competing PR so effort is not duplicated silently.</p></div>
+    </div>
+  `;
+}
+
+function renderStageDetail() {
+  const s = PIPELINE.find((x) => x.id === state.stage) || PIPELINE[0];
+  const gate = s.gate ? `<div class="gate ${s.gate.kind === "stop" ? "stop" : ""}"><b>${esc(s.gate.label)}</b>${esc(s.gate.text)}</div>` : "";
+  const skills = s.skills.map(([name, desc]) => `<div class="skill-line"><code>${esc(name)}</code><span>${esc(desc)}</span></div>`).join("");
+  const artifacts = s.artifacts.map((a) => `<code>${esc(a)}</code>`).join("");
+  const entries = s.entries.map((e) => `<code>/sdlc ${esc(e)}</code>`).join(" ");
+  return `
+    <h2>${s.n}. ${esc(s.title)}</h2>
+    <div class="stage-tag">${esc(s.tagline)}</div>
+    <p style="font-size:0.94rem;color:var(--muted)">${esc(s.summary)}</p>
+    ${gate}
+    <div class="label">Skills in this stage</div>
+    ${skills}
+    <div class="label">Artifacts produced</div>
+    <div class="artifact-chips">${artifacts}</div>
+    <div class="label">Enter here</div>
+    <div class="artifact-chips">${entries}</div>
+  `;
+}
+
+function renderIdeas() {
+  const cards = IDEAS.map((i) => `
+    <div class="card hoverable idea">
+      <div class="idea-ico">${icon(IDEA_ICONS[i.title] || "file")}</div>
+      <div class="idea-body"><h3>${esc(i.title)}</h3><p>${fmt(i.body)}</p></div>
+    </div>`).join("");
+  return `
+    <div class="section-head">
+      <p class="kicker">Mental model</p>
+      <h1>Core ideas</h1>
+      <p class="lede">Eight ideas make the rest of the system predictable. Once these click, every skill's behavior follows from them.</p>
+    </div>
+    <div class="grid cols-2">${cards}</div>
+    <h2 style="margin-top:40px">The create / review loop</h2>
+    <div class="path-flow">
+      <span class="path-step">create-*</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step">review-* (fresh subagent)</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step gate">approved?</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step">next phase</span>
+    </div>
+    <p class="lede">If the review says changes-requested, the create skill re-enters in revision mode and makes the minimum changes that resolve each finding.
+    If it says rejected, the reason is surfaced and you decide how to proceed. Findings persist as <code>review-&lt;artifact&gt;.md</code> beside the artifact.</p>
+  `;
+}
+
+function renderPaths() {
+  const btns = SCENARIOS.map((s) => `<button class="btn ghost small ${state.scenario === s.id ? "on" : ""}" data-action="select-path" data-id="${s.id}">${esc(s.label)}</button>`).join("");
+  let detail = `<p class="lede">Pick a scenario to see the minimum viable path. These are abbreviated sequences from the main flow for small, well-understood changes.</p>`;
+  if (state.scenario) {
+    const s = SCENARIOS.find((x) => x.id === state.scenario);
+    const steps = s.steps.map((step, i) => `${i ? '<span class="path-arrow">&rarr;</span>' : ""}<span class="path-step">${esc(step)}</span>`).join("");
+    detail = `
+      <div class="card">
+        <h3>${esc(s.label)}</h3>
+        <p>${esc(s.blurb)}</p>
+        <div class="path-flow">${steps}</div>
+        <p style="font-size:0.84rem;color:var(--muted-2);margin:0">Stages involved: ${s.stages.map((st) => esc((PIPELINE.find((p) => p.id === st) || {}).title || st)).join(", ")}.
+        See it highlighted on <a href="#/pipeline">the pipeline</a>.</p>
+      </div>`;
+  }
+  const rules = FAST_PATH_RULES.map((r) => `<li>${fmt(r)}</li>`).join("");
+  return `
+    <div class="section-head">
+      <p class="kicker">Proportionality</p>
+      <h1>Fast paths</h1>
+      <p class="lede">Not every change needs the full pipeline. Choose the smallest path that keeps the work reviewable and tested.</p>
+    </div>
+    <div class="scenario-buttons">${btns}</div>
+    ${detail}
+    <h2 style="margin-top:36px">Rules that always hold</h2>
+    <div class="card"><ul>${rules}</ul></div>
+  `;
+}
+
+function renderTree(nodes, pathPrefix) {
+  return nodes.map((node) => {
+    const path = pathPrefix + node.name;
+    const isDir = !!node.children;
+    const open = !!state.treeOpen[path];
+    const sel = state.treeSel === path ? " selected" : "";
+    const tw = isDir ? `<span class="tw">${open ? "&#9662;" : "&#9656;"}</span>` : `<span class="tw"></span>`;
+    const row = `<div class="tree-row ${isDir ? "dir" : ""}${sel}" data-action="tree" data-path="${esc(path)}" data-dir="${isDir ? "1" : "0"}" role="button" tabindex="0">${tw}<span class="tree-ico">${icon(isDir ? "folder" : "file")}</span><span>${esc(node.name)}</span></div>`;
+    const childPrefix = path.endsWith("/") ? path : path + "/";
+    const children = isDir ? `<div class="tree-children ${open ? "" : "collapsed"}">${renderTree(node.children, childPrefix)}</div>` : "";
+    return `<div class="tree-node">${row}${children}</div>`;
+  }).join("");
+}
+
+function findNode(nodes, path, prefix) {
+  for (const node of nodes) {
+    const p = prefix + node.name;
+    if (p === path) return node;
+    if (node.children) {
+      const childPrefix = p.endsWith("/") ? p : p + "/";
+      const found = findNode(node.children, path, childPrefix);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function renderArtifacts() {
+  const node = state.treeSel ? findNode([ARTIFACT_TREE], state.treeSel, "") : ARTIFACT_TREE;
+  const detailName = node ? node.name : ARTIFACT_TREE.name;
+  const detailDesc = node ? node.desc : ARTIFACT_TREE.desc;
+  return `
+    <div class="section-head">
+      <p class="kicker">Everything is a file</p>
+      <h1>Artifacts</h1>
+      <p class="lede">The lifecycle lives in a <code>.sdlc/</code> directory, versioned with the code. Expand the tree and click a node to see what it holds.</p>
+    </div>
+    <div class="pipeline-layout">
+      <div class="tree" role="tree">${renderTree([ARTIFACT_TREE], "")}</div>
+      <div class="tree-detail">
+        <h3>${esc(detailName)}</h3>
+        <p style="color:var(--muted)">${fmt(detailDesc || "")}</p>
+      </div>
+    </div>
+    <h2 style="margin-top:40px">Identifiers that link the chain</h2>
+    <div class="grid cols-3">
+      <div class="card"><h3><code>FEAT-42</code></h3><p>The feature, project-wide. Directory <code>42-notification-system</code> matches issue #42. A <code>p</code>-prefix means pending, no issue yet.</p></div>
+      <div class="card"><h3><code>FR-1</code> / <code>NFR-2</code></h3><p>Functional and non-functional requirements, scoped to the feature. Across features, qualify them: <code>FEAT-1-FR-1</code>.</p></div>
+      <div class="card"><h3><code>TC-5</code> and tasks</h3><p>Test cases and task numbers, both per-feature and unpadded. They trace a requirement to its test and its implementation task.</p></div>
+    </div>
+    <h2 style="margin-top:36px">Local-only state, never committed</h2>
+    <div class="card">
+      <p><code>state.yml</code> and each feature's <code>progress.md</code> are per-machine workflow state. The <code>.sdlc/.gitignore</code> excludes them.
+      <code>status-report.html</code> is also local-only. If you commit manually, never add these paths.</p>
+    </div>
+  `;
+}
+
+function renderSkills() {
+  const families = ["All", ...Array.from(new Set(SKILLS.map((s) => s[1])))];
+  const chips = families.map((f) => {
+    const color = FAMILY_COLORS[f];
+    const style = color ? ` style="--fam:${color}"` : "";
+    const dot = color ? `<i class="fam-dot"></i>` : "";
+    return `<button class="btn ghost small ${state.skillFamily === f ? "on" : ""}" data-action="family" data-id="${esc(f)}"${style}>${dot}${esc(f)}</button>`;
+  }).join("");
+  const q = state.skillQuery.trim().toLowerCase();
+  const filtered = SKILLS.filter((s) => {
+    if (state.skillFamily !== "All" && s[1] !== state.skillFamily) return false;
+    if (!q) return true;
+    return (s[0] + " " + s[2] + " " + s[1]).toLowerCase().includes(q);
+  });
+  const cards = filtered.map(skillCard).join("");
+  return `
+    <div class="section-head">
+      <p class="kicker">${SKILLS.length} skills</p>
+      <h1>Skill explorer</h1>
+      <p class="lede">Search the skills the pipeline draws on, or filter by family. Every one of these also works standalone.</p>
+    </div>
+    <input class="search" id="skill-search" type="search" placeholder="Search skills, for example: review, security, merge, mockups" value="${esc(state.skillQuery)}" aria-label="Search skills">
+    <div class="family-chips">${chips}</div>
+    <p style="color:var(--muted-2);font-size:0.84rem;margin-bottom:14px">${filtered.length} shown</p>
+    <div class="skill-grid" id="skill-grid">${cards || '<div class="empty">No skills match that search.</div>'}</div>
+  `;
+}
+
+function renderStart() {
+  const steps = START_STEPS.map((s, i) => `
+    <div class="step">
+      <div class="step-num">${i + 1}</div>
+      <div>
+        <h3>${esc(s.title)}</h3>
+        <p>${fmt(s.body)}</p>
+        ${s.cmds.map((c) => `<div class="cmd"><span>${esc(c)}</span><button class="copy" data-action="copy" data-cmd="${esc(c)}">copy</button></div>`).join("")}
+      </div>
+    </div>`).join("");
+  return `
+    <div class="section-head">
+      <p class="kicker">From zero to first PR</p>
+      <h1>Getting started</h1>
+      <p class="lede">Five steps take you from an empty repository to a feature moving through the pipeline.</p>
+    </div>
+    <div class="steps">${steps}</div>
+    <h2 style="margin-top:38px">The rhythm to learn</h2>
+    <div class="path-flow">
+      <span class="path-step">draft</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step">review</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step">address findings</span><span class="path-arrow">&rarr;</span>
+      <span class="path-step">advance</span>
+    </div>
+    <p class="lede">Getting comfortable with that loop is most of using the system. If a review says stop at a gate, stopping early is the feature working, not failing.</p>
+    <div class="grid cols-2" style="margin-top:24px">
+      <div class="card"><h3>Never lose your place</h3><p><code>/sdlc status</code> and <code>/sdlc continue</code> are read-only and safe. Use them liberally.</p></div>
+      <div class="card"><h3>Do not skip the reviews</h3><p>The <code>review-*</code> skills are where cheap mistakes get caught. Address findings before advancing.</p></div>
+      <div class="card"><h3>Match the path to the work</h3><p>A typo does not need a specification; a new auth flow does. See <a href="#/paths">fast paths</a>.</p></div>
+      <div class="card"><h3>Templates are yours</h3><p>Edit <code>.sdlc/templates/</code> to match how your team writes. <code>/update-sdlc-templates</code> merges upstream changes later.</p></div>
+    </div>
+  `;
+}
+
+function renderQuiz() {
+  const answered = Object.keys(state.answers).length;
+  const correct = Object.values(state.answers).filter((a) => a.correct).length;
+  const questions = QUIZ.map((item, qi) => {
+    const chosen = state.answers[qi];
+    const choices = item.choices.map((c, ci) => {
+      let cls = "choice";
+      if (chosen) {
+        if (ci === item.answer) cls += " correct";
+        else if (ci === chosen.pick) cls += " wrong";
+      }
+      return `<button class="${cls}" data-action="answer" data-q="${qi}" data-c="${ci}" ${chosen ? "disabled" : ""}>${esc(c)}</button>`;
+    }).join("");
+    const explain = chosen ? `<div class="explain">${esc(item.why)}</div>` : "";
+    return `<div class="quiz-q"><h3>${qi + 1}. ${esc(item.q)}</h3><div class="choices">${choices}</div>${explain}</div>`;
+  }).join("");
+  const summary = answered === QUIZ.length
+    ? `<div class="card" style="margin-bottom:16px"><p class="score">Score: ${correct} / ${QUIZ.length}</p><p style="margin:0;color:var(--muted)">${correct === QUIZ.length ? "You have the mental model. Go run /sdlc issue." : "Revisit the pipeline and core ideas, then try again."}</p></div>`
+    : `<p style="color:var(--muted-2);font-size:0.86rem;margin-bottom:16px">${answered} of ${QUIZ.length} answered.</p>`;
+  return `
+    <div class="section-head">
+      <p class="kicker">Reinforce</p>
+      <h1>Check yourself</h1>
+      <p class="lede">Six questions on how the lifecycle behaves. Pick an answer to see the reasoning.</p>
+    </div>
+    ${summary}
+    ${questions}
+    <div class="row" style="margin-top:18px">
+      <button class="btn ghost small" data-action="reset-quiz">Reset quiz</button>
+      <a class="btn ghost small" href="#/start">Back to getting started</a>
+    </div>
+  `;
+}
+
+const RENDERERS = {
+  overview: renderOverview,
+  pipeline: renderPipeline,
+  ideas: renderIdeas,
+  paths: renderPaths,
+  artifacts: renderArtifacts,
+  skills: renderSkills,
+  start: renderStart,
+  quiz: renderQuiz
+};
+
+/* ============================================================
+   Render and navigation
+   ============================================================ */
+
+function renderNav() {
+  const nav = $("#nav");
+  nav.innerHTML = SECTIONS.map((s) => {
+    const active = state.section === s.id ? " active" : "";
+    const done = state.visited.has(s.id) && !active ? " done" : "";
+    return `<a href="#/${s.id}" class="${active}${done}"><span class="dot"><span>${s.num}</span></span>${esc(s.label)}</a>`;
+  }).join("");
+}
+
+function renderPager() {
+  const idx = SECTIONS.findIndex((s) => s.id === state.section);
+  const prev = SECTIONS[idx - 1];
+  const next = SECTIONS[idx + 1];
+  const prevHtml = prev
+    ? `<a href="#/${prev.id}"><span class="ph">&larr; Previous</span><b>${esc(prev.label)}</b></a>`
+    : `<span></span>`;
+  const nextHtml = next
+    ? `<a class="next" href="#/${next.id}"><span class="ph">Next &rarr;</span><b>${esc(next.label)}</b></a>`
+    : `<a class="next" href="#/overview"><span class="ph">Back to</span><b>Overview</b></a>`;
+  return `<nav class="pager" aria-label="Section navigation">${prevHtml}${nextHtml}</nav>`;
+}
+
+const SECTION_HUES = {
+  overview: "#4fd1c5",
+  pipeline: "#6ea8fe",
+  ideas: "#a78bfa",
+  paths: "#f6ad55",
+  artifacts: "#38bdf8",
+  skills: "#68d391",
+  start: "#fb923c",
+  quiz: "#f472b6"
+};
+
+function renderFooter() {
+  return `<footer class="site-foot">
+    <span>SDLC guide, generated from <code>skills/sdlc/SKILL.md</code></span>
+    <span class="foot-links">
+      <a href="https://github.com/tomzx/agents" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/tomzx/agents/blob/main/skills/sdlc/SKILL.md" target="_blank" rel="noopener">SKILL.md</a>
+      <a href="https://github.com/tomzx/agents/blob/main/skills/sdlc/references/shared.md" target="_blank" rel="noopener">shared.md</a>
+    </span>
+  </footer>`;
+}
+
+let revealObserver = null;
+let revealTimer = null;
+
+function stopReveal() {
+  if (revealObserver) { revealObserver.disconnect(); revealObserver = null; }
+  if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+}
+
+function setupReveal() {
+  const view = $("#view");
+  stopReveal();
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !("IntersectionObserver" in window)) {
+    view.classList.remove("revealing");
+    return;
+  }
+  const els = view.querySelectorAll(".card, .stat, .stage, .skill-card, .step, .quiz-q, .tree, .tree-detail");
+  revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: "0px 0px -6% 0px", threshold: 0.04 });
+  els.forEach((el) => {
+    const parent = el.parentElement;
+    const idx = parent ? Array.prototype.indexOf.call(parent.children, el) : 0;
+    el.style.transitionDelay = Math.min(idx, 9) * 45 + "ms";
+    revealObserver.observe(el);
+  });
+  // Safety net: never leave content hidden if the observer does not fire.
+  revealTimer = setTimeout(() => {
+    els.forEach((el) => el.classList.add("in"));
+    stopReveal();
+  }, 1300);
+}
+
+function render() {
+  const view = $("#view");
+  const renderer = RENDERERS[state.section] || renderOverview;
+  const changed = state.rendered !== state.section;
+  state.rendered = state.section;
+  document.documentElement.style.setProperty("--sec", SECTION_HUES[state.section] || "#4fd1c5");
+  view.innerHTML = renderer() + renderPager() + renderFooter();
+  const head = view.querySelector(".section-head");
+  if (head) {
+    const sec = SECTIONS.find((s) => s.id === state.section);
+    const num = document.createElement("span");
+    num.className = "ghost-num";
+    num.setAttribute("aria-hidden", "true");
+    num.textContent = String(sec ? sec.num : "").padStart(2, "0");
+    head.prepend(num);
+  }
+  if (changed) {
+    view.classList.add("revealing");
+    setupReveal();
+  } else {
+    view.classList.remove("revealing");
+    stopReveal();
+  }
+  renderNav();
+  updateProgress();
+  if (state.section === "skills") {
+    const input = $("#skill-search");
+    if (input) {
+      input.addEventListener("input", (e) => {
+        state.skillQuery = e.target.value;
+        const grid = $("#skill-grid");
+        const q = state.skillQuery.trim().toLowerCase();
+        const filtered = SKILLS.filter((s) => {
+          if (state.skillFamily !== "All" && s[1] !== state.skillFamily) return false;
+          if (!q) return true;
+          return (s[0] + " " + s[2] + " " + s[1]).toLowerCase().includes(q);
+        });
+        grid.innerHTML = filtered.map(skillCard).join("") || '<div class="empty">No skills match that search.</div>';
+      });
+    }
+  }
+}
+
+function go(section, opts) {
+  stopPlay();
+  if (!RENDERERS[section]) section = "overview";
+  state.section = section;
+  state.visited.add(section);
+  // Update the URL best-effort, but never depend on it: in embedded previews
+  // (sandboxed iframes, some editors) setting the hash fires no hashchange event,
+  // so rendering must happen here rather than in the hashchange listener.
+  if (location.hash !== "#/" + section) {
+    try { location.hash = "#/" + section; } catch (e) { /* navigation may be blocked */ }
+  }
+  render();
+  if (!opts || !opts.noScroll) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  const view = $("#view");
+  if (view) view.focus({ preventScroll: true });
+}
+
+/* ============================================================
+   Interactions
+   ============================================================ */
+
+function stopPlay() {
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+  state.playing = false;
+}
+
+function startPlay() {
+  stopPlay();
+  state.playing = true;
+  let i = PIPELINE.findIndex((s) => s.id === state.stage);
+  if (i < 0) i = 0;
+  state.stage = PIPELINE[i].id;
+  render();
+  playTimer = setInterval(() => {
+    i += 1;
+    if (i >= PIPELINE.length) { stopPlay(); render(); return; }
+    state.stage = PIPELINE[i].id;
+    render();
+  }, 1700);
+}
+
+function copyText(text, btn) {
+  const done = () => {
+    const old = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("done");
+    setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(done);
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    done();
+  }
+}
+
+document.addEventListener("click", (e) => {
+  // Section links (sidebar nav and pager) navigate directly, so they work even
+  // where fragment navigation or hashchange events are unavailable.
+  const link = e.target && e.target.closest ? e.target.closest('a[href^="#/"]') : null;
+  if (link) {
+    e.preventDefault();
+    go(link.getAttribute("href").slice(2));
+    return;
+  }
+  const el = e.target.closest("[data-action]");
+  if (!el) return;
+  const action = el.dataset.action;
+
+  if (action === "go") {
+    e.preventDefault();
+    go(el.dataset.section);
+    return;
+  }
+  if (action === "select-stage") {
+    stopPlay();
+    state.stage = el.dataset.id;
+    render();
+    return;
+  }
+  if (action === "play") {
+    if (state.playing) { stopPlay(); render(); } else { startPlay(); }
+    return;
+  }
+  if (action === "reset-pipeline") {
+    stopPlay();
+    state.stage = "issue";
+    state.scenario = null;
+    render();
+    return;
+  }
+  if (action === "select-path") {
+    state.scenario = state.scenario === el.dataset.id ? null : el.dataset.id;
+    render();
+    return;
+  }
+  if (action === "tree") {
+    const path = el.dataset.path;
+    if (el.dataset.dir === "1") {
+      state.treeOpen[path] = !state.treeOpen[path];
+    }
+    state.treeSel = path;
+    render();
+    return;
+  }
+  if (action === "family") {
+    state.skillFamily = el.dataset.id;
+    render();
+    return;
+  }
+  if (action === "answer") {
+    const qi = Number(el.dataset.q);
+    const ci = Number(el.dataset.c);
+    if (state.answers[qi]) return;
+    state.answers[qi] = { pick: ci, correct: ci === QUIZ[qi].answer };
+    render();
+    return;
+  }
+  if (action === "reset-quiz") {
+    state.answers = {};
+    render();
+    return;
+  }
+  if (action === "copy") {
+    copyText(el.dataset.cmd, el);
+    return;
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if ((e.key === "Enter" || e.key === " ") && e.target && e.target.dataset && e.target.dataset.action === "tree") {
+    e.preventDefault();
+    e.target.click();
+    return;
+  }
+  const idx = SECTIONS.findIndex((s) => s.id === state.section);
+  if (e.key === "ArrowRight") { go(SECTIONS[Math.min(idx + 1, SECTIONS.length - 1)].id); }
+  else if (e.key === "ArrowLeft") { go(SECTIONS[Math.max(idx - 1, 0)].id); }
+  else if (e.key === "Escape") { stopPlay(); render(); }
+});
+
+window.addEventListener("hashchange", () => {
+  const id = (location.hash || "").replace(/^#\//, "");
+  if (RENDERERS[id] && id !== state.section) {
+    stopPlay();
+    state.section = id;
+    state.visited.add(id);
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});
+
+/* ============================================================
+   Scroll progress
+   ============================================================ */
+
+const progressEl = document.getElementById("progress");
+function updateProgress() {
+  const doc = document.documentElement;
+  const max = doc.scrollHeight - doc.clientHeight;
+  const p = max > 0 ? Math.min(1, Math.max(0, doc.scrollTop / max)) : 0;
+  if (progressEl) progressEl.style.transform = "scaleX(" + p + ")";
+}
+window.addEventListener("scroll", updateProgress, { passive: true });
+window.addEventListener("resize", updateProgress);
+
+/* ============================================================
+   Boot
+   ============================================================ */
+
+(function boot() {
+  const id = (location.hash || "").replace(/^#\//, "");
+  if (RENDERERS[id]) { state.section = id; state.visited.add(id); }
+  render();
+
+  const grain = document.createElement("div");
+  grain.className = "grain";
+  grain.setAttribute("aria-hidden", "true");
+  document.body.appendChild(grain);
+
+  // Subtle pointer spotlight, skipped for reduced-motion users.
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const spot = document.createElement("div");
+    spot.className = "spotlight";
+    spot.setAttribute("aria-hidden", "true");
+    document.body.appendChild(spot);
+    let frame = null;
+    window.addEventListener("pointermove", (e) => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        document.documentElement.style.setProperty("--mx", e.clientX + "px");
+        document.documentElement.style.setProperty("--my", e.clientY + "px");
+      });
+    }, { passive: true });
+  }
+})();
+</script>
+</body>
+</html>
