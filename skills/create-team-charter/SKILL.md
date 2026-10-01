@@ -119,6 +119,7 @@ Write a lean charter (Purpose, Customers, Responsibilities, Operating Norms, Ope
 
 ## Next Step
 
+- Run [`/review-team-charter`](../review-team-charter/SKILL.md) to audit the charter for completeness, boundary soundness, and ratifiability before sharing it.
 - Run `/create-team-api` to formalize the team's ownership boundaries, services, dependencies, and interaction modes with other teams, especially for engineering teams.
 - Share the charter with the team and its stakeholders for ratification, then set a review cadence (for example, revisit each quarter or on a reorg).
 - For detailed objectives and key results, run `/create-goals` and link the resulting goals doc from the Success Metrics section.

@@ -89,6 +89,7 @@ Self-check the draft against the CLI Design section of the [`review-requirements
 ## Next Step
 
 Run `/review-requirements`, which audits `requirements.md` and `cli-design.md` together when the design is present.
+For a deep interface-craft pass on the design itself (hand-authored designs, or after implementation feedback), run [`/review-cli-design`](../review-cli-design/SKILL.md).
 Once approved, continue with `/create-existing-solutions` to survey prior art.
 
 ## Useful Commands Reference

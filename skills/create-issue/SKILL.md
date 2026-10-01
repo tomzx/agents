@@ -14,6 +14,7 @@ Creates a structured GitHub issue in the specified repository with background, p
 - If no argument is provided, operate on `$REPO`.
 - `gh` CLI authenticated with write access to the target repository
 - Repository name in `owner/repo` format (`$1`), or omitted to use the repository in the current working directory
+- The `search-existing-issues` skill available for the duplicate search in step 1
 
 ### Skill attribution (GitHub)
 
@@ -61,7 +62,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
 ## Steps
 
-1. **Search for duplicates** first, before any codebase investigation. The user's report alone supplies the keywords (error messages, command, skill, or feature names, component names); run 2-3 different searches: `ghx issue list --repo $1 --search "<keywords>" --state all --limit 10`. If a duplicate is found, stop and inform the user with the existing issue URL. Do not create a new issue unless the user confirms it is not a duplicate. Only once the search comes back empty (or the user confirms the report is not a duplicate anyway) do the later steps and any code investigation begin.
+1. **Search for duplicates** first, before any codebase investigation, by running the [`search-existing-issues`](../search-existing-issues/SKILL.md) skill with the user's report text and the target repository. That skill extracts keywords, runs several searches, ranks candidates, and reads the top matches. If it reports a strong or possible match, stop and inform the user with the existing issue URL (for a strong open match, suggest adding details to it instead). Do not create a new issue unless the user confirms it is not a duplicate. Only once the search comes back empty (or the user confirms the report is not a duplicate anyway) do the later steps and any code investigation begin.
 2. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
 3. If the issue is a feature request, determine the current version on the default branch (main/master) so the issue records what commit the request was filed against. Use `gh api repos/{owner}/{repo} --jq '.default_branch'` to find the default branch, then get the short SHA via `gh api repos/{owner}/{repo}/commits/<default_branch> --jq '.sha[0:7]'`.
 4. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`. A public repository is treated as open source; omit the **Time budget** section. A private repository includes it.
@@ -156,7 +157,7 @@ User provides a list of requirements. Convert each into a checklist item, then s
 
 Before finishing, confirm:
 
-- [ ] Duplicate search ran first, before any codebase investigation (no existing issue matches)
+- [ ] `search-existing-issues` ran first, before any codebase investigation (no existing issue matches)
 - [ ] Summary section included only when the description exceeds 200 words; less than 200 words, at most 5 sentences, one sentence per line
 - [ ] Time budget included only for private repos; Should section omitted when empty
 - [ ] Detailed code analysis posted as a follow-up comment, not in the issue body
@@ -175,7 +176,7 @@ A review subagent is dispatched automatically to run `/review-issue` to audit th
 | `gh api repos/<owner>/<repo> --jq '.default_branch'` | Get the default branch name |
 | `gh api repos/<owner>/<repo>/commits/<branch> --jq '.sha[0:7]'` | Get the short SHA of the default branch (version for feature requests) |
 | `gh api graphql -f query='{ repository(owner:"...", name:"...") { issueTypes(first:20) { nodes { name id } } } }'` | Check available issue types for the repository |
-| `ghx issue list --repo <repo> --search "<keywords>" --state all --limit 10` | Search for duplicate issues before creating (cached) |
+| `ghx issue list --repo <repo> --search "<keywords>" --state all --limit 10` | Underlying duplicate search (run by `search-existing-issues`, not directly by this skill) |
 | `gh label list [--repo <repo>] --json name --jq '.[].name'` | List existing label names in the repository |
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
 | `gh issue comment <number> [--repo <repo>] --body "..."` | Post a follow-up comment with detailed code analysis |

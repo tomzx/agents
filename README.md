@@ -138,6 +138,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/review-issue` | Review an issue for completeness, clarity, and criteria quality. |
 | `/create-requirements` | Draft a requirements document from a feature brief or issue. |
 | `/create-cli-design` | Design the CLI surface (commands, options, exit codes, example sessions) for a feature with a CLI. |
+| `/review-cli-design` | Review the CLI surface for consistency, usability, error handling, and convention fit. |
 | `/review-requirements` | Review requirements for clarity, completeness, and testability. |
 | `/qualify-issue` | Drive a Q&A loop with a reporter to gather enough information. |
 | `/reproduce-issue` | Reproduce a bug reported in a GitHub issue. |
@@ -243,9 +244,11 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/research-topic` | Research any topic, snapshot every visited page, and synthesize a structured document. |
 | `/research-article` | Research a topic to map the state of the art and gather sources. |
 | `/create-article` | Write a high-quality article for a given audience and sources. |
+| `/create-article-image-prompt` | Generate 3-5 image prompts for an article, each with its exact placement. |
 | `/review-article` | Review an article for accuracy, clarity, structure, and fit. |
 | `/sync-articles` | Batch-revise articles into conformance via parallel `create-article` jobs, then verify links, front matter, style, and AI tags. |
 | `/create-readme` | Generate a README with badges, feature list, and setup. |
+| `/review-readme` | Review a README against its template, badges, and getting-started path. |
 | `/write-recent-work-and-needs-article` | Write a personal status article about recent work and needs. |
 
 ### Communication & Empathy
@@ -350,10 +353,14 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 |-------|---------|
 | `/improve-autonomy` | Assess what would be needed to run the session autonomously. |
 | `/automate-session` | Surface ways the workflow could have been automated. |
+| `/improve-sessions` | Mine past sessions for friction patterns and recommend improvements. |
 | `/identify-skill-gaps` | Find workflows not yet encoded as skills. |
 | `/git-commit` | Generate a commit message from changes. |
 | `/git-commit-staged` | Generate a commit message from staged changes. |
 | `/sessions-memory` | Turn agentsview sessions into daily notes and PARA facts. |
+| `/setup-agent-machine` | Build an AGENTS.md, path manifest, and directory indexes so agents know where to search. |
+| `/sync-agent-machine` | Refresh agent machine indexes for stale, missing, and new directories. |
+| `/index-directory` | Index one directory into a structured index file for agent lookup. |
 
 ### Developer Profiles
 
@@ -369,7 +376,9 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | Skill | Purpose |
 |-------|---------|
 | `/create-team-charter` | Author a team charter: purpose, vision, stakeholders, responsibilities, roles, operating norms, decision-making, and success metrics. |
+| `/review-team-charter` | Review a team charter for completeness, boundary soundness, and ratifiability. |
 | `/create-team-api` | Define a team's Team API (Team Topologies): team type, ownership boundaries, services, inputs, outputs, dependencies, and interaction modes. |
+| `/review-team-api` | Review a Team API for ownership clarity, dependency accuracy, and interaction-mode soundness. |
 
 ### Repository & Tooling
 

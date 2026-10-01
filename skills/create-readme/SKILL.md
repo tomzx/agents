@@ -122,7 +122,8 @@ Derive features from the public API, pull roadmap items from open enhancement is
 
 ## Next Step
 
-Run `/review-documentation` to audit the README for completeness, accuracy, and clarity.
+Run [`/review-readme`](../review-readme/SKILL.md) to audit the README against its template, badge correctness, and the getting-started path.
+Then run `/review-documentation` for the wider documentation tree, if one exists.
 
 ## Useful Commands Reference
 
