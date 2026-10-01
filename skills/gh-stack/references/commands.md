@@ -17,6 +17,7 @@ explain: preconditions, side effects, atomicity, and failure modes.
 - [unstack](#unstack)
 - [merge](#merge)
 - [Navigation](#navigation)
+- [Utilities](#utilities)
 
 ## init
 
@@ -34,8 +35,9 @@ selects a non-default trunk.
 ## add
 
 - **Must run from the top branch** of the stack (or the trunk when the stack is still empty).
-  Anywhere else it exits **5** with `can only add branches on top of the stack`. Run `gh stack top`
-  first.
+  Non-interactively, anywhere else exits **5** with `can only add branches on top of the stack`;
+  under a TTY the CLI instead offers to initialize a new stack using the given (or auto-generated)
+  branch name as the first layer. Run `gh stack top` first, or `gh stack init` to start a stack.
 - **Uncommitted changes carry over.** Without `-Am`, `add` does not touch the working tree, so
   staged and unstaged changes follow you onto the new branch. Commit or stash first for a clean start.
 - **`add -Am` commits in place when the current branch has no commits yet** — for example
@@ -76,8 +78,9 @@ first non-merged ancestor, then links them into a Stack on GitHub.
 Creates or updates a stack on GitHub **without any local tracking state**. This is the path for
 branches managed by another tool or living in another worktree — see `troubleshooting.md`.
 
-- Arguments are given bottom to top. Each is a branch name or a PR number; a numeric argument is
-  tried as a PR number first and falls back to a branch name.
+- Arguments are given bottom to top. Each is a branch name, a PR number, or a PR URL; a numeric
+  argument is tried as a PR number first and falls back to a branch name, while a PR URL is always
+  resolved as a pull request.
 - **A numeric first argument is treated as a stack number only when a stack with that number
   exists.** In that case the remaining arguments are appended to the top of that stack and you do
   not re-list its current PRs: `gh stack link 7 feature-c`. Arguments already in the stack are
@@ -115,6 +118,9 @@ to rebase only part of the stack.
 - `--downstack` rebases from the trunk to the current branch.
 - `--no-trunk` skips fetching and the trunk rebase entirely, aligning stack branches with each
   other only.
+- `--remote <name>` selects the remote to fetch from; defaults to the auto-detected remote.
+- `--committer-date-is-author-date` (alias `--preserve-dates`) keeps committer dates equal to
+  author dates, so identical content rebased onto an identical parent yields stable SHAs.
 - `--continue` after staging resolutions; `--abort` restores every branch.
 - A merged PR is detected automatically and replayed with `--onto` against the correct target, so a
   squash-merged parent does not produce spurious conflicts.
@@ -136,8 +142,10 @@ Accepts a stack number, PR number, PR URL, or branch name.
 - A bare number resolves as a **stack number first**, then a PR number, then a branch name.
 - Stack numbers, PR numbers, and PR URLs fetch from GitHub, pull the branches down, and set the
   stack up locally.
-- A **branch name resolves against locally tracked stacks only** and never contacts GitHub. Use a
-  stack or PR number to pull a stack that is not tracked locally.
+- A **branch name resolves against locally tracked stacks first.** If it is not tracked locally,
+  `checkout` looks for the branch on active remote stacks and pulls the matching stack down
+  (best-effort: network failures, no match, or multiple matches fall through). Fully merged stacks
+  are ignored. Use a stack or PR number to target a specific stack.
 - If a local stack already exists over those branches with a different composition, `checkout`
   cannot be forced past it. Run `gh stack unstack --local` first, then retry.
 - `checkout` has no flags. It relies on `remote.pushDefault` when several remotes exist.
@@ -153,6 +161,8 @@ Removes the stack **grouping** only. It never deletes pull requests or branches.
 - `--local` removes local tracking only and never contacts GitHub. Combining `--local` with a stack
   number that is not tracked locally is an error.
 - An unknown stack number exits **2**.
+
+`unstack` is also aliased as `delete`.
 
 ## merge
 
@@ -177,3 +187,8 @@ count (`gh stack up 3`). Movement clamps at the stack bounds, and merged branche
 navigating from an active branch, so `bottom` lands on the lowest *unmerged* branch.
 
 `gh stack switch` is a selection menu with no non-interactive path. Use the commands above instead.
+
+## Utilities
+
+`gh stack alias` prints a shell alias for `gh stack`, and `gh stack feedback` opens the gh-stack
+feedback form. Neither is needed for agent workflows.

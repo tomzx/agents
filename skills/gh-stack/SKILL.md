@@ -8,7 +8,7 @@ description: >
 cli: gh stack
 metadata:
   author: github
-  version: "0.1.0"
+  version: "0.1.1"
   source: https://github.com/github/gh-stack/tree/main/skills/gh-stack
 ---
 
@@ -144,7 +144,7 @@ an ancestor of the branch.
 |---|---|---|
 | 0 | Success | — |
 | 1 | Generic error | Read stderr |
-| 2 | Not in a stack | `gh stack init`, or `gh stack checkout <target>` |
+| 2 | Not in a repo or stack | `gh stack init`, or `gh stack checkout <target>` |
 | 3 | Rebase conflict | Follow the Exit 3 recovery below |
 | 4 | GitHub API failure | Check `gh auth status`, retry |
 | 5 | Invalid arguments | Fix the invocation; see `<command> --help` |
@@ -167,8 +167,8 @@ an ancestor of the branch.
 - There is no non-interactive reorder or removal. Errors may suggest `gh stack modify`, but it is
   TUI-only — restructure with `unstack` then `init` instead.
 - PR titles and bodies are auto-generated. Use `gh pr edit` afterwards to change them.
-- `checkout <branch-name>` resolves against local stacks only. Use a stack or PR number to pull a
-  stack down from GitHub.
+- `checkout <branch-name>` resolves locally tracked stacks first, then active remote stacks
+  (best-effort; merged stacks are ignored). Use a stack or PR number to target a specific stack.
 
 ## More detail
 
