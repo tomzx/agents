@@ -296,6 +296,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/audit-observability` | Identify missing logging, metrics, tracing, and alerting. |
 | `/audit-attention` | Audit time split between compounding and depreciating activities. |
 | `/audit-sdlc` | Run multiple audits organized by the ISO/IEC 25010 quality model and produce a unified findings report. |
+| `/identify-codebase-improvements` | Discover high-confidence codebase improvements that are not already tracked by a GitHub issue (ghx dedup). |
+| `/identify-bugs` | Proactively find latent, verified bugs that are not already tracked by a GitHub issue (ghx dedup). |
 | `/audit-functional-suitability` | ISO/IEC 25010 functional suitability: completeness, correctness, appropriateness. |
 | `/audit-performance-efficiency` | ISO/IEC 25010 performance efficiency: time behavior, resource utilization, capacity. |
 | `/audit-compatibility` | ISO/IEC 25010 compatibility: co-existence and interoperability. |
