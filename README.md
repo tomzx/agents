@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-234-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-238-green" alt="Skill count">
 </p>
 
 ## What
@@ -215,6 +215,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. Owns the feedback contract and the analyze-only / execute modes. |
 | `/triage-pr-feedback` | Orchestrate reviewer-feedback triage: scan your open PRs for new feedback, run `handle-pr-reviewer-feedback --analyze-only` per PR, then prompt for decisions and hand off execution; built to run on a 10-15 minute schedule. |
 | `/handle-pr-author-feedback` | As the reviewer, verify the author's fixes address your comments; resolve fixed threads, reply on the rest. |
+| `/learn-from-code-reviews` | Distill the code review feedback you received on your own PRs into cited, durable rules to consult before design and implementation. |
 | `/handle-pr-ci` | Diagnose failing CI, fix, and confirm pass. |
 | `/handle-failing-pr-ci` | List my open PRs' CI status, then fix failing CI across all of them in parallel, one `handle-pr-ci` session per PR. |
 | `/resolve-pr-conflicts` | Resolve merge conflicts on all of the current user's PRs in parallel, one agent session per PR (reuses or creates a worktree). |
