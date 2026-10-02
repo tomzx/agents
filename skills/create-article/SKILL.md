@@ -46,9 +46,11 @@ This applies to **every** article, including opinion and perspective pieces. An 
 - **Plain language**: Write so the reader grasps the meaning on the first pass. Prefer common,
   everyday words over less frequent synonyms (for example, "use" over "utilize", "help" over
   "facilitate", "show" over "elucidate"), short sentences over long ones, and active voice over
-  passive. Keep technical terms where they are the precise and expected choice; the goal is to
-  avoid uncommon or showy words, not to lose precision. Calibrate this to the audience: write
-  simpler for general readers, and allow more domain terms for expert readers.
+  passive. Write literally: no metaphors, similes, idioms, or other figurative language, since the
+  reader must decode the comparison before reaching the meaning. Keep technical terms where they
+  are the precise and expected choice; the goal is to avoid uncommon or showy words, not to lose
+  precision. Calibrate this to the audience: write simpler for general readers, and allow more
+  domain terms for expert readers.
 - **No prose, state things directly**: Write straight to the point. Every sentence must convey
   information. Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode
   before reaching the meaning, and avoid filler that adds rhythm but no content. For example, write

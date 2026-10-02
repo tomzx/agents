@@ -39,7 +39,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Is every sentence necessary, with no filler or padding?
 - Are abstract points anchored with concrete examples, numbers, or comparisons?
 - Is jargon avoided or defined on first use?
-- Is the language plain: common words over less frequent synonyms, short sentences, and active voice?
+- Is the language plain: common words over less frequent synonyms, short sentences, active voice, and no figurative language (metaphors, idioms) that the reader must decode?
 
 ### Structure
 - Does the article follow a logical progression from hook to takeaway?
@@ -143,6 +143,10 @@ A companion article in the series reports 40% adoption while this one cites 35% 
 **Scenario 5: Not plain language**
 A paragraph says the tool "facilitates stakeholders in the utilization of the mechanism," a passive and jargon-heavy way to say it lets people use the feature.
 🟡 SHOULD rewrite in plain language: common words, short sentences, active voice.
+
+**Scenario 6: Figurative language**
+The article says the migration "moved to the center of the roadmap" and the bottleneck "sheds light on the real problem" instead of stating plainly what changed and what the bottleneck revealed.
+🟡 SHOULD replace the metaphors with the literal statement.
 
 ## Next Step
 
