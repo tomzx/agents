@@ -20,7 +20,7 @@ Commits the implementation plan produced by `/create-plan` to a dedicated branch
 
 ### Skill attribution (GitHub)
 
-Before posting the issue comment with `gh`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `publish-plan`.
+Before posting the issue comment with `ghx`, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `publish-plan`.
 
 ### Communication guidelines (outbound text)
 
@@ -85,7 +85,7 @@ Post comment on issue (links to PR)
 
 7. Post a comment on the issue (include **Skill attribution** footer):
    ```
-   gh issue comment $1 --body "$(cat <<'EOF'
+   ghx issue comment $1 --body "$(cat <<'EOF'
    <comment>
    EOF
    )"
@@ -156,4 +156,4 @@ Uses `docs/implementation-plan.md` as the plan file, otherwise same flow.
 | `git add <file> && git commit -m "..."` | Stage and commit the plan |
 | `git push -u origin plan/<number>` | Push branch and set upstream |
 | `gh pr create --draft --title "..." --body "..."` | Open a draft PR |
-| `gh issue comment <issue> --body "..."` | Post a comment on the issue |
+| `ghx issue comment <issue> --body "..."` | Post a comment on the issue |

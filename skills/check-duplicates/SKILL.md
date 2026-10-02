@@ -17,7 +17,7 @@ It does not modify the issue or create any branches.
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
-- `gh` CLI authenticated with read access to the target repository
+- `ghx` CLI authenticated with read access to the target repository
 - A GitHub issue number to check
 
 ### Skill attribution (GitHub)
@@ -60,7 +60,7 @@ For each candidate, compare:
 If a duplicate is found, comment on the current issue and stop:
 
 ```bash
-gh issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
+ghx issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
 Duplicate of #<existing-issue-number>.
 
 ---

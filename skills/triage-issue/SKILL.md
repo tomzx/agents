@@ -448,4 +448,4 @@ User lacks triage permissions on a public repo. Issue #88 reports the same crash
 | `echo '{"type": "<name>"}' \| gh api --method PATCH repos/<owner>/<repo>/issues/<number> --input -` | Set issue type by name |
 | `gh api graphql -f query='mutation($issueId: ID!, $fieldId: ID!, $optionId: ID!) { setIssueFieldValue(input: { issueId: $issueId, issueFields: [{ fieldId: $fieldId, singleSelectOptionId: $optionId }] }) { issue { issueFieldValues(first: 10) { nodes { ... on IssueFieldValueSingleSelect { name field { ... on IssueFieldSingleSelect { name } } } } } } } }' -f issueId=<ID> -f fieldId=<FIELD_ID> -f optionId=<OPTION_ID>` | Set org-level issue field (e.g. Priority) |
 | `gh issue edit <number> [--repo <repo>] --add-label "<label>"` | Apply a label to an issue |
-| `gh issue comment <number> [--repo <repo>] --body "..."` | Post a clarification comment (append attribution footer per `github-post-attribution`) |
+| `ghx issue comment <number> [--repo <repo>] --body "..."` | Post a clarification comment (append attribution footer per `github-post-attribution`) |

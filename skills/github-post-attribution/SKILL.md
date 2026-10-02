@@ -2,7 +2,7 @@
 name: github-post-attribution
 description: >-
   Resolves agents commit SHA and GitHub URL for a skill's SKILL.md, and
-  formats footers for comments or issue bodies posted via gh. Use whenever a
+  formats footers for comments or issue bodies posted via gh or ghx. Use whenever a
   skill posts to GitHub (PR comments, issue comments, issue create, review
   comments) so readers see which skill and which repo revision produced the
   content. Other skills reference this instead of duplicating steps.
@@ -14,7 +14,7 @@ Skills that post content to GitHub should append a small footer: link to the **i
 
 ## When to use
 
-- Any `gh` command that creates or updates issue/PR text visible on GitHub.
+- Any `gh` or `ghx` command that creates or updates issue/PR text visible on GitHub.
 - Invoked **by name** from other skills (e.g. "follow `skills/github-post-attribution/SKILL.md` before posting").
 
 ## Resolve repository root, commit, and GitHub base URL
@@ -120,7 +120,7 @@ BODY="$(cat <<'EOF'
 EOF
 )"
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) via ${MODEL_NAME} (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $N --repo $REPO --body "${BODY}
+ghx pr comment $N --repo $REPO --body "${BODY}
 
 ${FOOTER}"
 ```

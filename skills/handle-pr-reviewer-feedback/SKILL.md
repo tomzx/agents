@@ -65,8 +65,9 @@ There is no separate state file. The file's presence is the "analyzed" marker; t
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository.
+- `ghx` CLI authenticated for cached PR reads and thread replies.
 - `uv` available (the enumeration script runs via its `uv run --script` shebang).
-- A PR number or URL. If no argument is provided, resolve the number with `gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'` and the repo with `gh repo view --json nameWithOwner --jq .nameWithOwner` (or use `$PR_NUMBER` / `$REPO` when present).
+- A PR number or URL. If no argument is provided, resolve the number with `ghx pr list --head $(git branch --show-current) --json | jq -r '.[0].number'` and the repo with `gh repo view --json nameWithOwner --jq .nameWithOwner` (or use `$PR_NUMBER` / `$REPO` when present).
 
 ### Skill attribution (GitHub)
 
@@ -210,7 +211,7 @@ git -C "$SCRATCH/repo" update-ref -d refs/handle-pr-reviewer-feedback/<n>/base
 
 ### 7. Reply to the threads (execute mode only)
 
-Decide whether replies may be posted: get the PR author (`gh pr view <n> --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
+Decide whether replies may be posted: get the PR author (`ghx pr view <n> --repo <owner>/<repo> --json | jq -r .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
 If it exits 1, present the drafted replies to the user without posting.
 
 If it exits 0, reply using the `thread_id` from step 2:

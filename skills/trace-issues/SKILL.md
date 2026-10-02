@@ -176,7 +176,7 @@ This is the PR -> code map used as a starting pointer for verification.
 Fetch the full issue body:
 
 ```bash
-gh issue view $NUMBER --repo $REPO --json number,title,body,state,labels,author
+ghx issue view $NUMBER --repo $REPO --json
 ```
 
 Distill the issue into 1 to N discrete **intents**, each a single testable assertion about what the code should do.
@@ -375,7 +375,7 @@ Issue #42's Must criterion "stream rows > 1M" was implemented by merged PR #51, 
 | Command | Purpose |
 |---|---|
 | `gh search issues --json repository,number,title,state ...` | Gather issues across the scope |
-| `gh issue view <n> --json number,title,body,state,labels,author` | Fetch an issue body for intent extraction |
+| `ghx issue view <n> --json` | Fetch an issue body for intent extraction |
 | `gh api repos/{o}/{r}/issues/<n>/timeline --paginate --jq ...` | Issue timeline, extract PR cross-references |
 | `ghx pr list --repo <repo> --search "<n> is:pr" --state all` | PRs mentioning an issue (fallback) |
 | `gh pr view <n> --json mergeCommit,commits,files,...` | PR merge commit, commits, and changed files |

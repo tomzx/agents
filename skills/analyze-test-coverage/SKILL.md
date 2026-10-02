@@ -1,7 +1,7 @@
 ---
 name: analyze-test-coverage
 description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr-full as the first step of its review chain (before validate-pr, verify-pr, and review-pr), and delegated to by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
-allowed-tools: Bash(git:*), Read, Glob, Grep
+allowed-tools: Bash(git:*, ghx:*), Read, Glob, Grep
 argument-hint: "[diff-ref | worktree-dir]"
 ---
 
@@ -137,7 +137,7 @@ When dispatched by `review-pr-full` (the first step of its review chain, before 
 
 ```bash
 PR_NUMBER="$1"; REPO="$2"
-BASE_BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json baseRefName --jq .baseRefName)
+BASE_BRANCH=$(ghx pr view "$PR_NUMBER" --repo "$REPO" --json | jq -r .baseRefName)
 HEAD_COMMIT=$(git -C "$WORKTREE_DIR" rev-parse HEAD)
 HEAD_TREE=$(git -C "$WORKTREE_DIR" rev-parse HEAD^{tree})
 SHORT_SHA="${HEAD_COMMIT:0:7}"
@@ -167,7 +167,7 @@ Then point the stable name at it: `ln -sf "analyze-test-coverage.$SHORT_SHA.md" 
 
 ```bash
 FOOTER="Posted with [analyze-test-coverage](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat "$PR_REVIEW_DIR/analyze-test-coverage.report.md")
+ghx pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat "$PR_REVIEW_DIR/analyze-test-coverage.report.md")
 
 ${FOOTER}"
 ```

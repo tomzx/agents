@@ -90,4 +90,4 @@ If given an issue URL, fetch it with:
 
 | Command | Description |
 |---|---|
-| `ghx issue view <url> --comments` | Fetch issue details and comments (cached) |
+| `gh issue view <url> --comments` | Fetch issue details and comments (cached) |

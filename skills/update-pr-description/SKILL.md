@@ -12,6 +12,7 @@ Reads the current PR description, computes what has changed since it was written
 
 - `gt` (Graphite CLI) installed and authenticated in a git repository
 - `gh` CLI authenticated
+- `ghx` CLI authenticated
 - An open PR for the current branch with an existing description
 
 ### Skill attribution (GitHub)
@@ -75,7 +76,7 @@ Produce updated PR description markdown
 
 4. If `$1` (repository) and `$2` (issue number) are provided, fetch the issue:
    ```
-   gh issue view $2 --repo $1
+   ghx issue view $2 --repo $1
    ```
 
 5. Compare the existing description against the current diff and commit list. For each section of the existing description, decide:
@@ -162,4 +163,4 @@ Removes the bullet in "What" that described the reverted change and drops the co
 | `gh pr view --json body --jq '.body'` | Fetch the current PR description |
 | `git diff $(gt parent)..HEAD` | Diff current branch against its Graphite parent |
 | `git log $(gt parent)..HEAD --oneline` | List commits on the branch |
-| `gh issue view <issue> --repo <owner/repo>` | Fetch issue details via gh CLI |
+| `ghx issue view <issue> --repo <owner/repo>` | Fetch issue details via ghx CLI |

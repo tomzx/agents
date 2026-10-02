@@ -72,10 +72,11 @@ Fetch PR information by piping the raw `ghx` output directly to a file (do not g
 PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
 mkdir -p "$PR_REVIEW_DIR"
 ghx pr view $1 --repo "$REPO" --comments --refresh > "$PR_REVIEW_DIR/gh-pr-view.md"
+HEAD_COMMIT=$(gh pr view $1 --repo "$REPO" --json headRefOid --jq .headRefOid)
 ```
 
 Extract:
-- `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`)
+- `HEAD_COMMIT`: the PR's head commit SHA (`headRefOid`, from the `gh pr view --json` command above; `ghx pr view` does not expose it)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
 - `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
 - `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
@@ -485,7 +486,7 @@ If it exits 0, post the review file as a comment on the PR so the author and oth
 
 ```bash
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.report.md")
+ghx pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.report.md")
 
 ${FOOTER}"
 ```
@@ -534,6 +535,6 @@ PR fixes a null pointer. Review checks that the change is localized and the new 
 |---|---|
 | `ghx pr view <pr-number> --repo <owner>/<repo> --comments --refresh` | Fetch PR details and review comments (fresh) |
 | `ghx issue view <issue-number> --repo <owner>/<repo>` | Fetch linked issue details (cached) |
-| `gh pr comment <pr-number> --repo <owner>/<repo> --body "..."` | Post review summary comment to the PR |
+| `ghx pr comment <pr-number> --repo <owner>/<repo> --body "..."` | Post review summary comment to the PR |
 | `git fetch https://github.com/<headOwner>/<headRepo>.git <branch> && git worktree add /tmp/sdlc/<owner>/<repo>/<issue> FETCH_HEAD` | Create a worktree on the PR branch for code reading (works for fork PRs) |
 | `git worktree remove /tmp/sdlc/<owner>/<repo>/<issue>` | Clean up the worktree after review |

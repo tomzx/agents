@@ -46,10 +46,9 @@ Worktrees on branches with no upstream at all were never pushed, so there is no 
 
 ### 3. Verify merge state against GitHub
 
-For each candidate branch, list merged PRs from that head, preferring `ghx` and falling back to `gh`:
+For each candidate branch, list merged PRs from that head. `ghx pr list` does not expose `headRefOid`, so use `gh`:
 
 ```
-ghx pr list --state merged --head <branch> --json number,headRefOid,mergedAt
 gh pr list --state merged --head <branch> --json number,headRefOid,mergedAt
 ```
 
@@ -57,7 +56,7 @@ Compare the newest merged PR's `headRefOid` with the local tip (`git rev-parse <
 
 - **Merged (verified)**: a merged PR exists and its head SHA equals the local tip, so nothing was added to the branch after the merge. Safe to remove.
 - **At risk**: no merged PR for that head, or the local tip differs from the PR head (commits after the merge). Keep the worktree and report why.
-- **Unverifiable**: `ghx`/`gh` is unavailable or unauthenticated. Treat every candidate as at risk, say that verification was impossible, and stop before any deletion.
+- **Unverifiable**: `gh` is unavailable or unauthenticated. Treat every candidate as at risk, say that verification was impossible, and stop before any deletion.
 
 Gone upstream alone never proves the work shipped: a branch can be deleted on the remote while still holding unmerged commits.
 
@@ -138,7 +137,7 @@ PR #17 is merged but the worktree holds 3 uncommitted files. With `--force` the 
 ```
 /prune-merged-worktrees
 ```
-`git branch -d` would refuse and `git rev-list main..<branch>` shows commits, because the squash merge created a new SHA. `ghx pr list --state merged --head <branch>` finds merged PR #23 with `headRefOid` equal to the local tip, so the branch is classified merged (verified) and pruned.
+`git branch -d` would refuse and `git rev-list main..<branch>` shows commits, because the squash merge created a new SHA. `gh pr list --state merged --head <branch>` finds merged PR #23 with `headRefOid` equal to the local tip, so the branch is classified merged (verified) and pruned.
 
 **Scenario 4: Commits added after the merge**
 ```
@@ -152,7 +151,7 @@ PR #9 is merged, but the local tip differs from the PR head: someone committed t
 |---|---|
 | `git worktree list --porcelain` | List worktrees with their branches |
 | `git fetch --prune origin` | Refresh remote refs and drop deleted branches |
-| `ghx pr list --state merged --head <branch> --json number,headRefOid,mergedAt` | Find merged PRs for a head branch |
+| `gh pr list --state merged --head <branch> --json number,headRefOid,mergedAt` | Find merged PRs for a head branch |
 | `git worktree remove <path>` | Remove a worktree (`--force` for dirty ones) |
 | `git branch -D <branch>` | Delete a local branch whose merge was squashed |
 | `git tag -d "prs/<pr-number>/review"` | Delete the review checkpoint tag after merging |

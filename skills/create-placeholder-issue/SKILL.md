@@ -38,7 +38,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 4. **Duplicate check.** Read the feature's frontmatter `issue` field; if it is already set, treat the feature as already promoted (`already-issue-driven`). Otherwise search for an existing open issue mentioning the feature slug and "placeholder":
    ```
-   gh issue list --search "<slug> placeholder" --state open --limit 10
+   ghx issue list --search "<slug> placeholder" --state open --limit 10
    ```
    If one is found that was produced by this skill, reuse its number `M` and skip to step 7 (rename), linking the existing issue instead of creating a duplicate.
 
@@ -140,7 +140,7 @@ If the skill was interrupted after issue creation but before the rename, the dup
 | Command | Description |
 |---|---|
 | `gh issue create --title "..." --body "..."` | Create the placeholder issue |
-| `gh issue list --search "<slug> placeholder" --state open --limit 10` | Duplicate check before creating |
+| `ghx issue list --search "<slug> placeholder" --state open --limit 10` | Duplicate check before creating |
 | `gh label list --json name --jq '.[].name'` | Check whether a `sdlc-placeholder` label exists |
 | `rg -l --no-ignore 'FEAT-p2' .sdlc` | Find every file referencing the old feature id |
 | `perl -i -pe 's/\bFEAT-p2(?!\d)/FEAT-137/g' <file>` | Boundary-safe id rewrite (avoids corrupting `FEAT-p20`) |

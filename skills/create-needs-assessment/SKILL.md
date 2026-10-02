@@ -91,4 +91,4 @@ If the need is rejected (Not needed), update the issue and stop the pipeline.
 
 | Command | Description |
 |---|---|
-| `ghx issue view <url> --comments` | Fetch issue details and comments (cached) |
+| `gh issue view <url> --comments` | Fetch issue details and comments (cached) |

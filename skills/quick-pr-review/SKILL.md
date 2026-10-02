@@ -69,6 +69,7 @@ Fetch PR metadata + latest commit SHA
 
 ```bash
 ghx pr view $2 --repo $1 --json --refresh
+gh pr view $2 --repo $1 --json headRefOid,author,statusCheckRollup
 gh pr diff $2 --repo $1
 ```
 
@@ -172,7 +173,7 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 #### Tests pass
 - Check CI status from `statusCheckRollup` in the PR JSON.
 - If any required checks are still **pending** or **in progress** (not yet concluded): wait and re-check rather than treating the PR as ready.
-  - Wait ~60 seconds, then re-fetch the PR JSON with `ghx pr view $2 --repo $1 --json --refresh` and re-evaluate `statusCheckRollup`.
+  - Wait ~60 seconds, then re-fetch the PR JSON with `gh pr view $2 --repo $1 --json statusCheckRollup --jq '.statusCheckRollup'` and re-evaluate `statusCheckRollup`.
   - Repeat until all required checks have concluded (passing, failing, or skipped), up to a maximum of 10 attempts (~10 minutes).
   - If checks are still pending after the maximum attempts: do not approve. Post/update the comment with `[ ] Tests pass` noting that checks did not conclude in time, and report to the user that the review should be re-run once CI completes.
 - Once all required checks have concluded: all required checks must be passing or skipped (not failing).
@@ -180,13 +181,13 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 #### Change is part of the spec (approval gate)
 - Read the PR title and description.
 - If no issue is referenced (e.g., `Fixes #N`, `Closes #N`, `Refs #N`, or a plain `#N` link): **do not approve** and ask the author to update the PR description with a reference to the issue that explains why this PR exists.
-  - Try to find potentially matching open issues for this PR by searching the repository (e.g., `gh issue list --repo {REPO} --state open --search "<keywords from PR title/description>"`).
+  - Try to find potentially matching open issues for this PR by searching the repository (e.g., `ghx issue list --repo {REPO} --state open --search "<keywords from PR title/description>"`).
   - Suggest at most 3 candidates as a bullet list, listing only the issue number (no title), e.g.:
     - `#41`
     - `#58`
     - `#72`
   - If no plausible matches are found, omit the list.
-- If an issue is referenced: fetch the issue with `gh issue view {N} --repo {REPO} --json title,body,labels` and extract its acceptance criteria (any checklist, "Acceptance Criteria" section, or equivalent).
+- If an issue is referenced: fetch the issue with `ghx issue view {N} --repo {REPO} --json` and extract its acceptance criteria (any checklist, "Acceptance Criteria" section, or equivalent).
 - If acceptance criteria are found: verify that the diff satisfies them.
 - If the PR is not aligned, **do not approve** and list the unmet criteria, asking the author to provide a justification or update the PR.
 - If the issue has no acceptance criteria: treat this sub-check as passing (no way to verify alignment).
@@ -495,7 +496,8 @@ If checks never conclude, post comment with `[ ] Tests pass` and do not approve.
 
 | Command | Description |
 |---|---|
-| `ghx pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including latest commit, CI status, and author (fresh) |
+| `ghx pr view <pr> --repo <owner/repo> --json --refresh` | Fetch PR metadata including title, description, and author (fresh) |
+| `gh pr view <pr> --repo <owner/repo> --json headRefOid,statusCheckRollup` | Fetch the PR head commit SHA and current CI status |
 | `gh pr diff <pr> --repo <owner/repo>` | Show the full PR diff |
 | `ghx pr comment <pr> --repo <owner/repo> --body "..."` | Post a new comment on the PR |
 | `gh api repos/{owner}/{repo}/issues/comments/{id} -X PATCH -f body="..."` | Update an existing comment |

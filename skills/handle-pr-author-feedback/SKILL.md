@@ -16,7 +16,7 @@ This skill never modifies the PR's code. To implement fixes on your own PR, use 
 - `gh` CLI authenticated with write access to the target repository
 - PR number identifying an open pull request where you left review comments
   - If `$1` is provided, use it directly
-  - If `$1` is not provided, resolve the PR number with: `gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'`
+  - If `$1` is not provided, resolve the PR number with: `ghx pr list --head $(git branch --show-current) --json | jq '.[0].number'`
 
 ### Skill attribution (GitHub)
 
@@ -71,6 +71,7 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
    ghx pr view $1 --json --refresh
    ghx pr threads $1 --ids --state all
    ```
+   `ghx pr view` does not expose the head commit SHA, so fetch it with `gh pr view $1 --json headRefOid --jq .headRefOid`.
    Extract the latest commit SHA, the PR author, and the current user (`gh api user --jq .login`).
 
 2. Filter threads to those that are:
@@ -94,7 +95,7 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
 
 5. Present a verdict table to the user for approval: thread, comment summary, verdict, and the proposed reply or resolve action.
 
-6. On approval, decide whether to post: get the PR author (`gh pr view $1 --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
+6. On approval, decide whether to post: get the PR author (`ghx pr view $1 --json | jq -r .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
    If it exits 0:
    - **Addressed**: reply to the thread, then resolve it:
      ```

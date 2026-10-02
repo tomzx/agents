@@ -59,7 +59,7 @@ Fetch PR metadata + comment history
 
 1. Fetch PR details and full comment history:
    ```
-   ghx pr view $1 --comments --refresh
+   gh pr view $1 --comments
    ```
 2. Clone the repository locally:
    ```
@@ -72,7 +72,7 @@ Fetch PR metadata + comment history
 7. Present reasoning to the user for approval.
 8. On approval:
    - For code changes: commit and push to the PR branch (push is not gated).
-   - For posting a reply comment: get the PR author (`gh pr view <pr-number> --repo <owner>/<repo> --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, post the reply via `ghx` with the **Skill attribution** footer on the comment body. If it exits 1, present the drafted reply to the user without posting.
+   - For posting a reply comment: get the PR author (`gh pr view $1 --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, post the reply via `gh` with the **Skill attribution** footer on the comment body. If it exits 1, present the drafted reply to the user without posting.
 
 ## Example Usage
 
@@ -101,8 +101,8 @@ Action: Draft rejection with technical reasoning; present to user before posting
 
 | Command | Description |
 |---|---|
-| `ghx pr view <pr-url> --comments --refresh` | Fetch PR details and all comments (fresh) |
+| `gh pr view <pr-url> --comments` | Fetch PR details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone the repository locally |
-| `ghx pr comment <pr-number> --body "..."` | Post a reply to the PR |
+| `gh pr comment <pr-url> --body "..."` | Post a reply to the PR |
 | `git commit -m "..."` | Commit code changes |
 | `git push` | Push changes to the PR branch |

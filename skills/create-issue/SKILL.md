@@ -13,6 +13,7 @@ Creates a structured GitHub issue in the specified repository with background, p
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, operate on `$REPO`.
 - `gh` CLI authenticated with write access to the target repository
+- `ghx` CLI available for posting the follow-up comment
 - Repository name in `owner/repo` format (`$1`), or omitted to use the repository in the current working directory
 - The `search-existing-issues` skill available for the duplicate search in step 1
 
@@ -125,7 +126,7 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     )" --label "<label1>" --label "<label2>"
     ```
     Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command. Omit all `--label` flags if no desired labels exist in the repository.
-8. **Post detailed code analysis as a follow-up comment** (if applicable). If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body. Use `gh issue comment <number> [--repo $1] --body "..."`. Include the same attribution footer as the issue body.
+8. **Post detailed code analysis as a follow-up comment** (if applicable). If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body. Use `ghx issue comment <number> [--repo $1] --body "..."`. Include the same attribution footer as the issue body.
 9. **Assign the issue type** (if the repository supports issue types from step 5). After the issue is created, get its `node_id` and set the type:
     ```
     NODE_ID=$(gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id')
@@ -179,6 +180,6 @@ A review subagent is dispatched automatically to run `/review-issue` to audit th
 | `ghx issue list --repo <repo> --search "<keywords>" --state all --limit 10` | Underlying duplicate search (run by `search-existing-issues`, not directly by this skill) |
 | `gh label list [--repo <repo>] --json name --jq '.[].name'` | List existing label names in the repository |
 | `gh issue create --repo <repo> --title "..." --body "..." --label "..."` | Create a new issue with labels |
-| `gh issue comment <number> [--repo <repo>] --body "..."` | Post a follow-up comment with detailed code analysis |
+| `ghx issue comment <number> [--repo <repo>] --body "..."` | Post a follow-up comment with detailed code analysis |
 | `gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id'` | Get the issue's node ID for type assignment |
 | `gh api graphql -f query='mutation($id:ID!,$typeId:ID!){updateIssue(input:{id:$id,issueTypeId:$typeId}){issue{issueType{name}}}}' -f id=... -f typeId=...` | Set the issue type after creation |

@@ -93,7 +93,7 @@ Works for both initial bootstrapping and periodic sync.
    - Database signals: migration files or directories (`migrations/`, `alembic/`, `db/migrate/`, `prisma/migrations/`), ORM model definitions (SQLAlchemy models, Django models, Prisma schema, ActiveRecord models, GORM definitions, TypeORM entities, Drizzle schemas), SQL schema files (`schema.sql`, `init.sql`, `*.sql` in a migrations directory), or database configuration files (`database.yml`, `prisma/schema.prisma`, `alembic.ini`, `drizzle.config.ts`)
    - Existing documentation under `docs/` if present
    - `AGENTS.md` or `.agents/` for project-specific conventions already captured
-    - Open or recently closed GitHub issues (`gh issue list --limit 20`) if the project has a remote
+    - Open or recently closed GitHub issues (`ghx issue list --limit 20`) if the project has a remote
 
     **Parallelize context file reconciliation.** Steps 7–14 below each reconcile an independent context file and share no dependencies. Dispatch one subagent per file using the `Task` tool (`subagent_type: "general"`), passing the codebase analysis from step 6, the migration summary from step 3, the existing file content (if any), and the template structure. Each subagent starts with a fresh context, so its prompt must be fully self-contained. Collect all results for the sync report. If the `Task` tool is unavailable, process the files sequentially as written.
 

@@ -19,6 +19,7 @@ It does **not** judge whether the target is the right product, that is `/validat
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
+- `ghx` CLI for cached issue reads and PR comments (authenticates via `GH_TOKEN` or `gh auth token`)
 - `git worktree` available
 - For CLI changes: `asciinema` plus a renderer (`agg` preferred). Provided by [`/record-asciinema`](../record-asciinema/SKILL.md).
 - For web UI changes: Playwright (Node or Python) with Chromium. Provided by [`/record-playwright`](../record-playwright/SKILL.md).
@@ -136,7 +137,7 @@ Use `closingIssuesReferences` as the authoritative source of linked issues. If e
 For each linked issue number, fetch its full body:
 
 ```bash
-gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
+ghx issue view $ISSUE_NUMBER --repo $REPO --json
 ```
 
 ### 2. Parse acceptance criteria and build the coverage map
@@ -410,7 +411,7 @@ If it exits 0, post the report file as a comment on the PR. The file already con
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/verify-pr.report.md")
+ghx pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/verify-pr.report.md")
 
 ${FOOTER}"
 ```

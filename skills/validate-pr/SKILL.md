@@ -18,6 +18,7 @@ The cheap, build-free nature of this step is intentional: it runs first as an ea
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
+- `ghx` CLI for cached issue reads and posting the report comment
 - `git worktree` available
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there. Of particular interest: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These reveal the intended outcomes the PR should serve.
 - When a linked issue number is known, look for the matching feature directory under `.sdlc/features/`: the directory named `N-<slug>` where `N` is the issue number, or a directory whose `requirements.md` frontmatter `issue` field references it (resolve the read per the SDLC_DIR artifact-location rules in `skills/sdlc/references/shared.md`). When found, read its `requirements.md`; it is the reviewed statement of the need and criteria and augments, never replaces, the issue. Its absence is not a failure; proceed on the issue alone.
@@ -116,7 +117,7 @@ Use `closingIssuesReferences` as the authoritative source of linked issues. If e
 For each linked issue number, fetch its full body:
 
 ```bash
-gh issue view $ISSUE_NUMBER --repo $REPO --json number,title,body,state
+ghx issue view $ISSUE_NUMBER --repo $REPO --json
 ```
 
 ### 1c. Create a git worktree on the PR branch
@@ -291,7 +292,7 @@ If it exits 0, post the report file as a comment on the PR. The file already con
 
 ```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-gh pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.report.md")
+ghx pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/validate-pr.report.md")
 
 ${FOOTER}"
 ```

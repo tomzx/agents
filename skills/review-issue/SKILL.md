@@ -163,4 +163,4 @@ Report under Time Budget. Propose a breakdown such as "schema migration: 2h (new
 |---|---|
 | `ghx issue view <issue> --comments` | Fetch issue details and comments (cached) |
 | `gh issue edit <issue> --body "..."` | Update the issue body with improved content |
-| `gh issue comment <issue> --body "..."` | Post a comment requesting clarification from the reporter |
+| `ghx issue comment <issue> --body "..."` | Post a comment requesting clarification from the reporter |

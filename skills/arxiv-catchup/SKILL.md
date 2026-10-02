@@ -62,9 +62,9 @@ Parse the HTML to collect links from New submissions and Cross-lists only. In th
 Extract links following the pattern `/html/{arxiv_id}`:
 
 ```bash
-rg -oP '(?<=href=")[^"]*' /tmp/arxiv_catchup.html \
-  | rg '^/html/' \
-  | sed 's|^/html/|https://arxiv.org/html/|' \
+rg -oP '(?<=href=")/html/([^"]*)' \
+  --replace 'https://arxiv.org/html/$1' \
+  /tmp/arxiv_catchup.html \
   | sort -u
 ```
 

@@ -168,7 +168,7 @@ Then act by verdict:
 When posting, link the strongest piece of evidence. Resolve `CODE_SHA`, `SKILL_FILE_URL`, and `SKILL_SHORT_SHA` to their actual values before constructing the command (they are literal inside the quoted heredoc):
 
 ```bash
-gh issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
+ghx issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
 <!-- check-issue-status:implemented:CODE_SHA -->
 This appears to already be addressed in the code.
 

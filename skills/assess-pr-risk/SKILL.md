@@ -68,10 +68,11 @@ Clean up worktree
 
 ```bash
 ghx pr view $PR_NUMBER --repo "$REPO" --comments --refresh
+gh pr view $PR_NUMBER --repo "$REPO" --json headRefOid,headRepository,closingIssuesReferences,files
 gh pr diff $PR_NUMBER --repo "$REPO"
 ```
 
-Extract:
+Extract `headRefOid`, `headRepository.nameWithOwner`, `closingIssuesReferences`, and the changed-file list from the `gh pr view --json` output, and extract the comment and review context from the `ghx` output:
 - `HEAD_COMMIT`: the `headRefOid` (latest commit SHA, full)
 - `SHORT_SHA`: first 7 characters of `HEAD_COMMIT`
 - `PR_AUTHOR`: the `author.login`

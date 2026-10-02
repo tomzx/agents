@@ -189,7 +189,7 @@ Comment on the issue to confirm reproduction and signal that a fix is in progres
 Include relevant details from the reproduction attempt (exact steps that triggered it, observed error, environment differences from the report):
 
 ```bash
-gh issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
+ghx issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
 Reproduced. Working on a fix.
 
 **Reproduction details:**

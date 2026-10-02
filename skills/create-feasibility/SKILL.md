@@ -88,4 +88,4 @@ If approved, continue with `/create-specifications`.
 
 | Command | Description |
 |---|---|
-| `ghx issue view <url> --comments` | Fetch issue details and comments (cached) |
+| `gh issue view <url> --comments` | Fetch issue details and comments (cached) |

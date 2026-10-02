@@ -19,6 +19,7 @@ Designed to be safe to run unattended: ambiguous conflicts and PRs that fail ver
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with write access to the target repository (and to the PR head branches)
+- `ghx` CLI available for posting PR comments
 - `git worktree` available
 - The current git user is the author of the target PRs (`@me`)
 - The current working directory is a checkout of the target repository, or a target repo is passed as `owner/repo`
@@ -195,7 +196,7 @@ Steps:
 8. Unless DRY_RUN is true:
       - push: git push origin {HEAD_REF}
         (fork: git push git@github.com:{HEAD_REPO}.git {LOCAL_BRANCH}:{HEAD_REF})
-     - post a short comment via gh pr comment {PR} --repo {REPO} with the list of
+     - post a short comment via ghx pr comment {PR} --repo {REPO} with the list of
        resolved files and the resolve-pr-conflicts attribution footer
        (see skills/github-post-attribution/SKILL.md). Never force-push.
 9. Return EXACTLY one line in this format, nothing else:

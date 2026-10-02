@@ -25,7 +25,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 1. Fetch the issue and all its comments:
    ```
-   ghx issue view $1 --comments --refresh
+   gh issue view $1 --comments
    ```
 2. Clone the repository to gather codebase context:
    ```
@@ -35,7 +35,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 4. Draft a reply that directly addresses the latest comment, grounded in codebase evidence and prior discussion.
 5. Post the reply (body = main reply plus **Skill attribution** footer):
    ```
-   ghx issue comment $1 --body "..."
+   gh issue comment $1 --body "..."
    ```
 
 ## Example Usage
@@ -65,6 +65,6 @@ Action: Review the issue's acceptance criteria, reply stating whether the admin 
 
 | Command | Description |
 |---|---|
-| `ghx issue view <issue-url> --comments --refresh` | Fetch issue details and all comments (fresh) |
+| `gh issue view <issue-url> --comments` | Fetch issue details and all comments (fresh) |
 | `gh repo clone <owner>/<repo>` | Clone repository for codebase context |
-| `ghx issue comment <issue-url> --body "..."` | Post a reply comment on the issue |
+| `gh issue comment <issue-url> --body "..."` | Post a reply comment on the issue |

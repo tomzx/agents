@@ -207,7 +207,7 @@ stop           |
    Omit `--repo` if the repository can be inferred from the current working directory.
    If the design decisions were too large for the description (more than five, per step 5), post them as a follow-up comment instead:
    ```
-   gh pr comment <pr-number> --body "<design decisions>"
+   ghx pr comment <pr-number> --body "<design decisions>"
    ```
 
 11. Add context comments for reviewers with `ghx`.
@@ -238,7 +238,7 @@ Reference the issue.>
 <One bullet per decision the implementation made: what was decided, the rejected alternative, and why.
 Link to the ADR when the decision was recorded.
 Omit this section entirely when there are no decisions.
-When there are more than five, post them as a follow-up comment (`gh pr comment`) and keep a one-line section here linking to it.>
+When there are more than five, post them as a follow-up comment (`ghx pr comment`) and keep a one-line section here linking to it.>
 
 - <Decision> instead of <rejected alternative>, because <reason> ([ADR N](.sdlc/knowledge/decisions/N-<slug>.md))
 
@@ -385,7 +385,7 @@ Close the loop with `/create-learnings` after the feature is merged.
 | `git diff $(git merge-base HEAD origin/main)..HEAD` | Diff against the merge base |
 | `ghx issue view <number> --repo <owner/repo>` | Fetch issue details (cached) |
 | `gh pr create --repo <repo> --title "..." --body "..." [--draft]` | Open the pull request |
-| `gh pr comment <number> --body "..."` | Post the design decisions as a follow-up comment when they are too large for the description |
+| `ghx pr comment <number> --body "..."` | Post the design decisions as a follow-up comment when they are too large for the description |
 | `ghx pr comment <number> --file <path> --line <n> --body "..."` | Post an inline context comment for reviewers |
 | `gh pr edit <number> --add-reviewer <handle>` | Assign a reviewer after creation |
 | `gh api repos/<repo>/contents/<path> --method PUT -f content="$(base64 -w 0 <asset>)"` | Upload a visual-proof asset to the branch |

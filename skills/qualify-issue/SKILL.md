@@ -22,7 +22,7 @@ This skill owns the iterative clarification loop. It stops when the issue is ful
 
 ### Skill attribution (GitHub)
 
-Before posting any comment with `gh`, read [`../github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `qualify-issue`.
+Before posting any comment with `ghx`, read [`../github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Posted with** footer for `SKILL_DIR` = `qualify-issue`.
 
 ### Communication guidelines (outbound text)
 
@@ -103,7 +103,7 @@ If previous comments already answered some questions, treat those as resolved an
    ```
 3. Post a comment signalling qualification is complete:
    ```bash
-   gh issue comment $1 [--repo $2] --body "$(cat <<'EOF'
+   ghx issue comment $1 [--repo $2] --body "$(cat <<'EOF'
    This issue is now fully qualified and ready for requirements analysis.
 
    ---
@@ -120,7 +120,7 @@ Group the open questions into a single comment. Do not spread them across multip
 Number the questions so the reporter can answer by number.
 
 ```bash
-gh issue comment $1 [--repo $2] --body "$(cat <<'EOF'
+ghx issue comment $1 [--repo $2] --body "$(cat <<'EOF'
 Thanks for the report. To move this forward, a few questions:
 
 1. <question>
@@ -196,4 +196,4 @@ Skips posting new questions, updates issue body, signals qualification complete.
 |---|---|
 | `ghx issue view <issue> [--repo <repo>] --comments` | Fetch issue and full comment history |
 | `gh issue edit <issue> [--repo <repo>] --body "..."` | Update the issue body with synthesized content |
-| `gh issue comment <issue> [--repo <repo>] --body "..."` | Post a clarification question comment |
+| `ghx issue comment <issue> [--repo <repo>] --body "..."` | Post a clarification question comment |
