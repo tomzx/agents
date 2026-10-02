@@ -43,11 +43,12 @@ This applies to **every** article, including opinion and perspective pieces. An 
   in **bold** so readers scanning the article still capture the core message. Be selective: bold
   sentences or phrases that carry the argument, not routine sentences. Avoid bolding more than one
   statement per paragraph on average.
-- **Plain vocabulary**: Prefer common, everyday words over less frequent synonyms, so the article is
-  easy to read (for example, "use" over "utilize", "help" over "facilitate", "show" over "elucidate").
-  Keep technical terms where they are the precise and expected choice; the goal is to avoid uncommon
-  or showy words, not to lose precision. Calibrate this to the audience: write simpler for general
-  readers, and allow more domain terms for expert readers.
+- **Plain language**: Write so the reader grasps the meaning on the first pass. Prefer common,
+  everyday words over less frequent synonyms (for example, "use" over "utilize", "help" over
+  "facilitate", "show" over "elucidate"), short sentences over long ones, and active voice over
+  passive. Keep technical terms where they are the precise and expected choice; the goal is to
+  avoid uncommon or showy words, not to lose precision. Calibrate this to the audience: write
+  simpler for general readers, and allow more domain terms for expert readers.
 - **No prose, state things directly**: Write straight to the point. Every sentence must convey
   information. Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode
   before reaching the meaning, and avoid filler that adds rhythm but no content. For example, write

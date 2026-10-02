@@ -17,6 +17,7 @@ This is a reference, not a workflow: no command to run and no artifact to produc
 
 ## Core principles
 
+- Use plain language: short, direct sentences in the active voice, with common words over jargon and buzzwords, so the reader grasps the point on the first pass. This is required, not a preference.
 - Lead with the point: the ask, finding, decision, or answer is the first sentence.
 - Be concise and to the point, free of fluff
 - Write the shortest form that carries the signal, then delete every sentence that does not change what the reader knows or does.

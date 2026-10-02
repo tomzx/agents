@@ -39,6 +39,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Is every sentence necessary, with no filler or padding?
 - Are abstract points anchored with concrete examples, numbers, or comparisons?
 - Is jargon avoided or defined on first use?
+- Is the language plain: common words over less frequent synonyms, short sentences, and active voice?
 
 ### Structure
 - Does the article follow a logical progression from hook to takeaway?
@@ -138,6 +139,10 @@ Three sentences use em-dash constructions where commas would work.
 **Scenario 4: Conflicting figures across articles**
 A companion article in the series reports 40% adoption while this one cites 35% for the same metric and period.
 🔴 MUST reconcile the discrepancy and align both articles.
+
+**Scenario 5: Not plain language**
+A paragraph says the tool "facilitates stakeholders in the utilization of the mechanism," a passive and jargon-heavy way to say it lets people use the feature.
+🟡 SHOULD rewrite in plain language: common words, short sentences, active voice.
 
 ## Next Step
 
