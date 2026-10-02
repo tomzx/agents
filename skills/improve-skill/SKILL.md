@@ -26,6 +26,7 @@ Keep only improvements that are high-value and low-risk. Prefer concrete, surgic
 | Clarity and precision | Steps that are ambiguous, easy to get wrong, or could be misread by an agent |
 | Completeness | Missing prerequisites, steps, edge cases, error handling, or acceptance checks |
 | Correctness | Examples, commands, or file paths that are wrong, outdated, or would fail if followed literally |
+| CLI calls | Commands that reach the same result more cheaply via another CLI or a different subcommand, flag, or argument set |
 | Examples and templates | Missing, vague, or broken example usage, output format templates, or code blocks |
 | Structure | Poor section ordering, redundant sections, verbosity, or content that should be split or merged |
 | Frontmatter | Description that does not match the body, missing `allowed-tools` or `argument-hint`, broken `argument-hint` signature |
@@ -70,7 +71,15 @@ Evaluate the target skill against every category in "What Counts as an Improveme
 2. Is it low-risk (small, localized, no new dependencies)?
 3. Does it respect repo conventions?
 
-Discard anything that fails any of these checks. Prioritize correctness fixes (broken commands, wrong paths) over clarity and style.
+**Audit every CLI call.** Collect each CLI invocation in the skill (bash code blocks, inline backticks, and referenced scripts) and check whether the same result is reachable more efficiently:
+
+- **Another CLI**: does the repo already use a preferred tool for this? Check `AGENTS.md`, neighboring skills, and their `cli:` frontmatter. The repo prefers `ghx` over `gh` for listing, searching, and viewing issues and PRs.
+- **Different arguments or options**: does the CLI already expose what the skill reconstructs by hand, such as a `--json` output instead of piping through `jq`, a bulk command instead of a loop, or a `--search`/`--query` flag instead of fetching everything and filtering locally?
+- **Fewer or cached calls**: can several invocations collapse into one command that accepts multiple arguments, or use a cached/batched command instead of repeated single-item fetches?
+
+Adopt a rewrite only when it is at least as correct as the original, clearly simpler or cheaper, and uses a tool the repo already depends on. Leave an already-optimal call alone rather than rewriting for its own sake.
+
+Discard anything that fails any of these checks. Prioritize correctness fixes (broken commands, wrong paths) over clarity and style. If no optimization holds up, keep the original call and say so.
 
 ### 4. Apply changes
 
@@ -131,3 +140,9 @@ The workflow picked `review-tests` at random. The skill adds a missing acceptanc
 /improve-skill find-dead-code
 ```
 After review, the skill is already clear, correct, and complete. Reports "No changes needed" and exits without editing.
+
+**Scenario 4: Optimize a CLI call**
+```
+/improve-skill review-requested-prs
+```
+Finds a loop of per-PR `gh pr view` calls and collapses it into a single `ghx pr list --json` call, and swaps the remaining `gh` reads for their `ghx` equivalents so they hit the local cache.
