@@ -15,9 +15,11 @@ Produces a high-quality article from a target audience definition and a set of r
 
 If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill. If you decide not to run it, say so and give your reasoning before proceeding, so the user can course-correct.
 
+This applies to **every** article, including opinion and perspective pieces. An opinion piece is not exempt from research: before taking a position, gather the sources that inform it (the strongest arguments for and against, relevant data, prior writing on the topic) and cite them. Research is what separates a defensible position from an unsupported hot take, and it is what the reader relies on to judge the argument. If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is grounded in instead.
+
 ## Steps
 
-1. Read all provided sources thoroughly.
+1. Read all provided sources thoroughly. If none were provided, including for an opinion piece, research the topic first (see Prerequisites) rather than writing from prior belief alone.
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
 4. Draft the article using the structure below, following the formatting rules.
@@ -167,6 +169,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Use concrete examples, numbers, or comparisons to anchor abstract points
 - Include a visualization when an idea would otherwise take many sentences to explain
 - Attribute claims to sources with hyperlinks; don't state opinions as facts
+- Ground opinion pieces in research too: cite the sources that inform the position, including the strongest counterarguments, instead of asserting the view without support
 - End with something the reader can take away or act on
 - Each sentence sits on its own line in the markdown source
 
@@ -216,7 +219,8 @@ Produce a business-oriented piece explaining what hallucination is, why it matte
 
 **Scenario 3: Opinion/perspective piece**
 Target audience: "software architects", sources: three blog posts arguing for and against microservices.
-Synthesize the arguments, take a defensible position, and advise on when to use vs. avoid microservices.
+Research the topic first, then synthesize the arguments, take a defensible position, and advise on when to use vs. avoid microservices.
+The position must be grounded in and cite the sources, not asserted from prior belief.
 
 ## Useful Commands Reference
 
