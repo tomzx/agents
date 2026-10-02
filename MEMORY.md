@@ -1,5 +1,11 @@
 # Memory
 
+## 2026-10-02: ghx is not a drop-in replacement for gh
+
+- `ghx pr view`/`ghx issue view` reject URL arguments (`Error: invalid issue number: <url>`); gh accepts them. Pass `<number> --repo <owner>/<repo>` to ghx, or use gh.
+- ghx `--json` is a boolean flag (no field list), and its output omits fields gh can produce: `headRefOid`, `headRepository`, `closingIssuesReferences`, `statusCheckRollup` on PRs, and `milestone`/`closedAt`/`stateReason` on issues.
+- Rewriting `gh X --json <fields>` as `ghx X --json` silently drops the requested fields, so confirm each needed field exists before preferring ghx (this happened across several skills and needed a corrective pass).
+
 ## 2026-09-30: dropped team review requests are only discoverable via notifications
 
 - When a review is requested from a team, any teammate comment or review removes the team request for every member; afterwards the PR matches neither `review-requested:@me` nor `team-review-requested:` (verified on Shopify/davies#1633).
