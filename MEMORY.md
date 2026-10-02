@@ -1,5 +1,10 @@
 # Memory
 
+## 2026-10-02: AGENTS.md is loaded verbatim (no `!`/`@` expansion)
+
+- OpenCode loads `AGENTS.md` content as-is; `!`command`` and `@file` are only expanded in command templates and skills, so a `!`cat file`` directive in AGENTS.md arrives as literal text. Confirmed in source (`instruction-context.ts` renders the file raw) and in the `instruction_blob` DB table.
+- `pi` sometimes follows a "MANDATORY: read X" line in AGENTS.md, but `opencode2` skips it on unrelated prompts. When a term/list must always apply, inline it in AGENTS.md and keep the external file as the canonical copy to sync from.
+
 ## 2026-10-02: ghx is not a drop-in replacement for gh
 
 - `ghx pr view`/`ghx issue view` reject URL arguments (`Error: invalid issue number: <url>`); gh accepts them. Pass `<number> --repo <owner>/<repo>` to ghx, or use gh.

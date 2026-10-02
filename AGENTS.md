@@ -6,8 +6,8 @@
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
 # Banned terms
-* Avoid the terms listed in `banned-terms.txt` at the skills library root (one term per line), unless one is genuinely the most appropriate term.
-* That file is the single source of truth: do not inline the list in AGENTS.md or in skills. The article skills (`create-article`, `sync-articles`) read it directly so they stay in sync when the list changes.
+* Avoid these terms unless one is genuinely the most appropriate term: shape, honest, load bearing, real, substrate, posture.
+* `banned-terms.txt` at the skills library root is the canonical list (one term per line): update it there, then mirror the change in the line above.
 
 # Memory
 * Two memory files exist: the global MEMORY.md sits beside this AGENTS.md (resolve the real path of this file to find it), and each project keeps its own MEMORY.md in the project root.
