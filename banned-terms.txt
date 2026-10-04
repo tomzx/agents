@@ -1,6 +1,7 @@
 shape
 honest
 load bearing
+load-bearing
 real
 substrate
 posture
