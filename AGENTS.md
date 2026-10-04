@@ -1,5 +1,7 @@
 # General
 * Be concise
+* Use plain language: short, direct sentences in the active voice, with common words over jargon and buzzwords.
+* Write literally, with no metaphors, idioms, or other figurative language the reader must decode.
 * Do not use em-dashes, use commas or parentheses instead
 * One sentence per line
 * Avoid running `find /` (or similarly broad filesystem scans) unless really necessary, as it is generally a waste of time; scope the search to a specific path or add a proper depth limit instead.
