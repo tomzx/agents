@@ -24,6 +24,11 @@ Before asking the user, review the git change history for the month this article
 The series covers one month at a time, so the covered month is the month after the one the previous article covered (its title names the month; its publication date may differ).
 Use that calendar month, first day through last day, capped at today when the month is still in progress, to define the git commit range.
 Group the commits by theme (new skills, pipeline changes, conventions, tooling), report the volume (commits, files changed, lines added and removed, skills added or renamed), and lead with the most significant items.
+
+Also check the TomzxCode GitHub organization for repositories created during the covered month with `gh repo list TomzxCode --json name,createdAt,description,primaryLanguage --limit 200`, keeping those whose `createdAt` falls in the month.
+For each new repository, find the matching directory under `~/src` and summarize what the code does: its purpose, primary language, main components, and how far along it is.
+If no local checkout exists, say so and ask the user where it lives.
+
 Present the summary to the user and ask them to confirm, correct, and add work the history does not capture.
 
 Ask the user:
