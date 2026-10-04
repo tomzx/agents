@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Audit Outcomes
 
-Walks the PDLC artifact chain in reverse to verify end-to-end traceability: does what shipped trace to a validated opportunity, and do the health metrics justify the original decision? This is the PDLC analog of `propagate-changes`, but it judges *outcome coherence*, not spec-to-code consistency.
+Walks the PDLC artifact chain in reverse to verify traceability from start to finish: does what shipped trace to a validated opportunity, and do the health metrics justify the original decision? This is the PDLC equivalent of `propagate-changes`, but it judges *outcome coherence*, not spec-to-code consistency.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ Walks the PDLC artifact chain in reverse to verify end-to-end traceability: does
    - Do the measured outcomes map back to the success metrics defined in `prd.md` / `analytics-spec.md`?
    - Were guardrail metrics defined up front and checked after launch? (A missing guardrail is itself a finding.)
    - Does the shipped scope trace to the acceptance contract, which traces to the PRD outcomes, which trace to a validated opportunity?
-   - Does each gate decision still look defensible in hindsight?
+   - Does each gate decision still look defensible when reviewed later?
 3. Score each link `aligned` / `drifted` / `broken`. A link is `drifted` when the artifact evolved without updating the chain; `broken` when the outcome contradicts the premise.
 4. For any `drifted` or `broken` link, regress the relevant gate decision to `pivot` (record in a new decision record) so the forward loop resyncs it.
 5. Produce the audit report.
@@ -56,7 +56,7 @@ If `$OUTCOME_YAML` is set:
 
 | Verdict | When |
 |---|---|
-| `aligned` | Chain traces end to end; no drift |
+| `aligned` | Chain traces from start to finish; no drift |
 | `drift-detected` | One or more links drifted or rotted; gates regressed |
 | `broken` | A link is broken; major rework or kill warranted |
 

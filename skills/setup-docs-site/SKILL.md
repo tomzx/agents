@@ -59,7 +59,7 @@ For `uv` projects (preferred):
 uv add --dev mkdocs "mkdocs-material[imaging]"
 ```
 
-The `[imaging]` extra pulls in `cairosvg`/`pillow`, which are required by the `social` plugin to generate social/OpenGraph cards.
+The `[imaging]` extra installs `cairosvg`/`pillow`, which the `social` plugin requires to generate social/OpenGraph cards.
 
 For pip projects:
 
@@ -320,7 +320,7 @@ Present the summary to the user.
 ```
 /setup-docs-site
 ```
-Installs mkdocs and mkdocs-material, creates mkdocs.yml with Material theme, scaffolds docs/ with index, getting-started, reference stubs, creates .github/workflows/docs.yml for GitHub Pages, adds site/ to .gitignore, verifies the build.
+Installs mkdocs and mkdocs-material, creates mkdocs.yml with Material theme, scaffolds docs/ with index, getting-started, and reference stubs, creates .github/workflows/docs.yml for GitHub Pages, adds site/ to .gitignore, verifies the build.
 
 **Scenario 2: Project already has docs/ directory**
 ```

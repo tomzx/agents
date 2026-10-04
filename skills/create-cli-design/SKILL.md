@@ -11,7 +11,7 @@ Designs the command-line interface for a feature as a companion artifact to the 
 For a CLI, the interface is the product: the user experiences the feature entirely through command syntax, help text, output, and errors.
 This skill is the terminal counterpart of `/create-mockups`, which serves features with a graphical interface.
 
-Without this step, CLI work starts with no shared picture of the command surface, so naming, flags, and output are improvised during implementation and reworked in review.
+Without this step, CLI work starts with no shared understanding of the command surface, so naming, flags, and output are improvised during implementation and reworked in review.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ Without this step, CLI work starts with no shared picture of the command surface
 7. Define the cross-command surface: global options, environment variables, config file and precedence (flags over env over config over defaults), exit codes, the stdout/stderr split, machine-readable output (`--json`) when scripts must consume the output, and TTY-aware behavior (color, progress, and tables only on a TTY, honoring `NO_COLOR`).
 8. Design user error protection: an actionable error message format (`error: <message>` plus a hint), confirmation prompts on destructive actions with `--yes`/`--force` to skip, and `--dry-run` where meaningful.
 9. Write the help text for the root command and one representative subcommand.
-10. Write example sessions as fenced `console` transcripts demonstrating the intended experience: a happy path, at least one error path, and (for destructive or interactive CLIs) a confirmation exchange plus a piping example. These transcripts are the artifact's centerpiece: a reader should be able to feel what using the CLI will be like before it exists.
+10. Write example sessions as fenced `console` transcripts demonstrating the intended experience: a happy path, at least one error path, and (for destructive or interactive CLIs) a confirmation exchange plus a piping example. These transcripts are the most important part of the artifact: a reader should be able to picture the experience of using the CLI before it exists.
 11. Feed implied changes back: options or commands that surface a missing requirement go into `requirements.md` as open questions or new FRs, and unresolved interface decisions become open questions here.
 12. Write the output to `.sdlc/features/N-<slug>/cli-design.md`, creating the directory if it does not exist, with frontmatter `status: draft`.
 

@@ -15,7 +15,7 @@ Other skills consult the roadmap when deciding what to work on next. Without a r
 - `.sdlc/context/project-overview.md` (must exist, for purpose and scope).
 - `.sdlc/context/goals.md` (strongly recommended; every initiative aligns to an objective and key result. If absent, note that alignment cannot be checked and flag it as an open question).
 - `.sdlc/context/roadmap.md` (optional; if present, revise rather than replace, per Revision Mode below).
-- Existing features under `.sdlc/features/` and the open issue backlog (optional, to roll up into initiatives and detect orphaned work).
+- Existing features under `.sdlc/features/` and the open issue backlog (optional, to group into initiatives and detect orphaned work).
 
 ## Steps
 
@@ -47,13 +47,13 @@ Make the minimum changes that resolve every finding.
 
 ## Roadmap Design Guidance
 
-- **Roadmap is strategy and sequence, not a calendar.** Prefer horizons over dates. A date the team cannot honor is worse than a horizon it can; dates turn the roadmap into a commitment device and penalize honest re-planning.
-- **Every initiative aligns to a goal.** An initiative with no objective is a wishlist item. If it advances nothing in `goals.md`, either the goals are incomplete or the initiative does not belong.
-- **Group into initiatives, not tickets.** An initiative is a bet: a coherent body of work that moves a metric. Individual features and issues roll up into it, not the other way around.
+- **Roadmap is strategy and sequence, not a calendar.** Prefer horizons over dates. A date the team cannot honor is worse than a horizon it can; dates turn the roadmap into a commitment device and penalize realistic re-planning.
+- **Every initiative aligns to a goal.** An initiative with no objective is a request with no goal. If it advances nothing in `goals.md`, either the goals are incomplete or the initiative does not belong.
+- **Group into initiatives, not tickets.** An initiative is a bet: a coherent body of work that moves a metric. Individual features and issues are grouped into it, not the other way around.
 - **State the bet and the success signal.** For each initiative, write the hypothesis ("if we do this, X improves because Y") and how you will know it worked (a key result or KPI). An initiative with no success signal cannot be evaluated.
 - **Confidence falls toward Later.** Now is high-confidence and scoped; Next is medium; Later is a low-confidence hypothesis with open questions. If a Later item is high-confidence, it probably belongs in Next or Now.
 - **Not Now matters as much as Now.** Stating what is deliberately deferred, and the condition that would promote it, protects focus and makes re-planning deliberate instead of silent.
-- **Sequence honestly.** Mark hard dependencies that block an initiative. Do not put a dependent item in Now while its dependency sits in Next.
+- **State dependencies plainly.** Mark hard dependencies that block an initiative. Do not put a dependent item in Now while its dependency sits in Next.
 - **Capacity bounds Now.** The Now horizon should be achievable with known capacity. An overloaded Now is a plan that will miss.
 
 ## Outcome
@@ -76,7 +76,7 @@ Team prefers calendar quarters. Horizon scheme set to 2026 Q3 / Q4 / 2027 Q1, wi
 
 **Scenario 3: Early product, no backlog yet**
 No features or issues exist yet.
-Define the Now horizon from the goals directly (2-3 initiatives), keep Next and Later thin, and flag "no backlog to roll up" as an open question. Revisit once issues exist.
+Define the Now horizon from the goals directly (2-3 initiatives), keep Next and Later minimal, and flag "no backlog to roll up" as an open question. Revisit once issues exist.
 
 **Scenario 4: Orphaned in-flight work**
 FEAT-17 is in-flight but advances no initiative.
@@ -102,4 +102,4 @@ In a greenfield project with no backlog yet, the reviewed roadmap's first Now in
 
 | Command | Description |
 |---|---|
-| `ghx issue list --state open --limit 100` | List open issues to roll up into initiatives (cached) |
+| `ghx issue list --state open --limit 100` | List open issues to group into initiatives (cached) |

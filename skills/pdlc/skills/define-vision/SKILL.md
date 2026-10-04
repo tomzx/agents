@@ -18,7 +18,7 @@ Turns a validated opportunity into a product vision and positioning statement. T
 1. State the target customer precisely (the ICP, not "everyone"). Reference segments from `market.md`.
 2. Articulate the vision: the future where the customer's problem is solved. One sentence a stranger could repeat.
 3. Write the positioning statement: *For [target], who [struggle], our product is [category] that [key benefit]. Unlike [alternative], we [differentiation].* Tie differentiation to gaps from `competitors.md`.
-4. Define what winning looks like in 12 months — the world-state, not a feature list.
+4. Define what winning looks like in 12 months — the target state, not a feature list.
 5. State explicit non-goals: who and what is out of scope, to prevent vision creep.
 6. Write the result to `.pdlc/context/vision.md` (the product-level anchor) **and** leave a pointer in the initiative directory noting which initiative established it.
 

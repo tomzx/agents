@@ -6,13 +6,13 @@ argument-hint: "[--scope all|safety|types|deps|dead-code|lint|docs] [--budget N]
 
 # Improve Codebase
 
-Makes a bounded set of **safe, verified** improvements to a codebase, then opens a single reviewable PR. Designed to run on a weekly cadence so the codebase gets incrementally better without a big-bang refactor.
+Makes a bounded set of **safe, verified** improvements to a codebase, then opens a single reviewable PR. Designed to run on a weekly cadence so the codebase gets incrementally better without a large one-time refactor.
 
 ## The Core Problem This Solves
 
 `/audit-sdlc` and `/sync-repository` tell you what is wrong. They produce reports and issues, but the work of actually deleting the dead export, adding the missing type annotation, and running the formatter still falls to a human. That backlog grows faster than anyone clears it.
 
-This skill closes that loop. Each run it scans for the same opportunities the audit skills find, picks a small batch that is safe to apply automatically, applies it, proves it is safe by running the project's own lint/typecheck/test suite, and ships it as one PR. Over weeks, the backlog shrinks instead of grows.
+This skill closes that gap. Each run it scans for the same opportunities the audit skills find, picks a small batch that is safe to apply automatically, applies it, proves it is safe by running the project's own lint/typecheck/test suite, and ships it as one PR. Over weeks, the backlog shrinks instead of grows.
 
 ## How It Differs From Related Skills
 
@@ -39,8 +39,8 @@ These rules make the skill safe to run unattended on a schedule:
 1. **Never touch the default branch.** All work happens on a short-lived branch.
 2. **Never auto-fix anything rated higher than "low risk".** Security issues, dependency majors, complexity refactors, and public API changes become issues, not commits.
 3. **Never skip verification.** Every change must be validated by the project's own checks. If verification fails, revert that change and continue with the next candidate.
-4. **One concern per commit, one PR per run.** Reviewers see small atomic commits, not a wall of diff.
-5. **Respect `.gitignore`, lint configs, and existing suppression comments** (`# noqa`, `//nolint`). Do not fight the project's stated preferences.
+4. **One concern per commit, one PR per run.** Reviewers see small atomic commits, not one large diff.
+5. **Respect `.gitignore`, lint configs, and existing suppression comments** (`# noqa`, `//nolint`). Do not go against the project's stated preferences.
 6. **Never force-push, never amend published commits, never bypass hooks.**
 7. **Bounded output.** A run stops at the change budget so the PR stays reviewable.
 8. **Never introduce new dependencies.** Only removes or patches existing ones.
@@ -116,7 +116,7 @@ Record the discovered commands at the top of the run report. If nothing is found
         |
         v
 2. Baseline: confirm the clean tree passes all checks
-   (if baseline fails, stop — fix the baseline first, do not build on red)
+   (if baseline fails, stop — fix the baseline first, do not build on a failing tree)
         |
         v
 3. Dedup: list recently merged PRs labeled `codebase-improvement`
@@ -163,7 +163,7 @@ List recently merged PRs with the `codebase-improvement` label (default) or the 
 gh pr list --state merged --label "$LABEL" --limit 8 --json number,title,mergedAt,files
 ```
 
-Collect the set of files touched in the last 7 days. Candidates inside those files are skipped this week (avoid churn on actively-developed code).
+Collect the set of files touched in the last 7 days. Candidates inside those files are skipped this week (to avoid churn on actively-developed code).
 
 ### 4. Scan for candidates
 
@@ -195,7 +195,7 @@ score = impact × confidence / (effort × risk)
 - **effort:** estimated change size
 - **risk:** auto=1, issue=high
 
-Select the top candidates from `auto` categories until the budget is reached. Cap each category so one noisy scanner (for example, hundreds of lint fixes) cannot crowd out the others:
+Select the top candidates from `auto` categories until the budget is reached. Cap each category so one noisy scanner (for example, hundreds of lint fixes) cannot take the whole budget from the others:
 
 - `lint`: at most 40% of the budget
 - `dead-code`, `types`: at most 30% each
@@ -212,7 +212,7 @@ For each selected candidate, in ranked order:
 4. **Green** → commit with an atomic message (see Commit Style). Decrement the budget.
 5. **Red** → `git restore` the change, log it under "Reverted (failed verification)", and continue. Never commit a change that fails verification.
 
-If three consecutive candidates in the same category fail verification, stop pulling from that category for the rest of the run (likely a noisy/false-positive scanner).
+If three consecutive candidates in the same category fail verification, stop pulling from that category for the rest of the run (likely a noisy scanner producing false positives).
 
 ### 7. Aggregate the PR body
 
@@ -228,7 +228,7 @@ Unless `--dry-run` or `--no-pr`:
 
 For `--dry-run`, write the full report to `.sdlc/improvement-dryrun-<YYYY-MM-DD>.md` and print it. For `--no-pr`, leave the local branch in place and print instructions to review and push.
 
-### 9. Exit posture
+### 9. Exit state
 
 - If at least one change shipped: PR is open, ready for human review. Done.
 - If nothing was safe to apply this week: report "no safe improvements found", still list the `issue`-rated findings so they are not lost, and suggest a manual `/audit-sdlc` if the list is large.
@@ -371,11 +371,11 @@ Because every run is bounded, verified, and labeled, it composes cleanly with th
 | Skill | Relationship |
 |---|---|
 | `audit-sdlc` | The scanner half of this skill. `improve-codebase` calls the same find-* / audit-* skills but acts on the safe subset instead of only reporting. |
-| `sync-repository` | Broader consistency check (SDLC, docs, cross-layer drift). Use `sync-repository` to detect drift; use `improve-codebase` to incrementally pay down the code-quality debt it surfaces. |
+| `sync-repository` | Broader consistency check (SDLC, docs, cross-layer drift). Use `sync-repository` to detect drift; use `improve-codebase` to incrementally reduce the code-quality debt it surfaces. |
 | `find-dead-code`, `find-type-gaps`, `audit-dependencies`, `audit-security`, `find-complexity-hotspots`, `find-coverage-gaps`, `find-documentation-gaps` | Read-only scanners invoked by this skill. |
 | `create-pr` | Used to open the review PR with the standard description format. |
 | `create-issue` | Used to file follow-up issues for `issue`-rated findings when `--create-issues` is passed. |
-| `session-review` | Per-session checklist. `improve-codebase` is the periodic (weekly) counterpart that pays down debt between sessions. |
+| `session-review` | Per-session checklist. `improve-codebase` is the periodic (weekly) counterpart that reduces debt between sessions. |
 | `end-week` | Natural home for a weekly `/improve-codebase` invocation before the Friday wrap-up. |
 
 ## Useful Commands Reference

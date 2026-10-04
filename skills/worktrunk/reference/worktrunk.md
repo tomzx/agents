@@ -3,8 +3,8 @@
 Worktrunk is a CLI for git worktree management, designed for running AI agents
 in parallel.
 
-Worktrunk's three core commands make worktrees as easy as branches.
-Plus, Worktrunk has a bunch of quality-of-life features to simplify working
+Worktrunk's three core commands make worktrees as easy to use as branches.
+Worktrunk also has many convenience features to simplify working
 with many parallel changes, including hooks to automate local workflows.
 
 A quick demo:
@@ -13,8 +13,7 @@ A quick demo:
 
 AI agents like Codex and OpenCode can handle longer tasks without
 supervision, such that it's possible to manage 5-10+ in parallel. Git's native
-worktree feature give each agent its own working directory, so they don't step
-on each other's changes.
+worktree feature gives each agent its own working directory, so they don't overwrite each other's changes.
 
 But the git worktree UX is clunky. Even a task as small as starting a new
 worktree requires typing the branch name three times: `git worktree add -b feat
@@ -72,7 +71,7 @@ git branch -d feat</td>
 - **[LLM commit messages](https://worktrunk.dev/llm-commits/)** — generate commit messages from diffs
 - **[Merge workflow](https://worktrunk.dev/merge/)** — squash, rebase, merge, clean up in one command
 - **[Interactive picker](https://worktrunk.dev/switch/#interactive-picker)** — browse worktrees with live diff and log previews
-- **[Copy build caches](https://worktrunk.dev/step/#wt-step-copy-ignored)** — skip cold starts by sharing `target/`, `node_modules/`, etc between worktrees
+- **[Copy build caches](https://worktrunk.dev/step/#wt-step-copy-ignored)** — avoid cold starts by sharing `target/`, `node_modules/`, etc between worktrees
 - **[`wt list --full`](https://worktrunk.dev/list/#full-mode)** — [CI status](https://worktrunk.dev/list/#ci-status) and [AI-generated summaries](https://worktrunk.dev/list/#llm-summaries) per branch
 - **[PR checkout](https://worktrunk.dev/switch/#pull-requests-and-merge-requests)** — `wt switch pr:123` to jump straight to a PR's branch
 - **[Dev server per worktree](https://worktrunk.dev/tips-patterns/#dev-server-per-worktree)** — `hash_port` template filter gives each worktree a unique port

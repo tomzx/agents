@@ -93,7 +93,7 @@ server = "npm run dev"
 
 Here `install` runs first, then `build` and `server` run together.
 
-Most hooks don't need `[[hook]]` blocks. Reach for them when there's a dependency chain — typically setup that must complete before later steps, like installing dependencies before running a build and dev server concurrently.
+Most hooks don't need `[[hook]]` blocks. Use them when there's a dependency chain — typically setup that must complete before later steps, like installing dependencies before running a build and dev server concurrently.
 
 Table form for pre-* hooks is deprecated and its behavior will change in a future version — use `[[hook]]` blocks instead.
 
@@ -264,7 +264,7 @@ if ctx['branch'].startswith('feature/') and 'backend' in ctx['repo']:
 
 ## Copying untracked files
 
-One specific command worth calling out: [`wt step copy-ignored`](https://worktrunk.dev/step/#wt-step-copy-ignored). Git worktrees share the repository but not untracked files, and this copies gitignored files between worktrees:
+One specific command worth highlighting: [`wt step copy-ignored`](https://worktrunk.dev/step/#wt-step-copy-ignored). Git worktrees share the repository but not untracked files, and this copies gitignored files between worktrees:
 
 ```toml
 [post-start]

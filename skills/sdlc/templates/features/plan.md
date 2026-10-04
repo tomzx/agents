@@ -33,7 +33,7 @@ flowchart TD
     P1 --> P3
 ```
 
-Parallel phases (no edge between them) and unintended serialization (an edge that should not exist) are visible at a glance.
+The diagram shows parallel phases (no edge between them) and unintended serialization (an edge that should not exist).
 
 ## Milestones
 
@@ -59,7 +59,7 @@ Parallel phases (no edge between them) and unintended serialization (an edge tha
 
 ## Timeline
 
-Render the timeline as a Mermaid `gantt` when calendar dates are estimable, so sequencing and parallel tracks are inspectable at a glance.
+Render the timeline as a Mermaid `gantt` when calendar dates are estimable, so sequencing and parallel tracks are easy to inspect.
 When no calendar can be committed yet, keep a duration-only table instead.
 
 ```mermaid

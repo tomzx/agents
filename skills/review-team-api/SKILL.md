@@ -138,7 +138,7 @@ The team produces a library but the output says only "internal library".
 
 **Scenario 4: Ownership overlap**
 Both this API and a neighboring team's claim ownership of the billing schema.
-🔴 MUST name a single owner and move the loser's claim to "Does not own".
+🔴 MUST name a single owner and move the other claim to "Does not own".
 
 ## Next Step
 

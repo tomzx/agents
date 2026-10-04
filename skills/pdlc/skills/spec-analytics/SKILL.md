@@ -16,7 +16,7 @@ Defines how an initiative will be measured at runtime. It is **guardrail-first**
 ## Steps
 
 1. List the analytics events required to compute every success metric (`SM-N`) and guardrail metric (`GM-N`) from `goals.md`. Each event has a name, trigger, and payload.
-2. Define the conversion funnels that reveal where value is created or lost.
+2. Define the conversion funnels that show where value is created or lost.
 3. Define the dashboards: one per objective, showing success and guardrail metrics together so regressions are visible next to gains.
 4. For each guardrail, define the alert threshold and the response (who is paged, what is the rollback).
 5. Define the measurement windows: the early-window launch signals (from `launch-plan.md`) and the steady-state cadence.

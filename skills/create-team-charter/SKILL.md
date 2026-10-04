@@ -91,12 +91,12 @@ session_link: http://localhost:10000/?session=<id>
 
 ## Charter Design Guidance
 
-- **Purpose names an outcome, not an activity.** "Own reliable money movement" is a purpose; "write payments code" is an activity. Activities change; outcomes anchor the team.
+- **Purpose names an outcome, not an activity.** "Own reliable money movement" is a purpose; "write payments code" is an activity. Activities change; outcomes stay stable for the team.
 - **Responsibilities and Non-responsibilities are a pair.** Every ambiguous boundary should appear in one list or the other. If two teams could plausibly own a thing, call it out under Non-responsibilities or Open Questions.
-- **Customers are concrete.** "The growth and sales teams" beats "internal stakeholders". Concrete names make handoffs real.
+- **Customers are concrete.** "The growth and sales teams" is better than "internal stakeholders". Concrete names make handoffs real.
 - **Metrics are outcomes, not output.** "Deployment frequency" alone is activity; pair it with outcomes like change failure rate and time to restore, plus a business or reliability outcome.
 - **Operating norms describe actual behavior, not aspiration.** If standup rarely happens, do not list it. Document how the team really works, then decide what to change.
-- **A charter is ratifiable.** It should be short enough that the whole team can read it in one sitting and agree or disagree in a single review.
+- **A charter is ratifiable.** It should be short enough that the whole team can read it in one pass and agree or disagree in a single review.
 - **Inherit org values by default.** Add a Values section only where the team wants to emphasize or extend the org's principles.
 
 ## Example Usage
@@ -111,7 +111,7 @@ Next step: run `/create-team-api` to formalize the platform's service interface 
 
 **Scenario 2: Stream-aligned product team clarifying its scope**
 Team name: "Checkout". Existing charter is stale; two teams now touch checkout.
-Revise: sharpen Non-responsibilities to name what Payments owns versus what Checkout owns, and add an Open Question about a disputed ownership area pending a lead decision.
+Revise: make Non-responsibilities more precise to name what Payments owns versus what Checkout owns, and add an Open Question about a disputed ownership area pending a lead decision.
 
 **Scenario 3: Small early-stage team**
 Team name: "Growth". No OKRs yet, no other teams to coordinate with.

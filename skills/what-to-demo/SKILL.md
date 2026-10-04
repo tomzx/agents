@@ -11,7 +11,7 @@ DAY=!`date +%d`
 
 # Identify What to Demo
 
-Scans two weeks of daily notes to surface completed features, notable improvements, and interesting work that would make good demonstration material.
+Scans two weeks of daily notes to find completed features, notable improvements, and interesting work that would make good demonstration material.
 
 ## Prerequisites
 
@@ -27,7 +27,7 @@ Scans two weeks of daily notes to surface completed features, notable improvemen
    ```
 2. Identify daily note files from the past two weeks within `{BASE_DIR}`.
 3. Read each file and extract: completed features, notable changes, and improvements with visible results.
-4. Rank items by demo-worthiness: prefer work with visible outputs, user impact, or technical novelty.
+4. Rank items by how well they would demo: prefer work with visible outputs, user impact, or technical novelty.
 5. Write the output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.what-to-demo.md`.
 
 ## Example Usage

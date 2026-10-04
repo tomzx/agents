@@ -15,7 +15,7 @@ Produces a high-quality article from a target audience definition and a set of r
 
 If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill. If you decide not to run it, say so and give your reasoning before proceeding, so the user can course-correct.
 
-This applies to **every** article, including opinion and perspective pieces. An opinion piece is not exempt from research: before taking a position, gather the sources that inform it (the strongest arguments for and against, relevant data, prior writing on the topic) and cite them. Research is what separates a defensible position from an unsupported hot take, and it is what the reader relies on to judge the argument. If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is grounded in instead.
+This applies to **every** article, including opinion and perspective pieces. An opinion piece is not exempt from research: before taking a position, gather the sources that inform it (the strongest arguments for and against, relevant data, prior writing on the topic) and cite them. Research is the difference between a supportable position and an unsupported hot take, and it is what the reader uses to judge the argument. If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is based on instead.
 
 ## Steps
 
@@ -55,7 +55,7 @@ This applies to **every** article, including opinion and perspective pieces. An 
   information. Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode
   before reaching the meaning, and avoid filler that adds rhythm but no content. For example, write
   "Four governance problems present themselves when multiple agents work for you" rather than
-  "Four governance problems move to the center when multiple agents work for you". If a phrase
+  "Four governance problems become top priorities when multiple agents work for you". If a phrase
   paints a picture instead of saying the thing, replace it with the plain statement.
 - **Name the referent**: Avoid bare referential words like "this", "that", "these", and "those" when
   the referent could be ambiguous, since they force the reader to backtrack and resolve what is meant.
@@ -178,7 +178,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 
 **Avoid:**
 - Padding: filler phrases like "In today's fast-paced world..." or "It's important to note that..."
-- Verbose or decorative prose: metaphorical phrasing ("moves to the center", "sheds light on") that must be decoded, or any sentence that could be cut without losing information
+- Verbose or decorative prose: metaphorical phrasing ("becomes a top priority", "shows") that must be decoded, or any sentence that could be cut without losing information
 - Hedging everything: take a position where the sources support one
 - Restating the same point in multiple sections
 - Visualizations that repeat the text instead of adding understanding
@@ -222,8 +222,8 @@ Produce a business-oriented piece explaining what hallucination is, why it matte
 
 **Scenario 3: Opinion/perspective piece**
 Target audience: "software architects", sources: three blog posts arguing for and against microservices.
-Research the topic first, then synthesize the arguments, take a defensible position, and advise on when to use vs. avoid microservices.
-The position must be grounded in and cite the sources, not asserted from prior belief.
+Research the topic first, then synthesize the arguments, take a supportable position, and advise on when to use vs. avoid microservices.
+The position must be based on and cite the sources, not asserted from prior belief.
 
 ## Useful Commands Reference
 

@@ -8,7 +8,7 @@ argument-hint: "[owner/repo] [--author <user>] [--query <text>] [--limit <n>] [-
 # Check Issues Status
 
 Runs `check-issue-status` across a list of issues and aggregates the verdicts.
-Use it to surface issues that are already addressed in the code so effort is not wasted on them, and to find stale issues worth closing.
+Use it to find issues that are already addressed in the code so effort is not spent on them, and to find stale issues worth closing.
 
 Supports three scoping modes, which compose freely:
 - **Repository**: every open issue in a repo (default when only a repo is given).
@@ -208,7 +208,7 @@ Same as scenario 1, but `implemented` findings post their evidence comment on th
 
 ## Notes
 
-- Default mode is report-only so a batch run never spams comments. Use `--post` once the report is reviewed.
+- Default mode is report-only so a batch run never posts unneeded comments. Use `--post` once the report is reviewed.
 - Repeated runs are safe: `check-issue-status` checks for its own prior comment marker before posting and edits in place when the code has moved, so even `--post` runs do not repost an already-flagged issue.
 - The orchestrator does not inspect code itself; it delegates to `check-issue-status`. A local checkout of the target repo is required for any per-issue verdict.
 - For a single issue, skip this orchestrator and call `/check-issue-status <number> [repository]` directly.

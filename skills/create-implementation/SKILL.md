@@ -60,7 +60,7 @@ All acceptance criteria met?
 4. Set up a feature branch (see Branching Strategy below).
 5. Explore the codebase to understand existing patterns, naming conventions, and architecture.
 6. Identify which files need to be created or modified.
-7. For every existing part of the code you are about to modify, check its current test coverage. If it is not well covered, first write characterization tests that pin down the existing behavior. This ensures you are not unintentionally changing behavior with your modifications.
+7. For every existing part of the code you are about to modify, check its current test coverage. If it is not well covered, first write characterization tests that pin down the existing behavior. This keeps you from unintentionally changing behavior with your modifications.
 8. Commit the characterization tests separately from the implementation changes, so there is a before/after trace of how the tests evolved.
 9. Implement the changes in small increments, verifying each step with tests. Update the characterization tests as the behavior intentionally changes.
 10. If a lifecycle document exists, implement state machines, transition guards, invariants, and retention policies as part of each relevant code change.
@@ -101,7 +101,7 @@ The implementation must happen on a dedicated branch, never directly on `main`.
 
 ### If a branch already exists
 
-If you are resuming work on an existing feature branch, check it out and ensure it is up to date:
+If you are resuming work on an existing feature branch, check it out and update it to the latest `main`:
 ```
 git checkout feat/42-add-order-endpoint
 git pull

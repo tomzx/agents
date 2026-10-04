@@ -45,7 +45,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 5. **Derive the issue title and body.**
    - **Title:** the feature's frontmatter `title` if present, otherwise humanize the `<slug>` (e.g. `notification-system` -> `Notification system`).
    - **Body:** build a placeholder body. If the feature has a `requirements.md`, include its overview paragraph and acceptance criteria (rendered as a checklist) so the issue is immediately useful; otherwise use a minimal stub. Always include:
-     - a visible one-line note that this is a placeholder auto-created for a pending SDLC feature, to be fleshed out (this visible text also makes the duplicate search work),
+     - a visible one-line note that this is a placeholder auto-created for a pending SDLC feature, which a later pass will complete (this visible text also makes the duplicate search work),
      - an HTML comment marker `<!-- sdlc-placeholder:p<seq>-<slug> -->` recording the originating feature directory,
      - a reference to the feature directory path.
    - Append the **Created with** attribution footer resolved from `github-post-attribution/SKILL.md`.
@@ -74,7 +74,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 9. **Set the issue reference in frontmatter.** In every artifact under the renamed feature directory that has YAML frontmatter, set `issue: "#M"` (add the field if absent, update if present). Update `.sdlc/state.yml`: set `github_ref: "#M"` and, if its `feature:` field referenced this feature, update it to `FEAT-M-<slug>`.
 
-10. **Leave the placeholder marker in place.** Do not flesh out the issue body here. The `<!-- sdlc-placeholder -->` marker is cleared only once a later pass (or `/create-issue` in revision) replaces the stub with full background, acceptance criteria, and time budget.
+10. **Leave the placeholder marker in place.** Do not complete the issue body here. The `<!-- sdlc-placeholder -->` marker is cleared only once a later pass (or `/create-issue` in revision) replaces the stub with full background, acceptance criteria, and time budget.
 
 11. **Emit outcome** (see Outcome).
 

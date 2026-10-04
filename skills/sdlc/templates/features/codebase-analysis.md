@@ -42,7 +42,7 @@ flowchart LR
 Node classes match the change dispositions from the Changeability Assessment below (reuse / extend / refactor / replace).
 External systems appear as plain nodes.
 
-<Prose call-outs for tight coupling, shared state, synchronous vs. asynchronous boundaries, and the blast radius of a change. A component claimed to be loosely coupled but drawn with edges to every neighbor is visible here in two seconds.>
+<Prose call-outs for tight coupling, shared state, synchronous vs. asynchronous boundaries, and the blast radius of a change. A component claimed to be loosely coupled but drawn with edges to every neighbor is apparent here immediately.>
 
 ## Changeability Assessment
 
@@ -56,7 +56,7 @@ External systems appear as plain nodes.
 
 ## Migration and Impact Considerations
 
-<For every Refactor or Replace disposition: the path from current to target behavior, backward compatibility, rollout strategy, what else breaks, and how to de-risk. Omit this section if the analysis is greenfield or contains only Reuse/Extend dispositions.>
+<For every Refactor or Replace disposition: the path from current to target behavior, backward compatibility, rollout strategy, what else breaks, and how to reduce the risk. Omit this section if the analysis is greenfield or contains only Reuse/Extend dispositions.>
 
 ## Assumptions About Existing Code
 

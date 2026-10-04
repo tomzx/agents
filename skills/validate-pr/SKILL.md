@@ -9,9 +9,9 @@ argument-hint: "<pr-number> [repository]"
 
 Answers the **validation** question: "Are we building the right product?" Given the linked issue, recover the underlying customer need (the problem being solved, the "why"), then judge whether the acceptance criteria and the implemented behavior actually serve that need.
 
-This is the only review step that can catch a PR which faithfully implements its specification but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, and it does not judge whether the implemented approach is the simplest and most changeable, that is `/review-pr`'s job. It judges mechanism soundness one level up, at the spec (criteria soundness below), and hands code-level approach observations to `/review-pr` through the report notes.
+This is the only review step that can catch a PR which implements its specification correctly but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, and it does not judge whether the implemented approach is the simplest and most changeable, that is `/review-pr`'s job. It judges mechanism soundness one level up, at the spec (criteria soundness below), and hands code-level approach observations to `/review-pr` through the report notes.
 
-The cheap, build-free nature of this step is intentional: it runs first as an early gate. If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
+This step is cheap and does not require a build, by design: it runs first as an early gate. If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ The cheap, build-free nature of this step is intentional: it runs first as an ea
 - `gh` CLI authenticated with read access to the target repository
 - `ghx` CLI for cached issue reads and posting the report comment
 - `git worktree` available
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there. Of particular interest: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These reveal the intended outcomes the PR should serve.
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there. The most relevant: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These show the intended outcomes the PR should serve.
 - When a linked issue number is known, look for the matching feature directory under `.sdlc/features/`: the directory named `N-<slug>` where `N` is the issue number, or a directory whose `requirements.md` frontmatter `issue` field references it (resolve the read per the SDLC_DIR artifact-location rules in `skills/sdlc/references/shared.md`). When found, read its `requirements.md`; it is the reviewed statement of the need and criteria and augments, never replaces, the issue. Its absence is not a failure; proceed on the issue alone.
 
 ### Skill attribution (GitHub)
@@ -141,11 +141,11 @@ If worktree creation fails, stop.
 
 ### 2. Recover the customer need
 
-This step distinguishes validation from verification. The acceptance criteria state *what* the solution must do; the need states *why* it must do it, the problem the customer actually has. Recover the need from the issue, not the criteria.
+This step separates validation from verification. The acceptance criteria state *what* the solution must do; the need states *why* it must do it, the problem the customer actually has. Recover the need from the issue, not the criteria.
 
 From each linked issue body, extract:
 
-- **The problem**: the pain or situation the customer faces, in the customer's terms (look at the issue title, the opening motivation, "As a ... I want ... so that ..." user stories, reproduction steps for bugs).
+- **The problem**: the difficulty or situation the customer faces, in the customer's terms (look at the issue title, the opening motivation, "As a ... I want ... so that ..." user stories, reproduction steps for bugs).
 - **The stakeholder / user**: whose problem this is. A PR that solves the right problem for the wrong user is a validation miss.
 - **The desired outcome**: what changes for the customer once this is solved, the goal, not the mechanism.
 - **The proposed solution (the spec)**: the acceptance criteria and any described approach. This is the *how*, and it may or may not be the right way to meet the need.
@@ -174,8 +174,8 @@ For each need, record which criteria and which implemented behaviors serve it. F
 Three categories of gap matter:
 
 - **Unmet need**: a recovered need that no criterion and no implemented behavior addresses.
-- **Orphan work**: a criterion or implemented behavior that serves no recovered need (solutionizing beyond the problem, gold-plating, or scope creep).
-- **Need/criteria mismatch**: the criteria describe a solution that would not satisfy the need even if perfectly implemented (the spec itself is the wrong target).
+- **Orphan work**: a criterion or implemented behavior that serves no recovered need (adding solution beyond the problem, gold-plating, or scope creep).
+- **Need/criteria mismatch**: the criteria describe a solution that would not satisfy the need even if implemented perfectly (the spec itself is the wrong target).
 
 ### 4. Assess alignment
 
@@ -183,17 +183,17 @@ Three categories of gap matter:
 
 Does the implemented behavior, as inferred from the diff, actually solve the customer's problem and produce the desired outcome? This is judged against the **need**, not the criteria. A PR can satisfy every criterion and still miss the need.
 
-For bug fixes specifically, determine whether the change addresses the **root cause** of the reported problem or merely suppresses the **symptom**. Fixes that paper over a symptom are validation failures even when the reported error disappears.
+For bug fixes specifically, determine whether the change addresses the **root cause** of the reported problem or only suppresses the **symptom**. Fixes that hide a symptom are validation failures even when the reported error disappears.
 
 #### 4b. Criteria soundness
 
 Do the acceptance criteria actually serve the recovered need?
 
 - Are there needs with no covering criterion? The criteria under-specify the problem.
-- Are there criteria that serve no need? They over-constrain the solution or import assumptions that belong to a different problem.
+- Are there criteria that serve no need? They over-constrain the solution or bring in assumptions that belong to a different problem.
 - When the matching feature directory exists, do the issue's criteria and the feature's `requirements.md` criteria agree? Divergence between the two sources of the spec (one of them is usually stale) is a criteria-soundness finding; the reviewed feature requirements are the stronger evidence of intent.
 - Do the criteria over-prescribe the *how* when the need is about the *what*, locking the implementation into a mechanism that may not be the right way to meet the need?
-- Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that paints the next change into a corner (an unversioned data format, a closed enum, a singleton)? Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
+- Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that blocks the next change (an unversioned data format, a closed enum, a singleton)? Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
 
 Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); flagging unsound criteria here is a validation contribution.
 
@@ -309,8 +309,8 @@ fi
 
 | Mode | Response |
 |------|----------|
-| **No linked issue** | Save a comment asking author to link an issue describing the problem and the need, stop. Validation needs a problem statement; do not invent one from the diff alone |
-| **Linked issue has no recoverable need** (e.g. pure refactor request with no customer problem) | Render verdict `Inconclusive`, note that no customer need could be recovered, and suggest the issue state the problem it solves. Do not fabricate a need |
+| **No linked issue** | Save a comment asking the author to link an issue describing the problem and the need, stop. Validation needs a problem statement; do not invent one from the diff alone |
+| **Linked issue has no recoverable need** (e.g. pure refactor request with no customer problem) | Render verdict `Inconclusive`, note that no customer need could be recovered, and suggest the issue state the problem it solves. Do not invent a need |
 | **PR description has no added context** | Proceed; the issue is the primary source of the need, the PR body is secondary |
 | **Large diff (>1000 lines)** | Focus on the entry points and user-visible behavior changes to judge need fit; note that full assessment is impractical |
 | **Worktree creation fails** | Stop |
@@ -333,7 +333,7 @@ Issue #80 reports crashes on empty email input. The diff wraps the field access 
 ```
 /validate-pr 77
 ```
-Issue #50 needs a login page. The PR adds the login page (serves the need) but also ships a settings redesign no need or criterion mentions. Verdict: Partially right, with an orphan-work finding recommending the settings work be split out.
+Issue #50 needs a login page. The PR adds the login page (serves the need) but also ships a settings redesign no need or criterion mentions. Verdict: Partially right, with an orphan-work finding recommending the settings work be separated into its own change.
 
 **Scenario 4: Wrong thing, spec solves the wrong problem**
 ```

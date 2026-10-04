@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Dead Code Scan
 
-Identifies code that is defined but never used — functions, classes, variables, exports, feature flags, and config keys — and produces a prioritized list of safe removals. Dead code increases cognitive load, slows onboarding, and creates false surface area for future bugs.
+Identifies code that is defined but never used — functions, classes, variables, exports, feature flags, and config keys — and produces a prioritized list of safe removals. Dead code increases cognitive load, slows onboarding, and enlarges the codebase that future changes must account for.
 
 ## Prerequisites
 

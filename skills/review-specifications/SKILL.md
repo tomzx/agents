@@ -54,7 +54,7 @@ Audits a technical specification and reports findings across seven categories: a
 - Are external dependencies clearly defined with their interfaces?
 
 ### Reversibility
-- Can we undo this cleanly, or does the spec commit to one-way-door decisions?
+- Can we undo this cleanly, or does the spec commit to decisions that are hard to reverse?
 - Are destructive data model changes, breaking API changes, and irreversible transformations called out explicitly?
 - Do migrations and state transitions include a backward path or deprecation window?
 

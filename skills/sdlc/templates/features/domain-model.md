@@ -42,7 +42,7 @@ classDiagram
 ```
 
 One class per entity with its key attributes; edges carry cardinality; composition (`*--`) for whole-part relationships.
-Each invariant attaches as a `note` on the entity it constrains, so a rule floating free of its entity is visible immediately.
+Each invariant attaches as a `note` on the entity it constrains, so a rule not attached to its entity is apparent immediately.
 
 ## Glossary
 

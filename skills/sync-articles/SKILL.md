@@ -10,7 +10,7 @@ TODAY=!`date +%Y-%m-%d`
 # Sync Articles
 
 Runs a conformance pass over a set of articles in a blog content repository (one directory per slug, each with an `index.md`).
-Each article is revised in place by its own `opencode run` job invoking the `create-article` skill, so every article gets a fresh context and the batch scales without one session accumulating the whole corpus.
+Each article is revised in place by its own `opencode run` job that invokes the `create-article` skill, so every article gets a fresh context and the batch scales without one session accumulating the whole corpus.
 After the jobs finish, the orchestrator verifies links, front matter, style rules, and AI disclosure tags across the diff, and reports a per-article summary.
 
 This is the batch counterpart of `create-article`, which owns all per-article editing judgment.
@@ -85,7 +85,7 @@ nohup skills/sync-articles/sync-articles /tmp/opencode/sync-articles/pending.txt
   > /tmp/opencode/sync-articles/runner.log 2>&1 &
 ```
 
-Two failure modes are baked into the runner because they silently produced zero work when hit in practice:
+Two failure modes are handled in the runner because they silently produced zero work when hit in practice:
 - The list file is redirected into `xargs` explicitly (`< "$LIST"`).
   A backgrounded runner inherits `/dev/null` as stdin, and `xargs` with empty stdin runs zero jobs and exits 0.
 - The worker function is `export -f`'d so the `bash -c` child processes can call it.
@@ -217,7 +217,7 @@ Prints the article list, count, and estimated duration without launching any job
 
 ## Notes
 
-- The per-article job prompt is fixed (see the runner script) and deliberately minimal: name the skill, name the path, require in-place revision to the skill rules and the repository `AGENTS.md`, preserve meaning and front matter, and forbid commits.
+- The per-article job prompt is fixed (see the runner script) and intentionally minimal: name the skill, name the path, require in-place revision to the skill rules and the repository `AGENTS.md`, preserve meaning and front matter, and forbid commits.
 - The `agents/` section of a blog repo has its own rules that take precedence: jobs append to its log themselves, human edits there must never be reverted, and its articles may legitimately omit `type:`.
 - The skill never commits; landing the changes is the user's call.
 - Re-running over an already-conformed article is safe: the job finds little to change and the file shows as unchanged or lightly touched in the report.

@@ -220,7 +220,7 @@ Options:
 - `--count`: maximum results per page (default 20).
 - `--limit`: maximum total matches to fetch (default 200; `0` for no limit).
   Broad queries can span hundreds of pages, so the cap keeps them from taking a
-  very long time under Slack's rate limits.
+  long time under Slack's rate limits.
 - `--sort` (`score` or `timestamp`, default `timestamp`) and `--sort-dir`
   (`asc` or `desc`, default `desc`).
 - `--full-threads`: also fetch every reply for each matched thread.

@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Find Type Gaps
 
-Identifies missing or incomplete type annotations in gradually-typed codebases. Type coverage is a safety net that sits alongside test coverage: typed code catches a class of bugs at analysis time, makes refactoring safer, and reduces the cognitive load of reading unfamiliar code. This skill surfaces gaps ranked by how much adding types would help — prioritizing public API surfaces and high-churn files.
+Identifies missing or incomplete type annotations in gradually-typed codebases. Type coverage is a safety net that supports test coverage: typed code catches a class of bugs at analysis time, makes refactoring safer, and reduces the effort of reading unfamiliar code. This skill lists gaps ranked by how much adding types would help — prioritizing public API surfaces and high-churn files.
 
 ## Prerequisites
 
@@ -121,7 +121,7 @@ rg -n "^export (async )?function [a-zA-Z]" -g '*.ts' ${1:-.} | \
   rg -v "): [a-zA-Z<]" | head -20
 ```
 
-**`Any` escape hatches** — uses of `Any`/`any` that bypass the type system:
+**`Any` bypasses** — uses of `Any`/`any` that bypass the type system:
 ```
 rg -n "\bAny\b" -g '*.py' ${1:-.} | rg -v "typing_extensions|from typing|import" | head -20
 rg -n ": any\b|as any" -g '*.{ts,tsx}' ${1:-.} | \
@@ -199,7 +199,7 @@ If `strict: true` is not set in `tsconfig.json`, recommend enabling it increment
 |------|------|----------|---------|
 | `src/client.py` | 42 | `def fetch(url, timeout)` | param types + return type |
 
-### `Any` Escape Hatches (N)
+### `Any` Bypasses (N)
 
 | File | Line | Usage | Suggested type |
 |------|------|-------|---------------|

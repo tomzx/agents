@@ -67,7 +67,7 @@ If findings exist, either proposes an edited issue body in the conversation or p
 - For private repositories, is a total estimate present?
 - Is the estimate justified by a **breakdown** (work area : sub-estimate : one-line cost driver) rather than a bare number?- Are the **assumptions** the estimate depends on (what is already in place, what is out of scope) stated?
 - Does the total roughly match the sum of the breakdown items, with no unexplained gap?
-- Is the scope consistent with the budget? (A large budget for a thin scope, or a thin budget for a broad scope, is a smell.)
+- Is the scope consistent with the budget? (A large budget for a thin scope, or a thin budget for a broad scope, is a warning sign.)
 
 ### Scope
 - Is the issue focused on one thing (not a bundle of unrelated changes)?

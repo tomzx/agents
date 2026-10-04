@@ -59,7 +59,7 @@ Select top candidate -> recommendation
 
 The priority order is the **order of options defined on the priority single-select field**, matching the columns shown in the priority view. The first option is the highest priority.
 
-If the option order cannot be read from the field, fall back to name-based ranking:
+If the option order cannot be read from the field, use name-based ranking instead:
 
 | Rank | Option name patterns (highest first) |
 |---|---|
@@ -166,7 +166,7 @@ Then:
 
 ### 6. Select and recommend
 
-Take the top candidate. If no candidate is planned, fall back to the highest-priority open issue overall and note that nothing is currently scheduled in the roadmap.
+Take the top candidate. If no candidate is planned, use the highest-priority open issue overall instead, and note that nothing is currently scheduled in the roadmap.
 
 Present the recommendation, the candidates considered, and the next step.
 
@@ -220,7 +220,7 @@ Uses the named views instead of the defaults.
 ```
 /select-issue myorg/5
 ```
-All high-priority issues are unscheduled. Falls back to the highest-priority open issue and notes the roadmap gap.
+All high-priority issues are unscheduled. Uses the highest-priority open issue instead, and notes the roadmap gap.
 
 ## Relationship to other skills
 

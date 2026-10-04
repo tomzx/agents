@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Performance Efficiency Audit (ISO/IEC 25010)
 
-Audits the codebase for **performance efficiency**: response time, resource utilization, and capacity limits. It finds statically detectable performance antipatterns before they show up under load.
+Audits the codebase for **performance efficiency**: response time, resource utilization, and capacity limits. It finds statically detectable performance antipatterns before they appear under load.
 
 This is the **Performance efficiency** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `observe-production` (runtime latency/error measurement), this is static analysis of code that *will* be slow or wasteful.
 
@@ -167,10 +167,10 @@ Classify by severity and print. Do not modify files.
 
 | Skill | Relationship |
 |---|---|
-| `audit-security`, `audit-functional-suitability`, `audit-compatibility`, `audit-usability`, `audit-reliability`, `audit-maintainability`, `audit-portability` | The other seven ISO/IEC 25010 characteristics. Compose via `/audit-sdlc`. |
+| `audit-security`, `audit-functional-suitability`, `audit-compatibility`, `audit-usability`, `audit-reliability`, `audit-maintainability`, `audit-portability` | The other seven ISO/IEC 25010 characteristics. Combine via `/audit-sdlc`. |
 | `audit-sdlc` | Coordinator. |
 | `observe-production` | Runtime counterpart: measures actual latency/throughput. This finds the code that *will* be slow. |
-| `audit-reliability` | Closely related: missing timeouts and retries are both reliability and performance findings. Coordinate to dedup. |
+| `audit-reliability` | Closely related: missing timeouts and retries are both reliability and performance findings. Coordinate to remove duplicates. |
 
 ## Useful Commands Reference
 

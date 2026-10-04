@@ -82,7 +82,7 @@ A layer that cannot be described in one sentence is usually two layers.
 
 ## One stack, one story
 
-A stack should read as a coherent progression: a reviewer walks the PRs bottom to top and sees the
+A stack should read as a coherent progression: a reviewer reads the PRs bottom to top and sees the
 feature being built.
 
 **Use a single stack** when every branch serves the same feature or project, even if the layers span
@@ -93,5 +93,5 @@ independent refactor. Do not mix efforts into one stack just because you happene
 Use `gh stack init` for the new effort, or `gh stack checkout <target>` to move between existing
 stacks.
 
-A trivial incidental fix can ride along in the current stack. Once it grows into its own project, it
+A trivial incidental fix can be included in the current stack. Once it grows into its own project, it
 deserves its own stack.

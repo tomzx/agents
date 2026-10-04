@@ -195,4 +195,4 @@ Reproduces issue #88 but fix requires schema migration across 3 services. Stops 
 ## Next Step
 
 After the PR is created, use `/handle-pr-ci` if CI is failing, `/handle-pr-reviewer-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
-Close the loop with `/create-learnings` after the fix is merged.
+Run `/create-learnings` after the fix is merged to capture what was learned.

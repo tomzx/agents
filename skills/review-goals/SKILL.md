@@ -5,7 +5,7 @@ description: Review goals, objectives, key results, and KPIs for measurability, 
 
 # Review Goals
 
-Audits a goals document for measurability, ownership, alignment, and focus, so the objectives can reliably drive prioritization.
+Audits a goals document for measurability, ownership, alignment, and focus, so the objectives can reliably guide prioritization.
 
 ## Prerequisites
 
@@ -101,7 +101,7 @@ Report under Measurability: every key result needs a measurement method or it is
 
 ## Next Step
 
-Once the findings verdict is `approved`, the goals are ready to drive prioritization.
+Once the findings verdict is `approved`, the goals are ready to guide prioritization.
 `create-needs-assessment` reads `.sdlc/context/goals.md` directly when assessing strategic alignment.
 
 ## Useful Commands Reference

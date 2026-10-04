@@ -18,7 +18,7 @@ session_link: "<filled by skill>"
 
 ## Deliberately Not Refactored
 
-<Items considered and left alone, each with its reason: speculative use, single occurrence, no test seam needed, out of scope. This section is what keeps the change from bloating.>
+<Items considered and left alone, each with its reason: speculative use, single occurrence, no test seam needed, out of scope. This section limits the size of the change.>
 
 ## Verification
 

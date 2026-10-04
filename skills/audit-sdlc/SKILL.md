@@ -6,11 +6,11 @@ argument-hint: "[scope: all | diagnose | harden | clean | observe | comma-separa
 
 # Audit SDLC
 
-Orchestrates multiple audit skills against the project and produces a unified findings report ranked by severity and impact. Optionally feeds the highest-priority findings into issue creation.
+Runs multiple audit skills against the project and produces a unified findings report ranked by severity and impact. Optionally turns the highest-priority findings into issues.
 
 Runs audit skills that scan code, dependencies, and infrastructure. Does not modify any files. Safe to run at any time.
 
-The audit skills map to the [ISO/IEC 25010 software quality model](https://en.wikipedia.org/wiki/ISO/IEC_25010). `audit-sdlc` is the coordinator for that model: it runs whichever per-characteristic skills exist and produces the unified quality report. See [ISO/IEC 25010 Quality Model Mapping](#isoiec-25010-quality-model-mapping) below for which characteristics are covered today and which are planned gaps.
+The audit skills map to the [ISO/IEC 25010 software quality model](https://en.wikipedia.org/wiki/ISO/IEC_25010). `audit-sdlc` is the coordinator for that model: it runs whichever per-characteristic skills exist and produces the unified quality report. [ISO/IEC 25010 Quality Model Mapping](#isoiec-25010-quality-model-mapping) below lists which characteristics are covered today and which are planned gaps.
 
 ## Prerequisites
 
@@ -61,7 +61,7 @@ Monitor production health and surface runtime issues.
 
 ## ISO/IEC 25010 Quality Model Mapping
 
-There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and `audit-sdlc` composes them. Run the full sweep with the `25010` scope, or target one characteristic by name.
+There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and `audit-sdlc` combines them. Run the full sweep with the `25010` scope, or target one characteristic by name.
 
 | 25010 Characteristic | Skill | Scope | Notes |
 |---|---|---|---|
@@ -188,7 +188,7 @@ status: complete
 
 ## Deduplication
 
-When multiple skills surface the same issue (e.g., `analyze-git-churn` and `find-complexity-hotspots` both flagging a file), merge them into a single finding with both skills cited as sources. Do not report the same problem twice.
+When multiple skills find the same issue (e.g., `analyze-git-churn` and `find-complexity-hotspots` both flagging a file), merge them into a single finding with both skills cited as sources. Do not report the same problem twice.
 
 ## Issue Creation
 

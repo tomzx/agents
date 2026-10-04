@@ -1,6 +1,6 @@
 # Agent Integration
 
-Worktrunk ships a plugin for each supported agent CLI. What a plugin provides depends on the hooks that CLI exposes:
+Worktrunk provides a plugin for each supported agent CLI. What a plugin provides depends on the hooks that CLI exposes:
 
 | Capability | Codex | OpenCode | Gemini CLI |
 |---|:-:|:-:|:-:|
@@ -31,7 +31,7 @@ To remove the marketplace entry, run `wt config plugins codex uninstall`. Alread
 wt config plugins opencode install
 ```
 
-This writes the activity-tracking plugin to OpenCode's global plugins directory, `~/.config/opencode/plugins/worktrunk.ts` (honoring `$OPENCODE_CONFIG_DIR` and `$XDG_CONFIG_HOME`). `wt config plugins opencode uninstall` removes it.
+This writes the activity-tracking plugin to OpenCode's global plugins directory, `~/.config/opencode/plugins/worktrunk.ts` (using `$OPENCODE_CONFIG_DIR` and `$XDG_CONFIG_HOME`). `wt config plugins opencode uninstall` removes it.
 
 ### Gemini CLI
 

@@ -6,8 +6,8 @@ argument-hint: "[context-or-path]"
 
 # Create Domain Model
 
-Captures the structure of a domain: the entities that matter, how they relate, the precise meaning of each term, the rules that always hold, and the quantities the problem turns on.
-It makes an unfamiliar domain legible before solutioning, and gives requirements and specifications a shared vocabulary.
+Captures the structure of a domain: the entities that matter, how they relate, the precise meaning of each term, the rules that always hold, and the quantities the problem depends on.
+It makes an unfamiliar domain understandable before solutioning, and gives requirements and specifications a shared vocabulary.
 It is a one-off skill, most useful when entering an unfamiliar domain during the design or architecture process.
 It is richer than the project-level `.sdlc/context/vocabulary.md`, which it reuses rather than redefines.
 
@@ -26,7 +26,7 @@ It is richer than the project-level `.sdlc/context/vocabulary.md`, which it reus
 4. Identify the **relationships** between entities, with cardinality (one-to-one, one-to-many, many-to-many) and any constraint or rule that governs the relationship. Render the entity model as a Mermaid `classDiagram`: one class per entity with its key attributes, edges carrying cardinality, and each invariant attached as a `note` on the entity it constrains.
 5. Build a **glossary**: give each term a precise definition, and disambiguate any overloaded term (one word used two ways). Note where a term differs from general usage.
 6. State **invariants**: rules that always hold in this domain (business rules, constraints, identities). These are testable truths, not implementation details.
-7. Identify the **key quantities and metrics** the domain turns on, why each matters, and its current value if known.
+7. Identify the **key quantities and metrics** the domain depends on, why each matters, and its current value if known.
 8. Define **boundaries**: what is in this domain versus adjacent domains it touches but does not model.
 9. Record **open questions** where the model is uncertain.
 10. Write the output to `domain-model.md` under the relevant feature directory (`.sdlc/features/N-<slug>/domain-model.md`), or to a path provided by the user.

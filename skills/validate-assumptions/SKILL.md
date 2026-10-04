@@ -8,7 +8,7 @@ argument-hint: "[feature-id or feature-directory]"
 
 Before implementation begins, systematically collects all technical assumptions accumulated during the design phases (codebase analysis, feasibility, specification, plan, tasks), designs minimal code experiments (spikes, tests, proofs of concept, probes) to verify the risky ones, runs them, and records results. Acts as a gate: if a critical assumption is invalidated, backtrack to the affected design phase.
 
-This is the phase where unverified beliefs meet reality. Every assumption that carries meaningful risk gets tested with the cheapest decisive experiment before implementation commits to it.
+This is the phase where unverified beliefs are tested against reality. Every assumption that carries meaningful risk gets tested with the cheapest decisive experiment before implementation depends on it.
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ This is the phase where unverified beliefs meet reality. Every assumption that c
 10. For each **Invalidated** assumption:
     - Assess blast radius: which specification decisions, plan phases, or tasks depend on this assumption?
     - If the assumption was critical (High risk): backtrack to the affected design phase (specification or plan), revise, and re-derive downstream artifacts. Record the backtrack via `/create-decision`.
-    - If the assumption was Medium risk and the impact is contained: note the finding, adjust the affected artifacts in place, and proceed with the revised understanding.
+    - If the assumption was Medium risk and the impact is contained: record the finding, adjust the affected artifacts in place, and proceed with the revised understanding.
 11. Write the validation report to `.sdlc/features/N-<slug>/assumption-validation.md`.
 12. Proceed to `/review-assumption-validation` only when all High-risk assumptions are `Validated` or `Deferred` with acknowledged risk. Medium-risk assumptions may be `Validated`, `Invalidated` with adjustments made, or `Deferred`.
 
@@ -77,7 +77,7 @@ In the same emission, list every file you produced or updated under `artifacts:`
 
 **Scenario 1: Spike to verify ORM capability**
 The specification assumes the ORM can handle a complex polymorphic join. Confidence is Low because this query pattern was never used in the codebase.
-Experiment: write a minimal spike that constructs the query against a test database and checks the result shape. If the ORM produces correct results within acceptable latency, the assumption is Validated. If it errors or produces wrong results, the assumption is Invalidated and the specification must use a different data access strategy.
+Experiment: write a minimal spike that constructs the query against a test database and checks the result structure. If the ORM produces correct results within acceptable latency, the assumption is Validated. If it errors or produces wrong results, the assumption is Invalidated and the specification must use a different data access strategy.
 
 **Scenario 2: Existing code test to verify auth behavior**
 The codebase analysis assumes the auth middleware already supports custom JWT claims because the code references a `claims` map. No test covers this path.
@@ -88,7 +88,7 @@ The plan assumes a third-party API returns paginated results with cursor-based p
 Experiment: write a small script that calls the API with a known query and inspects the response structure and pagination headers. If the response matches expectations, the assumption is Validated. If the API uses offset pagination instead, the assumption is Invalidated and the plan's integration phase must be revised.
 
 **Scenario 4: No risky assumptions**
-A straightforward feature adds a CSV export endpoint to an existing API. The codebase analysis found no risky assumptions, feasibility was Go, and the specification makes no unverified claims.
+A straightforward feature adds a CSV export endpoint to an existing API. The codebase analysis found no risky assumptions, feasibility was approved, and the specification makes no unverified claims.
 Output: one-paragraph note stating no assumptions require validation. Phase is done.
 
 ## Completion Checklist

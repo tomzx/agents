@@ -6,7 +6,7 @@ argument-hint: "[feature, sprint, or project description]"
 
 # Create Learnings
 
-Facilitates a retrospective to capture actionable learnings after completing a feature, sprint, or project.
+Runs a retrospective to capture actionable learnings after completing a feature, sprint, or project.
 Produces a structured document covering what went well, what didn't, process improvements, technical insights, and next actions.
 
 ## Prerequisites

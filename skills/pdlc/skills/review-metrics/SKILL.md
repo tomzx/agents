@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Review Metrics
 
-Reads the actuals against the targets defined in `goals.md` and `analytics-spec.md`, and produces a health report. It judges both whether success metrics moved *and* whether guardrails held — a win that breaks a guardrail is not a win.
+Reads the actuals against the targets defined in `goals.md` and `analytics-spec.md`, and produces a health report. It judges both whether success metrics moved *and* whether guardrails stayed within limits — a result that breaks a guardrail is not a success.
 
 ## Prerequisites
 

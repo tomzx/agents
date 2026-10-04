@@ -168,7 +168,7 @@ See `wt config create --help` for the full default templates.
 
 [experimental]
 
-`template-append` adds to the commit and squash prompts instead of replacing them. It lives in both user config (personal preferences) and project config (`.config/wt.toml`, shared so every teammate's LLM sees the same style guide). Each fragment is itself a [minijinja](https://docs.rs/minijinja/) template — Worktrunk renders it with the same variables as the main template (`{{ branch }}`, `{{ git_diff }}`, …), then appends the result after `<style>`. The user fragment renders into a `<user-guidance>` block and the project fragment into a `<project-guidance>` block, so the LLM can tell personal preference from shared convention:
+`template-append` adds to the commit and squash prompts instead of replacing them. It lives in both user config (personal preferences) and project config (`.config/wt.toml`, shared so every teammate's LLM sees the same style guide). Each fragment is itself a [minijinja](https://docs.rs/minijinja/) template — Worktrunk renders it with the same variables as the main template (`{{ branch }}`, `{{ git_diff }}`, …), then appends the result after `<style>`. The user fragment renders into a `<user-guidance>` block and the project fragment into a `<project-guidance>` block, so the LLM can distinguish personal preference from shared convention:
 
 ```toml
 # .config/wt.toml

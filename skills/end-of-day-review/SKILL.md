@@ -68,7 +68,7 @@ A brief reminder of the 1-3 most important current goals (personal and team).
 
 ## Today's Alignment
 
-### Moved the needle on goals
+### Advanced goals
 - <activity> → <goal it served>
 
 ### Necessary but not goal-driven
@@ -86,7 +86,7 @@ A brief reminder of the 1-3 most important current goals (personal and team).
 
 **Reactivity score:** <1-5> — <one sentence on what drove it>
 
-**Highest-leverage thing done today:** <activity>
+**Most important thing done today:** <activity>
 
 **Team check:** <notes on whether team members were unblocked and supported>
 
@@ -94,7 +94,7 @@ A brief reminder of the 1-3 most important current goals (personal and team).
 
 **Must do:** <single most important item>
 
-**Should protect time for:** <goal-aligned deep work>
+**Should set aside time for:** <goal-aligned focused work>
 
 **Can deprioritize:** <item to drop or defer>
 ```
@@ -105,7 +105,7 @@ A brief reminder of the 1-3 most important current goals (personal and team).
 Activity summary shows deep work on a key project. User rates reactivity as 2. Review captures the progress and sets a clear #1 priority for tomorrow.
 
 **Scenario 2: Highly reactive day**
-Most time was in meetings and responding to requests. User rates reactivity as 5. Review surfaces the drift and the review prompts a decision: what to protect tomorrow.
+Most time was in meetings and responding to requests. User rates reactivity as 5. The review shows the drift and prompts a decision: what to set aside time for tomorrow.
 
 **Scenario 3: No summary file available**
 `{DAY}.overall.md` does not exist. Questions are asked without pre-populated context. Review is written based entirely on user responses.

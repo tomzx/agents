@@ -6,9 +6,9 @@ argument-hint: "[team name]"
 
 # Create Team API
 
-Defines a team's "Team API": the explicit interface other teams consume to work with it. Frames the team using Team Topologies (Skelton and Pais), capturing its team type, ownership boundaries, the services it provides, its inputs and outputs, its dependencies, and the interaction modes it uses with adjacent teams.
+Defines a team's "Team API": the explicit interface other teams use to work with it. Describes the team using Team Topologies (Skelton and Pais), capturing its team type, ownership boundaries, the services it provides, its inputs and outputs, its dependencies, and the interaction modes it uses with adjacent teams.
 
-Where a charter says why a team exists and how it works internally, the Team API says how the rest of the organization interacts with it. Making the interface explicit lets other teams consume the team's work through stable contracts instead of ad hoc asks, which is the precondition for fast, independent flow.
+Where a charter says why a team exists and how it works internally, the Team API says how the rest of the organization interacts with it. Making the interface explicit lets other teams use the team's work through stable contracts instead of ad hoc asks, which is required for fast, independent flow.
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ Where a charter says why a team exists and how it works internally, the Team API
 7. Define **Outputs**: what the team produces and how others receive it (deployed services with an API contract, versioned libraries, documentation, an SLA). Outputs should have a stable, discoverable form.
 8. Map **Dependencies**: upstream teams this team depends on, and downstream teams that depend on it, with the nature of each dependency.
 9. Assign **Interaction modes** to each dependency per Team Topologies:
-   - **x-as-a-service** (default for steady state): another team consumes a stable, versioned interface with low communication overhead.
+   - **x-as-a-service** (default for steady state): another team uses a stable, versioned interface with low communication overhead.
    - **collaboration** (high-bandwidth, temporary): used during exploration or when a boundary is unclear; narrow in scope and time-boxed so it does not become a permanent merger.
    - **facilitating** (an enabling team helping this team learn a capability): time-boxed, and it ends when the capability is transferred.
    Default to x-as-a-service wherever possible; reserve collaboration for genuine uncertainty.
@@ -102,12 +102,12 @@ session_link: http://localhost:10000/?session=<id>
 
 ## Team API Design Guidance
 
-- **Default to x-as-a-service.** It is the only interaction mode that scales. Collaboration and facilitating modes are valuable but temporary; convert them to x-as-a-service as soon as an interface can stabilize.
+- **Default to x-as-a-service.** It is the only interaction mode that scales well. Collaboration and facilitating modes are valuable but temporary; convert them to x-as-a-service as soon as an interface can stabilize.
 - **Ownership is about authority, not proximity.** Owning a service means approving its changes and owning its incidents. If the team cannot approve a change to something, it does not own it, even if it works on it daily.
-- **Every input has a form.** "Stakeholder feedback" is not an input; "a weekly prioritization meeting with the growth lead" is. Unformed inputs become interruptions.
+- **Every input has a form.** "Stakeholder feedback" is not an input; "a weekly prioritization meeting with the growth lead" is. Inputs without a stated form become interruptions.
 - **Every output is discoverable and versioned.** An undocumented service is not part of the API. If consumers cannot find it and rely on a version, it does not count.
 - **Dependencies should point at other team APIs.** Where a dependency is on another team, reference its Team API rather than describing it informally, so contracts stay consistent across the organization.
-- **Match the team type to the work.** A platform team that is mostly doing stream-aligned feature work is mislabeled; surface that as an Open Question or an Evolution item.
+- **Match the team type to the work.** A platform team that is mostly doing stream-aligned feature work is mislabeled; record that as an Open Question or an Evolution item.
 
 ## Example Usage
 

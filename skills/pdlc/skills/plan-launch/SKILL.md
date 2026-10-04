@@ -19,7 +19,7 @@ A launch is a coordinated release, not a deploy. This skill produces the launch 
 2. Build the readiness checklist across functions: product, engineering, design, docs, support, sales, marketing, legal. Each item has an owner and a due date.
 3. Define the timeline: readiness start, launch date, and post-launch review checkpoint.
 4. Choose channels and sequencing (in-product, email, blog, sales) tied to the target segments.
-5. State launch success criteria: the early-window signals (first hours/days) that indicate the launch landed, distinct from the long-term success metrics in `goals.md`.
+5. State launch success criteria: the early-window signals (first hours/days) that indicate the launch succeeded, distinct from the long-term success metrics in `goals.md`.
 6. Define the rollback / pause plan: what would trigger pulling back, and who has authority.
 7. Write `launch-plan.md` to the initiative directory.
 

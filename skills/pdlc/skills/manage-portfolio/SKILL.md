@@ -34,12 +34,12 @@ Stuck (>2 sessions, no gate): INIT-3, INIT-9
 ### Rebalancing
 - Move INIT-3 and INIT-9 to kill or deprioritize (run kill-initiative)
 - Shift one Define initiative back to Validate (insufficient evidence)
-- Seed 1-2 new Discover initiatives to refill the pipeline
+- Start 1-2 new Discover initiatives to refill the pipeline
 ```
 
 ## Next Step
 
-Act on the recommendations: `kill-initiative` for stuck bets, `prioritize` to rebalance the roadmap, `/pdlc discover` to seed the pipeline.
+Act on the recommendations: `kill-initiative` for stuck bets, `prioritize` to rebalance the roadmap, `/pdlc discover` to start new initiatives.
 
 ## Completion Checklist
 

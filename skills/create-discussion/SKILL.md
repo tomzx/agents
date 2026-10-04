@@ -7,7 +7,7 @@ argument-hint: "[repository]"
 # Create GitHub Discussion
 
 Creates a structured GitHub Discussion in the specified repository with background, prioritized acceptance criteria (Must/Should), and (for private repositories) a justified time budget.
-Use it for repositories that route requests (typically feature requests) to GitHub Discussions instead of issues, so the request lands in the channel the maintainers asked for.
+Use it for repositories that route requests (typically feature requests) to GitHub Discussions instead of issues, so the request arrives in the channel the maintainers asked for.
 This skill is standalone: it is the Discussion counterpart to `/create-issue` and does not participate in the issue-driven SDLC pipeline.
 
 ## Prerequisites
@@ -43,7 +43,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 - Give a **total** plus a short **breakdown** so the estimate can be defended and challenged rather than asserted.
 - Weight the estimate toward **planning and evaluation**, not implementation. With AI-assisted development, writing the code is nearly free and instant; the real cost is understanding the problem, designing the solution, evaluating alternatives, and validating the result. Treat implementation sub-estimates as negligible unless the work is genuinely large (e.g. multi-day migrations, hardware-bound work, or mass repetitive changes).
-- The breakdown should foreground the activities that actually constrain delivery: research, design, feasibility evaluation, review, and validation/testing.
+- The breakdown should list the activities that actually limit delivery: research, design, feasibility evaluation, review, and validation/testing.
 - Each breakdown line pairs a work area with a sub-estimate and a one-line cost driver (e.g. "unfamiliar codepath", "needs a design decision", "requires cross-team input").
 - List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, the estimate should be revisited.
 - Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small requests (a single line is acceptable when the work is genuinely one lump).
@@ -57,7 +57,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 ## Discussion Body Scope
 
 - Keep the discussion body focused on summary (when applicable), background, acceptance criteria, and time budget.
-- If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not push it into the body. Instead, post it as a follow-up comment after the discussion is created.
+- If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not add it to the body. Instead, post it as a follow-up comment after the discussion is created.
 - The body should give readers enough context to discuss the request; the follow-up comment provides the deeper analysis for those who want the reasoning.
 - Discussions do not support labels or issue types. Do not attempt to apply either.
 

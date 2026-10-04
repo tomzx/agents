@@ -32,7 +32,7 @@ A formatted status report displayed to the user, containing:
 ## Steps
 
 1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root. Apply `sdlc/references/shared.md` for path resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); `state.yml` and `progress.md` are never read from the mirror.
-2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see at a glance what the pipeline was last doing.
+2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see quickly what the pipeline was last doing.
 3. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
 4. If `$1` specifies a feature ID (e.g., `FEAT-1`), filter to that feature only.
 5. For each feature, read `progress.md` if it exists. Otherwise scan the directory for artifacts and task files.
@@ -51,7 +51,7 @@ uv run <skill_dir>/scripts/sdlc-status.py <path-to-.sdlc> -o status-report.html
 
 `status-report.html` is a generated artifact that must never be committed. `/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`; if you are writing to a file in a repo that has not run either skill, ensure the entry exists manually.
 
-The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the richest dashboard ensure `progress.md` exists. If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
+The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the most detailed dashboard ensure `progress.md` exists. If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
 
 ### Manual text-based report
 

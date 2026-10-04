@@ -6,7 +6,7 @@ argument-hint: "<issue-url>"
 
 # Handle Issue Comment
 
-Replies to a comment on a GitHub issue with a relevant, context-aware response drawn from the codebase, issue description, and prior discussion.
+Replies to a comment on a GitHub issue with a relevant response drawn from the codebase, issue description, and prior discussion.
 
 ## Prerequisites
 

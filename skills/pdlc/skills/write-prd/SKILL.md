@@ -41,4 +41,4 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted`.
 
 ## Next Step
 
-Load `prototype-ux` (for UI-bearing initiatives) and `define-acceptance` (the SDLC handoff seam).
+Load `prototype-ux` (for UI-bearing initiatives) and `define-acceptance` (the SDLC handoff boundary).

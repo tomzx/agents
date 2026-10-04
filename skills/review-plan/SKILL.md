@@ -5,7 +5,7 @@ description: Review an implementation plan for completeness, feasibility, depend
 
 # Review Plan
 
-Audits an implementation plan and reports findings across six categories: completeness, feasibility, dependencies, risk coverage, timeline realism, and reversibility.
+Reviews an implementation plan and reports findings across six categories: completeness, feasibility, dependencies, risk coverage, timeline realism, and reversibility.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ Audits an implementation plan and reports findings across six categories: comple
 
 1. **Resolve the plan.** Look for `.sdlc/features/N-<slug>/plan.md` first; if absent, look for `.sdlc/features/N-<slug>/plan/index.md` and read it together with every `plan/<concern>.md` it lists. Otherwise read from context or as a file path. Treat the whole plan set (index + concern files) as the unit under review.
 2. Cross-reference against the specification or requirements if available.
-3. Run the deterministic checker best-effort: render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A tool that is not installed is skipped (never blocks); a render failure is a blocking finding under Dependencies or Timeline Realism.
+3. Run the deterministic checker when possible: render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A tool that is not installed is skipped (never blocks); a render failure is a blocking finding under Dependencies or Timeline Realism.
 4. Identify issues in each category below. For a split plan, also check that `plan/index.md` aggregates milestones, cross-concern dependencies, risks, and timeline consistently with the concern files.
 5. Report findings. Omit any category that has no findings.
 6. Write the findings to `.sdlc/features/N-<slug>/review-plan.md` with frontmatter `artifact: plan`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
@@ -49,13 +49,13 @@ Audits an implementation plan and reports findings across six categories: comple
 ### Timeline Realism
 - Is the timeline consistent with the effort estimates (gantt durations vs. phase effort)?
 - When a gantt is present, do its task dependencies match the phase-dependency flowchart?
-- Are there parallel tracks that could reduce total duration?
+- Are there parallel tracks that could shorten total duration?
 - Are buffer periods included for testing and review?
 
 ### Reversibility
 - Can we undo this cleanly once implemented, or does the plan create one-way-door commitments?
 - Does the plan include a rollback path for each phase (migrations, deployments, config)?
-- Are irreversible steps (destructive migrations, deletions, public API removals) flagged and sequenced safely?
+- Are irreversible steps (destructive migrations, deletions, public API removals) flagged and ordered safely?
 
 ## Output Format
 

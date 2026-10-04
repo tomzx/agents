@@ -6,12 +6,12 @@ The instructions below apply automatically whenever a skill reads or writes anyt
 
 PDLC is the **Product Development Lifecycle**. It is the loop that surrounds SDLC:
 it decides *whether* and *what* to build (discovery, validation, strategy, definition),
-hands off the *how* to SDLC, then closes the loop with launch and measurement.
+hands off the *how* to SDLC, then finishes the loop with launch and measurement.
 Three properties distinguish PDLC from SDLC, and every skill must respect them:
 
 1. **It is a cycle, not a line.** The Measure phase feeds back into Discover. A pipeline that ends at "shipped" is incomplete.
-2. **Every phase has a kill gate.** Each transition runs `make-decision` with verdict `proceed` / `pivot` / `kill`. A PDLC that never kills ideas is broken.
-3. **Artifacts are the contract.** Each skill produces one artifact the next skill consumes, so the orchestrator can pause, resume, hand off, and trace end to end.
+2. **Every phase has a kill gate.** Each transition runs `make-decision` with verdict `proceed` / `pivot` / `kill`. A PDLC that never kills ideas is incomplete.
+3. **Artifacts are the contract.** Each skill produces one artifact the next skill consumes, so the orchestrator can pause, resume, hand off, and trace from start to finish.
 
 ## Applicability
 
@@ -31,7 +31,7 @@ This rule applies however the successor was reached:
 
 ## Gates (proceed / pivot / kill)
 
-The gate is the PDLC's defining mechanism. Every phase boundary invokes `make-decision`, which writes a decision record to `.pdlc/decisions/` carrying the gate verdict in its frontmatter:
+The gate is the defining mechanism of the PDLC. Every phase boundary invokes `make-decision`, which writes a decision record to `.pdlc/decisions/` carrying the gate verdict in its frontmatter:
 
 ```yaml
 ---

@@ -6,7 +6,7 @@ Worktrunk has three extension mechanisms.
 
 **[Aliases](#aliases)** are reusable shell commands invoked as `wt <name>`. Defined in TOML.
 
-**[Custom subcommands](#custom-subcommands)** are standalone executables invoked as `wt <name>`. Drop `wt-foo` on `PATH` and it becomes `wt foo`.
+**[Custom subcommands](#custom-subcommands)** are standalone executables invoked as `wt <name>`. Put `wt-foo` on `PATH` and it becomes `wt foo`.
 
 | | Hooks | Aliases | Custom subcommands |
 |---|---|---|---|
@@ -149,7 +149,7 @@ git fetch --all --prune && wt step for-each -- sh -c '
 
 ### Recipe: move or copy in-progress changes to a new worktree
 
-`wt switch --create` lands you in a clean worktree. To carry staged, unstaged, and untracked changes along, pair it with `git stash`:
+`wt switch --create` creates a worktree and changes to it. To carry staged, unstaged, and untracked changes along, combine it with `git stash`:
 
 ```toml
 # .config/wt.toml
@@ -216,7 +216,7 @@ Aside from the differences below, hooks and aliases behave the same.
 | Reach `{{ args }}` from positionals | Must use `--` (`wt hook pre-merge -- extra`) | Any bare positional lands there |
 | Approval skip flag | Post-subcommand `--yes` / `-y` supported (`wt hook pre-merge --yes`) | Only the global form (`wt -y <alias>`); post-alias `--yes` falls through to `{{ args }}` |
 | Source discrimination | `user:` / `project:` / `user:name` / `project:name` filter syntax | Run user first, then project; no filter syntax |
-| Force-bind escape | `--var KEY=VALUE` (deprecated in favor of `--KEY=VALUE`, but still force-binds) | None; smart routing is the only path |
+| Force-bind option | `--var KEY=VALUE` (deprecated in favor of `--KEY=VALUE`, but still force-binds) | None; smart routing is the only path |
 | `--help` | `wt hook --help` lists hook types; `wt hook <type> --help` shows flags and arguments for that type | The template body is the documentation: `wt <alias> --help` redirects to `wt config alias show` / `dry-run`. `wt --help` and `wt step --help` list configured aliases alongside built-in commands |
 | Inspection | `wt hook show [type] [--expanded]` | `wt config alias show <name>` / `wt config alias dry-run <name>` |
 | Stdin | All template variables as JSON (parse with `json.load(sys.stdin)`) | Inherits parent stdin (pipes pass through; interactive TUIs like `wt switch` keep the tty) |

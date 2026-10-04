@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Frame Opportunities
 
-The convergent end of Discover. Takes `problems.md`, `market.md`, and `competitors.md` and builds an opportunity-solution tree: the desired outcome at the top, opportunities beneath, and candidate solutions under each, scored so the gate can decide what to pursue.
+The final step of Discover. This skill takes `problems.md`, `market.md`, and `competitors.md` and builds an opportunity-solution tree: the desired outcome at the top, opportunities beneath, and candidate solutions under each, scored so the gate can decide what to pursue.
 
 This is the artifact the **Discover gate** evaluates. A low score here should route back to discovery, not forward to validation.
 
@@ -18,7 +18,7 @@ This is the artifact the **Discover gate** evaluates. A low score here should ro
 ## Steps
 
 1. State the desired outcome (the customer/business result), not a feature.
-2. Branch into 3-7 opportunities that could move that outcome. Each opportunity is a lever, not a solution.
+2. Branch into 3-7 opportunities that could move that outcome. Each opportunity is a change you can make, not a solution.
 3. Under each opportunity, list 2-4 candidate solutions (these are provisional — Validate will test the riskiest assumptions, not pick a solution yet).
 4. Score each opportunity on a transparent rubric: customer value, strategic fit (to `goals.md`), reach, and confidence. Record the score, not just a gut ranking.
 5. Recommend the opportunity (or two) to carry into Validate, with the one or two riskiest assumptions called out for testing.
@@ -35,7 +35,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted` plus `reason`.
 ## Completion Checklist
 
 - [ ] Desired outcome stated as a result, not a feature
-- [ ] Each opportunity is a lever, distinct from the others
+- [ ] Each opportunity is a change you can make, distinct from the others
 - [ ] Each opportunity scored on a stated rubric (not just ranked)
 - [ ] The riskiest assumptions to test are explicitly named for Validate
 

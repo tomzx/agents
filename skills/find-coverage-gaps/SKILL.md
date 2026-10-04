@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Coverage Gaps
 
-Finds the parts of the codebase with the least test coverage, then ranks them by churn and complexity so the most important gaps surface first. Low coverage in a stable file is a minor concern; low coverage in a file that changes constantly and is hard to understand is a production risk.
+Finds the parts of the codebase with the least test coverage, then ranks them by churn and complexity so the most important gaps appear first. Low coverage in a stable file is a minor concern. Low coverage in a file that changes constantly and is hard to understand is a production risk.
 
 ## Prerequisites
 

@@ -8,7 +8,7 @@ argument-hint: "[skills-directory]"
 # Review Skills
 
 Audits a directory of skills for structural and semantic issues across eight categories: duplicates, broken references, circular dependencies, orphaned skills, composability, re-run safety, CLI drift, and skill gaps.
-Produces a prioritized report with concrete remediation steps.
+Produces a prioritized report with concrete fixes.
 
 ## Prerequisites
 
@@ -173,7 +173,7 @@ For skills rated Caution or Unsafe, suggest a specific fix (e.g., "check for exi
 
 ### 9. Check CLI-backed skills against the installed CLI
 
-Some skills document a purpose-built command-line tool rather than a workflow. When that CLI changes (renamed commands, new or removed flags, shifted subcommand paths, changed defaults), the skill silently drifts out of date. Audit every CLI-backed skill against the CLI actually installed on this machine.
+Some skills document a purpose-built command-line tool rather than a workflow. When that CLI changes (renamed commands, new or removed flags, shifted subcommand paths, changed defaults), the skill drifts out of date with no warning. Audit every CLI-backed skill against the CLI actually installed on this machine.
 
 **Identify CLI-backed skills.** A skill is CLI-backed when it documents commands for a specific executable. Detect in order of confidence:
 
@@ -214,7 +214,7 @@ For each finding, record the exact command the skill documents, the CLI's curren
 
 ### 10. Check for skill gaps
 
-Analyze the skill library holistically:
+Analyze the skill library as a whole:
 
 1. **Workflow coverage**: Identify common agent workflows that have no corresponding skill:
    - Every `create-X` should have a matching `review-X` (and vice versa)

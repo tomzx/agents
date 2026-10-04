@@ -8,7 +8,7 @@ argument-hint: "[specification-doc]"
 
 Defines how a feature's production health will be monitored by identifying log statements, service metrics, distributed traces, and alerts before implementation begins.
 
-Without this step, features ship blind: outages go undetected, root causes take hours to find, and on-call engineers lack runbooks.
+Without this step, features go to production with no monitoring: outages go undetected, root causes take hours to find, and on-call engineers lack runbooks.
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ Common metric types for features:
 - **Error rate:** Percentage of requests resulting in errors (4xx/5xx).
 - **Latency:** Histogram of request durations (p50, p95, p99).
 - **Queue depth:** Number of items pending processing (for async features).
-- **Resource utilization:** CPU, memory, connections consumed by the feature.
+- **Resource utilization:** CPU, memory, connections used by the feature.
 - **Business metrics:** Counts tied to domain events (orders placed, files uploaded).
 
 Every metric should answer: "If this number changes unexpectedly, what action do I take?" If no action exists, the metric is noise.

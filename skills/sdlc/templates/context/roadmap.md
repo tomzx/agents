@@ -3,7 +3,7 @@
 
 ## Strategy Summary
 
-<One paragraph stating the strategic direction for this period: the main bets, the primary objectives they advance, and the constraints (capacity, dependencies, hard deadlines).>
+<One paragraph stating the strategic direction for this period: the main initiatives, the primary objectives they advance, and the constraints (capacity, dependencies, hard deadlines).>
 
 ## Horizon Model
 

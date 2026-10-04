@@ -6,7 +6,7 @@ argument-hint: "[--yes] [--channel <id|url|name>] [--thread-ts <ts>] <message>"
 
 # Post Slack Message
 
-Posts a message to a Slack channel or as a thread reply using `post_slack_message.py` (Slack Web API `chat.postMessage`). The compose-and-confirm flow lives in this skill so it can use the question tool; the script is the send primitive.
+Posts a message to a Slack channel or as a thread reply using `post_slack_message.py` (Slack Web API `chat.postMessage`). This skill contains the compose-and-confirm flow so it can use the question tool; the script is the send primitive.
 
 ## Behavior modes
 
@@ -44,7 +44,7 @@ MSG_FILE="/tmp/opencode/post-slack-message-$(date +%Y%m%d-%H%M%S).md"
 # write the message text to $MSG_FILE (use the Write tool, or a heredoc via bash)
 ```
 
-This file is the single source of truth for both review and send. (To sanity-check targeting first, you may run a `--dry-run`.)
+This file is the single source of truth for both review and send. (To check targeting first, you may run a `--dry-run`.)
 
 ### 3. Branch on mode
 
@@ -85,7 +85,7 @@ uv run post_slack_message.py --channel-name tom-rochette-updates --file "$MSG_FI
 
 The script prints the posted message's permalink to stdout (and a short status line to stderr). Other skills that delegate here (e.g. start-day, end-day) may call the script directly with a positional message when they have already opted into immediate send.
 
-If the send fails (missing token, `chat.postMessage` error, rate limit exhausted), surface the error from stderr and stop. Do not silently retry; let the user decide.
+If the send fails (missing token, `chat.postMessage` error, rate limit exhausted), show the error from stderr and stop. Do not silently retry; let the user decide.
 
 ### 5. Report back
 
@@ -130,7 +130,7 @@ Report the permalink (and the channel, and the thread if applicable) to the user
 
 ## Notes for calling skills
 
-Skills like **start-day** and **end-day** post automated daily updates and are already gated behind the `SEND_DAILY_SLACK` opt-in. They may call `post_slack_message.py` directly (immediate send) because the user has pre-approved that flow. Any interactive or one-off post should go through this skill's review mode instead.
+Skills like **start-day** and **end-day** post automated daily updates and already require the `SEND_DAILY_SLACK` opt-in. They may call `post_slack_message.py` directly (immediate send) because the user has pre-approved that flow. Any interactive or one-off post should go through this skill's review mode instead.
 
 ## Useful commands reference
 

@@ -5,7 +5,7 @@ description: Research a topic to map the state of the art, gathering and triagin
 
 # Research Article
 
-Given a topic, discovers what the state of the art is by searching broadly, triaging sources, deep-reading the strongest ones, and synthesizing the landscape.
+Given a topic, discovers what the state of the art is by searching broadly, triaging sources, deep-reading the strongest ones, and synthesizing the field.
 The output is a research brief that becomes the input to `/create-article`, so the writing step can focus on craft rather than discovery.
 
 ## Prerequisites
@@ -21,9 +21,9 @@ The output is a research brief that becomes the input to `/create-article`, so t
    State the specific research question in one sentence.
    Define what "state of the art" means for this topic (top benchmark score, dominant method, industry standard, latest breakthrough).
    Note any time bounds or constraints.
-2. Cast a wide net.
+2. Search broadly.
    Search multiple source types (see Search Strategy below).
-   Start with surveys, review papers, and benchmark leaderboards to map the terrain quickly before going deep.
+   Start with surveys, review papers, and benchmark leaderboards to map the field quickly before going deep.
 3. Build a candidate source list.
    For each result, capture title, URL, type, year, and a one-line relevance note.
    Prioritize primary sources (papers, official docs, benchmarks) over secondary commentary, but keep influential blog posts and talks that shape practice.
@@ -33,10 +33,10 @@ The output is a research brief that becomes the input to `/create-article`, so t
    Drop outdated or low-quality sources, but record why so the exclusion is deliberate.
 5. Deep-read the top sources.
    Fetch and read each one.
-   Extract: the problem it tackles, its approach, its key results and numbers, and how it compares to prior work.
+   Extract: the problem it addresses, its approach, its key results and numbers, and how it compares to prior work.
    Verify claims against the source rather than paraphrasing from memory or a summary.
-6. Map the landscape.
-   Group the sources into the main approaches or camps.
+6. Map the field.
+   Group the sources into the main approaches.
    Identify what currently defines the state of the art (top scores, dominant technique, widely adopted standard).
    Note where the field agrees and where it actively disagrees.
 7. Surface gaps and open questions.
@@ -49,7 +49,7 @@ The output is a research brief that becomes the input to `/create-article`, so t
 
 ## Search Strategy
 
-Cover several source types so the picture is not skewed by one medium.
+Cover several source types so the result is not skewed by one medium.
 
 | Source type | What to look for | Where |
 |---|---|---|
@@ -60,7 +60,7 @@ Cover several source types so the picture is not skewed by one medium.
 | Documentation / specs | How mature tools actually behave | Official docs, RFCs, standards |
 | Community discussion | Controversies, pitfalls, emerging work | HN, Reddit, forum threads |
 
-Prefer recency for a fast-moving field, but anchor to the seminal works that everyone cites.
+Prefer recency for a fast-moving field, but rely on the seminal works that everyone cites.
 
 ## When to Stop Researching
 
@@ -130,7 +130,7 @@ status: draft
 
 **Core insight:** <The single argument the research best supports.>
 **Angle:** <How to frame the article given the state of the art.>
-**Sources to lead with:** <2-4 sources that should anchor the article.>
+**Sources to lead with:** <2-4 sources that should support the article.>
 ```
 
 ## Quality Criteria
@@ -144,7 +144,7 @@ status: draft
 
 **Avoid:**
 - Listing sources without explaining what each contributes
-- Treating every source as equally important (triage ruthlessly)
+- Treating every source as equally important (triage strictly)
 - Stating opinions or impressions as if they were sourced facts
 - Stopping at the first page of search results without triangulating
 - Em-dash sentence structures, use commas or parentheses instead
@@ -163,8 +163,8 @@ Recommend a practical selection-guide article.
 
 **Scenario 3: Conceptual explainer**
 Topic: "CRDTs for collaborative editing", scope: "how they work and where they struggle".
-Anchor on the seminal papers and a key survey, map the main algorithms, surface the gap around complexity and memory overhead.
-Recommend an article that explains CRDTs and honestly covers their limitations.
+Start from the seminal papers and a key survey, map the main algorithms, surface the gap around complexity and memory overhead.
+Recommend an article that explains CRDTs and covers their limitations.
 
 ## Next Step
 
@@ -177,7 +177,7 @@ After the article is drafted, run `/review-article` to audit it for accuracy, so
 
 | Command | Description |
 |---|---|
-| `WebSearch` | Cast the wide net across the web, blogs, and docs |
+| `WebSearch` | Search broadly across the web, blogs, and docs |
 | `WebFetch` | Deep-read a candidate source and extract its claims |
 | `/arxiv-article <url>` | Download, archive, and summarize a single arXiv paper |
 | `grep` / codebase search | Find how the topic is handled in the local repository, if relevant |

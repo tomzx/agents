@@ -11,7 +11,7 @@ TODAY=!`date +%Y-%m-%d`
 
 Audits the codebase for **functional suitability**: does the software provide the functions needed to meet stated requirements, completely and correctly? It is the bottom-up check that what was supposed to be built is actually built and working.
 
-This is the **Functional suitability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `check-issue-status` (which checks whether a *single issue* is addressed), this audit scans the whole implementation against its requirements corpus and the code's own honesty markers (stubs, TODOs, disabled tests).
+This is the **Functional suitability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `check-issue-status` (which checks whether a *single issue* is addressed), this audit scans the whole implementation against its requirements corpus and the code's own incompleteness markers (stubs, TODOs, disabled tests).
 
 ## Prerequisites
 

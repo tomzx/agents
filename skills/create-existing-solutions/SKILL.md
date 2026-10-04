@@ -7,7 +7,7 @@ argument-hint: "[requirements-doc]"
 # Create Existing Solutions Survey
 
 Surveys existing solutions that already solve part or all of what the feature needs, before committing to a design.
-The goal is twofold: avoid reinventing what already exists, and harvest proven approaches as a source of information even when we end up building our own.
+The goal is twofold: avoid rebuilding what already exists, and collect proven approaches as a source of information even when we end up building our own.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ The goal is twofold: avoid reinventing what already exists, and harvest proven a
 1. Read the requirements document and extract what the feature must do (functional requirements) and the quality attributes it must satisfy (non-functional requirements).
 2. Define the search scope: the categories below, plus any project-specific sources noted in `.sdlc/context/`.
 3. Search each category for candidates:
-   - Existing code in this repository or organization that already does something similar (search the codebase first, it is the cheapest to adopt).
+   - Existing code in this repository or organization that already does something similar (search the codebase first, it is the least costly to adopt).
    - Open-source libraries, frameworks, and tools.
    - Commercial or SaaS products.
    - Standards, protocols, and specifications.
@@ -54,7 +54,7 @@ The recommendation is to reuse and extend it rather than write a new exporter.
 
 **Scenario 3: Build, but learn from prior art**
 Requirements describe a domain-specific scheduler with no off-the-shelf fit.
-The survey recommends building, and records the data model and failure modes documented by two open-source schedulers as sources of information for the specification.
+The survey recommends building, and records the data model and failure modes documented by two open-source schedulers as information sources for the specification.
 
 ## Completion Checklist
 

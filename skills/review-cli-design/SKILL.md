@@ -7,7 +7,7 @@ description: Review a CLI design for command-surface completeness, cross-command
 
 Audits a `cli-design.md` artifact and reports findings across seven categories: requirements traceability, command surface, cross-command consistency, usability, error handling, output behavior, and convention fit.
 
-This is the deep interface-craft review of the CLI design itself.
+This is the detailed review of the CLI interface design itself.
 `/review-requirements` reviews `cli-design.md` alongside `requirements.md` at the requirements-alignment level and remains the gate in the SDLC pipeline.
 Run this skill for a standalone or second-pass audit of the interface when the design is the primary artifact (a hand-authored design, or a re-audit after implementation feedback).
 

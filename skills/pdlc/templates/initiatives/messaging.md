@@ -7,7 +7,7 @@ phase: launch
 
 # Messaging: <title>
 
-Anchored to vision.md and pricing.md.
+Based on vision.md and pricing.md.
 
 ## Value Proposition
 
@@ -26,11 +26,11 @@ Anchored to vision.md and pricing.md.
 ## Audience Narratives
 
 ### Segment: <segment>
-- **Entry point:** <their struggle>
+- **Entry point:** <their problem>
 - **Narrative:** <one paragraph>
 
 ### Segment: <segment>
-- **Entry point:** <their struggle>
+- **Entry point:** <their problem>
 - **Narrative:** <one paragraph>
 
 ## Channel Assets
@@ -41,4 +41,4 @@ Anchored to vision.md and pricing.md.
 
 ## Positioning Check
 
-<Does every message reinforce the chosen differentiation? Note any that undercut it.>
+<Does every message support the chosen differentiation? Note any that weaken it.>

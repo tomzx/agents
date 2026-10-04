@@ -101,7 +101,7 @@ Tutorial Expl.  How-to   Ref.
 
 ### 3. REFERENCE (Information-Oriented)
 
-**Purpose**: Provide accurate, complete technical descriptions of the system's machinery.
+**Purpose**: Provide accurate, complete technical descriptions of the system's parts.
 
 **Audience**: Users actively working with the code who need to look up specifics.
 
@@ -131,7 +131,7 @@ Tutorial Expl.  How-to   Ref.
 
 ### 4. EXPLANATION (Understanding-Oriented)
 
-**Purpose**: Clarify, illuminate, and provide context about a topic to deepen understanding.
+**Purpose**: Clarify, explain, and provide context about a topic to deepen understanding.
 
 **Audience**: Users seeking deeper understanding of concepts, context, or design decisions.
 
@@ -180,7 +180,7 @@ STUDYING --------+-------- WORKING
 2. **All four are needed**: A complete documentation system includes all types.
 3. **Cross-link appropriately**: Link between types but maintain boundaries.
 4. **Structure explicitly**: Make it obvious which type each document is.
-5. **Resist gravitational pull**: Types naturally want to blend - resist this.
+5. **Resist the tendency to mix**: Types naturally tend to blend - resist this.
 
 ## Example Usage
 

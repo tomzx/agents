@@ -12,7 +12,7 @@ Use when building or updating a **Slack channel** knowledge base for a given mon
 
 ## Memory (canonical — ship this)
 
-**Temporal memory** (time-sliced, one file per calendar month) lives under **`memory/temporal/`**. That directory name signals content keyed by **when** it was observed, not by long-lived theme.
+**Temporal memory** (time-sliced, one file per calendar month) lives under **`memory/temporal/`**. That directory name signals content keyed by **when** it was observed, not by a long-lived theme.
 
 | Path | Purpose |
 |------|---------|
@@ -20,13 +20,13 @@ Use when building or updating a **Slack channel** knowledge base for a given mon
 
 Use a **stable short slug** for the channel in the filename (e.g. `help-ml-infrastructure`, `team-foo-oncall`), so the same channel always maps to the same prefix. You may include the channel id in prose or front matter if that helps disambiguation.
 
-Do **not** add a separate `-threads.md` or other companion KB files for the same month.
+Do **not** add a separate `-threads.md` or other companion knowledge base files for the same month.
 
 **Rules for memory**
 
 - **Dates in prose:** Prefer **`YYYY/MM/DD`** for a specific day and **`YYYY/MM`** for a month (e.g. incident windows, “seen in” notes). Avoid English month names or abbreviations (`Feb`, `March 2026`) in running text unless quoting Slack verbatim.
 - Do **not** include a **thread index** (full table of every `thread_ts` + topic) in the monthly markdown. Use **thread-derived findings** only, with `thread_ts` inline where it helps.
-- Do **not** link to, name, or point readers at **raw thread capture files** (e.g. per-thread markdown exports, “dump” directories, or filenames derived from timestamps). Those are ingestion artifacts, not the KB.
+- Do **not** link to, name, or point readers at **raw thread capture files** (e.g. per-thread markdown exports, “dump” directories, or filenames derived from timestamps). Those are ingestion artifacts, not the knowledge base.
 - Thread identity in memory is **`thread_ts`** (and **channel id** when the slug alone is ambiguous). People re-open discussions in Slack using those ids.
 - When merging new facts from Slack, update the single monthly file under `memory/temporal/` only; do not add “see file X in folder Y” for raw captures.
 
@@ -36,11 +36,11 @@ Do **not** add a separate `-threads.md` or other companion KB files for the same
 
 ## Ingestion (maintainers only — not part of memory)
 
-Use [`build_thread_kb.py`](build_thread_kb.py) to pull history and threads directly via the Slack API. Credentials (`SLACK_TOKEN`, `SLACK_COOKIE`) are loaded from `.env`. Raw outputs may be stored outside `memory/temporal/` or in tooling-only paths; **keep them out of the canonical temporal memory docs.**
+[`build_thread_kb.py`](build_thread_kb.py) pulls history and threads directly via the Slack API. Credentials (`SLACK_TOKEN`, `SLACK_COOKIE`) are loaded from `.env`. Raw outputs may be stored outside `memory/temporal/` or in tooling-only paths; **keep them out of the canonical temporal memory docs.**
 
 ### Batch thread metadata (recommended)
 
-[`build_thread_kb.py`](build_thread_kb.py) walks **any channel** (by Slack channel id) using `conversations.history` + `conversations.replies` directly. It supports a full **calendar month** (`--month`) or an arbitrary **date range** (`--after`/`--before`). It writes **JSONL** (one object per thread: `channel`, `ts`, `replies`, `preview`) — a **maintainer artifact** for ingestion and validation; it is not the published KB and is not pasted into memory as a thread table.
+[`build_thread_kb.py`](build_thread_kb.py) walks **any channel** (by Slack channel id) using `conversations.history` + `conversations.replies` directly. It supports a full **calendar month** (`--month`) or an arbitrary **date range** (`--after`/`--before`). It writes **JSONL** (one object per thread: `channel`, `ts`, `replies`, `preview`) — a **maintainer artifact** for ingestion and validation; it is not the published knowledge base and is not pasted into memory as a thread table.
 
 Pass **`--channel <CHANNEL_ID>`** or set **`SLACK_CHANNEL_ID`**. Default output files include the channel id so different channels for the same period do not overwrite each other.
 

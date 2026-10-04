@@ -11,8 +11,8 @@ TODAY=!`date +%Y-%m-%d`
 Refactors the change just produced by `create-implementation`, adding only the abstractions and seams it needs to stay small, cohesive, and testable, and deliberately leaving everything else alone.
 
 It applies the behavior-preservation and dependency-breaking techniques from Michael Feathers' *Working Effectively with Legacy Code* to new code.
-The goal is not to rescue untested legacy, but to stop fresh code from calcifying into it.
-The guiding constraint is minimum abstraction: every seam and every extracted type must earn its place, or it is bloat.
+The goal is not to fix untested legacy code, but to stop fresh code from turning into it.
+The guiding constraint is minimum abstraction: every seam and every extracted type must justify its place, or it is bloat.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ The guiding constraint is minimum abstraction: every seam and every extracted ty
 |-------|--------------|
 | `create-implementation` | Produces the change this skill refactors. It must have run first and left the tests green. |
 | `review-implementation` | Reviews the refactored result. This skill runs before it and hands off to it. |
-| `analyze-test-coverage` | Its uncovered-code table often marks exactly where a seam is missing or a characterization test belongs. |
+| `analyze-test-coverage` | Its uncovered-code table often shows exactly where a seam is missing or a characterization test belongs. |
 | `propagate-changes` | Run after refactoring if the structure change makes a specification, plan, or documentation stale. |
 
 ## The Minimum Abstraction Rule
@@ -71,7 +71,7 @@ Scan the implementation diff for these signals before touching anything.
 | Interface, factory, or config layer with a single implementation | Inline it until a second implementation exists |
 | Parameter, field, or import never read | Remove it |
 | Layer that only forwards calls | Inline the forwarding method |
-| Comment explaining what a block does | Extract the block and name it by the comment |
+| Comment explaining what a block does | Extract the block and name it after the comment |
 
 Scope the pass to the change under review.
 Do not refactor the surrounding codebase, and do not add features: behavior must be identical before and after.
@@ -83,12 +83,12 @@ Do not refactor the surrounding codebase, and do not add features: behavior must
 Characterization tests assert what the code currently does, not what it should do.
 Write them before touching structure whenever the behavior you are about to rearrange is not already covered.
 They are the safety net that proves the refactoring preserved behavior.
-Commit them separately, as `create-implementation` does, so the before/after test trail stays legible.
+Commit them separately, as `create-implementation` does, so the before/after test trail stays easy to read.
 
 ### Seams
 
 A seam is a place where behavior can be substituted without editing the code at that place.
-New code almost always uses the object seam; reach for the others only when the language or dependency forces it.
+New code almost always uses the object seam; use the others only when the language or dependency forces it.
 
 | Seam | Use in new code |
 |------|-----------------|
@@ -120,17 +120,17 @@ Apply the smallest technique that unblocks the test or isolates the variation.
 
 ### Structural cleanup
 
-Once behavior is pinned, the ordinary safe refactorings apply: extract method or function, extract variable, rename, move, inline, extract class, and remove dead code.
+Once behavior is pinned by tests, the ordinary safe refactorings apply: extract method or function, extract variable, rename, move, inline, extract class, and remove dead code.
 Replace a conditional with polymorphism only when the branches are a true variant axis with more than two actual implementations, not when they are two fixed cases.
 
 ## Steps
 
 1. Read the implementation diff, the specification, the tests, and the codebase conventions.
-2. Confirm the green baseline: run the focused test suite for the changed code.
+2. Confirm the passing baseline: run the focused test suite for the changed code.
 3. Scan the diff for bloat and missing seams using the signals above.
 4. For each candidate, apply the Minimum Abstraction Rule and drop anything unjustified.
 5. For every behavior you will rearrange, if it is not pinned by tests, write characterization tests first and commit them separately.
-6. If the change touches a boundary that blocks testing (clock, network, filesystem, randomness, third party), introduce the smallest seam that unblocks it.
+6. If the change touches a boundary that blocks testing (clock, network, filesystem, randomness, third party), introduce the smallest seam that removes the block.
 7. Apply one refactoring at a time, running the focused tests after each, keeping behavior identical.
 8. Remove what the change left behind: dead code, unused parameters and imports, single-use indirection, commented-out code.
 9. Run the full test suite and confirm it passes.
@@ -155,13 +155,13 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 **Scenario 1: Duplication and an untestable clock**
 `create-implementation` added three report methods that each repeat the same period-validation block and each call `datetime.now()` directly.
-The skill extracts the validation into one private method (duplication with one reason to change) and parameterizes the constructor with a clock (untestable boundary).
+The skill extracts the validation into one private method (duplication with one reason to change) and adds a clock parameter to the constructor (untestable boundary).
 It does not extract an interface for the database client: the tests reach it through the existing test database, so there is no justification.
 It records the database decision under "Deliberately Not Refactored".
 
 **Scenario 2: Speculative indirection in fresh code**
 The implementation introduced a `Notifier` interface, a `NotifierFactory`, and a `NotifierConfig` for a single email path called from one place.
-The skill inlines the factory and config back into the one call site, keeps the interface only if a test double genuinely substitutes for the email client, and records the removal.
+The skill inlines the factory and config back into the one call site, keeps the interface only if a test double genuinely replaces the email client, and records the removal.
 
 **Scenario 3: Nothing to do**
 The diff is a small, cohesive change already covered by tests, with no duplication and no blocked boundary.
@@ -169,7 +169,7 @@ The skill applies the Minimum Abstraction Rule, finds no justification, writes a
 
 ## Completion Checklist
 
-- [ ] Tests were green before the refactoring and still green after
+- [ ] Tests passed before the refactoring and still pass after
 - [ ] Every abstraction and seam introduced maps to a stated justification
 - [ ] No speculative extension points, single-implementation interfaces, or forward-looking parameters were added
 - [ ] Behavior is unchanged; no features were added or removed

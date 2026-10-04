@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Compatibility Audit (ISO/IEC 25010)
 
-Audits the codebase for **compatibility**: can the software co-exist with other software and interoperate with them through standards? It finds the things that make two systems fight over shared resources or fail to talk to each other cleanly.
+Audits the codebase for **compatibility**: can the software co-exist with other software and interoperate with it through standards? It finds the things that make two systems conflict over shared resources or fail to communicate cleanly.
 
 This is the **Compatibility** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
 
@@ -30,7 +30,7 @@ This is the **Compatibility** characteristic of the [ISO/IEC 25010](https://en.w
 
 ### 1. Co-existence: shared resources
 
-Hardcoded ports, hostnames, absolute paths, and well-known shared locations that collide when two instances or two apps run together:
+Hardcoded ports, hostnames, absolute paths, and well-known shared locations that conflict when two instances or two apps run together:
 
 ```
 rg -n "localhost|127\.0\.0\.1|0\.0\.0\.0|:3000|:8080|:5432|:6379|:5672|/tmp/|/var/|/usr/|C:\\\\" -g '*.{py,ts,js,go}' . \
@@ -165,7 +165,7 @@ Confirms versioning, content types, and input validation before external consume
 
 | Skill | Relationship |
 |---|---|
-| `audit-security`, `audit-functional-suitability`, `audit-performance-efficiency`, `audit-usability`, `audit-reliability`, `audit-maintainability`, `audit-portability` | The other seven ISO/IEC 25010 characteristics. Compose via `/audit-sdlc`. |
+| `audit-security`, `audit-functional-suitability`, `audit-performance-efficiency`, `audit-usability`, `audit-reliability`, `audit-maintainability`, `audit-portability` | The other seven ISO/IEC 25010 characteristics. Combine via `/audit-sdlc`. |
 | `audit-sdlc` | Coordinator. |
 | `audit-dependencies` | Deeper dependency drill-down (CVEs, outdated). This audit flags conflicts and pins that block co-existence. |
 | `audit-portability` | Related but distinct: portability = runs in different environments; compatibility = runs alongside other software and talks standards. |

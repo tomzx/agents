@@ -6,22 +6,22 @@ argument-hint: "[phase-name]"
 
 # Software Development Lifecycle
 
-Orchestrates the full SDLC pipeline by invoking the appropriate sub-skills in sequence.
-Each phase accepts the previous phase's output as input.
+Runs the full SDLC pipeline by invoking the appropriate sub-skills in sequence.
+Each phase takes the previous phase's output as input.
 Pass an optional phase name to enter the pipeline at a specific stage.
 
 ## When to Use `/sdlc` vs Individual Skills
 
 - Use **`/sdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases in sequence, handle review cycles, and manage backtracking automatically.
-- Use **individual skills directly** (e.g., `/create-pr`, `/review-implementation`) when you need a single phase and want full control over inputs and outputs without the pipeline orchestration overhead.
+- Use **individual skills directly** (e.g., `/create-pr`, `/review-implementation`) when you need a single phase and want full control over inputs and outputs without the extra work the pipeline orchestration adds.
 
 ## Load Each Phase Skill (mandatory)
 
 Before performing any work that belongs to a pipeline phase, load that phase's skill with the `skill` tool.
 
-A skill's `allowed-tools`, workflow, attribution steps, and gates only apply once its content is in context.
-Never execute a phase's actions from memory or general knowledge.
-This is especially true for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-reviewer-feedback`): their commit and push rules are bypassed whenever they are not loaded.
+A skill's `allowed-tools`, workflow, attribution steps, and gates apply only once its content is in context.
+Never carry out a phase's actions from memory or general knowledge.
+This matters most for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-reviewer-feedback`): their commit and push rules are bypassed whenever they are not loaded.
 
 This applies at every phase transition the orchestrator makes, on every entry point and fast path.
 If you reach a phase that needs committing, pushing, or a PR and its skill is not yet loaded, load it before doing anything else, then follow its workflow.
@@ -252,7 +252,7 @@ The orchestrator will skip the intermediate phases.
 "This is a bug fix for an off-by-one error in the pagination logic."
 ```
 
-The orchestrator recognizes the fast path and runs the abbreviated pipeline automatically.
+The orchestrator recognizes the fast path and runs the shortened pipeline automatically.
 If the work turns out to be more complex than expected, escalate to the full pipeline.
 
 ## Directory Structure
@@ -338,7 +338,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 
 The complete resolution rules — `{owner}/{repository}` derivation, the repo-first read fallback, write mirroring, and what is never mirrored — live in `references/shared.md`, the single source shared across all SDLC skills.
 Apply them to every `.sdlc/` read and write in this pipeline.
-Summary: reads check the repo's `.sdlc/` first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; writes go to the repo and mirror to `SDLC_DIR` when set; `state.yml` and `features/*/progress.md` are never mirrored.
+Summary: reads check the repo's `.sdlc/` first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`; writes go to the repo and are also copied to `SDLC_DIR` when set; `state.yml` and `features/*/progress.md` are never mirrored.
 
 ## ID Formats and Cross-References
 
@@ -525,7 +525,7 @@ Invoke the `check-linked-pr` skill against the current issue (resolved from `git
 The guard is **skipped** (treated as clear) when:
 
 - The feature has no GitHub issue yet (a `p`-prefixed feature), so nothing can be linked.
-- The current phase is the issue/PR plumbing itself (`create-issue`, `create-pr`, `merge-pr`, etc.) where no separate issue lookup is meaningful.
+- The current phase is the issue/PR plumbing itself (`create-issue`, `create-pr`, `merge-pr`, etc.) where a separate issue lookup adds nothing.
 - `$OUTCOME_YAML` is set and no interactive user is present (see the skill's Outcome section; under automation the guard emits a verdict and never blocks).
 
 When the guard finds a competing PR the user has not already dismissed, present the three options the `check-linked-pr` skill defines:
@@ -536,7 +536,7 @@ When the guard finds a competing PR the user has not already dismissed, present 
 | **Stop** | Pause the pipeline pending the external PR. Record the dependency (PR number, author) in `progress.md` and leave the pipeline resumable. |
 | **Review** | Run `/review-pr <pr-number>` (it posts the review comment unless `should-post-to-github` disables posting). If it approves, stop the flow and depend on the external PR. If it requests changes or rejects, acknowledge the PR and continue the current flow. |
 
-Because dismissed PR numbers persist in `state.yml`, running the guard at every phase transition stays low-noise: it only surfaces genuinely new competing PRs.
+Because dismissed PR numbers persist in `state.yml`, running the guard at every phase transition stays quiet: it only surfaces genuinely new competing PRs.
 
 ### Automatic Resume (entry: `continue`)
 
@@ -579,7 +579,7 @@ At the start and end of every session working on a feature, write a brief entry 
 - Update `last_updated` in frontmatter to today's date.
 - If blocked, update `current_phase` and the Current Blocker section.
 
-These markers ensure the next session (which may be days or weeks later) can quickly determine where to resume without re-reading all artifacts.
+These markers ensure the next session (which may be days or weeks later) can quickly determine where to resume without reading all artifacts again.
 
 ## Backtracking and Failure Recovery
 
@@ -596,8 +596,8 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 | **Incoherent input** | `create-specifications` reveals requirements that contradict each other | Stop the current phase, backtrack to `review-requirements`, resolve contradictions, and continue forward from there. |
 | **Scope change** | `create-plan` shows the feature is much larger than the issue suggested | Backtrack to `create-issue` to rewrite scope and ACs, then re-derive downstream artifacts. |
 | **External blocker** | Third-party API unavailable, infrastructure not provisioned | Record as an assumption with a validation plan. If the blocker is resolved within the session, continue. Otherwise, stop after the current phase and note the blocker in the issue. |
-| **Needs rejected** | `review-needs-assessment` concludes the feature does not address a genuine need | Update the issue with findings and the rejection rationale. Stop the pipeline. The issue may be revisited if new evidence emerges. |
-| **Feasibility rejected** | `review-feasibility` concludes the feature is not viable | Update the issue with findings and the rejection rationale. Stop the pipeline. The issue may be revisited if conditions change. |
+| **Needs rejected** | `review-needs-assessment` concludes the feature does not address a genuine need | Update the issue with findings and the reason for rejection. Stop the pipeline. The issue may be revisited if new evidence appears. |
+| **Feasibility rejected** | `review-feasibility` concludes the feature is not viable | Update the issue with findings and the reason for rejection. Stop the pipeline. The issue may be revisited if conditions change. |
 | **Review escalation** | `review-implementation` finds a fundamental design flaw | Backtrack to the phase where the flawed decision was made (often `create-specifications` or `create-plan`), revise, and re-derive downstream artifacts. |
 
 ### Backtracking rules
@@ -606,7 +606,7 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 2. **Re-derive downstream artifacts after revising.** Any change to an upstream artifact invalidates everything below it. Re-run each `create-*` phase from the revision point forward.
 3. **Record why you backtracked.** Use `/create-decision` to capture the backtrack reason and the corrective action taken.
 4. **Limit backtrack depth.** If backtracking would return you more than two phases upstream (e.g., from `implementation` back to `issue`), stop and ask the user whether to continue or split the work.
-5. **Do not silently skip a failed phase.** If a phase cannot produce its output, explicitly state why and either backtrack or stop.
+5. **Do not quietly skip a failed phase.** If a phase cannot produce its output, state why and either backtrack or stop.
 
 ### Stopping the pipeline
 

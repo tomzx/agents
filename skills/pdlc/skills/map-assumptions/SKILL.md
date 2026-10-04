@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Map Assumptions
 
-Validate begins by making the invisible explicit. For the opportunity that survived the Discover gate, enumerate everything that must be true for it to work, then rank by leverage (impact x uncertainty) so the next skill tests the few assumptions whose falsity would kill the whole thing.
+Validate begins by stating explicitly what is currently unstated. For the opportunity that survived the Discover gate, enumerate everything that must be true for it to work, then rank by leverage (impact x uncertainty) so the next skill tests the few assumptions whose falsity would end the effort.
 
 ## Prerequisites
 

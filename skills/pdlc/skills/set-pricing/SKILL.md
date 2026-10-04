@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Set Pricing
 
-Pricing is the sharpest expression of value. This skill defines the model (how we charge), the packaging (what is bundled), and the tiers — grounded in the validated willingness-to-pay evidence from Validate, not gut feel.
+Pricing is the clearest statement of value. This skill defines the model (how we charge), the packaging (what is bundled), and the tiers — based on the validated willingness-to-pay evidence from Validate, not gut feel.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ Pricing is the sharpest expression of value. This skill defines the model (how w
 ## Steps
 
 1. Choose the pricing model (flat, per-seat, usage, tiered, freemium, value-based) and justify it against the value mechanics: how the customer derives value and how that grows.
-2. Anchor to willingness-to-pay evidence from `experiment-result.md`. Where evidence is weak, mark the price as an assumption with a validation plan.
+2. Base the price on willingness-to-pay evidence from `experiment-result.md`. Where evidence is weak, mark the price as an assumption with a validation plan.
 3. Compare against `competitors.md` pricing to sanity-check positioning (premium / parity / penetration).
 4. Define packaging: what is in each tier, and the upgrade triggers between tiers.
 5. State the unit economics implication: does the price cover COGS and acquisition at the expected conversion?
@@ -34,7 +34,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted`.
 ## Completion Checklist
 
 - [ ] Model justified against value mechanics
-- [ ] Price anchored to willingness-to-pay evidence (or flagged as an assumption)
+- [ ] Price based on willingness-to-pay evidence (or flagged as an assumption)
 - [ ] Competitor pricing considered
 - [ ] Unit economics sanity-checked
 - [ ] Grandfathering / rollout policy stated for existing customers

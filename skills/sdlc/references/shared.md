@@ -15,7 +15,7 @@ Most SDLC skills end with a `## Next Step` section naming one or more successor 
 When a skill completes and points to a successor, load that successor with the `skill` tool before performing any of its work.
 
 A skill's `allowed-tools`, workflow, attribution steps, and gates take effect only once its content is in context.
-Never execute a successor's actions from memory or general knowledge.
+Never carry out a successor's actions from memory or general knowledge.
 This is mandatory for skills that commit, push, or open PRs (`create-pr`, `fix-issue`, `publish-plan`, `merge-pr`, `deploy-pr`, `handle-pr-ci`, `handle-pr-reviewer-feedback`): their commit and push rules are bypassed whenever the skill is not loaded.
 
 This rule applies however the successor was reached:
@@ -88,7 +88,7 @@ The `create-implementation` -> `review-implementation` pair above still names th
 
 ## SDLC Telemetry
 
-Every SDLC skill records one telemetry event when it executes, so over time you can analyze where your SDLC time goes and surface bottlenecks. This applies to every `create-*`/`review-*` pipeline skill, the setup skills, the maintenance skills, and the knowledge-record skills. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or alter the skill's work. Ignore a non-zero exit from the recorder.
+Every SDLC skill records one telemetry event when it runs, so over time you can analyze where your SDLC time goes and find bottlenecks. This applies to every `create-*`/`review-*` pipeline skill, the setup skills, the maintenance skills, and the knowledge-record skills. Recording is **best-effort**: a failure to record (no `uv`, write error, missing repo) must never block or change the skill's work. Ignore a non-zero exit from the recorder.
 
 The orchestrator skill (`sdlc`) does **not** record on its own. Each phase it delegates to records its own execution when loaded, so a pipeline run produces exactly one event per phase with no double-counting.
 
@@ -146,7 +146,7 @@ Conventions found in `conventions.md` (for example, documentation formatting, on
 
 ## AGENTS.md SDLC anchor
 
-So a future agent session knows the project tracks work under `.sdlc/`, every project that has a `.sdlc/` directory carries a short, idempotent **SDLC anchor** block in its primary agent-instruction file. This is the entry point that tells an agent the SDLC artifacts exist and where to find them.
+So a future agent session knows the project tracks work under `.sdlc/`, every project that has a `.sdlc/` directory carries a short, idempotent **SDLC anchor** block in its primary agent-instruction file. This block tells an agent the SDLC artifacts exist and where to find them.
 
 ### Target file
 
@@ -180,7 +180,7 @@ Never commit local-only state: `.sdlc/state.yml`, `.sdlc/features/*/progress.md`
 
 - If the target file does not exist, create it containing only the block.
 - If the file exists but has no `<!-- sdlc-anchor begin -->` ... `<!-- sdlc-anchor end -->` block, append the block at the end of the file, separated from existing content by a blank line.
-- If the file exists and the block is already present, replace the delimited content with the canonical text above. This lets later syncs evolve the wording without leaving stale duplicates.
+- If the file exists and the block is already present, replace the content between the markers with the canonical text above. This lets later syncs change the wording without leaving stale duplicates.
 - Never modify content outside the markers.
 
 ### When it is written
@@ -199,7 +199,7 @@ Feature directories live under `.sdlc/features/` and are named `N-<slug>`, where
 
 The `<slug>` is lowercase, with hyphens for spaces and no special characters.
 
-A `p`-prefixed identifier can never collide with an issue number, so issue-driven and pending features can coexist in the same `.sdlc/features/` tree without ambiguity. This is why numbering is independent of storage location: an external mirror for a third-party repo may hold issue-driven features built from upstream issues alongside `p`-prefixed features that have no issue. Location decides where files live, not how `N` is chosen.
+A `p`-prefixed identifier can never collide with an issue number, so issue-driven and pending features can coexist in the same `.sdlc/features/` tree without ambiguity. This is why numbering does not depend on storage location: an external mirror for a third-party repo may hold issue-driven features built from upstream issues alongside `p`-prefixed features that have no issue. Location decides where files live, not how `N` is chosen.
 
 ### Placeholder-issue promotion
 
@@ -211,7 +211,7 @@ A pending feature is expected to be promoted to an issue-driven feature once a G
 4. Rewrite every feature ID occurrence: `FEAT-p<seq>` → `FEAT-M` in frontmatter and in every cross-reference across `.sdlc/`, including qualified forms like `FEAT-p1-FR-2`.
 5. Set `issue: "#M"` in the artifact frontmatter. Clear the placeholder marker once the issue body is filled in.
 
-Rename-on-promotion keeps the directory matching the issue number, preserving the direct issue ↔ directory traceability at the cost of a one-time, automatable cross-reference update.
+Rename-on-promotion keeps the directory matching the issue number, preserving the direct issue ↔ directory traceability at the cost of a one-time cross-reference update that can be automated.
 
 ### Create-time check
 
@@ -286,8 +286,8 @@ At each point where a skill executes a concrete SDLC step, re-read the `.sdlc/` 
 - Before emitting an outcome that depends on shared state (statuses, findings, labels): re-read that state.
 
 Changes arriving from other sessions are context, not noise.
-A new findings file, an updated requirement or specification, a status change, or a newly created sibling feature may be directly relevant to the step being executed and must be incorporated when it affects the work.
-When a concurrent change materially conflicts with what the skill is about to write (for example, the same artifact was regenerated elsewhere), base the write on the current on-disk content and surface the conflict in the skill's output.
+A new findings file, an updated requirement or specification, a status change, or a newly created sibling feature may be directly relevant to the step being executed and must be used when it affects the work.
+When a concurrent change materially conflicts with what the skill is about to write (for example, the same artifact was regenerated elsewhere), base the write on the current on-disk content and report the conflict in the skill's output.
 Local-only state (`state.yml`, `features/*/progress.md`) is per-machine and per-run; never treat it as authoritative shared state.
 
 ## Automation runner environment
@@ -333,16 +333,16 @@ artifacts:               # optional; every output file this skill produced or up
 
 Rules:
 
-- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching feature-pipeline `review-*` skill records its outcome in a `review-<artifact>.md` findings file (see Review Findings Persistence) and does not modify the artifact `status` (knowledge-record reviews are the exception; they set domain lifecycle statuses).
+- Emit exactly one `verdict`. Each skill documents its vocabulary in its own `## Outcome` section. The `verdict` is a runner-facing routing decision and is separate from the artifact frontmatter `status`: a `create-*` skill writes `status: draft` to its artifact and emits `verdict: approved` to signal it produced the draft; the matching feature-pipeline `review-*` skill records its outcome in a `review-<artifact>.md` findings file (see Review Findings Persistence) and does not change the artifact `status` (knowledge-record reviews are the exception; they set domain lifecycle statuses).
 - If `$OUTCOME_YAML` is unset, skip emission entirely. The variable is the only signal that an outcome is wanted; in normal interactive use it is not set.
 - This channel only reports the skill's own decision. It does not replace the skill's normal outputs (artifacts, comments, labels, PRs).
-- **Artifact list:** when the skill produces output artifacts or files, list them under `artifacts`: every file the skill wrote or updated as its output, one repo-relative path per entry (the `.sdlc/...` path wherever the write landed per `SDLC_DIR` resolution). Review skills list their findings file plus any artifact they amended; knowledge-record reviews list the record whose status they set. Omit the key when no file was produced (a skipped phase, a pure routing verdict, a rejection that wrote nothing).
+- **Artifact list:** when the skill produces output artifacts or files, list them under `artifacts`: every file the skill wrote or updated as its output, one repo-relative path per entry (the `.sdlc/...` path wherever the write landed per `SDLC_DIR` resolution). Review skills list their findings file plus any artifact they changed; knowledge-record reviews list the record whose status they set. Omit the key when no file was produced (a skipped phase, a pure routing verdict, a rejection that wrote nothing).
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
 - Values must be valid YAML scalars. If `verdict` or `reason` contains a colon `:`, hash `#`, or any indicator character (``{}[]&*!|>'"%@` ``), quote the value (single or double quotes) or use a literal block scalar (`|`). Prefer quoting `reason` whenever it is a free-form sentence.
 
 ## Review Findings Persistence (review-* skills)
 
-The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is ephemeral relative to the branch).
+The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is short-lived relative to the branch).
 
 When a `review-*` skill that governs a feature-pipeline artifact runs (see the table below for which artifacts), after producing its findings it writes them to a findings file beside the artifact under review. That review skill writes only this file: it does not modify the reviewed artifact's review-bookkeeping `status` (`draft`/`in-review`/`approved`). Open questions discovered during review are recorded in the findings body. (Domain lifecycle statuses are separate and still set by the relevant review skill: task `pending`, and the knowledge-record statuses (assumption `Validated`, decision `Accepted`, learnings `complete`). Knowledge-record reviews are not listed below.) The findings file path is:
 
@@ -418,7 +418,7 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 `assess-pr-risk` is dispatched by `review-pr-full` in parallel with the analyze-test-coverage -> validate -> verify -> review chain and is self-contained: it gathers its evidence from the diff, the codebase, and churn of the touched files, and never reads the chain skills' reports (they usually do not exist yet when it runs, so the parallel dispatch never weakens the estimate). It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
 
-`analyze-test-coverage` is the first chain step (before `validate-pr`, `verify-pr`, and `review-pr`), so its report exists as evidence before anything else judges the change. It writes the same per-run report and marker (`pass` when every behavior change is covered and no uncovered code is listed, `fail` otherwise), and its verdict never gates anything. When delegated to by `review-pr`, `verify-pr`, or `review-implementation`, it writes nothing and only returns its tables to the parent.
+`analyze-test-coverage` is the first chain step (before `validate-pr`, `verify-pr`, and `review-pr`), so its report exists as evidence before anything else judges the change. It writes the same per-run report and marker (`pass` when every behavior change is covered and no uncovered code is listed, `fail` otherwise), and its verdict never gates anything. When `review-pr`, `verify-pr`, or `review-implementation` delegates to it, it writes nothing and only returns its tables to the parent.
 
 `<skill>.yaml` is the findings state, one YAML document per skill per PR with a flat header (`pr`, `updated_at`, `last_reviewed_sha`, `last_reviewed_tree`) and a `findings` list. Each finding has `title` (its identity; when a re-review matches an existing finding, update that entry instead of adding a duplicate), `description`, `severity` (`must` / `should` / `may`), `status`, and an informational `first_seen_sha`. `status` is the source of truth; the shas are provenance only. `validate-pr` and `review-pr` use `open` / `addressed` / `stale` / `wontfix`; `verify-pr` stores one finding per acceptance criterion with `conforms` / `conforms-static` / `unverified` / `fails`.
 
@@ -455,7 +455,7 @@ Lifecycle: moved by the three skills on every completed run (including the pure-
 
 ## Reviewer-Feedback Analysis Files (owned by handle-pr-reviewer-feedback)
 
-`handle-pr-reviewer-feedback` analyzes reviewer feedback left on PRs you authored and writes one analysis file per comment, so the decision can be made without re-reading the threads. This is the single source of truth for the artifact; `triage-pr-feedback` orchestrates the skill's analyze-only mode on a schedule and must not restate the format or vocabulary defined here and in the skill.
+`handle-pr-reviewer-feedback` analyzes reviewer feedback left on PRs you authored and writes one analysis file per comment, so the decision can be made without reading the threads again. This is the single source of truth for the artifact; `triage-pr-feedback` orchestrates the skill's analyze-only mode on a schedule and must not restate the format or vocabulary defined here and in the skill.
 
 ### Location
 

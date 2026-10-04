@@ -27,7 +27,7 @@ phase: measure
 
 <Does the qualitative story agree with health-report.md? Where they disagree, that disagreement is a finding.>
 
-## Highest-Leverage Next Problem
+## Highest-Impact Next Problem
 
 <The candidate input to the next Discover cycle.>
 

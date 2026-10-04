@@ -21,9 +21,9 @@ It produces a ranked bug report, and optionally files issues for the bugs that s
 ## The Core Problem This Solves
 
 Bugs are usually found by accident, from a stack trace or a user report.
-A static scan in the other direction produces a pile of "probably a bug" claims, most of which are defensively handled elsewhere, by design, or already known.
+A static scan in the other direction produces a pile of "probably a bug" claims, most of which are handled elsewhere, are by design, or are already known.
 Both directions waste effort.
-This skill walks the code deliberately, states the exact input and state that produces wrong behavior, verifies the claim where a test seam exists, and excludes anything already tracked, so what it reports is worth acting on.
+This skill reads the code deliberately, states the exact input and state that produces wrong behavior, verifies the claim where a test seam exists, and excludes anything already tracked, so what it reports is worth acting on.
 
 ## How This Differs From Related Skills
 
@@ -39,7 +39,7 @@ This skill walks the code deliberately, states the exact input and state that pr
 
 The seam with `identify-codebase-improvements`: a bug is behavior that is wrong (it produces an incorrect result or crashes); an improvement is behavior that is correct but could be better.
 A missing validation that lets bad data through is a bug; a missing validation that only costs style points is an improvement.
-When a candidate is security-relevant, defer the deep analysis to `audit-security` and note it, rather than duplicating it here.
+When a candidate is security-relevant, hand the deep analysis to `audit-security` and note it, rather than duplicating it here.
 
 ## Prerequisites
 
@@ -309,7 +309,7 @@ Pair with `/fix-issue` (fixes what it finds) and `/identify-codebase-improvement
 | Skill | Relationship |
 |---|---|
 | `reproduce-issue` | Reproduces a known bug from an issue. This finds unknown bugs and verifies them at a seam; if it cannot, it hands to `reproduce-issue`. |
-| `diagnosing-bugs`, `systematic-debugging` | Symptom-driven diagnosis for a known failure. Their seam and root-cause discipline is adopted here for verification. |
+| `diagnosing-bugs`, `systematic-debugging` | Symptom-driven diagnosis for a known failure. Their seam and root-cause approach is adopted here for verification. |
 | `identify-codebase-improvements` | The sibling pass for code that works but could be better. A bug is wrong behavior; an improvement is correct behavior that could be improved. |
 | `audit-functional-suitability` | Checks the code against requirements. This hunts defects independent of any requirement. |
 | `audit-security` | Deep security analysis. Security-relevant candidates found here are noted and handed off, not fully analyzed. |

@@ -41,14 +41,14 @@ These are ceilings, not targets. Shorter is almost always better.
 | Top-level PR or issue comment | Lead paragraph under about 4 lines, then supporting detail only if needed |
 | Review report | Findings terse, with detail only where it changes a decision |
 | PR or issue description | Structured sections, bullets over paragraphs |
-| Slack message | Scannable, short bullets, no wall of text |
+| Slack message | Scannable, short bullets, no long unbroken text |
 | Email | The ask first, then context |
 
 ## Cut fluff on sight
 
 - Preamble and closers such as "I took a look at this", "Let me know if you have questions", or "Hope this helps".
 - Filler praise and flattery such as "Great work" or "Nice catch" when it does not change the review.
-- Throat-clearing that delays the point, such as "Quick question" or "Just a thought".
+- Filler that delays the point, such as "Quick question" or "Just a thought".
 - Restating the diff, the code, or the comment being answered.
 - Hedging chains and qualifiers that add no decision information.
 - Context already present in the description or a linked artifact.
@@ -61,7 +61,7 @@ These are ceilings, not targets. Shorter is almost always better.
 
 - Put the verdict or finding first and the supporting reasoning after.
 - Anchor an inline comment to the smallest code range that makes the point.
-- Do not post a comment that only says the code looks fine, because routine approval belongs in the review verdict, not as noise on the diff.
+- Do not post a comment that only says the code looks fine, because routine approval belongs in the review verdict, not as extra comments on the diff.
 - Prefix findings with severity and the checklist section when the skill's format requires it, as in [`review-pr`](../review-pr/SKILL.md).
 - For descriptions, write what, then why, then design decisions, with no filler sections.
 

@@ -6,7 +6,7 @@ argument-hint: "[initiative-id or scope]"
 
 # Run Retrospective
 
-Turns a completed initiative, a sprint, or a killed bet into organizational knowledge. Produces a learning record in `.pdlc/learnings/`. A kill without a retrospective is waste — the point of killing is to learn cheaper than building would have taught.
+Turns a completed initiative, a sprint, or a killed bet into organizational knowledge. Produces a learning record in `.pdlc/learnings/`. A kill without a retrospective wastes the effort — the point of killing is to learn cheaper than building would have taught.
 
 ## Prerequisites
 

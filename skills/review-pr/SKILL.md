@@ -7,7 +7,7 @@ argument-hint: "<pr-number>"
 
 # Review Pull Request
 
-Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); approach-level notes arriving from `/validate-pr` or `/verify-pr` land there. Writes findings to a structured markdown file.
+Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); approach-level notes arriving from `/validate-pr` or `/verify-pr` go there. Writes findings to a structured markdown file.
 
 ## Prerequisites
 
@@ -126,7 +126,7 @@ This skill is static code-craft review. It does not build or run the code (that 
 Before diving into the code:
 
 * Prior reports
-	* If `/verify-pr` has run, read its conformance report and treat the criteria status as settled; do not re-litigate conformance here
+	* If `/verify-pr` has run, read its conformance report and treat the criteria status as settled; do not re-examine conformance here
 * PR Metadata
 	* Read the PR title and description - is it clear and complete?
 	* Is the change size appropriate for what is implemented?
@@ -143,19 +143,19 @@ CI handles linting, formatting, type checking, build, and test suite execution; 
 Change hygiene only. Whether a change serves an acceptance criterion is a conformance question for `/verify-pr`; whether it serves the real need is a validation question for `/validate-pr`. Here, focus on:
 
 * Changes that obscure or distract from the actual work
-	* Unrelated formatting changes, drive-by refactorings, or unrelated fixes mixed in
+	* Unrelated formatting changes, unrelated refactorings, or unrelated fixes mixed in
 	* Should these be split into separate PRs for clarity?
 	* Do irrelevant changes obscure the actual changes being reviewed?
 
 ### Approach & Simplicity
 
-Judge the chosen approach, not just the code. These findings are invisible in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
+Judge the chosen approach, not just the code. These findings do not appear in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
 
 For each significant mechanism the PR introduces (new dependency, new abstraction, new data format, new pattern), answer:
 
 * Alternatives
 	* Name at least one alternative approach and why the chosen one wins
-	* If no alternative comes to mind, you have not understood the choice yet; investigate before approving
+	* If you cannot think of an alternative, you have not understood the choice yet; investigate before approving
 * Simplest sufficient
 	* Could the same behavior ship with meaningfully less machinery (fewer files, no new abstraction, an existing helper)?
 	* Speculative generality (a single implementation with no named future consumer) is a finding
@@ -175,7 +175,7 @@ For each significant mechanism the PR introduces (new dependency, new abstractio
 Rules for findings in this section:
 
 * Every approach finding must name the concrete future change that becomes expensive, or the alternative it loses to
-* If you cannot name a change scenario or an alternative, do not file the finding; unfalsifiable approach critique is taste, not review
+* If you cannot name a change scenario or an alternative, do not file the finding; unfalsifiable approach critique is opinion, not review
 
 ### Code Quality & Design
 
@@ -226,10 +226,10 @@ Beyond the delegated analysis, also check:
 * Forward Compatibility
 	* Can contracts and persisted data accept future additions without breaking (unknown fields tolerated, unknown enum values handled gracefully, additive-only changes)?
 	* Is there a versioning strategy so future evolution does not force coordinated upgrades on all consumers?
-	* Are extension points (reserved fields, flags) provided for known likely future change, or does the design bake in fixed-set assumptions?
+	* Are extension points (reserved fields, flags) provided for known likely future change, or does the design assume a fixed set?
 * Reversibility
 	* Can we undo this cleanly if the change needs to be rolled back?
-	* Are any of the design decisions taken single way doors or reversible?
+	* Are any of the design decisions hard to reverse, or are they reversible?
 	* Are schema/data migrations, API changes, and config changes reversible, and is there a documented rollback path?
 
 ### Operational Concerns
@@ -286,7 +286,7 @@ Beyond the delegated analysis, also check:
 
 ### Bug Fixes
 
-* Is the fix localized to the right place, or does it fan out unnecessary change?
+* Is the fix localized to the right place, or does it spread unnecessary change?
 * Is the new or changed test code well-written (clear, behavior-focused)?
 
 (Root cause vs. symptom is `/validate-pr`'s call; a regression test that proves the fix is `/verify-pr`'s.)
@@ -330,11 +330,11 @@ Put 🔴/🟢 at the top of the document to indicate the overall status of the r
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
-Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers surface at the top.
+Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers appear at the top.
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable. Writing this section is the forcing function for the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict.
+Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable. Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict.
 
 Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table. Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing. Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
 

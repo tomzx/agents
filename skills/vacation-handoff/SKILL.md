@@ -49,7 +49,7 @@ Write to `{NOTES_DIR}/{YEAR}/{MONTH}/{START}-vacation-handoff.md`:
 - Coverage arrangement
 
 ## Watch-outs
-- Known risks, conflicts, fragile areas
+- Known risks, conflicts, areas likely to break
 
 ## Contacts
 - Who to ask about what
@@ -61,5 +61,5 @@ Ask whether to draft a Slack message announcing the handoff (delegate tone to `c
 
 ## Notes
 
-- Prioritize deadline-bound items at the top; make ownership explicit (who chases what).
+- Prioritize deadline-bound items at the top; make ownership explicit (who follows up on what).
 - Keep each item to one line; link PRs/issues.

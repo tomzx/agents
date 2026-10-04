@@ -14,8 +14,8 @@ argument-hint: "[YYYY-MM-DD | yesterday (default: today)]"
 # Colleague Decisions
 
 Answers a recurring question: *"What did my colleagues actually decide today?"*
-A day of Slack produces a sea of messages, most of them chatter, acknowledgements,
-and questions, with a handful of real decisions buried inside. This skill searches
+A day of Slack produces many messages, most of them chatter, acknowledgements,
+and questions, with a handful of real decisions inside. This skill searches
 Slack for each colleague's authored messages in a day, then reads them and pulls
 out the decisions, so you can catch up on what changed without reading every thread.
 
@@ -107,7 +107,7 @@ default omits only `payload`, so selecting explicitly drops the rest. We keep
 
 Pass `--full-threads` so that every thread a matched message belongs to is cached
 with all of its replies. A colleague's top-level message is often just the start
-of the story: the decision, the pushback, and the endorsements all live in the
+of the story: the decision, the pushback, and the endorsements all appear in the
 replies, and without them the extraction misses support. `--full-threads` makes
 that content available to `slackx conversations show` in the next step:
 
@@ -228,7 +228,7 @@ A message can both make a decision and react to another. A person outside
 are what let the aggregated web page answer *"who backed this?"* and *"who pushed
 back?"*.
 
-Most reactions live in the thread replies, not in the messages you searched for,
+Most reactions appear in the thread replies, not in the messages you searched for,
 so mine the threads from step 4: a reply by someone other than the author that
 endorses or approves attaches that person to the decision's **Supported by**
 list, and one that objects or pushes back attaches them to **Opposed by**. A

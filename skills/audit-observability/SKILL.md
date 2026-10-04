@@ -44,7 +44,7 @@ Scans the codebase and running services for missing or insufficient observabilit
    rg -n -i "(except|catch|error|raise|throw)" \
      -g '*.{py,ts,js,go}' ${1:-.} | rg -v "log|logger|sentry|capture" | head -30
    ```
-   Flag error handlers that swallow exceptions without logging.
+   Flag error handlers that catch exceptions without logging them.
 
 4. Audit **metrics** coverage:
    - Are HTTP endpoints instrumented (request count, latency, error rate)?
@@ -152,7 +152,7 @@ Project has logging via structlog but no metrics, tracing, or alerting. Recommen
 ```
 /audit-observability src/api
 ```
-Scanning the API layer before going to production. Finds 3 endpoints without latency metrics and 2 error handlers that swallow exceptions. Recommends adding metrics and error logging before launch.
+Scanning the API layer before going to production. Finds 3 endpoints without latency metrics and 2 error handlers that catch exceptions without logging. Recommends adding metrics and error logging before launch.
 
 **Scenario 3: Post-incident follow-up**
 ```

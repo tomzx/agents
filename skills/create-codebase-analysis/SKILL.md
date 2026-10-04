@@ -7,7 +7,7 @@ argument-hint: "[requirements-doc]"
 # Create Codebase Analysis
 
 Analyzes the existing internal code and architecture that a feature will rely on, change, or replace, and assesses each relevant part's changeability before the design is committed.
-The goal is to know the terrain before specifying how to change it: what exists today, how it is coupled, what can be touched safely, and what must stay stable.
+The goal is to understand the existing code before specifying how to change it: what exists today, how it is coupled, what can be touched safely, and what must stay stable.
 
 This is the internal counterpart to `create-existing-solutions`.
 `create-existing-solutions` surveys external prior art (libraries, OSS, products) and checks for cheap internal reuse.
@@ -29,7 +29,7 @@ This skill goes deeper into the internal architecture you are about to modify: i
 3. Determine the **analysis scope**: which parts of the codebase this feature will touch, integrate with, or replace. Trace inward from the requirements to concrete modules, services, data stores, and interfaces.
 4. Locate the relevant code by searching the codebase. Record the entry points used (queries, paths) so the search is auditable.
 5. For each relevant component, capture its name, location (file or module path), current responsibility, and how the feature interacts with it (reads, writes, extends, replaces).
-6. Map **dependencies and coupling** between the relevant components and any external systems as a Mermaid `flowchart LR` with one node per component and class assignments matching the change dispositions (reuse / extend / refactor / replace). Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part in the accompanying prose. The diagram makes unintended coupling visible at a glance; the prose carries what the diagram cannot.
+6. Map **dependencies and coupling** between the relevant components and any external systems as a Mermaid `flowchart LR` with one node per component and class assignments matching the change dispositions (reuse / extend / refactor / replace). Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part in the accompanying prose. The diagram makes unintended coupling visible; the prose carries what the diagram cannot.
 7. For each component, decide a **change disposition** and justify it:
    - **Reuse as-is** — the component already does what is needed; do not modify it.
    - **Extend** — add to the component along its existing seams (new method, new config, new consumer) without altering current behavior.

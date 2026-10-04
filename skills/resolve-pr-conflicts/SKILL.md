@@ -11,7 +11,7 @@ Finds every open pull request authored by the current user in a repository that 
 - **Orchestrator (this session):** scans the repo, detects which of the user's PRs have conflicts, prepares one worktree per conflicting PR (reusing an existing one when present), discovers the project's verification commands once, then fans out to one sub-agent session per PR and aggregates the results.
 - **Sub-agent (one per PR, concurrent):** works inside its assigned worktree, merges the base branch, resolves the conflict markers, runs verification, pushes, and posts a comment.
 
-Because the PRs are independent, fixing them in separate concurrent sessions is dramatically faster than sequential resolution. Each sub-agent owns a distinct worktree and a distinct head branch, so there are no filesystem or git-push races.
+Because the PRs are independent, fixing them in separate concurrent sessions is much faster than sequential resolution. Each sub-agent owns a distinct worktree and a distinct head branch, so there are no filesystem or git-push races.
 
 Designed to be safe to run unattended: ambiguous conflicts and PRs that fail verification are aborted and reported by that PR's sub-agent, never pushed.
 
@@ -65,7 +65,7 @@ ORCHESTRATOR (this session)
   +-- print summary table
 ```
 
-The orchestrator never edits code or resolves conflicts itself; it only prepares worktrees and dispatches. All per-PR work happens in a dedicated sub-agent so the PRs progress simultaneously.
+The orchestrator never edits code or resolves conflicts itself; it only prepares worktrees and dispatches. All per-PR work happens in a dedicated sub-agent so the PRs progress at the same time.
 
 Worktree creation is done by the orchestrator (not the sub-agents) so concurrent `git worktree add` calls cannot race on the shared `.git` worktree lock. This follows the worktrunk parallel sub-agent pattern: pre-create each worktree, then hand each sub-agent its absolute path.
 
@@ -249,7 +249,7 @@ If sub-agent dispatch is unavailable (no Task tool, or the user passes `--sequen
 ```
 /resolve-pr-conflicts
 ```
-Scans the current repo. 4 of my 8 open PRs have conflicts. The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once). Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed). Summary table printed. Wall-clock is roughly the slowest single PR, not the sum.
+Scans the current repo. 4 of my 8 open PRs have conflicts. The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once). Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed). Summary table printed. Wall-clock time is roughly the slowest single PR, not the sum.
 
 **Scenario 2: Scoped to a specific repo, bounded parallelism**
 ```
@@ -287,7 +287,7 @@ Falls back to sequential processing in the current session, same resolution rule
 |---|---|
 | `handle-pr-ci` | Fixes failing CI on a single PR. This skill fixes merge conflicts (a different blocker) across all of the user's PRs, in parallel. |
 | `merge-pr` | Merges a PR after approvals and CI are green. Run this first to clear conflicts, then `merge-pr`. |
-| `quick-pr-reviews` | Same batch-over-my-PRs shape, but for reviewing PRs others asked you to review. This is the analog for unblocking your own PRs. |
+| `quick-pr-reviews` | Same batch-over-my-PRs pattern, but for reviewing PRs others asked you to review. This is the equivalent for unblocking your own PRs. |
 | `reproduce-issue` / `verify-pr` | Establish the worktree naming and reuse conventions this skill follows. |
 | `improve-codebase` | Same "discover verification commands, run before pushing" safety pattern. |
 | `worktrunk` | Documents the parallel sub-agent worktree pattern (`wt switch --create <branch> --no-cd --no-hooks`, then hand each sub-agent its path) this skill generalizes with plain `git worktree`. |

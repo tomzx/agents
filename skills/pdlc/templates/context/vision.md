@@ -14,7 +14,7 @@ For [<target>], who [<struggle>], our product is [<category>] that [<key benefit
 
 ## What Winning Looks Like (12 months)
 
-<The world-state, not a feature list.>
+<The state of the world, not a feature list.>
 
 ## Non-Goals
 

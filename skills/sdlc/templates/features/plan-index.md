@@ -27,7 +27,7 @@ This plan is split by concern. Each concern has its own phased breakdown under `
 
 ## Cross-Concern Dependencies
 
-Cross-concern and external dependencies. (Concern-local dependencies live in each concern plan.)
+Cross-concern and external dependencies. (Concern-local dependencies are in each concern plan.)
 
 ```mermaid
 flowchart TD

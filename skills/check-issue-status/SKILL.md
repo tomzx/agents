@@ -10,7 +10,7 @@ argument-hint: "<issue-number> [repository]"
 Determines whether a GitHub issue is already addressed in the codebase.
 Reads the issue, extracts the behavior it requests in whatever format it is written,
 and inspects the code to verify whether that behavior is already present.
-Use before starting work, or to surface stale issues that can be closed.
+Use before starting work, or to find stale issues that can be closed.
 
 This skill inspects code, not GitHub metadata.
 For duplicate issues and existing fix PRs use `check-duplicates`.
@@ -58,7 +58,7 @@ Record the classification. It only changes how evidence is framed, not the proce
 
 ### 3. Extract behavioral claims
 
-Issues arrive in many formats: formal acceptance criteria, prose, screenshots, error logs, checklists, or a single sentence. Do not assume a structure. Read the whole body and distill 1 to N discrete **behavioral claims**, each a single testable assertion about what the code should do.
+Issues arrive in many formats: formal acceptance criteria, prose, screenshots, error logs, checklists, or a single sentence. Do not assume a structure. Read the whole body and reduce it to 1 to N discrete **behavioral claims**, each a single testable assertion about what the code should do.
 
 For a bug, each claim is usually "X should happen, but Y happens instead". The desired half ("X should happen") is the claim to verify against the code.
 For a feature, each claim is one capability the code should provide.
@@ -210,7 +210,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /check-issue-status 42 owner/myrepo
 ```
-Issue #42 asks for CSV export of audit logs. The claim "export audit logs as CSV" is verified at `src/export/csv.go:88`. Verdict `implemented`. Suggests closing the issue with evidence.
+Issue #42 asks for CSV export of audit logs. The claim "export audit logs as CSV" is confirmed at `src/export/csv.go:88`. Verdict `implemented`. Suggests closing the issue with evidence.
 
 **Scenario 2: Bug already fixed**
 ```

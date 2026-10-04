@@ -106,7 +106,7 @@ Do not fetch the diff, post a comment, or approve.
 Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
 
 The trust level modifies behavior in steps 2, 4, and 8:
-- `trusted`: Standard checks. On borderline cases (e.g., a check that could go either way), lean toward passing.
+- `trusted`: Standard checks. On borderline cases (e.g., a check whose result is ambiguous), prefer passing.
 - `neutral`: Standard behavior (no adjustment).
 - `cautious`: Apply stricter interpretation. Flag marginal cases as failing.
 - `always_reject`: Skip this PR entirely. Do not post a comment or approve. Report to the user that the PR was skipped.
@@ -139,7 +139,7 @@ When a check is borderline (e.g., a change is arguably a public interface additi
   - Removing public configuration keys or environment variables
   - Breaking changes to serialization formats (JSON fields removed, renamed)
   - Introducing new exported classes, types, protocols, or public method signatures
-  - New public interfaces that lock in a non-extensible shape and break forward compatibility: closed enums that reject unknown values, schemas that fail on unknown fields, serialization formats or API contracts with no versioning path, or fixed-set assumptions that make a future additive change breaking
+  - New public interfaces that commit to a non-extensible design and break forward compatibility: closed enums that reject unknown values, schemas that fail on unknown fields, serialization formats or API contracts with no versioning path, or fixed-set assumptions that make a future additive change breaking
   - ADRs, specs, or design docs that define or commit to new public API contracts (even if the diff is markdown, the intent is to establish an interface)
   - Dependency version bumps that are effectively major: for pre-release packages (version < 1.0.0), a minor version bump (e.g. 0.20→0.22) is equivalent to a major version change under semver and may introduce breaking API changes
 - If any significant public interface changes are found (removals, breaking changes, substantial new API surface, or new contracts that are not forward compatible): **do not approve**
@@ -322,7 +322,7 @@ Reviewed with [quick-pr-review](https://github.com/tomzx/agents/blob/abc1234dead
 <sub>This should not have been approved? [Let me know](https://github.com/tomzx/agents/issues/new).</sub>
 ```
 
-(Example URLs illustrate shape; substitute real `SKILL_FILE_URL`, `{BASE}`, and SHAs from your repo.)
+(Example URLs show the pattern; substitute real `SKILL_FILE_URL`, `{BASE}`, and SHAs from your repo.)
 
 ### 6. Save review to local repository
 

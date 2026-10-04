@@ -11,8 +11,8 @@ REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.g
 # Identify Codebase Improvements
 
 Reads an existing codebase as evidence and proposes concrete improvements that are worth doing and are not already tracked in the issue tracker.
-Every recommendation must clear two gates: high confidence (the agent read the code and can cite it) and not already an existing GitHub issue.
-The dedup is the point: a pass that re-surfaces known work is noise, so the skill loads the existing issue history with `ghx` up front and re-checks each candidate against it.
+Every recommendation must pass two gates: high confidence (the agent read the code and can cite it) and not already an existing GitHub issue.
+Dedup is the goal: a pass that re-surfaces known work is noise, so the skill loads the existing issue history with `ghx` up front and re-checks each candidate against it.
 
 This is a read-only discovery skill.
 It does not modify code.
@@ -54,18 +54,18 @@ Treat the categories as prompts, not a checklist to fill.
 | Category | What to look for | Evidence that makes it high confidence |
 |---|---|---|
 | Correctness and safety | swallowed exceptions, empty catches, unawaited promises, missing validation, non-idempotent retries, unchecked nulls | the exact `file:line`, plus the code path that triggers it |
-| Tests | critical paths with no coverage, tests that assert nothing, no one-command verification | the untested function and the money/auth/data path it sits on |
+| Tests | critical paths with no coverage, tests that assert nothing, no one-command verification | the untested function and the important path (money, auth, or data) it affects |
 | Maintainability | duplication, God modules, cycles, layering violations, inconsistent patterns | 2-5 `file:line` sites that should be one, or the measured metric |
 | Dead weight | unused code, always-on flags, orphaned config keys, unused dependencies | zero references found by a search, with the search recorded |
 | Performance | N+1 queries, repeated work in hot loops, unbounded lists, missing pagination | the loop plus the query it issues per iteration |
-| Dependencies | major-version lag on a core runtime, abandoned packages on critical paths, duplicate libraries | the manifest line and the reason it is costly to stay behind |
+| Dependencies | major-version lag on a core runtime, abandoned packages on critical paths, duplicate libraries | the manifest line and the reason staying behind is costly |
 | DX and tooling | missing typecheck/lint/format, undocumented required env vars, slow or absent CI feedback | the missing command and where the project clearly expects it |
 | Docs | absent reference for a published surface, docs that are actively wrong | the surface and the concrete cost of the gap |
 
 ### High-Confidence Bar (both gates must pass)
 
 1. **Confidence is HIGH.** The agent opened the cited files and can point at the code. A signal that needs verification is MED and belongs only in the "needs verification" appendix, never in the main ranked list. Anything weaker is not reported.
-2. **Useful.** There is a concrete impact (a bug that can happen, time paid on every change, a user-visible failure), not a preference. If the payoff is a style opinion or a micro-optimization with no measured cost, drop it.
+2. **Useful.** There is a concrete impact (a bug that can happen, time spent on every change, a user-visible failure), not a preference. If the payoff is a style opinion or a micro-optimization with no measured cost, drop it.
 3. **Not settled.** It is not a documented decision, a standard platform convention, or a tradeoff recorded in an ADR. If the code has drifted from a documented decision, the drift is the finding, not the decision.
 4. **Evidence is specific.** No "probably has an N+1 somewhere". Name the file, line, and behavior.
 
@@ -146,13 +146,13 @@ Order kept recommendations by leverage, discounted by fix risk:
 leverage = impact / effort, discounted by confidence and by the risk of the fix itself
 ```
 
-Tiebreakers: anything that unblocks other recommendations (a verification baseline, characterization tests) floats up; security findings with HIGH confidence float above equivalent-leverage non-security findings; prefer fixes with a clean verification story.
+Tiebreakers: anything that unblocks other recommendations (a verification baseline, characterization tests) moves up; security findings with HIGH confidence rank above equivalent-leverage non-security findings; prefer fixes with a clean verification story.
 
 ### 6. Write the report
 
 Write to `.sdlc/codebase-improvements-<TODAY>.md` (repo only).
 Continue the recommendation ID sequence from the previous report. Use the Output Format below.
-The report is the deliverable and must stand alone; do not reference the live conversation.
+The report is the deliverable and must work on its own; do not reference the live conversation.
 
 ### 7. Optional issue creation
 

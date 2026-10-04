@@ -6,7 +6,7 @@ description: Review a requirements document for clarity, completeness, testabili
 # Review Requirements
 
 Audits a requirements document and reports findings across five categories: clarity, completeness, testability, feasibility, and conflicts.
-When a `cli-design.md` companion is present, the CLI design is reviewed in the same pass under its own category.
+When a `cli-design.md` companion is present, the review covers the CLI design in the same pass under its own category.
 
 ## Prerequisites
 

@@ -60,7 +60,7 @@ Audits a resource lifecycle document and reports findings across six categories:
 
 ### Retention Soundness
 - Is the retention period stated for resources that should not persist indefinitely?
-- Is the expiry trigger specific (what starts the clock: creation, deletion, last access)?
+- Is the expiry trigger specific (what starts the period: creation, deletion, last access)?
 - Is the cleanup action stated and consistent with the specification (hard delete, archive, anonymize)?
 - Are there resources that should have a retention policy but do not?
 

@@ -18,7 +18,7 @@ The snapshots stay on disk so every claim in the final document can be traced ba
 ### Tools
 
 This skill does its fetching, image handling, and conversion through one script: `scripts/snapshot.py` (next to this file).
-The script owns every deterministic decision so the skill steps stay focused on research judgment, not tool mechanics.
+The script handles every deterministic decision so the skill steps stay focused on research judgment, not tool mechanics.
 Run it with `uv run`; the `# /// script` preamble declares its Python dependencies (trafilatura, structlog), so `uv` installs them into an ephemeral environment on first use, no project setup required.
 
 ```bash
@@ -88,7 +88,7 @@ mkdir -p "$BASE/snapshots"
 
 ### 3. Cast a wide net
 
-Search multiple query angles and several source types so the picture is not skewed by one medium.
+Search multiple query angles and several source types so the results are not skewed by one medium.
 
 | Source type | What to look for | Where |
 |---|---|---|
@@ -260,7 +260,7 @@ Snapshot links use paths relative to `research.md` (i.e. `snapshots/<slug>/conte
 - Distinguish what is established from what is contested or emerging.
 - Trace every cited claim to a saved snapshot on disk, not just a URL.
 - Name the main themes and how the sources relate (agreement, contrast, correction).
-- Reveal gaps and open questions rather than papering over them.
+- Reveal gaps and open questions rather than hiding them.
 
 **Avoid:**
 
@@ -275,7 +275,7 @@ Snapshot links use paths relative to `research.md` (i.e. `snapshots/<slug>/conte
 
 Research converges when:
 
-- New searches mostly surface sources already in the candidate list.
+- New searches mostly return sources already in the candidate list.
 - The main themes are stable and you can name them without checking notes.
 - The key numbers and definitions are clear and cited.
 
@@ -286,7 +286,7 @@ If the topic is too large to map fully, narrow the scope and say so explicitly i
 **Scenario 1: Technical explainer with primary sources**
 Topic: "how WebRTC handles NAT traversal", scope: "STUN, TURN, ICE, last 3 years".
 Search official specs (RFC 8445, RFC 8489) and engineering blogs, snapshot each, map STUN vs. TURN vs. ICE, surface the open question of TURN server cost.
-Output a research document anchored to the spec snapshots.
+Output a research document grounded in the spec snapshots.
 
 **Scenario 2: Comparative landscape**
 Topic: "React Server Components vs. Remix", scope: "data loading and bundling trade-offs, 2024-2025".

@@ -5,7 +5,7 @@ description: Reflect on the current session and identify what would have been ne
 
 # Improve Autonomy
 
-Asks: "What would have been needed to run this session autonomously, end to end, with no human in the loop?" Produces a structured readiness assessment that surfaces missing context, missing tools, missing decisions, and missing guardrails that prevented full autonomy.
+Asks: "What would have been needed to run this session autonomously, end to end, with no human in the loop?" Produces a structured readiness assessment that lists missing context, missing tools, missing decisions, and missing guardrails that prevented full autonomy.
 
 This is not about incremental automation (see `/automate-session` for that). This is about imagining the fully autonomous version of the session and working backward to identify every gap.
 
@@ -193,7 +193,7 @@ If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agenti
 
 ### Recommendation
 
-> [One sentence on the single highest-leverage thing to do next to increase autonomy.]
+> [One sentence on the single highest-impact thing to do next to increase autonomy.]
 ```
 
 ## Example

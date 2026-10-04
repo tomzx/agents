@@ -80,8 +80,8 @@ At `-vv`, debug-level records (`$ cmd` headers, `[wt-trace]` timing, bounded sub
 
 The three `-vv` files have distinct audiences:
 
-- **`trace.log`** — bounded preview (~1K lines), `[wt-trace]` records, gistable.
-- **`subprocess.log`** — raw uncapped stdout/stderr of every subprocess `wt` spawns (multi-MB possible, e.g. full `git log -p` output). The deep-dive escape hatch.
+- **`trace.log`** — bounded preview (~1K lines), `[wt-trace]` records, small enough to paste into a gist.
+- **`subprocess.log`** — raw uncapped stdout/stderr of every subprocess `wt` spawns (multi-MB possible, e.g. full `git log -p` output). The file for deep debugging.
 - **`diagnostic.md`** — markdown bug-report bundle that inlines `trace.log`. `wt` prints a `gh gist create` command pointing at it.
 
 `RUST_LOG` overrides the flag baseline when set (`RUST_LOG=debug wt -v` lifts `-v` to debug-on-stderr).
@@ -155,9 +155,9 @@ Worktrunk can delete **worktrees** and **branches**. Both have safeguards.
 
 ### Worktree removal
 
-`wt remove` mirrors `git worktree remove`: it refuses to remove worktrees with uncommitted changes (staged, modified, or untracked files). The `--force` flag removes the worktree anyway, discarding all of those changes.
+`wt remove` does what `git worktree remove` does: it refuses to remove worktrees with uncommitted changes (staged, modified, or untracked files). The `--force` flag removes the worktree anyway, discarding all of those changes.
 
-For worktrees containing precious ignored data (databases, caches, large assets), use `git worktree lock`:
+For worktrees containing ignored data worth keeping (databases, caches, large assets), use `git worktree lock`:
 
 ```bash
 git worktree lock ../myproject.feature --reason "Contains local database"
@@ -270,6 +270,6 @@ cargo test --test integration --features shell-integration-tests
 
 - Star the repo
 - Try it out and [open an issue](https://github.com/max-sixty/worktrunk/issues) with feedback — even small annoyances
-- What worktree friction does Worktrunk not yet solve? [Tell us](https://github.com/max-sixty/worktrunk/issues)
+- What worktree problems does Worktrunk not yet solve? [Tell us](https://github.com/max-sixty/worktrunk/issues)
 - Send to a friend
 - Post about it on [X](https://twitter.com/intent/tweet?text=Worktrunk%20%E2%80%94%20CLI%20for%20git%20worktree%20management&url=https%3A%2F%2Fworktrunk.dev), [Reddit](https://www.reddit.com/submit?url=https%3A%2F%2Fworktrunk.dev&title=Worktrunk%20%E2%80%94%20CLI%20for%20git%20worktree%20management), or [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fworktrunk.dev)

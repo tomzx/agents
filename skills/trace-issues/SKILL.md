@@ -33,7 +33,7 @@ It differs from neighboring skills in a single dimension each:
   - If the working directory's `origin` remote matches the target repo, use it.
   - If it does not match and `--clone` is set, shallow-clone the repo to `/tmp/trace-issues/<owner>-<repo>` and work there.
   - If it does not match and `--clone` is not set, warn and stop (code evidence would be from the wrong repo), and suggest `--clone`.
-- Read any files under `.sdlc/context/` (`architecture.md`, `vocabulary.md`, `conventions.md`) for hints that help locate code.
+- Read any files under `.sdlc/context/` (`architecture.md`, `vocabulary.md`, `conventions.md`) for hints that help find code.
 
 ## Scope
 
@@ -363,7 +363,7 @@ Issue #42's Must criterion "stream rows > 1M" was implemented by merged PR #51, 
 
 | Skill | Relationship |
 |---|---|
-| `propagate-changes` | The `.sdlc/` artifact-chain counterpart. This skill is its GitHub-native twin: same trace-both-ways idea, no `.sdlc/` required. |
+| `propagate-changes` | The `.sdlc/` artifact-chain counterpart. This skill is its GitHub-native equivalent: same trace-both-ways idea, no `.sdlc/` required. |
 | `check-issue-status` | Owns single-issue code inspection. This skill reuses its intent-extraction and Met/Partial/Not-met logic but adds PR tracing and a repository-wide matrix. |
 | `check-issues-status` | Batch "is it done" triage. This skill reuses its scope/modes and gathering, but builds traces and collects acceptance criteria instead of only verdicting. |
 | `validate-pr` / `verify-pr` | Single-PR validation against an issue at PR time. This skill verifies the current code across all issues, catching regressions that happen after a PR merges. |

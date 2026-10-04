@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Portability Audit (ISO/IEC 25010)
 
-Audits the codebase for **portability**: can the software be adapted to a new environment, installed easily, and replaced or migrated off without lock-in? It finds the assumptions that make software brittle to relocation and hard to leave.
+Audits the codebase for **portability**: can the software be adapted to a new environment, installed easily, and replaced or migrated off without lock-in? It finds the assumptions that make software hard to relocate and hard to leave.
 
 This is the **Portability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `audit-compatibility` (runs *alongside* other software and speaks standards), this is about running in a different *environment* and being *replaceable*.
 
@@ -80,7 +80,7 @@ rg -n "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dylib|\
 
 ### 5. Replaceability: vendor lock-in
 
-Direct, scattered use of a cloud/provider SDK with no abstraction layer (every call site couples to that provider):
+Direct, scattered use of a cloud/provider SDK with no abstraction layer (every call site depends on that provider):
 ```
 rg -n "boto3\.|aws_|google\.cloud|azure\.|firebase\.|stripe\.|twilio\.|s3\.|dynamodb|cloudsql" -g '*.{py,ts,js}' .
 ```
@@ -168,7 +168,7 @@ Quantifies the lock-in (call sites per provider) to scope a migration.
 ```
 /audit-portability
 ```
-Surfaces hardcoded paths, credentials, and missing install tooling that block others from running it.
+Surfaces hardcoded paths, credentials, and missing install tooling that stop others from running it.
 
 ## Relationship to Other Skills
 

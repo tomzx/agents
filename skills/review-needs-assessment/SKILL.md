@@ -30,7 +30,7 @@ Audits a needs assessment and reports findings across four categories: evidence 
 - Are there evidence sources that were not checked but should have been (support logs, analytics, user interviews)?
 
 ### Stakeholder Coverage
-- Are all affected stakeholder groups identified, not just the most vocal?
+- Are all affected stakeholder groups identified, not just those who speak the loudest?
 - Is it clear who benefits and who is inconvenienced by the current state?
 - Are edge-case stakeholders (admin, internal tools, accessibility) considered?
 
@@ -81,7 +81,7 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 ## Example Usage
 
 **Scenario 1: Solution disguised as problem**
-The needs assessment states "We need a bulk export button" but the problem statement just restates the solution. Flag under Evidence Rigor: the underlying problem (users spend too much time exporting one by one) is not articulated.
+The needs assessment states "We need a bulk export button" but the problem statement just restates the solution. Flag under Evidence Rigor: the underlying problem (users spend too much time exporting one by one) is not stated.
 
 **Scenario 2: Missing stakeholder**
 Stakeholder table lists "end users" but the feature changes an admin workflow. Flag under Stakeholder Coverage.

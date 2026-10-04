@@ -39,7 +39,7 @@ Audits a telemetry plan for completeness, actionability, measurability, and cons
 
 ### Actionability
 - If a metric moves in the wrong direction, is it clear what action to take?
-- Are alert thresholds reasonable (not too noisy, not too silent)?
+- Are alert thresholds reasonable (not too many alerts, not too few)?
 - Do counter metrics have clear investigation triggers?
 
 ### Consistency

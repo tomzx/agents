@@ -13,7 +13,7 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, use `$ISSUE_TITLE` and `$ISSUE_BODY` as the feature description (and `$ISSUE_NUMBER` to link the feature).
 - A reviewed, prioritized GitHub issue or feature description provided as `$1`
-- `.sdlc/features/N-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular feeds the cost and risk of changing existing code
+- `.sdlc/features/N-<slug>/requirements.md`, `existing-solutions.md`, and `codebase-analysis.md` when available: the codebase analysis in particular provides input to the cost and risk of changing existing code
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 

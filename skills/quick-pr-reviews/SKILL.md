@@ -155,7 +155,7 @@ Search returns no results. Report "No open PRs awaiting your review."
 ```
 /quick-pr-reviews
 ```
-A PR has no new commits but the previous review comment contains `- [ ] Tests pass`. Re-fetches CI status: all checks are now green. Runs `/quick-pr-review` to update the comment and approve.
+A PR has no new commits but the previous review comment contains `- [ ] Tests pass`. Re-fetches CI status: all checks now pass. Runs `/quick-pr-review` to update the comment and approve.
 
 **Scenario 7: Same commit, CI still failing**
 ```

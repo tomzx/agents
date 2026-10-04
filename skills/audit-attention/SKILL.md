@@ -5,7 +5,7 @@ description: Audit how your time splits between compounding and depreciating act
 
 # Audit Attention
 
-Classifies the activities on your plate as compounding or depreciating using the two-year test, so you can delegate depreciating work ruthlessly and ring-fence compounding work ferociously. The number that matters is not how much AI you use, nor how much you keep in human hands; it is how much of your time lands on compounding work.
+Classifies the activities on your plate as compounding or depreciating using the two-year test, so you can delegate depreciating work without hesitation and protect compounding work firmly. The number that matters is not how much AI you use, nor how much you keep in human hands; it is how much of your time goes to compounding work.
 ## Prerequisites
 
 - A list of the activities that filled the period (a day, a week, or a longer stretch). Source this from any of:
@@ -16,7 +16,7 @@ Classifies the activities on your plate as compounding or depreciating using the
 
 ## The Distinction
 
-- **Compounding activities** gain value the more you do them and feed back into everything else: deciding what to build, judging whether a design is right, reading a hard paper with the intent of being able to teach it, debugging a subtle failure by reasoning about the system, holding taste about what to ship.
+- **Compounding activities** gain value the more you do them and improve everything else: deciding what to build, judging whether a design is right, reading a hard paper with the intent of being able to teach it, debugging a subtle failure by reasoning about the system, holding taste about what to ship.
 - **Depreciating activities** lose value as the environment changes: boilerplate, scaffolding, routine tests, formatting, summarizing a known pattern, re-deriving an answer a model can produce.
 
 ## The Two-Year Test
@@ -24,13 +24,13 @@ Classifies the activities on your plate as compounding or depreciating using the
 For each activity, ask: *If I let the model do this for the next two years, will the me that emerges be more valuable, or less, than the me that kept doing it by hand?*
 
 - More valuable if delegated -> **depreciating**; delegate next cycle and route the freed time to compounding work.
-- Less valuable if delegated -> **compounding**; protect ferociously, do not delegate even when a model offers to.
+- Less valuable if delegated -> **compounding**; protect firmly, do not delegate even when a model offers to.
 
 ## Steps
 
-1. Gather the activity list for the period (see Prerequisites). If no list is provided, ask the user to enumerate the significant activities of the period before proceeding.
+1. Gather the activity list for the period (see Prerequisites). If no list is provided, ask the user to list the significant activities of the period before proceeding.
 2. Apply the two-year test to each significant activity and classify it compounding or depreciating.
-3. Estimate the fraction of the period that landed on compounding work.
+3. Estimate the fraction of the period that went to compounding work.
 4. Note boundary moves since the last audit: activities that shifted category, and which direction.
 5. Produce the report using the format below.
 
@@ -54,13 +54,13 @@ For each activity, ask: *If I let the model do this for the next two years, will
 
 **Boundary moves since last audit:** <activities that shifted category, and which direction; or "none / first audit">
 
-**Time to ring-fence next cycle:** <specific compounding activity and the block that protects it>
+**Time to protect next cycle:** <specific compounding activity and the block that protects it>
 
 **To delegate next cycle:** <specific depreciating activities and the delegation path>
 
 ## Notes
 
-<one or two sentences on what the allocation reveals>
+<one or two sentences on what the allocation shows>
 ```
 
 ## Watch the Boundary
@@ -77,7 +77,7 @@ An engineer who delegates ninety percent of their work and spends the freed time
 ```
 /audit-attention
 ```
-Run as part of end-week. Classifies the week's activities, finds 40% on compounding work, flags two depreciating activities (manual test scaffolding, status-summarizing) to delegate next week, and one compounding activity (architecture decision) that got crowded out and needs a ring-fenced block.
+Run as part of end-week. Classifies the week's activities, finds 40% on compounding work, flags two depreciating activities (manual test scaffolding, status-summarizing) to delegate next week, and one compounding activity (architecture decision) that got crowded out and needs a protected block.
 
 **Scenario 2: Mid-week drift check**
 ```
@@ -94,4 +94,4 @@ Full re-sort of recurring activities. Notes that "reviewing generated PRs" has s
 ## Next Step
 
 - During a weekly close, append this audit as the `## Attention Allocation` section of end-of-week-review's `review.md`.
-- To act on results, add ring-fenced focus blocks to the next day or week plan via `/start-day` or `/start-week`.
+- To act on results, add protected focus blocks to the next day or week plan via `/start-day` or `/start-week`.

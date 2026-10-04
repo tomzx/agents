@@ -1,6 +1,6 @@
 # Roadmap
 
-Outcome-based, not a delivery calendar. Expected to change.
+Based on outcomes, not a delivery calendar. Expected to change.
 
 ## Now (high confidence, capacity-assigned)
 

@@ -9,7 +9,7 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
-The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot hold up any other PR.
+The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot delay any other PR.
 
 The discovery, staleness check, and head-ref resolution are done by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). Its `--dispatch-prs` output is one self-contained `/review-pr-full` command per PR, carrying the precomputed stale steps and head refs:
 
@@ -17,7 +17,7 @@ The discovery, staleness check, and head-ref resolution are done by a determinis
 /review-pr-full 42 acme/api --steps validate-pr,verify-pr --head-repo acme/api --head-branch feature-x
 ```
 
-Because the command is self-contained, `review-pr-full` starts the checks immediately: it does not re-query GitHub for staleness or PR status. This is what keeps the orchestrator from being a bottleneck.
+Because the command is self-contained, `review-pr-full` starts the checks immediately: it does not re-query GitHub for staleness or PR status. This is what keeps the orchestrator from slowing the work down.
 
 ## Marker format
 
@@ -115,7 +115,7 @@ Each command is already in the exact form `review-pr-full` expects, so do not re
 
 Launch one subagent per PR with the `Task` tool, `subagent_type: "general"`. Put **multiple Task calls in a single message** so they run concurrently; if there are many PRs, launch in batches (for example 5 at a time) and wait for each batch before starting the next.
 
-This is the whole point of the skill: the orchestrator dispatches and waits; each subagent runs its PR's pipeline to completion on its own, so PRs progress independently.
+This is the core reason for the skill: the orchestrator dispatches and waits; each subagent runs its PR's pipeline to completion on its own, so PRs progress independently.
 
 Each subagent starts with a fresh context, so its prompt must be self-contained. Use this template verbatim, substituting the command:
 

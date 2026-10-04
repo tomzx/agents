@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Set Goals
 
-Translates the vision into measurable objectives, key results, and the two metric types that define success: **success metrics** (what must improve) and **guardrail metrics** (what must not regress). The classic PM failure is moving the measured metric while breaking three unmeasured ones; guardrails are the antidote and are mandatory here.
+Translates the vision into measurable objectives, key results, and the two metric types that define success: **success metrics** (what must improve) and **guardrail metrics** (what must not regress). The classic PM failure is moving the measured metric while breaking three unmeasured ones; guardrails prevent this and are mandatory here.
 
 ## Prerequisites
 

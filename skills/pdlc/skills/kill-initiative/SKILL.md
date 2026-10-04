@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Kill Initiative
 
-Killing an initiative is hard and rarely encoded, so it gets its own skill. It converts a `kill` gate verdict (or a manual decision to stop) into a durable record, frees the capacity the initiative was consuming, and tells stakeholders.
+Killing an initiative is hard and rarely written down, so it gets its own skill. It converts a `kill` gate verdict (or a manual decision to stop) into a durable record, frees the capacity the initiative was consuming, and tells stakeholders.
 
 ## Prerequisites
 
@@ -48,5 +48,5 @@ Run `prioritize` to refill the freed roadmap slot, or `run-retrospective` if not
 - [ ] A decision record exists recording the kill rationale
 - [ ] `progress.md` marked `killed` with date and rationale
 - [ ] Roadmap capacity reallocated
-- [ ] A learning captured so the kill compounds knowledge
+- [ ] A learning captured so the kill produces organizational knowledge
 - [ ] Stakeholder brief drafted (sending requires explicit confirmation)

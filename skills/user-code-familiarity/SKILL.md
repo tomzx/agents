@@ -8,7 +8,7 @@ BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 
 # Profile User Code Familiarity
 
-Builds per-user familiarity profiles by analyzing GitHub contributions - commits, PRs, and issues - within a codebase or organization, capturing the areas, issue types, and technologies each person has worked with.
+Builds per-user familiarity profiles by analyzing GitHub contributions - commits, PRs, and issues - within a codebase or organization, recording the areas, issue types, and technologies each person has worked with.
 
 ## Prerequisites
 

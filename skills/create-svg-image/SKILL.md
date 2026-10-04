@@ -8,7 +8,7 @@ argument-hint: "[what to visualize]"
 # Create SVG Image
 
 Produces hand-authored SVG diagrams and visualizations that look intentional at any size and render correctly across browsers and non-browser renderers (resvg, librsvg, chat previews).
-The aesthetic rules live in `references/svg-style-guide.md`; this skill supplies the workflow, the geometry math, and the validation loop.
+The aesthetic rules are in `references/svg-style-guide.md`; this skill supplies the workflow, the geometry math, and the validation loop.
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ Ask for or infer:
 
 ### 3. Plan the layout before writing XML
 
-Compute the geometry first; retrofitting layout is the main source of ugly SVG.
+Compute the geometry first; fixing layout after the fact is the main source of ugly SVG.
 
 - Pick display width from content: list 400px, flowchart 600-700px, architecture 700-800px.
 - Set `viewBox` to content bounds plus 24px margins, snapped to the 4px grid.

@@ -25,7 +25,7 @@ Audits an existing solutions survey and reports findings across five categories:
 ## Review Checklist
 
 ### Coverage
-- Was the internal codebase searched before reaching for external options?
+- Was the internal codebase searched before looking at external options?
 - Are the obvious open-source and commercial candidates present, or are well-known options missing?
 - Does the survey map candidates back to the functional and non-functional requirements?
 

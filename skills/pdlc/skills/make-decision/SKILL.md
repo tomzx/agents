@@ -6,7 +6,7 @@ argument-hint: "[initiative-id or topic]"
 
 # Make Decision
 
-The single decision skill reused across the PDLC. It does double duty:
+The single decision skill reused across the PDLC. It handles two cases:
 
 1. **Gate decisions** — invoked at every phase boundary to decide `proceed` / `pivot` / `kill`.
 2. **General product decisions** — any consequential choice (positioning, segmentation, trade-offs) recorded for traceability.

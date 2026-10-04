@@ -9,7 +9,7 @@ argument-hint: "[pr-url ... | owner/repo ...] [--reanalyze] [--prepare-only]"
 
 Scans the open pull requests you authored for reviewer feedback that is still awaiting a response, drives `handle-pr-reviewer-feedback` in analyze-only mode to write one analysis file per comment, presents the recommendations so you can decide, and hands execution back to `handle-pr-reviewer-feedback`.
 
-This skill is the proactive counterpart of `handle-pr-reviewer-feedback`: instead of you running that skill by hand to discover what reviewers said, a scheduled run does the discovery and the analysis up front, so the only thing left is a decision.
+This skill is the proactive counterpart of `handle-pr-reviewer-feedback`: instead of you running that skill by hand to find what reviewers said, a scheduled run does the discovery and the analysis in advance, so the only thing left is a decision.
 
 This skill is an **orchestrator only**. The analysis file contract (location, ids, format, decision vocabulary) and the execution of decisions are owned by `handle-pr-reviewer-feedback`, which is also the skill that documents them. Do not restate the contract here; reference it.
 
@@ -20,7 +20,7 @@ Nothing here posts to GitHub, commits, or pushes. Those actions belong to `handl
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback, and by analysis agents for the occasional PR metadata call)
 - `git` available (analysis agents check out the PR head into a temporary worktree so they can read code and diff from disk)
-- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
+- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, use sequential mode instead.
 
 ### Related skills
 
@@ -83,7 +83,7 @@ Useful flags:
 
 It returns a JSON array of PR states. Each PR has `new_feedback` (items with no analysis file) and `pending_decision` (analyzed but undecided), plus `head_commit`, `head_repo`, `head_branch`, `base_ref`, `base_commit`, `title`, `url`, `draft`, and per-item `id`, `kind`, `author`, `body`, `url`, `path`, `line`, `thread_id`, and `analysis_path`.
 
-If every PR has an empty `new_feedback`, report "no new feedback" and stop. If some PRs have a non-empty `pending_decision` while none have new feedback, list them as awaiting a decision but do not re-prompt (their decision is deliberately deferred).
+If every PR has an empty `new_feedback`, report "no new feedback" and stop. If some PRs have a non-empty `pending_decision` while none have new feedback, list them as awaiting a decision but do not prompt again (their decision is deliberately deferred).
 
 ### 2. Fan out analysis, delegated to handle-pr-reviewer-feedback
 
@@ -106,7 +106,7 @@ When finished, return exactly one line per feedback item and nothing else:
 FEEDBACK <id> | <recommendation> | <confidence> | <one-line summary>
 ```
 
-The subagent inherits the analysis instructions from the skill, so this prompt stays thin and the artifact format lives in exactly one place.
+The subagent inherits the analysis instructions from the skill, so this prompt stays short and the artifact format lives in exactly one place.
 
 #### Fallback: no Task tool
 
@@ -188,7 +188,7 @@ Scheduling options, in order of preference:
 
 - **OpenChamber scheduled task:** create a task that runs `/triage-pr-feedback --prepare-only` every 15 minutes. Recommendations accumulate under `~/.sdlc/.../feedback/` for the next interactive session.
 - **launchd / cron:** a `*/15 * * * *` entry invoking the agent CLI with `/triage-pr-feedback --prepare-only`.
-- **GitHub Actions:** a `schedule:` workflow on a self-hosted runner, if you prefer not to rely on a local agent.
+- **GitHub Actions:** a `schedule:` workflow on a self-hosted runner, if you prefer not to depend on a local agent.
 
 Prefer a launchd/cron/OpenChamber task over GitHub Actions when the PRs are in third-party repositories you do not control, since the analysis store lives under `$HOME`.
 
@@ -203,7 +203,7 @@ Prefer a launchd/cron/OpenChamber task over GitHub Actions when the PRs are in t
 | Skill | Relationship |
 |---|---|
 | `handle-pr-reviewer-feedback` | Owns the feedback contract and execution: its analyze-only mode produces the analysis files this skill fans out; its default mode executes the decisions this skill collects. |
-| `handle-pr-author-feedback` | Reviewer-side mirror: verifies an author's fixes against your review comments. |
+| `handle-pr-author-feedback` | Reviewer-side counterpart: verifies an author's fixes against your review comments. |
 | `handle-pr-comment` | Reply to a single PR comment without a full triage pass. |
 | `review-requested-prs` | The reviewer-side orchestrator this skill's discovery/fan-out model is based on. |
 | `should-post-to-github` | The single gate deciding whether replies may be posted to GitHub. |

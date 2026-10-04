@@ -43,7 +43,7 @@ Deliver:
 - **Theme** (one line for the month)
 - **Top 3 to 5 outcomes** (measurable or clearly done or not done)
 - **Carryover** from last month’s review (scheduled, delegated, or explicitly dropped)
-- **Strategic focus** (single most important thread, aligned with goals or OKRs)
+- **Strategic focus** (single most important area of work, aligned with goals or OKRs)
 - **Risks** (capacity, dependencies, recurring commitments to trim)
 
 If last month’s `month-review.md` is missing, note the gap and plan from goals plus what the user states.

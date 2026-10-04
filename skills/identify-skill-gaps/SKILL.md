@@ -7,7 +7,7 @@ BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
 
 # Identify Skill Gaps
 
-Surfaces manual workflows that could be automated as skills, then prompts to scaffold or backlog them.
+Surfaces manual workflows that could become skills, then prompts to scaffold or backlog them.
 
 ## Prerequisites
 

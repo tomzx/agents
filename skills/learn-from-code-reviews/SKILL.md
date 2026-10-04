@@ -9,12 +9,12 @@ TODAY=!`date +%Y-%m-%d`
 
 # Learn From Code Reviews
 
-Mines the review feedback you have received on pull requests you authored, clusters it into recurring patterns, and distills those patterns into durable rules stored under `$HOME/.sdlc/review-rules/`.
+Mines the review feedback you have received on pull requests you authored, groups it into recurring patterns, and distills those patterns into durable rules stored under `$HOME/.sdlc/review-rules/`.
 The rules are written to be read before design and implementation work, so feedback a reviewer gave once becomes a habit you apply without being told again.
 
 Two jobs:
 
-- **Synthesize** (default): collect reviews, cluster them, and merge new rules into the store. Incremental: `state.json` records the last run, so only new feedback is processed.
+- **Synthesize** (default): collect reviews, group them, and merge new rules into the store. Incremental: `state.json` records the last run, so only new feedback is processed.
 - **Consult** (`--consult`): print the rules that apply to the current repository, grouped by strength, as a checklist to apply now.
 
 ## Prerequisites
@@ -30,7 +30,7 @@ Two jobs:
 | Skill | Relationship |
 |-------|--------------|
 | `handle-pr-reviewer-feedback` | Responds to feedback on **open** PRs, one PR at a time, to land code. This skill mines **historical** feedback across PRs to change your future behavior. |
-| `triage-pr-feedback` | Orchestrates the open-feedback response loop on a schedule. Orthogonal: it acts, this skill learns. |
+| `triage-pr-feedback` | Orchestrates the open-feedback response loop on a schedule. Separate concern: it acts, this skill learns. |
 | `create-learnings` / `run-retrospective` | Reflect on one feature, sprint, or project. This skill reflects on the review record itself across repos. |
 | `improve-sessions` | Mines **agent sessions** for friction. This skill mines **human and bot review feedback** for recurring mistakes. |
 | `review-pr` | Performs a review as the reviewer. This skill learns from reviews you received as the author. |
@@ -90,7 +90,7 @@ Decide the sources and window from the arguments:
 - Targets: `owner/repo` arguments or PR URLs. With no argument, the whole ghx cache (your PRs only). `--mine` is the explicit form of that default; `--include-all-authors` drops the "you authored it" restriction.
 - The repositories must already be in the ghx cache; if the cache is stale, refresh it first with `ghx cache -R <owner>/<repo>`.
 - Window: `--since YYYY-MM-DD`; with no argument the collector reuses `state.json` (last run minus one day) or defaults to the last 30 days.
-- Bots are excluded by default; pass `--include-bots` to include substantive AI reviewers, which count as supporting (not `must`) evidence. Conversation comments are off by default (inline review threads are the signal); add `--include-conversation` to widen the net.
+- Bots are excluded by default; pass `--include-bots` to include substantive AI reviewers, which count as supporting (not `must`) evidence. Conversation comments are off by default (inline review threads are the signal); add `--include-conversation` to widen the search.
 
 ### 2. Collect the feedback
 
@@ -111,15 +111,15 @@ Pass `--update-state` so the next run is incremental (it records `last_run` in `
 ### 3. Cluster feedback into candidate patterns
 
 Read every `feedback[]` item and group by underlying lesson, not by wording. Two comments on different files that both ask for the same guard belong together.
-For each cluster record: the lesson, its category, the number of items and distinct reviewers and PRs, and the representative quotes with their permalinks.
+For each group record: the lesson, its category, the number of items and distinct reviewers and PRs, and the representative quotes with their permalinks.
 
-Mark a cluster that clears the gates above as a rule candidate; put the rest in the Observations appendix.
+Mark a group that clears the gates above as a rule candidate; put the rest in the Observations appendix.
 
 ### 4. Read the existing store
 
 Read `$HOME/.sdlc/review-rules/rules.md` and, when scoped to a repository, `$HOME/.sdlc/review-rules/<owner>/<repo>.md` (create on first write).
 Match each candidate against the existing rules: is this already covered, a refinement of one, or genuinely new?
-Also flag existing rules whose referenced code no longer exists, so the rule can be narrowed or retired rather than blindly kept.
+Also report existing rules whose referenced code no longer exists, so the rule can be narrowed or retired rather than kept without review.
 
 ### 5. Update the store
 
@@ -145,7 +145,7 @@ Full list: `~/.sdlc/review-rules/`. Apply these before design and implementation
 <!-- review-rules:end -->
 ```
 
-Replace the block between the markers on every publish; never append a second one.
+Replace the block between the markers on every publish; never add a second one.
 Warn the user first if the target file is tracked by git, since the rules are personal.
 
 ## Consult mode
@@ -194,12 +194,12 @@ When `--consult` is passed, skip collection and do not write anything:
 
 ## Anti-patterns
 
-- **Mining your own replies**: filter out comments authored by the viewer; the collector already does, but do not re-introduce them when clustering.
+- **Mining your own replies**: filter out comments authored by the viewer; the collector already does, but do not re-introduce them when grouping.
 - **Hardening a preference**: a style comment from one reviewer is `prefer` at most, and only after a second occurrence.
 - **Raw dumps**: the store holds distilled rules with citations, never pasted comment bodies.
 - **Duplicating lessons**: always match against the existing store before adding an id.
-- **Stale truth**: a rule whose referenced code is gone is narrowed or retired, not preserved verbatim.
-- **Stale cache**: the collector only sees what `ghx cache` has stored; refresh a repository's cache before a run or the window will look emptier than it is.
+- **Stale truth**: a rule whose referenced code is gone is narrowed or retired, not kept word for word.
+- **Stale cache**: the collector only sees what `ghx cache` has stored; refresh a repository's cache before a run or the window will look smaller than it is.
 - **Silent rewrite**: every store change must appear in the report; `--dry-run` exists for review before writing.
 
 ## Example Usage

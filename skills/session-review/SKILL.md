@@ -5,7 +5,7 @@ description: End-of-session checklist covering code quality (tests, docs, specs,
 
 # Session Review
 
-Runs a structured end-of-session review to ensure every change made during the session is properly covered by tests, documented, specified, intentional, and as clean as possible. Also extracts and persists any newly identified practices.
+Runs a structured end-of-session review to ensure every change made during the session is properly covered by tests, documented, specified, intentional, and as clean as possible. Also extracts and records any newly identified practices.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ Before writing any tests or docs, review the changed code and ask:
 
 > "Could this be implemented more simply, cleanly, succinctly, or elegantly? Are there any abstractions that can be removed, renamed, or consolidated? Is there anything here that is over-engineered for what is actually needed?"
 
-Apply any improvements the review surfaces. Tests, docs, and specs are written against this final, clean implementation.
+Apply any improvements the review finds. Tests, docs, and specs are written against this final, clean implementation.
 
 ### 3. Add Tests to Cover the Change
 

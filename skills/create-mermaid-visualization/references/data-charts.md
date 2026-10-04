@@ -47,7 +47,7 @@ Electricity,Industry,20
 - Body is CSV: `Source,Target,Value`, one link per line; nodes are created implicitly from names.
 - Values are numbers; omit a header row unless `csvHeader` config expects it.
 - Front matter config `sankey: { linkColor: "source", nodeAlignment: "justify" }` controls appearance.
-- Link order matters for layout; group links by source for a clean read.
+- Link order matters for layout; group links by source for easier reading.
 - Quoted CSV cells required for names containing commas.
 
 ## Treemap (`treemap-beta`)

@@ -6,7 +6,7 @@ allowed-tools: Bash(gh:*, ghx:*, uv:*, ~/.agents/scripts/should-post-to-github:*
 
 # Send PR Review Comments
 
-Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository. Whether the comments are actually sent to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`); when posting is disabled the comments are composed and shown for review instead.
+Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository. `should-post-to-github` decides whether the comments are actually sent to GitHub (based on `~/.sdlc/config.yaml`); when posting is disabled, the skill composes the comments and shows them for review instead.
 
 ## Prerequisites
 

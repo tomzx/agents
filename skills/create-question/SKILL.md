@@ -13,7 +13,7 @@ Questions differ from assumptions and decisions: an assumption is a belief held 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- A question worth tracking: it blocks or shapes work, and the answer is not immediately available
+- A question worth tracking: it blocks work or affects its direction, and the answer is not immediately available
 - Enough context to say where it arose and who can answer it
 
 ## Steps

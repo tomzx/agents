@@ -6,7 +6,7 @@ argument-hint: "[initiative-id or topic]"
 
 # Discover Problems
 
-The divergent entry point of the PDLC. Turns vague signals (a metric regression, recurring complaints, interview notes, support tickets, a hunch) into structured, solution-agnostic problem statements. Stays strictly in problem space: it refuses to solutionize.
+The divergent entry point of the PDLC. Turns vague signals (a metric regression, recurring complaints, interview notes, support tickets, a hunch) into structured, solution-agnostic problem statements. Stays strictly in problem space: it refuses to propose solutions.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ The divergent entry point of the PDLC. Turns vague signals (a metric regression,
 3. For each candidate problem, write a problem statement in the form: *For [who], [current situation/struggle], because [root forces], which results in [measurable harm].*
 4. Rank problems by frequency, intensity, and willingness-to-pay signals. Mark each as `observed` (evidence-backed) vs `assumed` (hypothesis).
 5. Capture who experiences the problem and how (stakeholders table).
-6. Record the cost of inaction: what breaks or degrades today, existing workarounds, and the trend (growing / stable / declining).
+6. Record the cost of inaction: what breaks or worsens today, existing workarounds, and the trend (growing / stable / declining).
 7. Write `problems.md` to the initiative directory using the template.
 
 ## Output Format

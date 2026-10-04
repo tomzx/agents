@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Define Acceptance
 
-This skill produces the **acceptance contract**: the testable, outcome-linked criteria that form the handoff from PDLC to SDLC. It is the seam. SDLC's `create-requirements` consumes this contract directly.
+This skill produces the **acceptance contract**: the testable, outcome-linked criteria that form the handoff from PDLC to SDLC. It is the handoff. SDLC's `create-requirements` consumes this contract directly.
 
 The contract captures *what must be true* for the initiative to be accepted (linked to `SM-N` success metrics and `FR-N` requirements), expressed so an engineer and a PM can both verify it. It deliberately excludes implementation.
 
@@ -21,7 +21,7 @@ The contract captures *what must be true* for the initiative to be accepted (lin
 2. Bind each success metric (`SM-N`) to an acceptance criterion: "accepted only if `SM-N` reaches target within the window."
 3. Bind guardrails: list every `GM-N` that must hold post-launch as a hard acceptance line ("must not regress below floor").
 4. Define the acceptance boundary: what is in scope (must pass) vs. explicitly out of scope (the non-goals from the PRD).
-5. Record the decomposition into SDLC features: one initiative commonly spawns one or more `FEAT-N`. List `spawns_features` in the initiative frontmatter.
+5. Record the decomposition into SDLC features: one initiative commonly produces one or more `FEAT-N`. List `spawns_features` in the initiative frontmatter.
 6. Note which criteria need runtime/analytics proof (feed `spec-analytics`) vs. functional proof (feed SDLC tests).
 7. Write `acceptance-contract.md` to the initiative directory.
 

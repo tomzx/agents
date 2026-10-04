@@ -8,7 +8,7 @@ Subprocesses cannot change the parent shell's current directory. When
 `wt switch feature` runs, the `wt` binary runs as a child process and cannot
 `cd` the terminal.
 
-Worktrunk solves this with **split directive file passing**:
+Worktrunk solves this by passing split directive files:
 
 1. Shell wrapper creates two temp files via `mktemp` (one for cd, one for exec)
 2. Shell sets `WORKTRUNK_DIRECTIVE_CD_FILE` and `WORKTRUNK_DIRECTIVE_EXEC_FILE`
@@ -18,7 +18,7 @@ Worktrunk solves this with **split directive file passing**:
 6. Shell sources the EXEC file if non-empty
 7. Shell removes both temp files
 
-The split design eliminates shell injection from cd directives — the CD file
+The split design removes shell injection from cd directives — the CD file
 holds a raw path that is never parsed as shell.
 
 ## Installation

@@ -1,6 +1,6 @@
 # wt step
 
-Run individual operations. The building blocks of wt merge — commit, squash, rebase, push — plus standalone utilities.
+Run individual operations. The components of wt merge — commit, squash, rebase, push — plus standalone utilities.
 
 ## Examples
 
@@ -349,7 +349,7 @@ Global Options:
 
 ## wt step copy-ignored
 
-Copy gitignored files to another worktree. Eliminates cold starts by copying build caches and dependencies.
+Copy gitignored files to another worktree. Avoids cold starts by copying build caches and dependencies.
 
 ### Setup
 
@@ -413,7 +413,7 @@ Use the `post-start` hook so the copy runs in the background. Use `pre-start` in
 
 ### Background-hook priority (experimental)
 
-When invoked from a background hook pipeline (`post-*` hooks), `wt step copy-ignored` self-lowers its CPU and I/O priority — `taskpolicy -b` on macOS, `nice -n 19` plus `ionice -c 3` on Linux — so it yields to interactive work. Foreground callers (`pre-*` hooks, direct interactive use) run at normal priority so the user isn't waiting on a throttled copy.
+When invoked from a background hook pipeline (`post-*` hooks), `wt step copy-ignored` self-lowers its CPU and I/O priority — `taskpolicy -b` on macOS, `nice -n 19` plus `ionice -c 3` on Linux — so it gives way to interactive work. Foreground callers (`pre-*` hooks, direct interactive use) run at normal priority so the user doesn't wait for a slowed copy.
 
 wt signals background-hook context by exporting `WORKTRUNK_FOREGROUND=-1` into every detached hook pipeline; `copy-ignored` inspects that variable on entry. The variable name is experimental and may change.
 
@@ -421,7 +421,7 @@ wt signals background-hook context by exporting `WORKTRUNK_FOREGROUND=-1` into e
 
 #### Rust
 
-The `target/` directory is huge (often 1-10GB). Copying with reflink cuts first build from ~68s to ~3s by reusing compiled dependencies.
+The `target/` directory is large (often 1-10GB). Copying with reflink reduces the first build from ~68s to ~3s by reusing compiled dependencies.
 
 #### Node.js
 
@@ -671,7 +671,7 @@ Global Options:
 
 Swap a branch into the main worktree. Exchanges branches and gitignored files between two worktrees.
 
-**Experimental.** Use promote for temporary testing when the main worktree has special significance (Docker Compose, IDE configs, heavy build artifacts anchored to project root), and hooks & tools aren't yet set up to run on arbitrary worktrees. The idiomatic Worktrunk workflow does not use `promote`; instead each worktree has a full environment. `promote` is the only Worktrunk command which changes a branch in an existing worktree.
+**Experimental.** Use promote for temporary testing when the main worktree has special significance (Docker Compose, IDE configs, large build artifacts tied to the project root), and hooks & tools aren't yet set up to run on arbitrary worktrees.
 
 ### Example
 
@@ -709,7 +709,7 @@ Without an argument, promotes the current branch — or restores the default bra
 
 Gitignored files (build artifacts, `node_modules/`, `.env`) are swapped along with the branches so each worktree keeps the artifacts that belong to its branch. Files are discovered using the same mechanism as [`copy-ignored`](#wt-step-copy-ignored) and can be filtered with `.worktreeinclude`.
 
-The swap uses `rename()` for each entry — fast regardless of entry size, since only filesystem metadata changes. If the worktree is on a different filesystem from `.git/`, it falls back to reflink copy.
+The swap uses `rename()` for each entry — which is fast regardless of entry size since only filesystem metadata changes. If the worktree is on a different filesystem from `.git/`, it falls back to reflink copy.
 
 ### Command reference
 
@@ -759,7 +759,7 @@ Locked worktrees and the main worktree are always skipped. The current worktree 
 
 ### Min-age guard
 
-Worktrees younger than `--min-age` (default: 1 day) are skipped. This prevents removing a worktree just created from the default branch — it looks "merged" because its branch points at the same commit.
+Worktrees younger than `--min-age` (default: 1 day) are skipped. This prevents removing a worktree just created from the default branch — its branch points at the same commit so it appears merged.
 
 ```bash
 $ wt step prune --min-age=0s     # no age guard
@@ -953,8 +953,8 @@ Run a command; kill its whole process tree when its worktree is removed. Teardow
 A `post-start` hook to start a long-lived process and a `pre-remove` hook to
 stop it is usually enough. But `pre-remove` only runs when worktrunk removes
 the worktree, so a `git worktree remove`, an `rm -rf`, or a crashed hook skips
-it. Across enough worktree churn some process is bound to outlive its worktree,
-and with no cleanup these leaks accumulate (on macOS they eventually saturate
+it. Across enough worktree churn some process will outlive its worktree,
+and with no cleanup these leaks accumulate (on macOS they eventually exhaust
 `fseventsd`). `tether` removes the need for a `pre-remove`: it ties the
 command's lifetime to the worktree and kills the whole process group once the
 worktree is gone.

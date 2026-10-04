@@ -21,7 +21,7 @@ Turns PDLC artifacts into communication that decision-makers and stakeholders ca
    - **Stakeholder map** — who cares, what they need, and their current stance.
 2. Read the relevant artifacts: `progress.md`, the latest decision records, `prd.md`, `health-report.md`, `feedback-loop.md`, and `.pdlc/context/goals.md` for alignment.
 3. Produce the brief. Lead with the decision or ask, then the one-paragraph rationale, then evidence. Executives read top-down; put the ask first.
-4. For a stakeholder map, capture each stakeholder's interest, influence, current stance (supporter / neutral / blocker), and what would move them.
+4. For a stakeholder map, capture each stakeholder's interest, influence, current stance (supporter / neutral / blocker), and what would change their stance.
 5. Do not post or send anything. Present the draft. Sending requires explicit user confirmation (commit/push/PR gate).
 
 ## Output Format
@@ -36,7 +36,7 @@ Risks: <top risk and mitigation>
 Next checkpoint: <date and what will be decided>
 
 ### Stakeholder map (if requested)
-| Stakeholder | Interest | Influence | Stance | What moves them |
+| Stakeholder | Interest | Influence | Stance | What changes their stance |
 |---|---|---|---|---|
 ```
 

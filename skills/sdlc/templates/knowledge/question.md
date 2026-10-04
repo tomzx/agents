@@ -29,8 +29,8 @@ Why the answer matters to that work.>
 
 **Blocking:** <High | Medium | Low>
 
-<Describe what work stalls without the answer.
-Name the artifact, decision, or task that waits on it.>
+<Describe what work is blocked without the answer.
+Name the artifact, decision, or task that depends on it.>
 
 ## Needed By
 

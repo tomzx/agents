@@ -15,7 +15,7 @@ Maps who else addresses the problem, how they position, and where the gaps are. 
 
 ## Steps
 
-1. Enumerate alternatives the target customer could use, including status-quo and workarounds (the most common "competitor" is doing nothing).
+1. Enumerate alternatives the target customer could use, including the current default and workarounds (the most common "competitor" is doing nothing).
 2. For each, capture positioning: who they target, the job they claim to do, their price/range, and their strongest and weakest points.
 3. Build a positioning map across two axes that matter to the customer (e.g., ease vs. power, price vs. completeness). Identify empty quadrants.
 4. Identify differentiation opportunities: where the problem is underserved, mis-served, or served for the wrong segment.
@@ -32,7 +32,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted`.
 
 ## Completion Checklist
 
-- [ ] Status-quo / do-nothing included as an alternative
+- [ ] Current default / do-nothing included as an alternative
 - [ ] Positioning map with two customer-meaningful axes
 - [ ] At least one differentiation opportunity identified and tied to a problem
 - [ ] Switching costs / moats noted

@@ -30,7 +30,7 @@ If the initiative has no UI surface, set `surface: none` above, write "No UI sur
 
 | # | Finding | Journey / requirement | Severity | Routed to |
 |---|---|---|---|---|
-| 1 | <what they struggled with> | FR-N | High/Med/Low | write-prd / define-acceptance |
+| 1 | <what they had trouble with> | FR-N | High/Med/Low | write-prd / define-acceptance |
 
 ## Material Changes Fed Back
 

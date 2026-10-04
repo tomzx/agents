@@ -84,7 +84,7 @@ sequence. No evidence, no signal.
 |--------|----------|
 | **Repeated instruction** | The user teaches the same preference or convention more than once, in this session or across sessions |
 | **Correction** | The agent took a wrong approach and the user redirected it (classify the root cause: missing context, unclear guidance, wrong tool, missing skill) |
-| **Repeated lookup** | The same information is hunted down again across sessions (file locations, commands, API behavior) |
+| **Repeated lookup** | The same information is looked up again across sessions (file locations, commands, API behavior) |
 | **Manual loop** | The user performs the same mechanical approval or edit sequence repeatedly |
 | **Missed skill** | An existing library skill should have been used but was not |
 | **Dead end** | An approach was explored then abandoned, or the session failed outright |
@@ -111,7 +111,7 @@ the report's appendix only. For each pattern record:
 | Weak existing skill | Skill improvement | `/improve-skill <name>` |
 
 One pattern can map to several primitives; prefer the cheapest one that fully
-closes the pattern.
+resolves the pattern.
 
 ### 6. Prioritize
 
@@ -162,7 +162,7 @@ anything declined or deferred, append one line per item to
 
 ### Recommendation
 
-> <One sentence on the single highest-leverage change.>
+> <One sentence on the single change with the largest effect.>
 ```
 
 ## Anti-patterns

@@ -6,11 +6,11 @@ argument-hint: "[feature-id | all] [--entry <artifact>] [--fix] [--create-issues
 
 # Propagate Changes
 
-A change landing in one artifact invalidates two things at once: the artifacts built from it, and the artifacts it was built from.
+A change made in one artifact invalidates two things at once: the artifacts built from it, and the artifacts it was built from.
 The forward `/sdlc` pipeline propagates intent downstream, and each `review-*` skill checks one adjacent pair in isolation.
 This skill runs one propagation pass in both directions along the artifact graph.
 Downward, it updates dependents: every artifact that still describes the old version is rewritten when the resolution follows from the change.
-Upward, it questions premises: every artifact the change depends on is re-checked, and drift is flagged for a human decision instead of guessed away.
+Upward, it questions premises: every artifact the change depends on is re-checked, and drift is flagged for a human decision instead of being resolved by guesswork.
 Wherever two connected artifacts disagree in a way that admits more than one resolution, the pass raises a question rather than picking a side.
 
 ## Prerequisites
@@ -143,7 +143,7 @@ Typical downward updates by artifact:
 | `specification.md`, `requirements.md` | Updated only when the change entered above them (for example `--entry requirements`) |
 
 A rewritten artifact gets `status: in-review` in its frontmatter and a bumped `revision` counter, so the matching `review-*` skill re-reviews it.
-Never rewrite an artifact that sits upstream of the entry.
+Never rewrite an artifact that is upstream of the entry.
 
 ### 5. Run the upward walk (question premises)
 
@@ -358,8 +358,8 @@ status: complete
 
 ## When to Run This
 
-- After every push that changes code or an artifact, before requesting re-review, so dependents are updated and premises re-checked while the change is fresh.
-- After `/merge-pr` or `/deploy-pr`, before starting the next feature, to confirm the just-shipped change did not silently invalidate an upstream artifact.
+- After every push that changes code or an artifact, before requesting re-review, so dependents are updated and premises re-checked while the change is recent.
+- After `/merge-pr` or `/deploy-pr`, before starting the next feature, to confirm the just-shipped change did not invalidate an upstream artifact unnoticed.
 - Periodically (weekly or sprint-end) alongside `/sync-repository`, as a full pass, to catch drift that accumulated across multiple features.
 - Before a release, as a release gate, to guarantee every shipped behavior traces back to a requirement and an issue.
 - When inheriting an existing `.sdlc/` from another developer or another team, to establish a trust baseline before extending the pipeline.
@@ -394,7 +394,7 @@ Establishes a trust baseline on an inherited `.sdlc/`. Surfaces 14 broken ID ref
 
 | Skill | Relationship |
 |---|---|
-| `sdlc` | The forward pipeline this skill guards. `/sdlc` propagates intent downstream; `/propagate-changes` restores consistency in both directions after a change. |
+| `sdlc` | The forward pipeline this skill complements. `/sdlc` propagates intent downstream; `/propagate-changes` restores consistency in both directions after a change. |
 | `sync-sdlc` | Compares the codebase against requirements and specification for a feature (two layers). This skill walks every adjacent pair and updates dependents instead of only flagging them. |
 | `sync-repository` | Cross-layer consistency for code surroundings (tests, docs, types, observability). Run both for full coverage: `sync-repository` for code health, `propagate-changes` for artifact-graph consistency. |
 | `trace-issues` | The GitHub-native counterpart: traceability from issues to code on any repository, without an `.sdlc/` directory. |

@@ -29,7 +29,7 @@ This review checks both.
 
 ### Purpose and Vision
 - Does the Purpose name an outcome the team owns, rather than a list of activities?
-- Is the Purpose one or two sentences, or does it sprawl?
+- Is the Purpose one or two sentences, or does it grow too long?
 - Is the Vision a specific future state for the current horizon, not a generic aspiration?
 
 ### Stakeholders

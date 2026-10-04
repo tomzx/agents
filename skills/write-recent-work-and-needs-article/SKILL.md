@@ -14,11 +14,17 @@ Produces a personal status article with two sections: what you have been working
 Before gathering new information, find the previous article in this series (the most recent article in the blog repository following this structure). Take its "What I Currently Need" section and summarize it as one bullet point per paragraph. This summary serves two purposes:
 
 - It refreshes what was needed last time, so continuity is not lost
-- It gives the user a checklist to react to: resolved needs can be dropped, unresolved ones carried into the new article
+- It gives the user a checklist to react to: they can drop resolved needs and carry unresolved ones into the new article
 
 Present the summary to the user before moving on to gathering recent work.
 
 ### 2. Gather Recent Work
+
+Before asking the user, review the git change history for the month this article covers in the agent skills repository (`~/src/agents`) and summarize the changes.
+The series covers one month at a time, so the covered month is the month after the one the previous article covered (its title names the month; its publication date may differ).
+Use that calendar month, first day through last day, capped at today when the month is still in progress, to define the git commit range.
+Group the commits by theme (new skills, pipeline changes, conventions, tooling), report the volume (commits, files changed, lines added and removed, skills added or renamed), and lead with the most significant items.
+Present the summary to the user and ask them to confirm, correct, and add work the history does not capture.
 
 Ask the user:
 

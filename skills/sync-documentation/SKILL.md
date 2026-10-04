@@ -10,12 +10,12 @@ TODAY=!`date +%Y-%m-%d`
 
 Reads the codebase and reconciles the `docs/` directory against it.
 On every run it detects drift between code and documentation, classifies each drift item, and (with `--fix`) applies the updates that are safe to make mechanically.
-Unlike `sync-sdlc` (which reconciles `.sdlc/` artifacts), this skill reconciles the user-facing `docs/` tree: the prose people actually read.
+Unlike `sync-sdlc` (which reconciles `.sdlc/` artifacts), this skill reconciles the user-facing `docs/` tree: the prose people read.
 
 ## The Core Problem This Solves
 
 Code changes constantly; documentation changes when someone remembers to update it. The result is docs that reference functions renamed three releases ago, CLI flags that no longer exist, code examples that fail to run, and nav entries pointing at deleted files.
-`/find-documentation-gaps` reports *what is missing*. This skill goes further: it detects *every* flavor of drift (stale, missing, broken, outdated), fixes the mechanical ones automatically, and hands the rest to a human as a prioritized report.
+`/find-documentation-gaps` reports *what is missing*. This skill goes further: it detects *every* kind of drift (stale, missing, broken, outdated), fixes the mechanical ones without human input, and hands the rest to a human as a prioritized report.
 
 ## Prerequisites
 
@@ -39,13 +39,13 @@ Code changes constantly; documentation changes when someone remembers to update 
 | Doc file exists but is not referenced in `nav` | Doc added, nav not updated | yes |
 | Internal doc link points to a moved or deleted page | Refactor of doc structure | yes |
 | External link is broken (404) | Upstream moved or vanished | no (report only) |
-| Doc duplicates information now stale vs `README.md` / `CHANGELOG.md` | Single source of truth broken | no (report) |
+| Doc duplicates information now stale vs `README.md` / `CHANGELOG.md` | Docs no longer come from a single source | no (report) |
 | Docs build fails | Any of the above, or config error | no (report) |
 
 ## Mode
 
 - **Report mode (default):** detect all drift, classify it, and print a prioritized report. No files change. Safe to run anytime.
-- **Fix mode (`--fix`):** also apply the mechanical fixes listed above. Missing-documentation items are *never* auto-written (prose needs a human); they are reported so they can be written with `/create-documentation`.
+- **Fix mode (`--fix`):** also apply the mechanical fixes listed above. Missing-documentation items are *never* auto-written (prose needs a human); they are reported so a human can write them with `/create-documentation`.
 
 ## Steps
 
@@ -83,7 +83,7 @@ sphinx-build -W -b html docs docs/_build 2>&1 | tail -40
 npm run build 2>&1 | tail -40
 ```
 
-`--strict` / `-W` turn warnings (broken references, missing files) into errors, which surfaces nav and link drift directly.
+`--strict` / `-W` turn warnings (broken references, missing files) into errors, which reports nav and link drift directly.
 Record pass/fail and capture the warnings for the report. Do not fail the whole skill on a broken build; a broken build is itself a finding.
 
 ### 4. Check nav / sidebar consistency
@@ -108,7 +108,7 @@ grep -roh --include="*.md" --include="*.rst" '`[A-Za-z_][A-Za-z0-9_.]*`' docs/ 2
 ```
 
 For each referenced symbol, confirm it exists in the source tree (use `grep -r` over `--include="*.py" --include="*.ts" --include="*.go"` etc., or an AST-based lookup for precision).
-A symbol that appears in docs but nowhere in source is **stale**. With `--fix`, attempt a rename resolution (see step 7); otherwise flag it.
+A symbol that appears in docs but nowhere in source is **stale**. With `--fix`, attempt a rename resolution (see step 7); otherwise report it.
 
 ### 6. Detect missing documentation
 
@@ -122,7 +122,7 @@ For each fenced code block and signature shown in docs that maps to a real symbo
 - CLI: do the flags and subcommands shown still exist (check `--help` output or the command definitions)?
 - Config: do the keys and their default values match the current config schema / `.env.example`?
 
-A mismatch is an **outdated example**. With `--fix`, regenerate the snippet from the current source (signatures, `--help` output, config dump) where it can be done losslessly. If the example has surrounding prose that would be invalidated, flag it instead of rewriting.
+A mismatch is an **outdated example**. With `--fix`, regenerate the snippet from the current source (signatures, `--help` output, config dump) where it can be done without losing content. If the example has surrounding prose that would become invalid, report it instead of rewriting.
 
 ### 8. Check internal links
 
@@ -133,7 +133,7 @@ grep -rn --include="*.md" -E '\]\([^)]+\)|\[\[[^]]+\]\]' docs/ 2>/dev/null
 ```
 
 - A link to a path that does not resolve (accounting for `mkdocs` extensionless conventions) is **broken**.
-- With `--fix`, attempt to resolve via the rename map built in step 5/7 (e.g., a moved file); otherwise flag.
+- With `--fix`, attempt to resolve via the rename map built in step 5/7 (e.g., a moved file); otherwise report it.
 
 ### 9. Check external links (only with `--check-links`)
 
@@ -259,7 +259,7 @@ Reports that `docs/api.md` references `Client.fetch` (renamed to `Client.get`), 
 ```
 /sync-documentation docs --fix
 ```
-Renames `Client.fetch` -> `Client.get` across docs, removes the dead `legacy.md` nav entry, regenerates the CLI flags table from current `--help` output, and re-runs `mkdocs build --strict` to confirm green. Reports the 3 missing-docs items it could not auto-write.
+Renames `Client.fetch` -> `Client.get` across docs, removes the dead `legacy.md` nav entry, regenerates the CLI flags table from current `--help` output, and re-runs `mkdocs build --strict` to confirm it passes. Reports the 3 missing-docs items it could not auto-write.
 
 **Scenario 3: Catch broken external links before a release**
 ```
@@ -289,7 +289,7 @@ Detects `conf.py`, walks `toctree` directives, runs `sphinx-build -W`, and flags
 
 | Command | Description |
 |---|---|
-| `mkdocs build --strict` | Build MkDocs; warnings become errors (surfaces broken refs/nav) |
+| `mkdocs build --strict` | Build MkDocs; warnings become errors (reports broken refs and nav problems) |
 | `sphinx-build -W -b html docs docs/_build` | Build Sphinx with warnings as errors |
 | `grep -rn --include="*.md" '\]\(' docs/` | Find all markdown links for internal-link checks |
 | `grep -roh --include="*.md" '\`[A-Za-z_][A-Za-z0-9_.]*\`' docs/` | Extract backticked symbols referenced in docs |

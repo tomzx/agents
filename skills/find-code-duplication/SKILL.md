@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Find Code Duplication
 
-Detects copy-pasted blocks and near-duplicate logic across the codebase and produces a prioritized extraction plan. Duplicated code multiplies the cost of every future change and is a leading source of bugs where a fix is applied in one copy but not others.
+Detects copy-pasted blocks and near-duplicate logic across the codebase and produces a prioritized extraction plan. Duplicated code increases the cost of every future change and is a common source of bugs where a fix is applied in one copy but not others.
 
 ## Prerequisites
 
@@ -177,7 +177,7 @@ def format_line_items(items, *, convert_currency=False):
 
 ## Already-Diverged Copies (Fix First)
 
-These duplicates have drifted apart — a bug fix or feature likely exists in one but not the other:
+These duplicates have diverged — a bug fix or feature likely exists in one but not the other:
 - `<file A>:<line>` vs `<file B>:<line>` — diff: <what differs>
 
 ## Quick Wins

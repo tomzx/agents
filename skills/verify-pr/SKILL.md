@@ -12,7 +12,7 @@ Answers the **verification** question: "Are we building the product right?" Chec
 1. **Static traceability**: every criterion maps to specific code that implements it.
 2. **Runtime proof**: build the PR and execute each criterion, recording the evidence.
 
-It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead. That includes approach-level observations gathered at runtime (for example criteria provable only by reaching into internals), which go to `/review-pr`'s Approach & Simplicity through the report notes.
+It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead. That includes approach-level observations gathered at runtime (for example criteria provable only by reaching into internals), which go to `/review-pr`'s Approach & Simplicity section through the report notes.
 
 ## Prerequisites
 
@@ -157,11 +157,11 @@ If the linked issue does not use the structured format, extract requirements fro
 
 If multiple issues are linked, merge their criteria, preserving the source issue number on each.
 
-If no linked issue can be resolved, or none yields parseable criteria, post a comment asking the author to link an issue with acceptance criteria (or list them explicitly) and stop. Do not verify PR claims in a vacuum.
+If no linked issue can be resolved, or none yields parseable criteria, post a comment asking the author to link an issue with acceptance criteria (or list them explicitly) and stop. Do not verify PR claims with no issue to check them against.
 
 #### 2b. Parse claims from the PR description
 
-Extract runtime-validatable claims from the PR description (feature, fix, behavior, CLI, web UI, performance, test). Claims are hints that help pick what to run and what to record; the criteria, not the claims, decide what counts as conforming. Claims that map to no criterion are flagged as out of scope relative to the issue.
+Extract runtime-validatable claims from the PR description (feature, fix, behavior, CLI, web UI, performance, test). Claims are hints that help choose what to run and what to record; the criteria, not the claims, decide what counts as conforming. Claims that map to no criterion are flagged as out of scope relative to the issue.
 
 #### 2c. Build the coverage map
 
@@ -229,7 +229,7 @@ If the build fails, note it and stop. CI would typically catch this first; do no
 
 For every acceptance criterion, prove or disprove through execution that the PR meets it. The criterion's nature (refined by any mapped claim) determines the method. **Must** criteria must all be validated for the PR to conform.
 
-Validate through the product's public entry points first (CLI command, API call, UI interaction). If a criterion can only be proven by reaching into internals (calling private functions, importing internal modules, asserting on call structure), the criterion may still conform, but the friction is itself a finding: the implementation resists verification through its public surface. Record it in the report's notes for `/review-pr` (Approach & Simplicity, design coupling), naming what was reached into and why no public path existed.
+Validate through the product's public entry points first (CLI command, API call, UI interaction). If a criterion can only be proven by reaching into internals (calling private functions, importing internal modules, asserting on call structure), the criterion may still conform, but the difficulty is itself a finding: the implementation resists verification through its public surface. Record it in the report's notes for `/review-pr` (Approach & Simplicity, design coupling), naming what was reached into and why no public path existed.
 
 #### Behavior criteria
 
@@ -430,7 +430,7 @@ fi
 
 | Mode | Response |
 |------|----------|
-| **No linked issue, or no parseable acceptance criteria** | Save a comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims in a vacuum |
+| **No linked issue, or no parseable acceptance criteria** | Save a comment asking author to link an issue with acceptance criteria (or list them explicitly), stop. Do not verify PR claims with no issue to check them against |
 | **PR description has no claims** | Proceed; criteria drive verification, claims are optional hints. Note the absence of claims in the report |
 | **Worktree creation fails** | Stop |
 | **Build fails** | Note it and stop; CI would typically catch this first. Do not report as a conformance finding |

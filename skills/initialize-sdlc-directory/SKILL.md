@@ -7,7 +7,7 @@ argument-hint: "[project-root]"
 # Initialize SDLC Directory
 
 Creates the `.sdlc/` directory structure in the project root (or `$1` if provided) and populates it with default templates.
-Already-existing files are never overwritten — this is safe to run on a project that has partially adopted the structure.
+Files that already exist are never overwritten — this is safe to run on a project that has partially adopted the structure.
 
 ## Prerequisites
 

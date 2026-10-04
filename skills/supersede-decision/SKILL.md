@@ -38,7 +38,7 @@ A number resolves to the file `N-<slug>.md` in the decisions directory.
 - Refuse if `old-decision` is already `Deprecated` or `Superseded by [...]`. Terminal states cannot be re-superseded; point the caller at the live decision at the head of the chain instead.
 - Refuse if `new-decision` is `Deprecated` or `Superseded by [...]`. A retired decision cannot replace a live one.
 - Refuse if the two resolve to the same file.
-- Refuse a cycle: follow the `supersedes` links from `new-decision` and refuse if any reaches `old-decision` (i.e. the replacement already transitively supersedes the target).
+- Refuse a cycle: follow the `supersedes` links from `new-decision` and refuse if any reaches `old-decision` (i.e. the replacement already supersedes the target, directly or through another link).
 - Edit only status fields. Supersession is a lifecycle transition, not a content revision; do not rewrite context, options, or consequences.
 
 ## Output Format

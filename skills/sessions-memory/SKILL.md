@@ -7,7 +7,7 @@ description: "Turn AI agent sessions archived by agentsview into durable memory.
 
 Reads every AI coding session agentsview has synced from disk (Codex, OpenCode, Gemini, Copilot, and the dozens of other harnesses in its registry) out of the local SQLite archive, and turns them into the two memory layers defined by `para-memory-files`: daily timeline notes (Layer 2, the "when") and PARA entity facts (Layer 1, the durable knowledge graph).
 
-The script owns every deterministic decision: where the archive lives, which sessions are noise (automated runs, subagents, deleted), how incremental processing works, and how transcripts are grouped. The skill owns the judgment part: deciding what is actually worth remembering from each session.
+The script owns every deterministic decision: where the archive lives, which sessions are noise (automated runs, subagents, deleted), how incremental processing works, and how transcripts are grouped. The skill makes the judgment calls: deciding what is actually worth remembering from each session.
 
 ## Prerequisites
 
@@ -107,7 +107,7 @@ Follow the atomic-fact schema from `para-memory-files/references/schemas.md`:
 Never delete a fact; supersede it. Not every session yields a fact; when in
 doubt, the daily note is enough.
 
-For a deep dive on a single high-value session, pull its full detail:
+For a single high-value session, pull its full detail:
 
 ```bash
 uv run <skill_dir>/scripts/fetch_sessions.py show opencode:ses_abc123 --max-content 0

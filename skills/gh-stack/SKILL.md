@@ -120,7 +120,7 @@ none do.
 
 Without a method flag the last-used method is reused. If the base branch uses a merge queue, the
 stack is queued instead and the queue picks the method, ignoring any flag you passed with a
-warning; queued PRs may land in separate groups.
+warning; queued PRs may merge in separate groups.
 
 ## Reading state
 

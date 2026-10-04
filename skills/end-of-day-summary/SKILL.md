@@ -14,7 +14,7 @@ NEXT_WORKDAY=!`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "t
 
 # Generate End-of-Day Summary
 
-Produces structured summaries of GitHub and Slack activity for the current day, an overall accomplishments/blockers report, a timeline, and a standup draft for the next workday.
+Produces structured summaries of GitHub and Slack activity for the current day, a report of accomplishments and blockers, a timeline, and a standup draft for the next workday.
 
 ## Prerequisites
 
@@ -125,7 +125,7 @@ Run at end of Thursday. Generates 5 files; standup targets Friday's date.
 `NEXT_WORKDAY` resolves to the following Monday. Standup file is created for Monday.
 
 **Scenario 3: Light activity day**
-Few GitHub events and minimal Slack. Summaries are brief; Overall may have mostly empty sections except Accomplishments.
+Few GitHub events and minimal Slack. Summaries are brief; the Overall section may have mostly empty sections except Accomplishments.
 
 ## Useful Commands Reference
 

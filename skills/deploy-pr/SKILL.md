@@ -6,7 +6,7 @@ argument-hint: "<pr-number or merge-sha>"
 
 # Deploy PR
 
-Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists. Bridges the gap between merging code and having it running in production.
+Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists. Covers the step between merging code and having it running in production.
 
 ## Prerequisites
 

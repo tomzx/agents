@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Synthesize Feedback
 
-Combines the quantitative health report with qualitative signal from support tickets, sales conversations, NPS, reviews, and usage observations. The output (`feedback-loop.md`) is what the Measure gate reads to decide `double-down` / `iterate` / `sunset`, and it feeds back into Discover to close the PDLC loop.
+Combines the quantitative health report with qualitative signal from support tickets, sales conversations, NPS, reviews, and usage observations. The output (`feedback-loop.md`) is what the Measure gate reads to decide `double-down` / `iterate` / `sunset`, and it feeds back into Discover to complete the PDLC loop.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ Combines the quantitative health report with qualitative signal from support tic
 1. Gather qualitative signal across channels: support tickets, sales/CS notes, NPS verbatims, reviews, in-product feedback. Time-box the window to match the health report.
 2. Code the feedback into themes, each with a frequency and a severity. Separate "the thing doesn't work" (defects) from "the thing isn't valuable" (problem-fit).
 3. Cross-reference with the health report: does the qualitative story agree with the numbers? Where they disagree, that disagreement is itself a finding.
-4. Identify the highest-leverage next problem to solve (the candidate input to the next Discover cycle).
+4. Identify the next problem with the highest leverage to solve (the candidate input to the next Discover cycle).
 5. Recommend the gate verdict: `double-down` (scale what works), `iterate` (tune based on feedback), or `sunset` (the value isn't there).
 6. Write `feedback-loop.md` to the initiative directory.
 

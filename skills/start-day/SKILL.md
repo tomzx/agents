@@ -11,7 +11,7 @@ DAY=!`date +%d`
 
 # Start Day
 
-Frames the day before deep work: confirm priorities, first focus block, and blockers to surface early.
+Plans the day before deep work: confirm priorities, the first focus block, and blockers to raise early.
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ Produce a short brief:
 
 - **Top 3 outcomes** for today (from standup + goals; resolve conflicts explicitly)
 - **First 60 to 90 minutes** (single concrete focus, no meeting multitasking)
-- **Blockers or asks** to send before others go heads-down
+- **Blockers or asks** to send before others start focused work
 - **One thing to protect or decline** if the day looks overloaded
 
 If standup is missing, derive top 3 from goals and anything the user says is urgent.

@@ -88,10 +88,10 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
    - Optionally check the commits added since the comment for citation: `gh pr view $1 --json commits --jq '.commits[].oid'`.
 
 4. Assign a verdict per thread:
-   - **Addressed**: the code now satisfies the comment correctly (not a cosmetic rename that dodges the issue). If the comment asked for tests, tests exist and plausibly cover the case.
+   - **Addressed**: the code now satisfies the comment correctly (not a cosmetic rename that avoids the issue). If the comment asked for tests, tests exist and plausibly cover the case.
    - **Partially addressed**: part of the request is done, part remains. Record precisely what remains.
    - **Not addressed**: no meaningful change and no substantive author reply.
-   - **Rebuttal**: the author replied explaining why the change will not be made. Evaluate the justification on its merits; if it is sound (style preference, out of scope, documented trade-off), accept it; otherwise prepare a counter-argument citing code or requirements.
+   - **Rebuttal**: the author replied explaining why the change will not be made. Evaluate the justification on its facts; if it is sound (style preference, out of scope, documented trade-off), accept it; otherwise prepare a counter-argument citing code or requirements.
 
 5. Present a verdict table to the user for approval: thread, comment summary, verdict, and the proposed reply or resolve action.
 
@@ -109,7 +109,7 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
 
    If it exits 1, present the drafted replies and the resolve list to the user without posting or resolving.
 
-7. If every thread is resolved and your latest review was `CHANGES_REQUESTED` (check `gh pr view $1 --json reviews`), the PR is unblocked from your side: suggest running `/quick-pr-review <owner>/<repo> $1` to re-review and approve the new commit, or run `ghx pr review submit $1 --event APPROVE --body "..."` directly when the user prefers an immediate approval.
+7. If every thread is resolved and your latest review was `CHANGES_REQUESTED` (check `gh pr view $1 --json reviews`), the PR is no longer blocked from your side: suggest running `/quick-pr-review <owner>/<repo> $1` to re-review and approve the new commit, or run `ghx pr review submit $1 --event APPROVE --body "..."` directly when the user prefers an immediate approval.
 
 ## Example Usage
 

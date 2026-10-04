@@ -36,7 +36,7 @@ Audits an assumption validation report and reports findings across five categori
 - Was each experiment the cheapest decisive test available for the assumption?
 - Was a pass/fail threshold set before running each experiment, not after?
 - Did each experiment actually test the stated assumption, or did it test something adjacent?
-- Were spike experiments kept minimal and disposable, not creeping toward implementation?
+- Were spike experiments kept minimal and disposable, not growing into implementation work?
 
 ### Result Rigor
 - Are results backed by concrete evidence (test output, measurements, API responses) rather than "seems to work"?

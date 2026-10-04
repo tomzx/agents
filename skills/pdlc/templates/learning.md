@@ -12,7 +12,7 @@ status: draft
 
 ## Keep (what worked, repeat)
 
-- <Item> — **root cause:** <why it worked>
+- <Item> — **root cause:** <the reason it worked>
 
 ## Stop (never do again)
 
@@ -20,7 +20,7 @@ status: draft
 
 ## Start (new actions to try)
 
-- <Item> — **root cause:** <the insight driving it>
+- <Item> — **root cause:** <the reason for it>
 
 ## Traceability
 

@@ -10,11 +10,11 @@ Orchestrates the full PDLC loop by invoking phase skills in sequence.
 Each phase consumes the previous phase's artifact and ends in a gate (`make-decision`) with verdict `proceed` / `pivot` / `kill`.
 Pass an optional phase name to enter the loop at a specific stage.
 
-PDLC wraps SDLC: it decides *whether* and *what* to build, hands the *how* off to SDLC at `define-acceptance`, then closes the loop with launch and measurement.
+PDLC wraps SDLC: it decides *whether* and *what* to build, hands the *how* off to SDLC at `define-acceptance`, then finishes the loop with launch and measurement.
 
 ## When to Use `/pdlc` vs Individual Skills
 
-- Use **`/pdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases, manage gates and backtracking, and maintain run state.
+- Use **`/pdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases, manage gates and backtracking, and keep run state.
 The PDLC phase skills are **internal sub-skills** bundled under this `pdlc` skill at `skills/pdlc/skills/<name>/SKILL.md`. They are not individually discovered as slash commands, so only `/pdlc` is directly invocable; the orchestrator loads each phase by reading its file (see *Load Each Phase Sub-Skill* below).
 
 ## Load Each Phase Sub-Skill (mandatory)
@@ -32,7 +32,7 @@ The PDLC loop — 6 phases (entry: problem → measure)
   Phase 1 — Discover (divergent: find problems worth solving)
   discover-problems     Synthesize JTBD, interviews, and problem statements
   research-market       Size the market, map trends and segments
-  analyze-competition    Map the competitive landscape and positioning gaps
+  analyze-competition    Map the competitive field and positioning gaps
   frame-opportunities    Build an opportunity-solution tree, scored
           │
           ▼  GATE (make-decision: proceed / pivot / kill)
@@ -73,10 +73,10 @@ The PDLC loop — 6 phases (entry: problem → measure)
 
 Cross-cutting (invoke at any point)
 
-  make-decision          The gate mechanism — one decision record, reused at every transition
+  make-decision          The gate mechanism — one decision record reused at every transition
   kill-initiative        Explicit sunset-or-pivot: reallocate capacity, notify stakeholders
   brief-stakeholders     Exec summary, status update, stakeholder map
-  audit-outcomes         Trace shipped outcomes back to the original problem and metrics (PDLC backpropagation)
+  audit-outcomes         Trace shipped outcomes back to the original problem and metrics (PDLC's reverse trace)
   manage-portfolio       Health across multiple initiatives/products
 
 Setup (run once per project, no dependencies on the loop)
@@ -145,7 +145,7 @@ When `PDLC_DIR` is set, the same tree can also live (or be mirrored) outside the
 | `discover` | A vague problem area, signal, or metric regression to turn into structured problems and opportunities |
 | `validate` | A framed opportunity ready to test before building |
 | `strategy` | A validated opportunity ready to turn into vision, goals, and a roadmap |
-| `define` | A prioritized opportunity ready to become a PRD and acceptance contract (handoff to SDLC) |
+| `define` | A prioritized opportunity ready to become a PRD and acceptance contract (handed off to SDLC) |
 | `launch` | A built/shipped change ready for go-to-market planning |
 | `measure` | A launched initiative whose outcomes need to be read and closed |
 | `sunset` | An initiative that is net-negative and ready for an end-of-life plan |
@@ -167,9 +167,9 @@ initiative: null                # N-<slug> directory name if one has been create
 last_gate: null                 # verdict of the most recent gate (proceed/pivot/kill)
 ```
 
-- **On first entry**: create `.pdlc/state.yml`, populating `current_phase` with the entry point and `github_ref` if known.
+- **On first entry**: create `.pdlc/state.yml`, filling `current_phase` with the entry point and `github_ref` if known.
 - **After each phase completes**: update `current_phase` to the next phase. This is the single rule: `current_phase` always holds what comes next.
-- **When an initiative directory is created**: populate `initiative`.
+- **When an initiative directory is created**: fill `initiative`.
 - **After each gate**: set `last_gate` to the verdict.
 - **On loop completion**: set `current_phase` to `complete`.
 
@@ -201,8 +201,8 @@ initiatives/*/progress.md
    - `pivot` → return to the phase named in the decision body and re-run that skill in revision mode.
    - `kill` → invoke `kill-initiative` and stop the loop.
 10. After the gate resolves to `proceed`, update `.pdlc/state.yml` (`current_phase`, `initiative`, `last_gate`) and update the initiative's `progress.md`.
-11. At the SDLC seam (`define-acceptance`): the acceptance contract is the handoff. Note that SDLC owns the build; PDLC resumes at `launch` once the change is shipped. Do not run SDLC skills from within PDLC; point the user to `/sdlc requirements` with the acceptance contract as input.
-12. At the end of Measure, the gate is `double-down` / `iterate` / `sunset`. `iterate` routes back to Discover with the feedback artifact as input (the loop closes). `sunset` invokes `sunset-product`.
+11. At the SDLC handoff (`define-acceptance`): the acceptance contract is the handoff. Note that SDLC owns the build; PDLC resumes at `launch` once the change is shipped. Do not run SDLC skills from within PDLC; point the user to `/sdlc requirements` with the acceptance contract as input.
+12. At the end of Measure, the gate is `double-down` / `iterate` / `sunset`. `iterate` routes back to Discover with the feedback artifact as input (the loop restarts). `sunset` invokes `sunset-product`.
 13. When the session ends, write a session boundary marker to `progress.md`.
 
 ### Automatic Resume (entry: `continue`)
@@ -215,7 +215,7 @@ initiatives/*/progress.md
 
 ### Progress Tracking
 
-The `progress.md` file in each initiative directory is the single source of truth for initiative status, updated after each phase and gate.
+The `progress.md` file in each initiative directory is the single source of truth for initiative status, and it is updated after each phase and gate.
 
 **Session Boundary Markers:** at the start and end of every session, write a brief entry to the Session Log in `progress.md` (date, what was accomplished / planned, where to pick up next). Update `re_entry_point` on session end so the next session resumes cleanly.
 

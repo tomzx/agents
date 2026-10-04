@@ -7,7 +7,7 @@ argument-hint: "[repository]"
 
 # Prioritize Issues
 
-Scores and ranks open GitHub issues using the RICE framework (Reach, Impact, Confidence, Effort) to produce a prioritized backlog ordered by highest value first.
+Scores and ranks open GitHub issues using the RICE framework (Reach, Impact, Confidence, Effort) to produce a backlog sorted by highest value first.
 
 ## Prerequisites
 

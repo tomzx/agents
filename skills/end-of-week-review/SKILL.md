@@ -11,7 +11,7 @@ NEXT_WEEK=!`date -d "next Monday" +%V`
 
 # End-of-Week Review
 
-Guides a structured weekly reflection connecting your week's work to goals, surfacing patterns in how you spent your time and attention, checking on team health, and deciding what to change next week.
+Guides a structured weekly reflection connecting your week's work to goals, showing patterns in how you spent your time and attention, checking on team health, and deciding what to change next week.
 
 ## Prerequisites
 
@@ -63,7 +63,7 @@ Capture the audit output; it becomes the `## Attention Allocation` section of th
 Present a summary of the synthesized patterns and the attention audit results, then ask the user the following questions in a single message:
 
 1. What were your top 3 goals for the week? Rate progress on each (0%, 25%, 50%, 75%, 100%).
-2. What was the highest-leverage thing you did this week? What made it possible?
+2. What was the most impactful thing you did this week? What made it possible?
 3. What consumed time that, in hindsight, you should have declined, delegated, or deferred?
 4. Which team member needs more from you next week? Which is set up to do their best work?
 5. What one behavior or habit would make next week meaningfully better?
@@ -154,10 +154,10 @@ date: {TODAY}
 ## Example Usage
 
 **Scenario 1: Goal-aligned week**
-Daily reviews show mostly proactive work. Goal table shows 75-100% on priorities. Review confirms the pattern and surfaces one area (a recurring meeting) to cut.
+Daily reviews show mostly proactive work. Goal table shows 75-100% on priorities. Review confirms the pattern and identifies one area (a recurring meeting) to cut.
 
 **Scenario 2: Reactive week**
-Most days scored 4-5 on reactivity. Goal progress is low. Review surfaces the drift clearly, names the source of interruptions, and proposes one structural change (e.g., block focus time each morning).
+Most days scored 4-5 on reactivity. Goal progress is low. Review shows the drift clearly, names the source of interruptions, and proposes one structural change (e.g., block focus time each morning).
 
 **Scenario 3: Team concern surfaced**
 Colleague summary shows a team member is absent from key discussions. Review flags it, user notes they should check in, action carries forward to next week.

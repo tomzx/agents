@@ -69,7 +69,7 @@ Two resolution paths:
 - **Keep the local version.** Remove the grouping on GitHub, then recreate it from local state.
 
   ```bash
-  gh stack unstack                  # removes the grouping; PRs and branches survive
+  gh stack unstack                  # removes the grouping; PRs and branches are not deleted
   gh stack submit --auto
   ```
 
@@ -90,7 +90,7 @@ gh stack submit --auto                 # re-link on GitHub
 ```
 
 `init` adopts branches that already exist, so the rebuild reuses them rather than creating new ones.
-Existing PRs survive. Once Git ancestry is correct, `submit` updates their base branches and
+Existing PRs are not deleted. Once Git ancestry is correct, `submit` updates their base branches and
 re-links the stack on GitHub.
 
 Changing metadata does **not** change Git ancestry. Reorder commits first, then rebuild the stack.
@@ -126,7 +126,7 @@ problem entirely, since they do not infer the stack from the current branch.
 
 ## Driving stacks from another tool or worktree
 
-`gh stack link` creates and updates stacks purely through the API, with no local tracking state.
+`gh stack link` creates and updates stacks only through the API, with no local tracking state.
 Use it when branches are managed by jj, Sapling, git-town, a separate worktree, or any workflow
 where the local `.git/gh-stack` file would be wrong or absent.
 

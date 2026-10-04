@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Complexity Hotspots
 
-Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions. Pairs naturally with `/analyze-git-churn`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
+Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions. This pairs well with `/analyze-git-churn`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
 
 ## Prerequisites
 
@@ -110,7 +110,7 @@ find ${1:-.} -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*
 
 ### 6. Rank and Deduplicate
 
-Build a unified hotspot list. Score each file/function: +1 for each threshold exceeded, weighted by severity. Deduplicate so each file appears once in the summary with all its violations listed.
+Build a unified hotspot list. Score each file/function: +1 for each threshold exceeded, weighted by severity. Remove duplicates so each file appears once in the summary with all its violations listed.
 
 ### 7. Inspect Each Hotspot
 

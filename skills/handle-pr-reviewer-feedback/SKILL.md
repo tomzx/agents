@@ -45,7 +45,7 @@ Markdown with YAML frontmatter. Keys:
 - `decided_at` — set alongside `decision`.
 - `session_link` — the standard session link from `shared.md`.
 
-The body carries the verbatim comment, an analysis grounded in `file:line` read from the PR head (not from the comment's own description of the code), a recommended action, a draft reply, and an optional suggested change.
+The body carries the verbatim comment, an analysis based on `file:line` read from the PR head (not from the comment's own description of the code), a recommended action, a draft reply, and an optional suggested change.
 
 ### Decision vocabulary
 

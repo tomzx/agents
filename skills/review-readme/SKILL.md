@@ -9,7 +9,7 @@ Audits a `README.md` and reports findings across six categories: template confor
 Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix.
 
 `/review-documentation` audits the wider documentation tree.
-This skill is the README-specific gate: it checks the fixed README template, badge correctness, and the getting-started path, which the general documentation review does not cover in depth.
+This skill handles the README specifically: it checks the fixed README template, badge correctness, and the getting-started path, which the general documentation review does not cover in depth.
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ This skill is the README-specific gate: it checks the fixed README template, bad
 ### Usability
 - Can a new user reach a working result from Getting Started in under 5 minutes?
 - Are Install steps copy-pasteable and free of unstated prerequisites?
-- Is the README scannable (clear headings, no wall of text)?
+- Is the README scannable (clear headings, no dense unbroken text)?
 - Are screenshots or examples present and relevant where they aid understanding?
 
 ### Hygiene

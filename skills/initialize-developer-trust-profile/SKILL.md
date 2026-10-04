@@ -139,7 +139,7 @@ Fetches the last 10 PRs by alice across merged and closed-unmerged PRs anywhere 
 /initialize-developer-trust-profile bob 25
 ```
 
-Processes 25 PRs for a more grounded profile (still cross-repo).
+Processes 25 PRs for a profile based on a larger sample (still cross-repo).
 
 **Scenario 3: Limit to specific organizations**
 

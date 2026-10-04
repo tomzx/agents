@@ -76,7 +76,7 @@ Report the limitation and continue with the remaining phases.
 
 Run `/sync-sdlc` (passing `$1` if provided).
 
-This creates the `.sdlc/` directory tree (if absent) and populates context files with real content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml` (if the project uses a database), and feature directories with `requirements.md` and `specification.md`.
+This creates the `.sdlc/` directory tree (if absent) and populates context files with content derived from the codebase: `project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml` (if the project uses a database), and feature directories with `requirements.md` and `specification.md`.
 
 If `.sdlc/` already exists, report what is already present and skip to verifying completeness.
 If any context file still contains `<…>` placeholders, fill them in from the codebase.
@@ -137,7 +137,7 @@ grep -c "." README.md 2>/dev/null
 If README.md is missing or minimal, run `/create-readme`.
 If README.md exists and is substantive, skip and report.
 
-Generating the README before the health assessment ensures that `find-documentation-gaps` can account for the new README content and avoid flagging a missing README as a finding.
+Generating the README before the health assessment ensures that `find-documentation-gaps` can account for the new README content and avoid reporting a missing README as a finding.
 
 ### 5. Phase 4 — Repository Health Assessment
 
@@ -169,7 +169,7 @@ For each skill, run it and collect the output.
 If a skill fails due to missing tools (e.g., `vulture` not installed), note the failure, suggest the installation command, and continue with the next skill.
 
 Aggregate all findings into a single health report, deduplicating across skills.
-For example, a file flagged by both `analyze-git-churn` and `find-complexity-hotspots` should appear once with combined context.
+For example, a file reported by both `analyze-git-churn` and `find-complexity-hotspots` should appear once with combined context.
 
 ### 6. Phase 5 — Create Issues from Findings
 

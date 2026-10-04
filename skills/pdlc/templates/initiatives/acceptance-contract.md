@@ -8,7 +8,7 @@ spawns_features: []   # FEAT-N ids this initiative decomposes into
 
 # Acceptance Contract: <title>
 
-This is the seam between PDLC and SDLC. SDLC's create-requirements consumes it.
+This is the boundary between PDLC and SDLC. SDLC's create-requirements consumes it.
 
 ## Acceptance Criteria
 

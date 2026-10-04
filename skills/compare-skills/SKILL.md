@@ -45,7 +45,7 @@ Patterns in "mine" that "theirs" has evolved away from or that are demonstrably 
 
 ## What Counts as a Disagreement
 
-Conflicting instructions that pull the agent in different directions. These are higher priority than removal candidates because they actively cause wrong behavior.
+Conflicting instructions that give the agent incompatible guidance. These are higher priority than removal candidates because they actively cause wrong behavior.
 
 | Scope | What to Detect | Example |
 |-------|---------------|---------|

@@ -19,7 +19,7 @@ ones with a checkmark (`:white_check_mark:`) reaction. The checkmark is both the
 human-visible signal in Slack and the marker that lets future runs skip threads
 they've already judged, so the work is incremental and cheap to repeat.
 
-The judgement is the heart of this skill, and it needs a model reading the
+The judgement is the core of this skill, and it needs a model reading the
 actual conversation — not a keyword match. The tooling exists only to get the
 thread text in front of you and to record the verdict.
 
@@ -124,7 +124,7 @@ helper's `check` action queries the live reaction directly:
 **c. Judge whether it reached a satisfactory conclusion.** This is your call as
 a reader, not a keyword search. A thread is **resolved** when the original ask
 got a clear answer, fix, decision, or acknowledgement, and no open follow-up
-question is left dangling. Lean on the shape of the conversation:
+question is left. Look at the shape of the conversation:
 
 - A question that received a direct, accepted answer (often with a "thanks",
   a reaction, or the asker confirming) — resolved.
@@ -136,7 +136,7 @@ Leave it **unresolved** when:
 
 - The last message is an unanswered question directed at me or the group.
 - Someone is waiting on a reply, a fix, or a decision that never came.
-- The thread just trails off mid-discussion with the core ask still open.
+- The thread just fades out mid-discussion with the core ask still open.
 
 When it's genuinely ambiguous, prefer leaving it unresolved — a stray checkmark
 hides a thread that may still need attention, which is worse than re-reading a
@@ -172,8 +172,8 @@ Scanned N threads (S already resolved and skipped).
 - <#channel> "<short topic>": <why it's ambiguous>  <permalink>
 ```
 
-Put the "Still needs you" section first in spirit — that's the actionable part.
-Always include permalinks for anything not resolved so the user can jump
+Put the "Still needs you" section first — that's the actionable part.
+Always include permalinks for anything not resolved so the user can go
 straight to it.
 
 ## Notes on cost and safety

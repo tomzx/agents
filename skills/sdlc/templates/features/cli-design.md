@@ -106,7 +106,7 @@ status: draft
 ## Example Sessions
 
 Transcripts of the intended experience.
-A reader should understand what using the CLI feels like from these alone.
+A reader should understand the experience of using the CLI from these alone.
 Cover a happy path, at least one error path, and (when relevant) a confirmation exchange and a piping example.
 
 ### <Session name, e.g., first run>

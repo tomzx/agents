@@ -13,7 +13,7 @@ session_link: "<filled by skill>"
 
 ## Context
 
-<Describe the situation and forces at play. What problem does this decision address?
+<Describe the situation and the factors involved. What problem does this decision address?
 Include relevant constraints: performance, security, team capability, deadlines, existing architecture.>
 
 ## Options Considered

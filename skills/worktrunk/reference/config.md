@@ -35,7 +35,7 @@ $ wt config show
 | **User config** | `~/.config/worktrunk/config.toml` | Worktree path template, LLM commit configs, etc | ✗ |
 | **Project config** | `.config/wt.toml` | Project hooks, dev server URL | ✓ |
 
-Organizations can deploy a system-wide config file for shared defaults — run `wt config show` for the platform-specific location.
+Organizations can distribute a system-wide config file for shared defaults — run `wt config show` for the platform-specific location.
 
 **User config** — personal preferences:
 
@@ -862,7 +862,7 @@ Worktrunk detects the default branch automatically:
 3. **Remote query** — If not cached, queries `git ls-remote` — typically 100ms–2s
 4. **Local inference** — If no remote, infers from local branches
 
-Once detected, the result is cached in `worktrunk.default-branch` for fast access.
+Once detected, the result is cached in `worktrunk.default-branch` for later use.
 
 The local inference fallback uses these heuristics in order:
 - If only one local branch exists, uses it
@@ -935,7 +935,7 @@ Hook output lives in per-branch subtrees under `.git/wt/logs/{branch}/`:
 | Background hooks | `{branch}/{source}/{hook-type}/{name}.log` |
 | Background removal | `{branch}/internal/remove.log` |
 
-All `post-*` hooks (post-start, post-switch, post-commit, post-merge) run in the background and produce log files. Source is `user` or `project`. Branch and hook names are sanitized for filesystem safety (invalid characters → `-`; short collision-avoidance hash appended). Same operation on same branch overwrites the previous log. Removing a branch clears its subtree; orphans from deleted branches can be swept with `wt config state logs clear`.
+All `post-*` hooks (post-start, post-switch, post-commit, post-merge) run in the background and produce log files. Source is `user` or `project`. Branch and hook names are sanitized for filesystem safety (invalid characters → `-`; short collision-avoidance hash appended). Same operation on same branch overwrites the previous log. Removing a branch clears its subtree; logs left behind by deleted branches can be removed with `wt config state logs clear`.
 
 #### Diagnostic files
 
@@ -1155,7 +1155,7 @@ Global Options:
 
 Custom variables per branch.
 
-Store custom variables per branch. Values are stored as-is — plain strings or JSON.
+Store custom variables per branch. Values are stored as-is — plain strings or JSON (no type conversion).
 
 ### Examples
 

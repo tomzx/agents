@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Documentation Gaps
 
-Identifies public-facing code — functions, classes, modules, CLI commands, REST endpoints, and config options — that is missing or has stale documentation. Ranks gaps by how visible and heavily-used the surface area is, so the most impactful docs get written first.
+Identifies public-facing code — functions, classes, modules, CLI commands, REST endpoints, and config options — that is missing documentation or has stale documentation. Ranks gaps by how visible and heavily-used the surface area is, so the most useful docs get written first.
 
 ## Prerequisites
 

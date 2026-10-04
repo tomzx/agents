@@ -193,7 +193,7 @@ clear --> chaotic : "Complacency"
 ```
 
 - Domain blocks (`complex`, `complicated`, `clear`, `chaotic`, `confusion`) hold quoted items.
-- Transitions use `domain --> domain : "label"`; the clear-to-chaotic cliff transition is typical.
+- Transitions use `domain --> domain : "label"`; the transition from clear to chaotic is typical.
 - Newer type (11.16+); not supported on GitHub.
 
 ## Wardley Maps (`wardley-beta`)

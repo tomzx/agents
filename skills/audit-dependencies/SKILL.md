@@ -75,7 +75,7 @@ cargo audit
 
 ### 3. Check for Outdated Packages
 
-**Forward compatibility check — version range strategy:** review how each dependency is constrained. Ranges with no upper bound can pull a breaking major on resolve; over-pinning to an exact patch blocks security upgrades and future evolution. Flag ranges that are unsafe for forward compatibility and recommend upper bounds or caret/tilde constraints that allow additive upgrades.
+**Forward compatibility check — version range strategy:** review how each dependency is constrained. Ranges with no upper bound can pull a breaking major version on resolve; over-pinning to an exact patch blocks security upgrades and future upgrades. Flag ranges that are unsafe for forward compatibility and recommend upper bounds or caret/tilde constraints that allow additive upgrades.
 
 **Python (uv):**
 ```
@@ -114,7 +114,7 @@ pip show <package> | rg Home-page
 # Then check: last release on PyPI, GitHub archive status, deprecation notices
 ```
 
-Signals of abandonment:
+Signs of abandonment:
 - No release in the past 24 months
 - Repository archived on GitHub
 - PyPI page shows "This project has been archived"

@@ -21,7 +21,7 @@ A launch fails in the field when sales, support, and customer success cannot exp
    - **Support:** what it does, known limitations, how to troubleshoot common issues, escalation path.
    - **Customer success:** migration/transition guidance for existing customers.
 3. Run a dry-run or review with a representative from each team; capture what they could not answer.
-4. Fill the gaps until a front-line team member can handle the common cases unaided.
+4. Fill the gaps until a front-line team member can handle the common cases alone.
 5. Write `enablement-kit.md` to the initiative directory (it can reference separate asset files).
 
 ## Output Format

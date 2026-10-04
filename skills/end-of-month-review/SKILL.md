@@ -13,7 +13,7 @@ PREV_MONTH_NAME=!`date -d "last month" +%B`
 
 # End-of-Month Review
 
-Guides a structured monthly retrospective that connects work patterns to goals and OKRs, surfaces trends in time and attention allocation, assesses team trajectory, and produces concrete focus adjustments for the next month.
+Guides a structured monthly retrospective that connects work patterns to goals and OKRs, shows trends in time and attention allocation, assesses team trajectory, and produces concrete focus adjustments for the next month.
 
 ## Prerequisites
 
@@ -137,10 +137,10 @@ These items appeared in multiple weekly reviews without resolution:
 ## Example Usage
 
 **Scenario 1: OKR-driven month**
-User has formal OKRs. Review maps each OKR to a trajectory curve, surfaces two that stalled despite intent, and produces a focused plan for next month with one OKR explicitly deprioritized.
+User has formal OKRs. Review maps each OKR to a trajectory curve, shows two that stalled despite intent, and produces a focused plan for next month with one OKR explicitly deprioritized.
 
 **Scenario 2: Pattern of reactive work**
-Across four weekly reviews, reactive work averaged 60%. Review surfaces it clearly, names the source (a recurring escalation pattern), and produces one structural change to trial next month.
+Across four weekly reviews, reactive work averaged 60%. Review shows it clearly, names the source (a recurring escalation pattern), and produces one structural change to trial next month.
 
 **Scenario 3: Team member at risk**
 Three consecutive weekly team health tables show a team member as "blocked" or absent. Monthly review makes the pattern undeniable. User commits to a direct 1:1 conversation as the primary action.

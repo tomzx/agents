@@ -25,7 +25,7 @@ echo "say hello" | <your-configured-command>
 
 Common issues:
 - **API key not set**: Each tool has its own auth mechanism
-- **Model not available**: Check model name with the tool's help
+- **Model not available**: Check the model name with the tool's help
 - **Network issues**: Check internet connectivity
 
 ### Config not loading
@@ -85,7 +85,7 @@ wt list timed out after 120s (170 results received); blocked tasks:
   <branch>: working-tree-diff, working-tree-conflicts
 ```
 
-Both tasks run `git status --porcelain` first. When the named worktree has `core.fsmonitor=true` and its `git fsmonitor--daemon` is wedged, `git status` blocks until the IPC attempt fails (several minutes), and the 120s drain deadline fires first.
+Both tasks run `git status --porcelain` first. When the named worktree has `core.fsmonitor=true` and its `git fsmonitor--daemon` is hung, `git status` blocks until the IPC attempt fails (several minutes), and the 120s drain deadline fires first.
 
 Confirm by running `git status` in the affected worktree:
 
@@ -108,7 +108,7 @@ Sockets listed as bare `fsmonitor--daemon.ipc` (no resolved path) belong to dele
 
 `wt remove` also force-terminates the removed worktree's own daemon as part of the synchronous teardown — it sends `git fsmonitor--daemon stop`, then resolves the daemon's PID from its IPC socket and SIGTERM/SIGKILLs it if it didn't exit. So removing a worktree never leaves a daemon behind, even one that has stopped answering its IPC.
 
-The residual case both paths deliberately leave is a wedged daemon on a *live* worktree that is never removed: `git status` in that worktree blocks on the unresponsive IPC, but the daemon still serves a real worktree, so reaping it implicitly is out of scope. Terminate it manually: kill the daemon whose socket path matches the worktree, or `pkill -9 -f 'git fsmonitor--daemon'` and let the next `wt list` respawn the live ones. Disabling fsmonitor globally (`git config --global core.fsmonitor false`) avoids the class of problem entirely at the cost of some `git status` speed on large repos.
+The residual case both paths deliberately leave is a hung daemon on a *live* worktree that is never removed: `git status` in that worktree blocks on the unresponsive IPC, but the daemon still serves a real worktree, so reaping it implicitly is out of scope. Terminate it manually: kill the daemon whose socket path matches the worktree, or `pkill -9 -f 'git fsmonitor--daemon'` and let the next `wt list` respawn the live ones. Disabling fsmonitor globally (`git config --global core.fsmonitor false`) avoids this class of problem entirely at the cost of some `git status` speed on large repos.
 
 ## PowerShell on Windows
 

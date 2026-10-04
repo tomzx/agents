@@ -43,6 +43,6 @@ phase: launch
 
 ## Rollback / Pause Plan
 
-- **Trigger:** <what would cause a pull-back>
+- **Trigger:** <what would cause a rollback>
 - **Authority:** <who decides>
 - **Action:** <what happens>

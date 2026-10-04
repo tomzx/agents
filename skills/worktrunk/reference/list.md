@@ -93,7 +93,7 @@ The CI column shows GitHub/GitLab pipeline status:
 | `⚠` yellow | Fetch error (rate limit, network) |
 | (blank) | No upstream or no PR/MR |
 
-CI indicators are clickable links to the PR or pipeline page. Any CI dot appears dimmed when unpushed local changes make the status stale. PRs/MRs are checked first, then branch workflows/pipelines for branches with an upstream. Local-only branches show blank; remote-only branches — visible with `--remotes` — get CI status detection. Results are cached for 30-60 seconds; use `wt config state` to view or clear.
+CI indicators are clickable links to the PR or pipeline page. Any CI dot appears dimmed when unpushed local changes make the status out of date. PRs/MRs are checked first, then branch workflows/pipelines for branches with an upstream. Local-only branches show blank; remote-only branches — visible with `--remotes` — get CI status detection. Results are cached for 30-60 seconds; use `wt config state` to view or clear.
 
 ### LLM summaries [experimental]
 
@@ -137,7 +137,7 @@ These appear across all columns while the table is loading:
 
 | Symbol | Meaning |
 |--------|---------|
-| `·` | Data is loading, or collection timed out / branch too stale |
+| `·` | Data is loading, or collection timed out / branch no longer current |
 
 ---
 

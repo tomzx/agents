@@ -31,7 +31,7 @@ The premise is that a skill written from scratch is usually weaker than one buil
 
 ## What Counts as a Strong Synthesis
 
-A good synthesis takes the strongest part from each candidate and welds them into one coherent skill, not a patchwork of copied sections.
+A good synthesis takes the strongest part from each candidate and combines them into one coherent skill, not a patchwork of copied sections.
 
 | Quality | What to Look For |
 |---------|------------------|
@@ -45,9 +45,9 @@ A good synthesis takes the strongest part from each candidate and welds them int
 
 | Anti-pattern | Why to Avoid |
 |--------------|--------------|
-| Wholesale copy of one candidate | Defeats the point of synthesis and imports the candidate's weaknesses wholesale |
+| Wholesale copy of one candidate | Defeats the purpose of synthesis and imports the candidate's weaknesses wholesale |
 | Pasting sections back to back | Produces a patchwork with duplicated instructions, shifting voice, and broken cross-references |
-| Speculative features the candidates lacked | Inflates the skill with unproven edge cases; add only what the candidates justify |
+| Speculative features the candidates lacked | Makes the skill larger with unproven edge cases; add only what the candidates justify |
 | Renaming the concept mid-flight | Breaks the filename, frontmatter name, and README entry in one go |
 | Importing external dependencies | A skill only works if it relies on tools already available in this environment |
 | Installing candidates into this library | `npx skills add` writes into the project's `.agents/skills/`, and its global scope (`-g`) resolves to `~/.agents/skills`, which on this machine is a symlink to this repository; a global install therefore lands in `skills/<name>/` and overwrites any skill of the same name. Fetch candidates into a temp directory instead |
@@ -62,7 +62,7 @@ SKILL=$1
 
 If `$1` is empty, ask the user for the skill's purpose and propose a kebab-case name, then confirm. If `$1` already exists as a directory under `skills/`, stop and tell the user to run `/improve-skill $1` instead.
 
-Normalize the name to kebab-case if needed. Confirm the name does not collide:
+Normalize the name to kebab-case if needed. Confirm the name does not already exist:
 
 ```bash
 test -e "skills/$SKILL" && echo "::error::skills/$SKILL already exists" || echo "target: skills/$SKILL"
@@ -86,7 +86,7 @@ Read the `name` and `description` of every match and keep those whose purpose ge
 npx skills find "$SKILL"
 ```
 
-Also browse the [skills.sh leaderboard](https://skills.sh/) for well-known skills in the domain. Search only: never install candidates into this library (see Step 3).
+Also browse the [skills.sh leaderboard](https://skills.sh/) for well-known skills in the field. Search only: never install candidates into this library (see Step 3).
 
 Collect the top candidates (typically three to six). Record for each: source, install count, GitHub stars, and a one-line summary of what it does. Apply the `find-skills` quality bar: prefer official sources and 1K+ installs; be skeptical of repos under 100 stars.
 

@@ -160,7 +160,7 @@ Classify the change surface from the reproduction (mirrors `validate-implementat
   - `RECORD_SERVER_CMD` = the dev server command
 - **Neither / not determinable**: skip the recording.
 
-The recording must show the bug manifesting (the error, crash, or wrong output). Re-record with `--overwrite` if the first take does not demonstrate the defect.
+The recording must show the bug (the error, crash, or wrong output). Re-record with `--overwrite` if the first take does not demonstrate the defect.
 
 After a recording is produced, write a manifest so `validate-implementation` can replay the exact same demonstration on the fixed code:
 

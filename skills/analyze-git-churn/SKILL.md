@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Git Churn Analysis
 
-Analyzes the git commit history over a chosen period to surface the files that changed most frequently, then inspects each high-churn file and produces concrete, prioritized improvement suggestions.
+Analyzes the git commit history over a chosen period to find the files that changed most frequently, then inspects each high-churn file and produces concrete, prioritized improvement suggestions.
 
 ## Prerequisites
 
@@ -91,7 +91,7 @@ For each high-churn file, produce a focused set of suggestions drawn from the ca
 
 **Add Tests**
 - No test file exists alongside the file
-- High churn with few or no tests suggests the code is hard to reason about safely
+- High churn with few or no tests suggests the code is risky to change
 - Recommend specific test types: unit, integration, property-based, snapshot
 
 **Remove Dead Code**
@@ -105,7 +105,7 @@ For each high-churn file, produce a focused set of suggestions drawn from the ca
 
 **Replace with an Existing Library**
 - Custom implementations of things well-covered by standard or popular libraries
-- Examples: hand-rolled retry logic → `tenacity`; custom date parsing → `arrow` or `dateutil`; bespoke HTTP client → `httpx`
+- Examples: custom retry logic → `tenacity`; custom date parsing → `arrow` or `dateutil`; bespoke HTTP client → `httpx`
 
 **Replace a Library with a Better One**
 - Outdated, unmaintained, or poorly-typed dependencies
@@ -114,7 +114,7 @@ For each high-churn file, produce a focused set of suggestions drawn from the ca
 
 **Improve Structure / Architecture**
 - Circular imports between modules
-- Business logic leaking into I/O layers (routes, handlers, CLI entrypoints)
+- Business logic placed in I/O layers (routes, handlers, CLI entrypoints)
 - Configuration scattered across multiple files without a single source of truth
 
 **Documentation**
@@ -182,7 +182,7 @@ Suggest a concrete order of operations for addressing the findings.
 ```
 /analyze-git-churn
 ```
-Analyzes the past week. Finds `src/api/routes.py` (12 commits) and `src/db/queries.py` (9 commits) as top churners. Suggests splitting the 800-line routes file and replacing a hand-rolled connection-retry loop with `tenacity`.
+Analyzes the past week. Finds `src/api/routes.py` (12 commits) and `src/db/queries.py` (9 commits) as top churners. Suggests splitting the 800-line routes file and replacing a custom connection-retry loop with `tenacity`.
 
 **Scenario 2: Monthly view**
 ```

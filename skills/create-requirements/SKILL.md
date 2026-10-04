@@ -20,7 +20,7 @@ When the feature has a CLI surface, it delegates to `/create-cli-design` so the 
 
 1. Read and understand the input (feature brief, issue, or user story).
 2. Identify the goal: what problem is being solved and for whom.
-3. List functional requirements: behaviors the system must exhibit.
+3. List functional requirements: behaviors the system must show.
 4. List non-functional requirements: quality attributes (performance, security, availability, etc.).
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.

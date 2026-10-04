@@ -9,7 +9,7 @@ argument-hint: "[repository] [issue-number]"
 
 Captures visual proof that the implemented feature works, on the current working branch, **before** a pull request is opened. Presents the captured asset to the user for visual confirmation so problems are caught before review begins.
 
-This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../create-pr/SKILL.md), which is a pure consumer: `create-pr` detects the proof this skill writes and embeds it, but no longer captures recordings itself. Recording happens here, at human-review time, not inside PR creation.
+This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../create-pr/SKILL.md), which only consumes the proof: `create-pr` detects the proof this skill writes and embeds it, but no longer captures recordings itself. Recording happens here, at human-review time, not inside PR creation.
 
 `/verify-pr` is a different, later step: it verifies each acceptance criterion of an **already-open** PR by building and running it. (`/validate-pr`, also later, judges whether the PR targets the right product.) This skill validates the **implementation** on the branch with a single representative asset, before the PR exists.
 
@@ -19,7 +19,7 @@ This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../crea
 - If no argument is provided, use `$REPO` and link `$ISSUE_NUMBER`.
 - Implementation is complete on the current branch and tests pass (run `/create-implementation`, `/refactor-implementation`, and `/review-implementation` first).
 - The branch has commits ahead of the base branch.
-- For visual proof (best-effort): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the step is skipped with a clear note (it is never silently swallowed, because the whole point of this skill is to produce proof).
+- For visual proof (best-effort): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the step is skipped with a clear note (the failure is never hidden, because the whole point of this skill is to produce proof).
 
 ## Workflow
 
@@ -115,9 +115,9 @@ With no manifest present, capture one representative asset for the classified su
 
 - **CLI** → identify the CLI entry point from the codebase and pick one representative command that exercises the change. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_COMMAND` = the representative command.
 - **Web UI** → identify the dev server command (e.g. `npm run dev`) and the changed route. Read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the changed route, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the dev server command.
-- **none** → skip capture. Report that the change has no CLI or web surface to record and stop. This is not an error; it signals `create-pr` to omit the Visual proof section.
+- **none** → skip capture. Report that the change has no CLI or web surface to record and stop. This is not an error; it tells `create-pr` to omit the Visual proof section.
 
-This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
+This is a representative proof, not a demonstration of every claim (that is `/verify-pr`'s job).
 
 ### 3. Write the proof manifest
 
@@ -152,11 +152,11 @@ Then **pause and ask the user to open the asset and confirm the feature behaves 
 
 Under automation (no interactive user; `$OUTCOME_YAML` set or a non-interactive flag), skip the pause and proceed: capture + write manifest, then emit the verdict. Interactive use must wait for an explicit human "looks good" before signaling readiness for `create-pr`.
 
-If the user says the feature is wrong, incomplete, or regressed: do **not** proceed toward `create-pr`. Report what they observed and suggest revisiting `create-implementation`. Leave `captured-proof.json` in place only if the asset is still an accurate record; otherwise delete it so a later re-run re-captures.
+If the user says the feature is wrong, incomplete, or regressed: do **not** proceed toward `create-pr`. Report what they observed and suggest revisiting `create-implementation`. Leave `captured-proof.json` in place only if the asset is still an accurate record; otherwise delete it so a later re-run captures it again.
 
 ## Re-runs
 
-Re-running `/validate-implementation` re-captures (the recording skills overwrite), then rewrites `captured-proof.json`. To force a clean re-capture, delete `$PROOF_DIR/captured-proof.json` first.
+Re-running `/validate-implementation` captures the assets again (the recording skills overwrite), then rewrites `captured-proof.json`. To force a fresh capture, delete `$PROOF_DIR/captured-proof.json` first.
 
 ## Failure Modes
 
@@ -164,7 +164,7 @@ Re-running `/validate-implementation` re-captures (the recording skills overwrit
 |------|----------|
 | **No CLI or web surface** | Report `surface: none`; write no manifest; tell the user there is nothing to record and `create-pr` will omit proof |
 | **asciinema / Playwright unavailable** | Report which tool is missing; do not write a manifest; tell the user proof cannot be captured until it is installed |
-| **Recording is empty or wrong** | Re-record with `--overwrite` after fixing the command; only write the manifest once the take demonstrates the change |
+| **Recording is empty or wrong** | Record again with `--overwrite` after fixing the command; only write the manifest once the take demonstrates the change |
 | **Dev server won't start** | Report the URL/command; skip web capture; do not write a web manifest |
 | **After capture fails (bug-fix pair)** | Keep the before asset; write `mode: bugfix-before-only` so `create-pr` embeds the before alone with a note |
 | **User rejects the proof** | Do not signal readiness for `create-pr`; report the observed problem; route back to `create-implementation` |
@@ -210,7 +210,7 @@ Diff is internal refactoring with no CLI or web surface. Reports `surface: none`
 ```
 /validate-implementation owner/myrepo 42
 ```
-GIF is captured, but on review the user notices the export omits the header row. The skill does **not** proceed to `create-pr`; it reports the observation and routes back to `create-implementation`. Deletes the stale `captured-proof.json` so the next run re-captures.
+GIF is captured, but on review the user notices the export omits the header row. The skill does **not** proceed to `create-pr`; it reports the observation and routes back to `create-implementation`. Deletes the stale `captured-proof.json` so the next run captures it again.
 
 ## Next Step
 

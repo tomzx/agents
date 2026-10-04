@@ -10,7 +10,7 @@ argument-hint: "<pr-number> [repository]"
 Estimates how risky a pull request is and how confident that estimate is, then recommends the next action for a human reviewer.
 Two axes: **risk** is a judgment about the change (how much damage if it is wrong, how hard to undo), and **confidence** is a judgment about the evidence base (what could and could not be verified).
 The routing table turns the two scores into one next action, so the reviewer can decide at a glance.
-This skill judges neither code craft (that is `/review-pr`), conformance (`/verify-pr`), nor product fit (`/validate-pr`); it runs alongside them in parallel, never reads their reports, and never re-litigates their verdicts.
+This skill judges neither code craft (that is `/review-pr`), conformance (`/verify-pr`), nor product fit (`/validate-pr`); it runs alongside them in parallel, never reads their reports, and never revisits their verdicts.
 
 ## Prerequisites
 
@@ -145,7 +145,7 @@ Every High factor must name the concrete failure or future change it makes expen
 
 ### 5. Score the confidence
 
-Confidence reflects the evidence base, not the gut. Count points:
+Confidence reflects the evidence base, not a guess. Count points:
 
 | Evidence | Points |
 |---|---|

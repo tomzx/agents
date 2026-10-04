@@ -17,7 +17,7 @@ Quantifies the opportunity space around a candidate problem: how big, who's in i
 
 1. Define the market boundary tied to the problem (TAM/SAM/SOM), using a clearly stated method (bottom-up counts, value-based, or top-down proxy). State assumptions explicitly.
 2. Segment the market: who has the problem most acutely. Rank segments by acuity, reachability, and value.
-3. Map trends affecting the space (technology, regulation, behavior, economy) and assess whether each is a tailwind or headwind.
+3. Map trends affecting the space (technology, regulation, behavior, economy) and assess whether each helps or hinders the opportunity.
 4. Assess timing: is the window opening, open, or closing? What event opens or closes it?
 5. Flag data confidence: mark each figure `measured` / `estimated` / `guessed`. A market sized entirely by guesses is a finding, not a result.
 6. Write `market.md` to the initiative directory.

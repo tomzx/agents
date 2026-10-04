@@ -44,4 +44,4 @@ For each candidate problem, state it without naming a solution.
 
 ## Open Questions
 
-1. <Question whose answer would sharpen the problem>
+1. <Question whose answer would make the problem more precise>

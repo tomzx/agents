@@ -7,7 +7,7 @@ argument-hint: "[idea, plan, decision, or argument to challenge]"
 # Devil's Advocate
 
 Takes the user's position and constructs the strongest possible case against it, then surfaces assumptions, risks, blind spots, and alternatives the user may not have considered.
-The goal is not to win an argument but to find the weak points before reality does.
+The goal is not to win an argument but to find the weak points before they cause a problem.
 If the position survives serious challenge, the user proceeds with confidence; if it does not, they learn that now instead of later.
 
 ## Prerequisites

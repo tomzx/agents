@@ -24,7 +24,7 @@ concern: "<concern-slug>"
 
 ## Risk Register (concern-local)
 
-Optional. Risks specific to this concern. Cross-cutting risks live in `plan/index.md`.
+Optional. Risks specific to this concern. Cross-cutting risks are in `plan/index.md`.
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|

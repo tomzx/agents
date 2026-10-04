@@ -8,7 +8,7 @@ The goal is diagrams that look intentional at any size and render correctly almo
 - One idea per diagram, split anything that needs a second legend or a paragraph to explain.
 - Consistency beats cleverness: reuse the same tokens (color, spacing, type) in every diagram.
 - Design for the smallest size the diagram will actually be viewed at, then test at that size.
-- Flat and minimal by default, decoration must encode meaning or be removed.
+- Flat and minimal by default, decoration must carry meaning or be removed.
 - Assume a dumb renderer: external fonts, filters, and CSS are all optional features.
 
 ## Canvas and layout
@@ -35,7 +35,7 @@ The goal is diagrams that look intentional at any size and render correctly almo
 | Error      | `#dc2626`          | Failure state                          |
 
 - One accent color per diagram, reserved for the single most important element.
-- Neutrals do the structural work (borders, connectors, containers), accent marks the point.
+- Neutrals do the structural work (borders, connectors, containers); the accent marks the focal point.
 - Tints: fill boxes with the stroke color at 8-12% opacity for a cohesive look.
 - Contrast: body text at least 4.5:1, large text and strokes at least 3:1 (WCAG AA).
 - Never encode meaning by color alone, add a label, icon, or pattern so it survives grayscale and colorblind viewing.

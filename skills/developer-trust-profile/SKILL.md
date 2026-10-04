@@ -24,7 +24,7 @@ Manages per-developer trust profiles that inform PR review behavior. Each profil
 
 | Level | Meaning | Effect on quick-pr-review |
 |-------|---------|--------------------------|
-| `trusted` | Developer consistently produces high-quality PRs | Standard checks, lean toward approval on borderline cases |
+| `trusted` | Developer consistently produces high-quality PRs | Standard checks, prefer approval on borderline cases |
 | `neutral` | Unknown or mixed track record | Standard checks, default behavior |
 | `cautious` | History of issues, missed edge cases, or unclear PRs | Apply stricter interpretation of checks, flag marginal cases |
 | `always_reject` | Persistent quality/policy issues warranting manual review | Never auto-approve; always require human review |

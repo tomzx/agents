@@ -94,7 +94,7 @@ Report under Specificity: restate so a named source can answer directly (e.g., "
 Context and impact are clear, but no one is identified to ask.
 Report under Answerability: name the person, team, or source that holds the answer.
 
-**Scenario 3: Answer that dodges the question**
+**Scenario 3: Answer that avoids the question**
 Status is Resolved, but the Answer section discusses adjacent work without answering what was asked.
 Report under Resolution Quality: reopen (status `Open`) or record the actual answer with its source.
 

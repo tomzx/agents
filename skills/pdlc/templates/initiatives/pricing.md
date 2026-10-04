@@ -7,7 +7,7 @@ phase: launch
 
 # Pricing: <title>
 
-Anchored to experiment-result.md (willingness-to-pay) and competitors.md.
+Based on experiment-result.md (willingness-to-pay) and competitors.md.
 
 ## Model
 

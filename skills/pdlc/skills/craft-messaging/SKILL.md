@@ -6,7 +6,7 @@ argument-hint: "[initiative-id]"
 
 # Craft Messaging
 
-Turns the validated vision and positioning into launch-ready messaging. It is a *consumer* of `vision.md` (from `define-vision`) and `pricing.md` (from `set-pricing`) — messaging that drifts from the validated vision is how products get rebranded into irrelevance, so this skill anchors to those sources.
+Turns the validated vision and positioning into launch-ready messaging. It is a *consumer* of `vision.md` (from `define-vision`) and `pricing.md` (from `set-pricing`) — messaging that drifts from the validated vision causes products to be rebranded into irrelevance, so this skill anchors to those sources.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Turns the validated vision and positioning into launch-ready messaging. It is a 
 2. Build the messaging house: the single core message at the top, 3 pillars beneath, each with proof points drawn from `experiment-result.md` or `competitors.md`.
 3. Write audience-specific narratives for each priority segment (tie to `market.md` segments). Same core message, different entry points.
 4. Produce channel-ready assets: headline options, short descriptions, and a one-paragraph narrative per channel.
-5. Sanity-check against the positioning: does every message reinforce the chosen differentiation, or does any undercut it?
+5. Check against the positioning: does every message reinforce the chosen differentiation, or does any weaken it?
 6. Write `messaging.md` to the initiative directory.
 
 ## Output Format
@@ -35,7 +35,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted`.
 - [ ] Value proposition traceable to `vision.md` positioning
 - [ ] Each pillar has a proof point
 - [ ] One narrative per priority segment
-- [ ] Every message reinforces (not undercuts) the differentiation
+- [ ] Every message reinforces (not weakens) the differentiation
 
 ## Next Step
 

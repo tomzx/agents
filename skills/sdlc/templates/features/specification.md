@@ -24,8 +24,8 @@ session_link: "<filled by skill>"
 
 ## API Contracts
 
-The normative contract lives in [`api.yaml`](api.yaml) (OpenAPI 3), written alongside this document whenever the specification defines an API surface.
-The table below is a summary; request/response schemas, error response bodies, and auth requirements live in `api.yaml`.
+The normative contract is in [`api.yaml`](api.yaml) (OpenAPI 3), written alongside this document whenever the specification defines an API surface.
+The table below is a summary; request/response schemas, error response bodies, and auth requirements are in `api.yaml`.
 
 | Method | Path | Purpose |
 |---|---|---|

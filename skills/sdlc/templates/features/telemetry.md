@@ -25,7 +25,7 @@ flowchart TD
 ```
 
 One node per funnel step, labeled with the event that marks reaching it.
-A step with no entry event, or a dangling node no path reaches, is visible in two seconds.
+A step with no entry event, or a dangling node no path reaches, is easy to spot.
 
 | Step | Event | Entry Criteria | Exit Criteria |
 |---|---|---|---|

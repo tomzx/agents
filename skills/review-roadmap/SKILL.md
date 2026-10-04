@@ -44,7 +44,7 @@ Audits a roadmap across six categories: alignment, sequencing, focus and capacit
 ### Horizon Discipline
 - Does confidence fall toward Later (Now high and scoped, Next medium, Later low and hypothesis-level)?
 - Are horizons used rather than false-precision dates, or if dates are used, are they honest commitments and clearly marked?
-- Is a high-confidence item stranded in Later, or a low-confidence hypothesis placed in Now?
+- Is a high-confidence item left in Later, or a low-confidence hypothesis placed in Now?
 
 ### Evidence and Outcomes
 - Does each initiative state the bet (the hypothesis) and a success signal tied to a key result or KPI?

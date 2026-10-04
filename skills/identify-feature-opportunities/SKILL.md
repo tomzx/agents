@@ -32,7 +32,7 @@ The skill reasons over five evidence sources. Each opportunity must cite at leas
 | **Code surface** | CLI commands, API endpoints, UI screens, modules, config keys. What exists, what is stubbed, what is asymmetrically mature. |
 | **`.sdlc/context/`** | Stated goals, roadmap initiatives, positioning. Used to score alignment and to find goals with no backing code. |
 | **Open + recent issues** | User pain and requests. Clusters of same-theme issues signal unmet need, not random bugs. |
-| **Merged PR history** | Recent themes and velocity. Momentum in one area hints at adjacent expansion. |
+| **Merged PR history** | Recent themes and velocity. Momentum in one area suggests adjacent expansion. |
 | **README / docs** | Stated capabilities vs. actual. Positioning reveals the product category and its expected feature set. |
 
 ## Opportunity Dimensions
@@ -44,9 +44,9 @@ Opportunities are derived from seven recurring patterns. Scan for each.
 | **Surface gaps** | `TODO`/`FIXME`/`stub`/`NotImplemented`, feature flags wired but unused, config keys with no implementation, endpoints that error or return placeholder data | "The `/export` endpoint returns 501; implement CSV export." |
 | **Usage asymmetry** | A rich subsystem next to a thin one. Create exists but no list/show; write but no read; sync but no async; one resource type fully built, a sibling resource half-built | "Orders have full CRUD; refunds support create only. Add list, show, update." |
 | **Adjacent expansion** | Natural X→Y capability extensions: CRUD→bulk, API→webhooks, manual→automation, CLI→API, sync→async/streams, single-tenant→multi-tenant | "The API has no outbound webhooks; add event delivery so integrations react instead of poll." |
-| **Issue theme clusters** | Three or more open issues around the same theme (exports, integrations, auth, performance) | "Four open issues ask for different export formats; generalize into an export framework." |
+| **Issue theme clusters** | Three or more open issues around the same theme (exports, integrations, auth, performance) | "Four open issues ask for different export formats; build one export framework." |
 | **Roadmap/code gaps** | A roadmap initiative or goal with no corresponding feature directory or code | "Roadmap lists 'internationalization' for Q3; there is no i18n code yet. Start it." |
-| **Adoption blockers** | Missing foundational capability that limits who can use the software: no auth, no rate limiting, no multi-tenancy, no offline mode, no audit log | "No authentication; every endpoint is public. Add auth to unlock enterprise use." |
+| **Adoption blockers** | Missing foundational capability that limits who can use the software: no auth, no rate limiting, no multi-tenancy, no offline mode, no audit log | "No authentication; every endpoint is public. Add auth to allow enterprise use." |
 | **Comparative gaps** | README positioning implies a category whose standard capabilities are absent here | "Positioned as a 'data pipeline tool' but has no scheduling or retry. Add a scheduler." |
 
 ## Scoring
@@ -71,7 +71,7 @@ When `.sdlc/context/` is absent, Alignment defaults to 1.0 for all opportunities
 
 - `--create-issues N` — file GitHub issues for the top N opportunities via `/create-issue`. Off by default (report-only). Each issue links back to this report.
 - `--limit N` — maximum opportunities to surface (default 20). The report shows the top N by score.
-- `--focus <area>` — restrict the scan to one area (e.g., `api`, `ui`, `cli`, a module path or a roadmap initiative slug). narrows the code surface scanned.
+- `--focus <area>` — restrict the scan to one area (e.g., `api`, `ui`, `cli`, a module path or a roadmap initiative slug). This narrows the code surface scanned.
 - `--since <YYYY-MM-DD>` — only consider issues and PRs from this date forward when reading signals (default: last 90 days). Useful for a focused recent-signal pass.
 
 ## Dedup (makes re-runs idempotent and safe to schedule)
@@ -222,7 +222,7 @@ This skill is designed to run safely unattended on a schedule. Properties that m
 - **Bounded output.** `--limit` caps the report size.
 - **No side effects on the codebase.** Writes only to `.sdlc/feature-opportunities-<date>.md`.
 
-Recommended cadence: **monthly**. Feature discovery does not need to be weekly; the surface and signals shift on a sprint-to-month timescale.
+Recommended cadence: **monthly**. Feature discovery does not need to be weekly; the surface and signals change on a sprint-to-month timescale.
 
 Scheduling options (same as `improve-codebase`):
 
@@ -263,7 +263,7 @@ Same scan, then files the top 3 as GitHub issues labeled `feature-opportunity`, 
 ```
 /identify-feature-opportunities --focus api
 ```
-Restricts the surface scan to the API layer. Useful when the API is the product's growth surface.
+Restricts the surface scan to the API layer. Useful when the API is the product's main growth area.
 
 **Scenario 4: First run, no .sdlc context yet**
 ```

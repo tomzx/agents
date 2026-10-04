@@ -6,7 +6,7 @@ description: Review a codebase analysis for coverage of relevant components, acc
 # Review Codebase Analysis
 
 Audits a codebase analysis and reports findings across five categories: coverage, accuracy, changeability rigor, and impact and migration completeness.
-The review verifies that the analysis describes the real code (not assumptions) and that every change disposition is justified and de-risked.
+The review verifies that the analysis describes the actual code (not assumptions) and that every change disposition is justified and its risk addressed.
 
 ## Prerequisites
 

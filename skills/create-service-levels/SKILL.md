@@ -8,7 +8,7 @@ description: Define SLOs, SLIs, SLAs, and error budgets for a service so reliabi
 Defines the service-level objectives, indicators, agreements, and error budgets that govern a service's reliability.
 
 Produces a single context-level artifact that `observe-production` checks against and `audit-observability` validates against.
-Without explicit SLOs, reliability is judged by gut feel: no one knows when a degradation is acceptable, when to freeze feature work, or what "healthy" even means.
+Without explicit SLOs, reliability is judged by intuition: no one knows when a degradation is acceptable, when to freeze feature work, or what "healthy" even means.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ Without explicit SLOs, reliability is judged by gut feel: no one knows when a de
 4. Set an SLO target per SLI (start conservative; tighten as you measure).
 5. Compute the error budget for each SLO (100% minus the target) and state the policy that applies when it is exhausted.
 6. Define SLAs only where a contractual or external obligation exists; keep SLA targets looser than SLOs so internal headroom protects the agreement.
-7. Specify burn-rate or threshold alerts that surface budget depletion before the window ends.
+7. Specify burn-rate or threshold alerts that signal budget depletion before the window ends.
 8. Confirm the measurement infrastructure can actually produce each SLI signal; flag gaps as open questions.
 9. Write the machine-readable definitions (services, SLIs, SLOs with targets, windows, and error budgets, alert policies) to `.sdlc/context/service-levels.yaml` in [OpenSLO](https://github.com/OpenSLO/openslo) format (template at `skills/sdlc/templates/context/service-levels.yaml`). SLAs have no OpenSLO kind and stay in the markdown. Validate best-effort that the YAML parses and each SLO references an existing SLI and service.
 10. Write the output to `.sdlc/context/service-levels.md`. If it already exists, revise per Revision Mode.
@@ -47,8 +47,8 @@ Set the artifact frontmatter `status` to `in-review` while revising, and bump `r
 - **SLI = good / total.** A well-formed SLI is always a ratio. "Error rate" is `1 - (good / total)`. State both numerator and denominator explicitly.
 - **One window.** Use a single rolling window (commonly 30 days) across all SLOs so error budgets are comparable.
 - **Conservative targets first.** 99% is a fine starting SLO; you can tighten once you have measurement. An aspirational 99.99% you cannot meet is worse than a 99% you can.
-- **Error budget is the point.** The budget tells you when to freeze features and prioritize reliability. An SLO with no policy is decoration.
-- **SLA looser than SLO.** The SLO is what you hold yourself to; the SLA is what you owe a customer. Keep daylight between them.
+- **Error budget is the point.** The budget tells you when to freeze features and prioritize reliability. An SLO with no policy has no effect.
+- **SLA looser than SLO.** The SLO is what you hold yourself to; the SLA is what you owe a customer. Keep clear separation between them.
 - **Few SLOs.** Three to five well-chosen SLOs beat twenty. Each one needs an owner and a policy.
 
 ## Outcome

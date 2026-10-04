@@ -74,7 +74,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 ### Forward Compatibility
 - Can contracts and persisted data accept future additions without breaking (unknown fields tolerated, unknown enum values handled, additive-only changes)?
 - Is there a versioning strategy so future evolution does not force coordinated upgrades on all consumers?
-- Are extension points provided for known likely future change, or does the code bake in fixed-set assumptions?
+- Are extension points provided for known likely future change, or does the code assume a fixed set?
 
 ## Output Format
 

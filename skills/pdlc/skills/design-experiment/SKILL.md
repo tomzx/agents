@@ -18,11 +18,11 @@ For each leap-of-faith assumption, design the test that, at minimum cost, would 
 1. For each top assumption, define the hypothesis in testable form: *If [we do X], then [we expect Y], because [belief].*
 2. Choose the cheapest method that can falsify it:
    - **Fake-door / painted-door** — does demand exist before building? (desirability)
-   - **Concierge / Wizard-of-Oz** — deliver the value manually; is the outcome real? (viability/feasibility)
+   - **Concierge / Wizard-of-Oz** — deliver the value manually; is the outcome genuine? (viability/feasibility)
    - **Prototype** — can they use it / does the workflow fit? (usability)
    - **Survey / interview** — only for beliefs you cannot observe behaviorally; treat as weak evidence.
 3. Set the decision threshold up front: the numeric result that means proceed vs. kill. Decide the threshold *before* running, not after.
-4. Define the audience, sample size, duration, and what you will measure. State the smallest sample that could move your confidence.
+4. Define the audience, sample size, duration, and what you will measure. State the smallest sample that could change your confidence.
 5. Record what a false positive would look like (how the test could mislead you into proceeding).
 6. Write `experiment-plan.md` to the initiative directory.
 
@@ -37,7 +37,7 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted`.
 ## Completion Checklist
 
 - [ ] Hypothesis stated in if/then/because form
-- [ ] Method is the cheapest that can falsify the assumption
+- [ ] Method is the cheapest that can disprove the assumption
 - [ ] Decision threshold (proceed vs. kill) set before running
 - [ ] Sample and duration justified
 - [ ] False-positive risk acknowledged

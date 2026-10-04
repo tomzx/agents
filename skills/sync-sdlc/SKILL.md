@@ -286,7 +286,7 @@ Works for both initial bootstrapping and periodic sync.
 1. Review context file changes and correct anything that was inferred incorrectly.
 2. Review each new feature's requirements.md and specification.md.
 3. Address drift items in the regressed `review-<artifact>.md` files for existing features.
-4. Decide the fate of orphaned features (update scope or remove).
+4. Decide what to do with orphaned features (update scope or remove).
 5. Commit changes to `.sdlc/` to version control.
 ```
 

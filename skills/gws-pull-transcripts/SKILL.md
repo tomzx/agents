@@ -10,7 +10,7 @@ metadata:
 
 # Pull Google Meet Transcripts from Google Drive
 
-Run the automation script (do not reimplement the pipeline by hand unless the script is missing or broken):
+Run the automation script (do not reimplement the pipeline manually unless the script is missing or broken):
 
 ```bash
 ~/.agents/scripts/gws-pull-transcripts.sh

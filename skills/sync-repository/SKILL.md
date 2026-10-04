@@ -11,7 +11,7 @@ Detects and optionally fixes drift between code, SDLC artifacts, tests, document
 
 The core problem this skill solves: changes to one layer (code, SDLC, docs, tests) often go unpropagated to dependent layers.
 Code changes without updating SDLC. SDLC changes without updating documentation. New code without tests or types.
-This skill runs every check in the right order so nothing falls through the cracks.
+This skill runs every check in the right order so nothing is missed.
 
 ## Prerequisites
 

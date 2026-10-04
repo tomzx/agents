@@ -11,8 +11,8 @@ Opens a GitHub pull request for the current branch with a structured description
 Whether the PR is created on GitHub (and visual-proof assets uploaded, reviewers assigned) is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`); when posting is disabled it drafts the description and shows it for review instead.
 It is a pure consumer of visual proof: it reads the manifest written by [`/validate-implementation`](../validate-implementation/SKILL.md) and embeds any captured asset inline so reviewers see proof the moment the PR opens.
 It does not capture recordings itself; recording happens at human-review time, before the PR exists.
-It also surfaces the design decisions the implementation made: recorded ADRs are pulled from `.sdlc/knowledge/decisions/`, and ad-hoc choices made while implementing are summarized, both in a Design decisions section (moved to a follow-up PR comment when the description would grow unwieldy).
-After creation it posts a few inline context comments via `ghx` where the diff is not self-explanatory, to spare reviewers reverse-engineering the change.
+It also surfaces the design decisions the implementation made: recorded ADRs are pulled from `.sdlc/knowledge/decisions/`, and ad-hoc choices made while implementing are summarized, both in a Design decisions section (moved to a follow-up PR comment when the description would grow too large).
+After creation it posts a few inline context comments via `ghx` where the diff is not self-explanatory, so reviewers do not have to reverse-engineer the change.
 
 ## Prerequisites
 
@@ -211,9 +211,9 @@ stop           |
    ```
 
 11. Add context comments for reviewers with `ghx`.
-    Read the diff from the reviewer's seat and post inline comments (`ghx pr comment <pr-number> --file <path> --line <n> --body "..."`) only where the change is not self-explanatory: a non-obvious workaround, a pointer to related code, a subtle trade-off not already covered by the Design decisions.
+    Read the diff from the reviewer's point of view and post inline comments (`ghx pr comment <pr-number> --file <path> --line <n> --body "..."`) only where the change is not self-explanatory: a non-obvious workaround, a pointer to related code, a subtle trade-off not already covered by the Design decisions.
     Judge each candidate comment by signal versus noise, not by count: post it only if it would change how a reviewer reads, tests, or trusts the code, and skip it when its value is marginal.
-    Every comment spends reviewer attention, so noise dilutes the comments that matter; skip the step entirely when nothing clears that bar, and never restate what the code already says.
+    Every comment spends reviewer attention, so noise weakens the comments that matter; skip the step entirely when nothing clears that bar, and never restate what the code already says.
 
 12. If reviewer GitHub handles are known from context, assign them:
    ```
@@ -375,7 +375,7 @@ Before requesting review, confirm:
 
 After the PR is open, use `/handle-pr-ci` if CI is failing, `/handle-pr-reviewer-feedback` to address reviewer comments, and `/merge-pr` once CI is green and the PR is approved.
 Run `/validate-pr` to confirm the PR builds the right product, then `/verify-pr` for claim-by-claim conformance proof with per-criterion recordings (the proof embedded here is a single representative asset captured by `/validate-implementation`).
-Close the loop with `/create-learnings` after the feature is merged.
+Report the result back with `/create-learnings` after the feature is merged.
 
 ## Useful Commands Reference
 

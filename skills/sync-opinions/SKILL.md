@@ -66,7 +66,7 @@ Distinguish opinions from:
 
 ### 4. Group opinions by topic
 
-Cluster extracted opinions into topics based on their subject matter. Use the
+Group extracted opinions into topics based on their subject matter. Use the
 headings and structure already present in the source documents as a guide. If
 the same topic appears in multiple files, merge the opinions under one heading.
 

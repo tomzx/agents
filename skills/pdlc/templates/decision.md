@@ -14,7 +14,7 @@ For a PDLC gate, add frontmatter `initiative`, `phase`, and `gate_verdict` (proc
 
 ## Context
 
-<The situation and forces. What question does this decision address? Include constraints.>
+<The situation and the factors at play. What question does this decision address? Include constraints.>
 
 ## Options Considered
 

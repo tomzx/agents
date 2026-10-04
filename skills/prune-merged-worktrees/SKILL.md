@@ -7,7 +7,7 @@ argument-hint: "[repo-path] [--dry-run] [--force]"
 # Prune Merged Worktrees
 
 Finds local git worktrees whose branch's remote was deleted, verifies through GitHub that the branch's pull request was actually merged, then removes the worktree and the local branch after user confirmation.
-Verification goes through the forge because squash and rebase merges (the `/merge-pr` default) land the work under a new SHA, so `git branch -d`, `git merge-base --is-ancestor`, and `git rev-list main..<branch>` all misclassify fully shipped branches as unmerged.
+Verification goes through the forge because squash and rebase merges (the `/merge-pr` default) land the work under a new SHA, so `git branch -d`, `git merge-base --is-ancestor`, and `git rev-list main..<branch>` all classify fully shipped branches as unmerged.
 
 ## Prerequisites
 

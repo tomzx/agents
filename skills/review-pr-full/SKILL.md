@@ -13,9 +13,9 @@ Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky i
 
 The risk assessment is independent of the chain: it never halts the chain and is never halted by it, and it shares no evidence with the chain steps (it is self-contained: diff, codebase, churn of the touched files). Its verdict token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`) is advisory for the human reviewer, and its report says what would raise its confidence.
 
-Staleness checking is handled by the same deterministic Python script used by `review-requested-prs` (`~/.agents/scripts/review_requested_prs.py`). It checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. Only stale steps are run, so re-running after a partial completion picks up where it left off.
+Staleness checking is handled by the same deterministic Python script used by `review-requested-prs` (`~/.agents/scripts/review_requested_prs.py`). It checks both GitHub PR comments and local report files at `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/` for markers, so it works even when `should-post-to-github` has disabled posting. Only stale steps are run, so re-running after a partial completion continues from the point it stopped.
 
-When called by `review-requested-prs`, the staleness check and head-ref resolution have already been done. The caller passes them as `--steps`, `--head-repo`, and `--head-branch`, and this skill skips its own GitHub queries and starts the checks immediately. This keeps the parent orchestrator from being the bottleneck: one `review-pr-full` session owns each PR end to end.
+When called by `review-requested-prs`, the staleness check and head-ref resolution have already been done. The caller passes them as `--steps`, `--head-repo`, and `--head-branch`, and this skill skips its own GitHub queries and starts the checks immediately. This keeps the parent orchestrator from becoming a bottleneck: one `review-pr-full` session owns each PR end to end.
 
 ## Prerequisites
 
@@ -166,7 +166,7 @@ Use the `general` subagent type for all five steps.
 
 **Parallel dispatch of assess-pr-risk.** When `STALE_STEPS` contains `assess-pr-risk`, dispatch it concurrently with the first stale chain step: put the two Task calls in a single message so they run at the same time. The risk assessment is cheap (no build, static analysis only) and independent of the chain.
 
-The chain steps run sequentially (analyze-test-coverage, then validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize chain steps, because each step may halt the pipeline. If `assess-pr-risk` is stale but no chain step is (or the chain halts before finishing), the risk assessment still runs and stands on its own.
+The chain steps run sequentially (analyze-test-coverage, then validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next. Do not parallelize chain steps, because each step may halt the pipeline. If `assess-pr-risk` is stale but no chain step is (or the chain halts before finishing), the risk assessment still runs and its report still applies on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
 
@@ -252,7 +252,7 @@ fi
 
 The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}` so every run is identifiable by repository, PR, and the commit it reviewed.
 
-Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was left behind. Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions above (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`). Findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
+Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed. Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions above (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`). Findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted. If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely. If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
 
 ### 7. Report summary
 

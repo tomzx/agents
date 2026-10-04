@@ -54,7 +54,7 @@ server = "wt step tether -- npm run dev -- --port {{ branch | hash_port }}"
 url = "http://localhost:{{ branch | hash_port }}"
 ```
 
-[`wt step tether`](https://worktrunk.dev/step/#wt-step-tether) runs the server in its own process group and tears the whole group down when the worktree is removed, so no `pre-remove` hook is needed. See the [`wt step tether`](https://worktrunk.dev/step/#wt-step-tether) docs for the full rationale and platform behavior.
+[`wt step tether`](https://worktrunk.dev/step/#wt-step-tether) runs the server in its own process group and kills the whole group when the worktree is removed, so no `pre-remove` hook is needed. See the [`wt step tether`](https://worktrunk.dev/step/#wt-step-tether) docs for the full rationale and platform behavior.
 
 The URL column in `wt list` shows each worktree's dev server:
 
@@ -69,7 +69,7 @@ $ wt list
 <span class=d>○</span> <span class=d>Showing 4 worktrees, 2 with changes, 2 ahead, 2 columns hidden</span>
 ```
 
-`fix-auth` always gets port 16460, on any machine. The URL dims if the server isn't running.
+`fix-auth` always gets port 16460, on any machine. The URL is dimmed if the server isn't running.
 
 ## Database per worktree
 

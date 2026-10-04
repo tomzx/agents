@@ -18,9 +18,9 @@ End-of-life is a normal PDLC outcome, not an admission of failure. When the Meas
 1. Confirm the sunset rationale and record it (the value is no longer there, the cost exceeds it, or it is being superseded). Reference the health/feedback evidence.
 2. Identify affected users and data: who depends on this, and what must be migrated or preserved.
 3. Define the migration path: where users go, what data exports exist, and the effort required.
-4. Build the communication timeline: advance notice, deprecation notice, and final cutover date. State the notice period (give users enough runway).
+4. Build the communication timeline: advance notice, deprecation notice, and final cutover date. State the notice period (give users enough time).
 5. Define the ramp-down: feature flags, access controls, and the order in which capabilities are removed.
-6. Capture the learning via `run-retrospective` so the sunset compounds knowledge.
+6. Capture the learning via `run-retrospective` so the sunset adds to knowledge.
 7. Write `eol-plan.md` to the initiative directory.
 
 ## Output Format

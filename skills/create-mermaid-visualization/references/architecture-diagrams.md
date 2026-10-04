@@ -25,7 +25,7 @@ Leading spaces before the keyword are allowed; keep the keyword on its own line.
 - `Enterprise_Boundary(b0, "Name") { ... }` (alias `Boundary`) groups elements; `System_Boundary` for containers inside a system.
 - `Rel(a, b, "label")` and variants `Rel_Back`, `Rel_Neighbor`, `Rel_L`/`Rel_R`/`Rel_U`/`Rel_D` with optional tags and technology: `Rel(a, b, "label", "HTTPS")`.
 - `Show_Boundary()` toggles boundary rendering; `LAYOUT_WITH_LEGEND()` adds a legend; `LAYOUT_LEFT_RIGHT()` changes direction.
-- Layout nudges with `UpdateRelStyle(a, b, $offsetX="..", $offsetY="..")`; titles with `title ...` and `skipline` spacing helpers.
+- Layout adjustments with `UpdateRelStyle(a, b, $offsetX="..", $offsetY="..")`; titles with `title ...` and `skipline` spacing helpers.
 - `C4Dynamic` orders `RelIndex` calls to narrate a runtime flow inside one container.
 
 ## Architecture Diagrams (`architecture-beta`)

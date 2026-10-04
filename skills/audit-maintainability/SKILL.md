@@ -9,13 +9,13 @@ TODAY=!`date +%Y-%m-%d`
 
 # Maintainability Audit (ISO/IEC 25010)
 
-Audits the codebase for **maintainability**: how easily it can be modified to fix bugs, improve performance, or adapt to a changed environment. It computes the **architectural** maintainability metrics that per-function scanners miss, then rolls the `find-*` family's output into one maintainability scorecard.
+Audits the codebase for **maintainability**: how easily it can be modified to fix bugs, improve performance, or adapt to a changed environment. It computes the **architectural** maintainability metrics that per-function scanners miss, then combines the `find-*` family's output into one maintainability scorecard.
 
 This is the **Maintainability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
 
 ## What This Skill Adds Beyond the find-* Family
 
-The `find-*` skills are per-function or per-file scanners (complexity, coverage, dead code, duplication, types). They cannot see **structure**: which module depends on which, whether layers are respected, whether cycles exist, whether one module is a God object. This skill computes those structural metrics and aggregates everything into one view.
+The `find-*` skills are per-function or per-file scanners (complexity, coverage, dead code, duplication, types). They cannot see **structure**: which module depends on which, whether layers are respected, whether cycles exist, whether one module is a God object. This skill computes those structural metrics and combines everything into one view.
 
 | Source | What it provides here |
 |---|---|
@@ -68,7 +68,7 @@ wc -l $(find . -name "*.py" -not -path "*/test*" -not -path "*/.venv/*") | sort 
 
 ### 3. Circular dependencies
 
-Detect cycles in the internal import graph. A cycle means a change in any member can ripple to all. Report the smallest cycles first (easiest to break).
+Detect cycles in the internal import graph. A cycle means a change in any member can affect all members. Report the smallest cycles first (easiest to break).
 
 For Python, a quick check:
 ```
@@ -100,7 +100,7 @@ Skip any whose preconditions are not met.
 
 ### 6. Compute the maintainability scorecard
 
-Roll up into a per-module and project-level score. Keep the formula simple and transparent:
+Combine these into a per-module and project-level score. Keep the formula simple and transparent:
 
 ```
 maintainability_score = 100

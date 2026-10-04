@@ -8,7 +8,7 @@ argument-hint: "[what to visualize or diagram type]"
 # Create Mermaid Visualization
 
 Produces correct, validated Mermaid diagrams for any of the 30+ diagram types Mermaid supports.
-The skill selects the right diagram type from the user's intent, writes syntactically correct Mermaid using family-specific references, validates before delivering, and hands back a diagram that renders in Markdown-aware viewers (GitHub, GitLab, VS Code, Obsidian, Notion).
+The skill selects the right diagram type from the user's intent, writes syntactically correct Mermaid using family-specific references, validates before delivering, and returns a diagram that renders in Markdown-aware viewers (GitHub, GitLab, VS Code, Obsidian, Notion).
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ Read only the `references/` file for the chosen family. Follow its syntax exactl
 - Declare the diagram type on the first line.
 - Use the exact keyword from the catalog, including `-beta` and `-v2` suffixes.
 - Keep one concept per diagram; split large subjects into multiple focused diagrams.
-- Label nodes and edges in plain language, so the diagram reads without explanation.
+- Label nodes and edges in plain language, so the diagram needs no explanation.
 
 ### 5. Validate
 
@@ -112,7 +112,7 @@ Reference files by family:
 
 ## Common Syntax Rules
 
-- Comments start with `%%`. Unknown words break the parse; misspelled keywords fail loudly.
+- Comments start with `%%`. Unknown words break the parse; misspelled keywords cause a parse error.
 - Wrap labels containing special characters (`{}`, `[]`, `|`, `;`, quotes) in double quotes: `A["Label (with) chars"]`.
 - Use HTML entities for angle brackets and ampersands inside labels (`&lt;`, `&amp;`), not raw `<` or `&`.
 - Diagram-level front matter config goes at the top, before the keyword:
@@ -135,7 +135,7 @@ flowchart TD
 |---|---|
 | Parse error on a labeled node | Unquoted special characters; wrap the label in double quotes |
 | Diagram silently misrenders on GitHub | `-beta` keyword unsupported there; use the stable type or export an image instead |
-| Everything on one line renders cramped | Add line breaks and indentation; they are free and improve diffs |
+| Everything on one line renders cramped | Add line breaks and indentation; they cost nothing and improve diffs |
 | Node text shows HTML tags literally | Use `<br/>` for line breaks inside labels; escape `<`, `>`, `&` as entities |
 | C4, architecture, or block fails on GitHub | GitHub does not render these; deliver `.svg`/`.png` or fall back to `flowchart TD` |
 | Edge labels break the parser | Quote the label text: `A -->|'label text'| B` or `A -- "text" --> B` |

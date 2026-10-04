@@ -13,7 +13,7 @@ Given a set of code changes, produce a structured test coverage analysis that an
 2. **Is every behavior change covered by a test?** (change coverage)
 3. **Is there code that no test exercises at all?** (uncovered code)
 
-Changing behavior without a test is a reliable way to lose that behavior in a future refactor. This skill surfaces those risks explicitly.
+Changing behavior without a test makes it easy to lose that behavior in a future refactor. This skill reports those risks explicitly.
 
 ## Prerequisites
 
@@ -95,7 +95,7 @@ Output:
 |---|---|---|---|
 | `<path>` | `<description>` | Yes / No | `<gap description or em-dash>` |
 
-Prioritize gaps by risk: changes to public APIs, business logic, or error paths matter more than changes to internal helpers or formatting.
+Rank gaps by risk: changes to public APIs, business logic, or error paths matter more than changes to internal helpers or formatting.
 
 ### 4. Build the uncovered code table
 

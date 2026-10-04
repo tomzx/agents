@@ -104,7 +104,7 @@ Classify by severity and print. Do not modify files.
 
 | Severity | Criteria |
 |---|---|
-| Critical | Multi-step write without a transaction (data corruption on failure); external call with no timeout on a critical path; swallowed exception hiding data loss |
+| Critical | Multi-step write without a transaction (data corruption on failure); external call with no timeout on a critical path; swallowed exception that conceals data loss |
 | High | Missing health/readiness endpoint on a server-side service; missing graceful shutdown; non-idempotent write on a retry-prone path |
 | Medium | Missing retry/backoff on a flaky dependency; bare except in a non-critical path; cache-as-source-of-truth |
 | Low | Over-broad except with logging; missing circuit breaker on a low-traffic dependency |

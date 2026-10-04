@@ -51,7 +51,7 @@ Pushes every active (non-merged, non-queued) branch in one multi-ref push with p
 `--force-with-lease`.
 
 **Not atomic.** Some branches may update while another is rejected. A rejection means that branch
-moved on the remote; fix that branch and rerun — rerunning is safe and skips what already landed.
+moved on the remote; fix that branch and rerun — rerunning is safe and skips what was already pushed.
 
 `push` never creates or updates pull requests. Use `submit` for that.
 
@@ -176,7 +176,7 @@ Removes the stack **grouping** only. It never deletes pull requests or branches.
   is not supported for stacks.
 - **A merge queue on the base branch overrides everything.** The stack is added to the queue rather
   than merged; the queue chooses the method and any method flag you passed is ignored with a
-  warning. Queued PRs are submitted together but land as the queue processes them, so they may merge
+  warning. Queued PRs are submitted together but are merged as the queue processes them, so they may merge
   in separate groups rather than all at once.
 - `gh pr merge` cannot merge a stack. Always use `gh stack merge`.
 
@@ -184,7 +184,7 @@ Removes the stack **grouping** only. It never deletes pull requests or branches.
 
 `up`, `down`, `top`, `bottom`, and `trunk` are always non-interactive. `up` and `down` accept a
 count (`gh stack up 3`). Movement clamps at the stack bounds, and merged branches are skipped when
-navigating from an active branch, so `bottom` lands on the lowest *unmerged* branch.
+navigating from an active branch, so `bottom` moves to the lowest *unmerged* branch.
 
 `gh stack switch` is a selection menu with no non-interactive path. Use the commands above instead.
 

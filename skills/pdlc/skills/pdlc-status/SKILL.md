@@ -5,7 +5,7 @@ description: Display a progress dashboard for product initiatives from .pdlc/ di
 
 # PDLC Status
 
-Reads `.pdlc/` and reports where each initiative sits across the six PDLC phases, plus the latest gate verdict for each. Read-only: produces no side effects.
+Reads `.pdlc/` and reports the current phase of each initiative across the six PDLC phases, plus the latest gate verdict for each. Read-only: it produces no side effects.
 
 ## Prerequisites
 

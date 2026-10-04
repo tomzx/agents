@@ -28,7 +28,7 @@ Produces a structured implementation plan from a specification or requirements d
    - Under automation (`$OUTCOME_YAML` set, no interactive user), default to **unified** and note the choice in the plan. If the spec clearly names multiple independent components and a split is obviously warranted, you may still default to unified; the structure can be split later during review.
 3. Identify all units of work and group them into logical phases. For a split plan, group phases *within each concern*; for a unified plan, group them globally.
 4. Define phase goals (milestones) and their success criteria.
-5. Map dependencies between phases and external factors as a Mermaid `flowchart TD` (Phase Dependencies), so parallel tracks and unintended serialization are visible at a glance. For a split plan, capture cross-concern dependencies in `plan/index.md` the same way.
+5. Map dependencies between phases and external factors as a Mermaid `flowchart TD` (Phase Dependencies), so parallel tracks and unintended serialization are visible immediately. For a split plan, capture cross-concern dependencies in `plan/index.md` the same way.
 6. Estimate effort for each phase (person-days or story points).
 7. Identify risks and mitigations.
 8. Record assumptions that the plan depends on but has not verified. Risks in the risk register often encode assumptions (e.g., "the third-party API will be available by Phase 2", "the team will have the required capacity", "the database migration will not require downtime"). For each assumption that carries meaningful risk, promote it via `/create-assumption` so it is tracked and can be validated before implementation.

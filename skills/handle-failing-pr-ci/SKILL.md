@@ -7,9 +7,9 @@ argument-hint: "[owner/repo ... | pr-url ...] [--limit N] [--concurrency N] [--e
 
 # Handle Failing PR CI
 
-Lists the current user's open pull requests with their combined CI status, then fixes every PR whose checks are failing by handing each one to its own `handle-pr-ci` session. PRs are independent, so they are processed in parallel: one sub-agent per failing PR, each with its own worktree.
+Lists the current user's open pull requests with their combined CI status, then fixes every PR whose checks are failing by giving each one its own `handle-pr-ci` session. PRs are independent, so they are processed in parallel: one sub-agent per failing PR, each with its own worktree.
 
-The orchestrator (this session) only discovers work and prepares worktrees. It never edits code. Each failing PR is owned end to end by one sub-agent running `handle-pr-ci`.
+The orchestrator (this session) only discovers work and prepares worktrees. It never edits code. Each failing PR is handled end to end by one sub-agent running `handle-pr-ci`.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ The orchestrator (this session) only discovers work and prepares worktrees. It n
 - `gh` CLI authenticated with read/write access to the target repositories
 - `git` with `git worktree` available
 - The `handle-pr-ci` skill available
-- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
+- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, use sequential mode instead.
 
 ## Workflow
 
@@ -51,7 +51,7 @@ Run the discovery script:
 ~/.agents/scripts/my_prs_ci.py $@ --exclude-check "PR Review Bot Comments Addressed" --json
 ```
 
-The `PR Review Bot Comments Addressed` check is excluded by default because it is a noisy bot gate that does not reflect real CI health. Any `--exclude-check` / `--include-check` the user passes is applied on top of it, and exclusions take precedence, so the bot check stays excluded. To include it in a particular run, scope the query with an explicit PR URL and call the script directly without this skill.
+The `PR Review Bot Comments Addressed` check is excluded by default because it is a noisy bot gate that does not reflect actual CI health. Any `--exclude-check` / `--include-check` the user passes is applied on top of it, and exclusions take precedence, so the bot check stays excluded. To include it in a particular run, scope the query with an explicit PR URL and call the script directly without this skill.
 
 The script accepts the same arguments as the skill:
 
@@ -66,7 +66,7 @@ Useful flags:
 - `--workers N`: PRs fetched in parallel (default 8)
 - `--exclude-check NAME`: exclude a check from the CI status so an excluded failing check does not make a PR fail. Repeatable, accepts shell-style globs (e.g. `buildkite/*`), case-insensitive. The skill already applies `--exclude-check "PR Review Bot Comments Addressed"`; pass this to exclude additional checks. Excluded checks are dropped during dispatch, so no sub-agent is launched for a PR whose only failures are excluded.
 - `--include-check NAME`: the inverse, consider only the named checks and exclude every other check. Repeatable, accepts shell-style globs, case-insensitive. Combining it with `--exclude-check` narrows further (a check must match `--include-check` and not match `--exclude-check`).
-- `--only-failing`: show only PRs with failing checks (the JSON output is what matters; use this only when eyeballing)
+- `--only-failing`: show only PRs with failing checks (the JSON output is what matters; use this only when reading the output by eye)
 - `--log-level debug`: see API call timings
 
 For example, to also skip a flaky deploy check across all PRs:
@@ -89,7 +89,7 @@ If there are none, print "No PRs with failing CI." and stop. Optionally show the
 
 ### 2. Prepare one worktree per failing PR
 
-Each sub-agent must work on the PR's head branch, and multiple PRs may live in the same repository, so prepare a dedicated worktree per PR. The orchestrator does this (single-threaded) so concurrent `git worktree add` calls cannot race on a repository's worktree lock.
+Each sub-agent must work on the PR's head branch, and multiple PRs may live in the same repository, so prepare a dedicated worktree per PR. The orchestrator does this (single-threaded) so concurrent `git worktree add` calls cannot conflict on a repository's worktree lock.
 
 Group failing PRs by `repo` (the base repository). For each repo, keep one base clone under a cache directory, then add one worktree per PR:
 
@@ -225,6 +225,6 @@ All checks are passing or pending. Reports "No PRs with failing CI." and launche
 | Skill | Relationship |
 |---|---|
 | `handle-pr-ci` | Per-PR executor this skill delegates to. Normally asks for approval before pushing; the sub-agent prompt here pre-approves the fix so it can run unattended. |
-| `review-requested-prs` | Same fan-out shape, but for reviewing other people's PRs instead of fixing your own CI. |
+| `review-requested-prs` | Same fan-out structure, but for reviewing other people's PRs instead of fixing your own CI. |
 | `resolve-pr-conflicts` | Same batch-over-my-PRs pattern for merge conflicts; establishes the worktree-per-PR convention used here. |
 | `merge-pr` | Merge a PR once its checks are green. |

@@ -9,7 +9,7 @@ TODAY=!`date +%Y-%m-%d`
 
 # Improve Skill
 
-Inspects one skill end to end, reasons about concrete improvements, and applies them in place. Designed for the Skill Refresher workflow that improves a random skill every day, but also useful when a human points it at a specific skill that feels weak.
+Inspects one skill end to end, reasons about concrete improvements, and applies them in place. Designed for the Skill Refresher workflow that improves a random skill every day, but also useful when a human points it at a specific skill that seems weak.
 
 ## Prerequisites
 
@@ -40,10 +40,10 @@ Do not change things for the sake of change. These are not improvements:
 | Anti-pattern | Why to Avoid |
 |--------------|--------------|
 | Rewriting working prose into different working prose | Adds review burden with no functional gain |
-| Introducing new dependencies or tools not used in the project | Bloats the skill with unavailable tools |
-| Adding speculative edge cases the skill will never hit | Inflates length without value |
-| Restyling or reformatting that does not fix a real problem | Noise in the diff |
-| Splitting or renaming sections that are already clear | Breaks muscle memory and references |
+| Introducing new dependencies or tools not used in the project | Increases the skill's size with unavailable tools |
+| Adding speculative edge cases the skill will never encounter | Adds length without value |
+| Restyling or reformatting that does not fix a real problem | Adds noise to the diff |
+| Splitting or renaming sections that are already clear | Breaks existing references and reader familiarity |
 
 ## Steps
 

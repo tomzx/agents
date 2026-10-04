@@ -25,19 +25,19 @@ Write **one markdown file per theme** under **`memory/organized/<channel-slug>/`
 
 **Theme index:** The authoritative map of which files exist and what each covers is **`memory/organized/<channel-slug>/README.md`** (table of themes + links). **Read it** before merging or restructuring; **update it** whenever you add, remove, rename, or split files. Do not duplicate that catalog in this skill — keep it in memory only.
 
-**New files:** Add a **`.md` file** when a genuinely new theme appears, when an existing file is **overloaded** (hard to scan or mixed concerns), or when a topic deserves a **dedicated** home. Prefer **one clear theme per file** over stuffing unrelated bullets into the nearest match.
+**New files:** Add a **`.md` file** when a genuinely new theme appears, when an existing file is **overloaded** (hard to scan or mixed concerns), or when a topic deserves a **dedicated** file. Prefer **one clear theme per file** over adding unrelated bullets to a file that is not the right fit.
 
 **Restructuring and moves:** You are not limited to **appending** to existing files. When appropriate:
 
 - **Split** a file into two (or more) theme files; leave a short pointer in the original if readers might still look there, or **rename** the original and add redirects in `README.md` only (avoid broken links in other repos).
-- **Move** bullets between theme files when the **better** home is obvious (e.g. vendor A batch auth notes belong under vendor A even if they were first filed under inference).
+- **Move** bullets between theme files when the **better** file is obvious (e.g. vendor A batch auth notes belong under vendor A even if they were first filed under inference).
 - **Rename** a file only when the theme boundary changed (use **kebab-case**; update **`README.md`** and any **in-repo** links to the old path).
 
-**Stability vs clarity:** Prefer **stable filenames** once external links exist, but **clarity wins** over leaving a misfit file unchanged. When splitting or renaming, update **`README.md`** and fix links under `memory/organized/<channel-slug>/`.
+**Stability vs clarity:** Prefer **stable filenames** once external links exist, but **clarity** takes priority over leaving a misfit file unchanged. When splitting or renaming, update **`README.md`** and fix links under `memory/organized/<channel-slug>/`.
 
 **Conventions**
 
-- **Themes** are coherent topics. Merge facts from **all** relevant months into the appropriate theme file(s); prefer the clearest or most recent wording when duplicates appear. If a theme file has grown too broad, **split** or **re-scope** per **Restructuring and moves** rather than only stacking more bullets.
+- **Themes** are coherent topics. Merge facts from **all** relevant months into the appropriate theme file(s); prefer the clearest or most recent wording when duplicates appear. If a theme file has grown too broad, **split** or **re-scope** per **Restructuring and moves** rather than only adding more bullets.
 - **Dates in prose:** Prefer **ISO-style slashes** — **`YYYY/MM/DD`** when a specific day matters, and **`YYYY/MM`** when only the month matters (e.g. `2026/03` for March 2026). Do **not** use English month names or abbreviations in running text (`Feb`, `Feb 2026`, `March 2026`, …); they sort poorly and read inconsistently next to `thread_ts`.
 - **Temporal provenance:** where useful, tag freshness with **`YYYY/MM`** or **`YYYY/MM/DD`** (not “last month” or month names alone).
 - **No thread tables:** same rule as temporal memory — findings inline with `thread_ts`, not exhaustive lists.

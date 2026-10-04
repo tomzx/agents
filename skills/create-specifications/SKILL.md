@@ -14,7 +14,7 @@ Produces a detailed technical specification from a requirements document, coveri
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
 - `.sdlc/features/N-<slug>/existing-solutions.md` (optional, if a prior-art survey was produced): adopt its recommendation and reuse the patterns it captured
-- `.sdlc/features/N-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): honor each component's change disposition and its "must not change" constraints, and follow the migration path for any refactor or replace
+- `.sdlc/features/N-<slug>/codebase-analysis.md` (optional, if existing code was analyzed): follow each component's change disposition and its "must not change" constraints, and follow the migration path for any refactor or replace
 
 ## Steps
 
@@ -34,10 +34,10 @@ Produces a detailed technical specification from a requirements document, coveri
 A forward-compatible design keeps working as the system evolves without forcing coordinated upgrades on every consumer. When specifying data models and API contracts, ensure they can grow additively:
 
 - Tolerate unknown fields: consumers must ignore (or preserve) fields they do not recognize rather than rejecting the payload. Specify this explicitly for every schema.
-- Handle unknown enum values gracefully: closed enums that throw on unseen values lock out future additions. Prefer open enums, or require consumers to fail soft on unknown values.
+- Handle unknown enum values gracefully: closed enums that throw on unseen values block future additions. Prefer open enums, or require consumers to fail soft on unknown values.
 - Prefer additive changes: new optional fields, new endpoints, and new values are safe; removing, renaming, or repurposing existing ones is not. Call out which elements are part of the stable surface versus open to change.
 - Version the contract: include a schema/API version field where practical, and state the compatibility policy (e.g., additive-only within a major version).
-- Reserve extension points for known likely future change (reserved field numbers, extension columns, feature flags) rather than baking in assumptions that the current shape is final.
+- Reserve extension points for known likely future change (reserved field numbers, extension columns, feature flags) rather than assuming that the current design is final.
 - Avoid positional coupling and fixed-set assumptions that would make a future addition a breaking change.
 
 ## Output Format
