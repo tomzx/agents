@@ -17,9 +17,12 @@ This is a reference, not a workflow: no command to run and no artifact to produc
 
 ## Core principles
 
-- Use plain language: short, direct sentences in the active voice, with common words over jargon and buzzwords, so the reader grasps the point on the first pass. Write literally, with no metaphors, idioms, or other figurative language that the reader must decode. This is required, not a preference.
+- Be concise.
+- Use plain language: short, direct sentences in the active voice, with common words over jargon and buzzwords.
+- Write literally, with no metaphors, idioms, or other figurative language the reader must decode.
 - Lead with the point: the ask, finding, decision, or answer is the first sentence.
-- Be concise and to the point, free of fluff
+- Do not use em-dashes, use commas or parentheses instead.
+- One sentence per line.
 - Write the shortest form that carries the signal, then delete every sentence that does not change what the reader knows or does.
 - One idea per message, comment, or thread reply.
 - Do not restate what the code, diff, linked issue, or the comment being replied to already says.
