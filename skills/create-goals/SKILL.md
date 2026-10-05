@@ -88,7 +88,3 @@ Self-check the draft against the [`review-goals` checklist](../review-goals/SKIL
 
 A review subagent is dispatched automatically to run `/review-goals` to audit the objectives for measurability, ownership, and alignment soundness before relying on them for prioritization.
 Once approved, `create-needs-assessment` reads `.sdlc/context/goals.md` directly when assessing strategic alignment.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

@@ -112,7 +112,3 @@ Self-check the draft against the [`review-lifecycle` checklist](../review-lifecy
 
 A review subagent is dispatched automatically to run `/review-lifecycle` to audit the lifecycle document for completeness, consistency, and spec alignment before moving on.
 Once approved, continue with `/create-mockups`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

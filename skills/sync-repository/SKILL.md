@@ -396,7 +396,3 @@ Runs SDLC sync first, then checks documentation gaps. Finds that 2 new features 
 | `session-review` | Per-session end-of-work checklist. Use after each coding session. Use `sync-repository` for periodic full-repo sync (daily, weekly, or pre-release). |
 | `sdlc-status` | Read-only dashboard showing SDLC pipeline progress. Does not detect drift or run checks. |
 | `setup-docs-site` | Scaffolds MkDocs + Material + GHA Pages workflow. Sync-repository calls this in Phase 4 when no docs infrastructure exists. |
-
-## Useful Commands Reference
-
-No direct CLI commands. This skill invokes other skills and coordinates their output.

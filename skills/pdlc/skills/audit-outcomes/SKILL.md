@@ -59,7 +59,3 @@ If `$OUTCOME_YAML` is set:
 | `aligned` | Chain traces from start to finish; no drift |
 | `drift-detected` | One or more links drifted or rotted; gates regressed |
 | `broken` | A link is broken; major rework or kill warranted |
-
-## Useful Commands Reference
-
-No CLI commands required. This skill reads `.pdlc/` and writes a report.

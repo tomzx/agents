@@ -45,7 +45,3 @@ Artifacts: problems.md ✓, opportunity-tree.md ✓, prd.md ✓, acceptance-cont
 ```
 
 If no initiatives exist, report that `.pdlc/` is empty and suggest `/pdlc discover` to start.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill reads files under `.pdlc/`.

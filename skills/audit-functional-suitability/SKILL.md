@@ -83,7 +83,11 @@ rg -n "<requirement keyword>" -g '*.py' .
 
 For a sample of requirements where code exists, compare behavior to the acceptance criteria. Flag clear divergences (e.g., requirement says "soft delete" but code hard-deletes). This is judgment-based; keep it to a sample and flag for human review.
 
-### 6. Report
+### 6. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 7. Report
 
 Classify each finding by severity (below), then print the report in the Output Format. Do not modify any files.
 
@@ -112,21 +116,21 @@ Classify each finding by severity (below), then print the report in the Output F
 |---|---|---|---|---|
 
 ## Code-honesty markers (incomplete by the code's own admission)
-| File:line | Marker | Text | Severity |
-|---|---|---|---|
+| File:line | Marker | Text | Severity | Evidence |
+|---|---|---|---|---|
 
 ## Correctness
 ### Open bug clusters
-| Area | Bug count | Sample issues |
-|---|---|---|
+| Area | Bug count | Sample issues | Evidence |
+|---|---|---|---|
 
 ### Skipped / disabled tests
-| File:line | Marker | Severity |
-|---|---|---|
+| File:line | Marker | Severity | Evidence |
+|---|---|---|---|
 
 ### Appropriateness divergences
-| FR | Expected | Actual | Severity |
-|---|---|---|---|
+| FR | Expected | Actual | Severity | Evidence |
+|---|---|---|---|---|
 ```
 
 ## Example Usage

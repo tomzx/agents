@@ -128,7 +128,3 @@ Self-check the drafts against the [`review-project` checklist](../review-project
 A review subagent is dispatched automatically to run `/review-project` to audit the context files for completeness, consistency, clarity, and actionability.
 Then run `/create-goals` (which reads the now-complete `project-overview.md`) to add `goals.md`; this skill intentionally does not author it.
 Once the project has code, `/sync-sdlc` keeps the context reconciled with reality.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

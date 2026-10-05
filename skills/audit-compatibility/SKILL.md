@@ -98,7 +98,11 @@ Handlers returning 200 for created resources (should be 201), 200 for async-acce
 rg -n "status_code\s*=\s*(200|400|500)|return.*200|\.send\(200\)|res\.(status\()?200" -g '*.{py,ts,js}' .
 ```
 
-### 9. Report
+### 9. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 10. Report
 
 Classify by severity and print. Do not modify files.
 
@@ -123,29 +127,29 @@ Classify by severity and print. Do not modify files.
 
 ## Co-existence
 ### Shared resources
-| File:line | Resource | Hardcoded value | Severity | Recommendation |
-|---|---|---|---|---|
+| File:line | Resource | Hardcoded value | Severity | Recommendation | Evidence |
+|---|---|---|---|---|---|
 
 ### Dependency conflicts
-| Package | Conflict | Severity | Recommendation |
-|---|---|---|---|
+| Package | Conflict | Severity | Recommendation | Evidence |
+|---|---|---|---|---|
 
 ### Global mutable state
-| File:line | Symbol | Severity |
-|---|---|---|
+| File:line | Symbol | Severity | Evidence |
+|---|---|---|---|
 
 ## Interoperability
 ### API versioning
-| Endpoint | Versioned? | Severity |
-|---|---|---|
+| Endpoint | Versioned? | Severity | Evidence |
+|---|---|---|---|
 
 ### Schema validation gaps
-| Endpoint | Input | Validated? | Severity |
-|---|---|---|---|
+| Endpoint | Input | Validated? | Severity | Evidence |
+|---|---|---|---|---|
 
 ### HTTP status issues
-| File:line | Used | Expected | Severity |
-|---|---|---|---|
+| File:line | Used | Expected | Severity | Evidence |
+|---|---|---|---|---|
 ```
 
 ## Example Usage

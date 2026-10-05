@@ -113,7 +113,3 @@ No finding under Currency: the plan marker is correct. Only unmarked description
 On `changes-requested`, re-run `/create-project`, which detects the findings file and enters revision mode.
 On `approved`, run `/create-goals` to add `goals.md` (if absent), then `/create-roadmap` once goals exist.
 Once the project has code, `/sync-sdlc` keeps the context reconciled with reality.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

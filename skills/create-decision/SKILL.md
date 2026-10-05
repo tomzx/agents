@@ -69,7 +69,3 @@ Self-check the record against the [`review-decision` checklist](../review-decisi
 ## Next Step
 
 A review subagent is dispatched automatically to run `/review-decision` to audit the record for clarity, completeness, reasoning quality, and consequence coverage.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on information provided in context and writes a Markdown file.

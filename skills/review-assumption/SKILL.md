@@ -92,7 +92,3 @@ Report under Risk Assessment: name the specific components, decisions, or flows 
 **Scenario 4: Validation with no owner or deadline**
 Validation plan says "run a load test at some point."
 Report under Validation Plan: assign an owner and a deadline or milestone.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

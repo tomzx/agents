@@ -198,7 +198,3 @@ User wants to understand architectural decisions. Write an **Explanation** cover
 
 **Scenario 5: Reviewing existing docs**
 User provides a document to review. Identify which type it is, then flag violations (e.g., a how-to that explains too much theory, or a tutorial that offers choices).
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

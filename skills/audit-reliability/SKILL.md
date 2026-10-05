@@ -96,7 +96,11 @@ Cache treated as source of truth (reads from cache with no fallback/repopulate o
 
 Synchronous chains across services/deps with no bulkhead; shared thread/connection pools sized for one tenant; in-process caches without bounds (a full cache that OOMs one instance OOMs all). Coordinate with `audit-performance-efficiency` (unbounded growth) and `audit-security` (DoS) to dedup.
 
-### 7. Report
+### 7. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 8. Report
 
 Classify by severity and print. Do not modify files.
 
@@ -121,30 +125,30 @@ Classify by severity and print. Do not modify files.
 - Recoverability findings: N critical, N high
 
 ## Exception handling (maturity)
-| File:line | Pattern | Severity | Recommendation |
-|---|---|---|---|
+| File:line | Pattern | Severity | Recommendation | Evidence |
+|---|---|---|---|---|
 
 ## Fault tolerance
 ### External calls without timeout
-| File:line | Call | Severity | Recommendation |
-|---|---|---|---|
+| File:line | Call | Severity | Recommendation | Evidence |
+|---|---|---|---|---|
 
 ### Missing retry / circuit breaker
-| Dependency | Call sites | Severity |
-|---|---|---|
+| Dependency | Call sites | Severity | Evidence |
+|---|---|---|---|
 
 ## Availability
-| File:line | Issue (health/shutdown/SPOF) | Severity |
-|---|---|---|
+| File:line | Issue (health/shutdown/SPOF) | Severity | Evidence |
+|---|---|---|---|
 
 ## Recoverability
 ### Transactions / idempotency
-| File:line | Operation | Risk | Severity |
-|---|---|---|---|
+| File:line | Operation | Risk | Severity | Evidence |
+|---|---|---|---|---|
 
 ### Data durability
-| File:line | Pattern | Severity |
-|---|---|---|
+| File:line | Pattern | Severity | Evidence |
+|---|---|---|---|
 ```
 
 ## Example Usage

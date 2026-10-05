@@ -175,7 +175,11 @@ Filter false positives:
 
 Rank by severity using CVSS-inspired categories: Critical > High > Medium > Low.
 
-### 10. Print the Report
+### 10. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 11. Print the Report
 
 ```
 # Security Audit — {TODAY}
@@ -191,8 +195,11 @@ Rank by severity using CVSS-inspired categories: Critical > High > Medium > Low.
 
 ## Critical & High Findings
 
+Each finding names its evidence level in the form `L<n> - <Name>` plus a pointer, per [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md).
+
 ### 1. Hardcoded Secret — `<file>:<line>`
 **Severity:** Critical
+**Evidence:** `L1 - Cited` (`<file>:<line>`)
 **Finding:** API key for <service> hardcoded in source
 **Risk:** Anyone with read access to the repo can use this credential
 **Fix:** Move to environment variable; rotate the exposed key immediately

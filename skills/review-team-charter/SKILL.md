@@ -139,7 +139,3 @@ The charter runs 20 pages with a full task inventory.
 ## Next Step
 
 Once approved, run [`/create-team-api`](../create-team-api/SKILL.md) to formalize the external interface, then share the charter for ratification and set a review cadence.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

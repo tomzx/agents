@@ -60,7 +60,3 @@ Self-check the draft against the [`review-learnings` checklist](../review-learni
 ## Next Step
 
 A review subagent is dispatched automatically to run `/review-learnings` to audit the document for actionability, specificity, completeness, and balance.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on information provided in context.

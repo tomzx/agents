@@ -130,7 +130,3 @@ These conflict. Report under Conflicts.
 ## Next Step
 
 Once the findings verdict is `approved`, continue with `/create-existing-solutions` to survey prior art before designing.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

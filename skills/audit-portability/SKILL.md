@@ -95,7 +95,11 @@ rg -n "export|dump|backup|csv|json|parquet" -g '*.{py,ts,js}' . | rg -i "endpoin
 ```
 Proprietary/unversioned storage formats are replaceability findings.
 
-### 7. Report
+### 7. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 8. Report
 
 Classify by severity and print. Do not modify files.
 
@@ -121,32 +125,32 @@ Classify by severity and print. Do not modify files.
 
 ## Adaptability
 ### Environment assumptions
-| File:line | Assumption | Type (path/host/OS/config) | Severity | Recommendation |
-|---|---|---|---|---|
+| File:line | Assumption | Type (path/host/OS/config) | Severity | Recommendation | Evidence |
+|---|---|---|---|---|---|
 
 ### 12-factor config violations
-| File:line | What's baked in | Severity |
-|---|---|---|
+| File:line | What's baked in | Severity | Evidence |
+|---|---|---|---|
 
 ### Platform-specific dependencies
-| Dependency | Platform bound | Severity |
-|---|---|---|
+| Dependency | Platform bound | Severity | Evidence |
+|---|---|---|---|
 
 ## Installability
-| Item | Present? | Severity |
-|---|---|---|
+| Item | Present? | Severity | Evidence |
+|---|---|---|---|
 | Containerfile | yes/no | |
 | Install docs | yes/no | |
 | Runtime version declared | yes/no | |
 
 ## Replaceability
 ### Vendor lock-in
-| Provider | Direct call sites | Abstracted? | Severity |
-|---|---|---|---|
+| Provider | Direct call sites | Abstracted? | Severity | Evidence |
+|---|---|---|---|---|
 
 ### Data egress / standards
-| Artifact | Present? | Severity |
-|---|---|---|
+| Artifact | Present? | Severity | Evidence |
+|---|---|---|---|
 | OpenAPI/schema | yes/no | |
 | Standard export | yes/no | |
 ```

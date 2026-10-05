@@ -70,6 +70,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Are em-dashes avoided in favor of commas or parentheses?
 - Is the writing concise without hedging every claim?
 - Is the same point restated across multiple sections (redundancy)?
+- Apply the shared catalog in [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md), and report each finding by rule ID (for example `writing-rules.md#8` for an em dash).
 
 ## Output Format
 
@@ -151,7 +152,3 @@ The article says the migration "moved to the center of the roadmap" and the bott
 ## Next Step
 
 Once all 🔴 MUST findings are resolved, the article is ready for publication.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on article content provided in context.

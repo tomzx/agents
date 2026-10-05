@@ -340,6 +340,13 @@ Rules:
 - If you cannot reach a verdict (error, inconclusive), omit the file or write `verdict: unknown`.
 - Values must be valid YAML scalars. If `verdict` or `reason` contains a colon `:`, hash `#`, or any indicator character (``{}[]&*!|>'"%@` ``), quote the value (single or double quotes) or use a literal block scalar (`|`). Prefer quoting `reason` whenever it is a free-form sentence.
 
+## Evidence Levels (audit and review skills)
+
+Audit and review skills label their findings with an evidence level in the form `L<n> - <Name>`, from `L0 - Asserted` to `L4 - Reproduced`.
+The ladder, the promotion rule for decisive claims, and the `unproven` fallback live in [`evidence.md`](evidence.md).
+A verdict has a floor: a pass or an approval requires every decisive claim at `L3 - Executed` or `L4 - Reproduced`.
+Read that file before labeling findings or emitting a verdict.
+
 ## Review Findings Persistence (review-* skills)
 
 The automation engine is stateless: each rule run starts from a fresh checkout, and the only cross-run persistence is the per-issue working branch (the runner commits `.sdlc/` after the skill runs via `commit-sdlc.sh`). A review's findings must therefore survive on that branch, not only as the posted comment (which is short-lived relative to the branch).

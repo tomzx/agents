@@ -134,7 +134,3 @@ Document the disputed ownership under Open Questions and use collaboration mode 
 - Pair this with `/create-team-charter` if the charter does not yet exist; the charter holds the why and the internal norms, and the Team API holds the external interface.
 - Review the Team API with every dependent team named in the Dependencies section, since a Team API is a contract that both sides must agree to.
 - Revisit when the team type, a major service, or a key interaction mode changes.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on context provided in conversation and writes a Markdown file.

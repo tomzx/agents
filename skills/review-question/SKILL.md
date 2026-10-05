@@ -101,7 +101,3 @@ Report under Resolution Quality: reopen (status `Open`) or record the actual ans
 **Scenario 4: Overdue with no consequence named**
 The needed-by date passed a week ago and blocking is High.
 Report under Impact and Urgency: flag the overdue date, or promote via `/create-assumption` if work proceeded without the answer.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

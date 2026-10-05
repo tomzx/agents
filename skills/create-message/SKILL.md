@@ -85,7 +85,3 @@ Improved: "I won't be able to take this on this week due to my current commitmen
 Draft: "This design is confusing and doesn't make sense. I can't believe we're considering this."
 Recipient: design team
 Improved: "I have some concerns about the design's clarity. Specifically, the navigation flow between steps 2 and 3 feels unclear. Could we explore adding a progress indicator or transitional labels? I'd be happy to walk through a specific example in our next review."
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on content provided in context.

@@ -109,7 +109,11 @@ rg -n "create_index|Index\(|indexed=True|db_index" -g '*.{py,sql}' .
 
 If a benchmark/load-test suite exists (`bench/`, `benchmarks/`, `locustfile.py`, `k6`, `jest-bench`), note whether it covers the identified hot paths. Missing coverage of a hot path is a finding.
 
-### 9. Report
+### 9. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 10. Report
 
 Classify by severity and print. Do not modify files.
 
@@ -135,20 +139,20 @@ Classify by severity and print. Do not modify files.
 - Benchmark coverage: <present on N hot paths | absent>
 
 ## Time behavior
-| File:line | Pattern | Path | Severity | Recommendation |
-|---|---|---|---|---|
+| File:line | Pattern | Path | Severity | Recommendation | Evidence |
+|---|---|---|---|---|---|
 
 ## Resource utilization
-| File:line | Pattern | Resource | Severity | Recommendation |
-|---|---|---|---|---|
+| File:line | Pattern | Resource | Severity | Recommendation | Evidence |
+|---|---|---|---|---|---|
 
 ## Capacity
-| File:line | Pattern | Limit | Severity | Recommendation |
-|---|---|---|---|---|
+| File:line | Pattern | Limit | Severity | Recommendation | Evidence |
+|---|---|---|---|---|---|
 
 ## Index gaps
-| Table | Queried columns | Indexed columns | Severity |
-|---|---|---|---|
+| Table | Queried columns | Indexed columns | Severity | Evidence |
+|---|---|---|---|---|
 ```
 
 ## Example Usage

@@ -125,7 +125,3 @@ Report under Retention Soundness: no retention policy for revoked keys, which ma
 ## Next Step
 
 Once the findings verdict is `approved`, continue with `/create-mockups`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

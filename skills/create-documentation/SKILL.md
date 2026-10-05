@@ -10,6 +10,8 @@ Produces documentation for a feature or component organized according to the [Di
 
 **For detailed Divio guidance** (DO/DON'T lists, decision trees, per-type structures), consult the `divio-documentation` skill. This skill focuses on the production workflow: deciding which types to write and producing the output.
 
+Apply the shared writing rules in [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence.
+
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
@@ -58,7 +60,3 @@ Self-check the draft against the [`review-documentation` checklist](../review-do
 ## Next Step
 
 A review subagent is dispatched automatically to run `/review-documentation` to audit the documentation for completeness, accuracy, clarity, usability, and structure.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on information provided in context.

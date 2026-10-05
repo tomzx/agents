@@ -31,6 +31,7 @@ This applies to **every** article, including opinion and perspective pieces. An 
 
 ## Formatting Rules
 
+- **Shared writing rules**: Apply [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence. It owns the catalog of machine-writing patterns to remove.
 - **One sentence per line**: Each sentence occupies its own line in the markdown source.
   This produces cleaner git diffs since changes to one sentence don't affect adjacent lines.
   Paragraphs are separated by a blank line, with sentences within a paragraph on consecutive lines
@@ -186,6 +187,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Em-dash sentence structures; use commas or parentheses instead
 - Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
 - The banned terms listed in `banned-terms.txt` at the skills library root (one per line), unless one is genuinely the most appropriate term
+- Machine-writing patterns from [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md)
 
 ## Output Format
 
@@ -224,10 +226,6 @@ Produce a business-oriented piece explaining what hallucination is, why it matte
 Target audience: "software architects", sources: three blog posts arguing for and against microservices.
 Research the topic first, then synthesize the arguments, take a supportable position, and advise on when to use vs. avoid microservices.
 The position must be based on and cite the sources, not asserted from prior belief.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on content provided in context.
 
 ## Next Step
 

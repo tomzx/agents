@@ -7,10 +7,12 @@ description: Review a code implementation for correctness, quality, test coverag
 
 Audits a code implementation and reports findings across eight categories: correctness, code quality, test coverage, security, performance, spec alignment, reversibility, and forward compatibility.
 Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix.
+A 🔴 MUST finding must reach `L3 - Executed` or be marked `unproven` with the runtime evidence it needed and why that was infeasible.
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- Apply the shared evidence standard in [`skills/sdlc/references/evidence.md`](../sdlc/references/evidence.md): label every finding with a level in the form `L<n> - <Name>` plus an artifact.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - Code to review provided in context, as file paths to read, or as a diff
 - Specification or acceptance criteria (optional, improves alignment check)
@@ -24,8 +26,9 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 2. Cross-reference against the specification or acceptance criteria if provided.
 3. Identify issues in each category below.
 4. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-5. Report findings using the output format. Omit categories with no findings.
-6. Write the findings to `.sdlc/features/N-<slug>/review-implementation.md` with frontmatter `artifact: implementation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+5. Label each finding with an evidence level in the form `L<n> - <Name>` plus an artifact, per the shared evidence standard.
+6. Report findings using the output format. Omit categories with no findings.
+7. Write the findings to `.sdlc/features/N-<slug>/review-implementation.md` with frontmatter `artifact: implementation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -85,11 +88,11 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 
 ## Correctness
 
-<Findings with 🔴/🟡/🟢 priority, or "No issues found.">
+<Findings with 🔴/🟡/🟢 priority, each with `Evidence: L<n> - <Name>, <artifact>`, or "No issues found.">
 
 ## Code Quality
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Test Coverage
 
@@ -113,27 +116,27 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 |---|---|---|
 | <path> | <description> | <risk if this code regresses silently> |
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Security
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Performance
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Spec Alignment
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Reversibility
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 
 ## Forward Compatibility
 
-<Findings or "No issues found.">
+<Findings (each with `Evidence: L<n> - <Name>, <artifact>`) or "No issues found.">
 ```
 
 ## Outcome
@@ -164,8 +167,4 @@ Variable `d` used instead of `discount_rate`.
 
 ## Next Step
 
-Once all 🔴 MUST findings are resolved, continue with `/create-documentation`, then `/validate-implementation` to capture visual proof and get user sign-off, then `/create-pr`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on code provided in context or via file reads.
+Once all 🔴 MUST findings are resolved, continue with `/create-documentation`, then `/validate-implementation` to capture visual proof and get user sign-off, then `/create-pr` (opens the PR as a draft) and `/promote-pr` (reviews it and marks it ready only when it clears the review bar).

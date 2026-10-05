@@ -93,7 +93,3 @@ Report under Reasoning Quality.
 **Scenario 4: No follow-up captured**
 A decision to use a flat-file config acknowledges it won't scale but records no follow-up task to revisit the choice.
 Report under Consequence Coverage.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

@@ -17,6 +17,7 @@ It does **not** judge whether the target is the right product, that is `/validat
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- Apply the shared evidence standard in [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md): each criterion's evidence carries a level in the form `L<n> - <Name>`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `ghx` CLI for cached issue reads and PR comments (authenticates via `GH_TOKEN` or `gh auth token`)
@@ -272,12 +273,15 @@ Validate through the product's public entry points first (CLI command, API call,
 
 For each criterion, record the runtime result combined with its static status:
 
-| Status | Meaning |
-|--------|---------|
-| **Conforms** | Code traced (Step 3) and runtime execution confirms the criterion is met |
-| **Conforms (static only)** | Code traced but runtime could not confirm; the report must state what runtime evidence the criterion needed and why it was infeasible (test couldn't run, dev server wouldn't start, ambiguous result) |
-| **Not verified** | Could not confirm (no path to verify at runtime, and static trace inconclusive) |
-| **Nonconforming** | Runtime output, or the absence of implementing code, shows the criterion is not met |
+| Status | Evidence level | Meaning |
+|--------|----------------|---------|
+| **Conforms** | `L3 - Executed` or `L4 - Reproduced` | Code traced (Step 3) and runtime execution confirms the criterion is met |
+| **Conforms (static only)** | `L2 - Ruled out` at best, marked `unproven` | Code traced but runtime could not confirm; the report must state what runtime evidence the criterion needed and why it was infeasible (test couldn't run, dev server wouldn't start, ambiguous result) |
+| **Not verified** | `unproven` | Could not confirm (no path to verify at runtime, and static trace inconclusive) |
+| **Nonconforming** | `L1 - Cited`, `L3 - Executed`, or `L4 - Reproduced` | Runtime output, or the absence of implementing code, shows the criterion is not met |
+
+A **Must** criterion may only count as Conforms on an `L3 - Executed` or `L4 - Reproduced` result.
+An `L0 - Asserted`, `L1 - Cited`, or `L2 - Ruled out` result does not carry a pass.
 
 A **Must** criterion that is Not verified or Nonconforming means the PR does not conform to its specification. Say so explicitly in the report.
 
@@ -355,8 +359,8 @@ The marker verdict is `pass` if the PR conforms (Yes), `fail` if it does not (No
 
 | # | Criterion | Priority | Static | Runtime | Evidence |
 |---|---|---|---|---|---|
-| 1 | "<criterion text>" | Must | Traced | Conforms | <what was run, observed output> |
-| 2 | "<criterion text>" | Must | Gap | Nonconforming | <reason> |
+| 1 | "<criterion text>" | Must | Traced | Conforms | `L3 - Executed`: <what was run, observed output> |
+| 2 | "<criterion text>" | Must | Gap | Nonconforming | `L1 - Cited`: <reason> |
 
 ### Tests introduced
 

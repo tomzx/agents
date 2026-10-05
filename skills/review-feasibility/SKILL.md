@@ -101,7 +101,3 @@ Financial feasibility assumes zero third-party costs, but the feature requires s
 
 Once the findings verdict is `approved`, continue with `/create-specifications`.
 If the findings verdict is `rejected`, update the issue and stop the pipeline.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

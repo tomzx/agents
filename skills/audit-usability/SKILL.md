@@ -93,7 +93,11 @@ rg -n "onclick=|onClick=" -g '*.{html,jsx,tsx}' .
 ```
 Flag images without `alt`, inputs without an associated label, click-only handlers with no keyboard equivalent.
 
-### 7. Report
+### 7. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 8. Report
 
 Classify by severity and print. Note that some usability issues (contrast, copy quality) need human judgment; surface the static-checkable subset and flag the rest as "manual review".
 
@@ -120,25 +124,25 @@ Classify by severity and print. Note that some usability issues (contrast, copy 
 - Accessibility findings (web): N
 
 ## Recognizability
-| Surface | Item | Issue | Severity |
-|---|---|---|---|
+| Surface | Item | Issue | Severity | Evidence |
+|---|---|---|---|---|
 
 ## Operability
-| File:line | Issue | Severity |
-|---|---|---|
+| File:line | Issue | Severity | Evidence |
+|---|---|---|---|
 
 ## User error protection
 ### Error message quality
-| File:line | Message | Severity | Suggested rewrite |
-|---|---|---|---|
+| File:line | Message | Severity | Suggested rewrite | Evidence |
+|---|---|---|---|---|
 
 ### Destructive operations
-| File:line | Operation | Guarded? | Severity |
-|---|---|---|---|
+| File:line | Operation | Guarded? | Severity | Evidence |
+|---|---|---|---|---|
 
 ## Accessibility (web)
-| File:line | Element | Issue | Severity |
-|---|---|---|---|
+| File:line | Element | Issue | Severity | Evidence |
+|---|---|---|---|---|
 
 ## Manual review (not statically checkable)
 - Copy clarity, contrast, visual hierarchy, onboarding flow

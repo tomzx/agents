@@ -91,7 +91,3 @@ It does not gate on review and is safe to run independently of the `create-decis
 
 **Scenario 5: Pure deprecation, no replacement**
 Out of scope. A decision that should retire with no successor is set to `Deprecated` by `/review-decision`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill edits two Markdown files in place.

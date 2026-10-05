@@ -102,7 +102,3 @@ Report under Completeness.
 **Scenario 3: Mixed content**
 Reference section contains conceptual explanations that belong in an Explanation section.
 Report under Structure.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

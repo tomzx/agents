@@ -136,7 +136,3 @@ Report under Responsiveness.
 ## Next Step
 
 Once the findings verdict is `approved`, continue with `/create-plan`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

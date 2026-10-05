@@ -12,6 +12,7 @@ Answers the **craft** question: "is this code well-built?" Covers approach and s
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
+- Apply the shared evidence standard in [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md): label every finding with a level in the form `L<n> - <Name>`. This review is static, so its ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
@@ -121,7 +122,7 @@ If worktree creation fails, stop.
 
 ## Pre-Review Checklist
 
-This skill is static code-craft review. It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role). Establish context, then review craft.
+This skill is static code-craft review. It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role). Establish context, then review craft. Its evidence ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
 
 Before diving into the code:
 
@@ -332,6 +333,8 @@ Indicate the date+time (using ISO 8601 format) the file was generated in the fil
 
 Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers appear at the top.
 
+Each finding states its evidence level in the form `L<n> - <Name>` plus a `file:line` or other pointer. The ceiling is `L2 - Ruled out`, because this review does not run code. A finding that needs execution is not this skill's to prove: route it to `/verify-pr`.
+
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
 Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable. Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict.
@@ -402,6 +405,8 @@ retry loop (3 fixed attempts, no backoff) over a module-level
 environment variable (`STRIPE_API_KEY`) and load via `os.environ`.
 Verified it is not in `.env.example` either, so add it there as well.
 
+`Evidence: L1 - Cited` (`src/payments/client.py:8`).
+
 ### 🟡 SHOULD / Approach & Simplicity / Reuse the existing retry helper
 
 `src/payments/client.py:12` hand-rolls a retry loop with 3 fixed attempts and
@@ -410,6 +415,8 @@ no backoff. The codebase already has a parameterized `@retry` helper in
 policy ever changes (backoff, jitter, which errors are retryable), this loop
 must be edited in place while every other call site changes one decorator
 argument. Reuse the helper, or record why it cannot apply here.
+
+`Evidence: L2 - Ruled out` (`src/api/middleware.py:40` provides the helper).
 
 ### 🟡 SHOULD / Operational Concerns / Add rate limiting on the endpoint
 

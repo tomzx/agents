@@ -92,7 +92,3 @@ Output: `meetings/auth-redesign-summary.md` with key design decisions, trade-off
 **Scenario 3: Brief sync with no decisions**
 Input: `sync.md` containing a short 10-minute sync.
 Output: `sync-summary.md` with topics discussed and open questions, omitting the Decisions and Action Items sections since none were present.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on transcript files provided by the user.

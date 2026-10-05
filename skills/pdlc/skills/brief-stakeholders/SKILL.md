@@ -40,10 +40,6 @@ Next checkpoint: <date and what will be decided>
 |---|---|---|---|---|
 ```
 
-## Useful Commands Reference
-
-No CLI commands required. Posting to Slack, email, or GitHub is out of scope for this skill and must be triggered explicitly by the user.
-
 ## Next Step
 
 If the brief surfaces a needed decision, run `make-decision`. If it surfaces a kill, run `kill-initiative`.

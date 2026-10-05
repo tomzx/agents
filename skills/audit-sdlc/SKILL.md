@@ -233,7 +233,3 @@ Runs only the two named skills. Identifies 3 functions that should be refactored
 
 After the report is produced and issues are created (or skipped), the session is complete.
 To address findings through the full SDLC pipeline, use `/sdlc issue` or the appropriate fast path.
-
-## Useful Commands Reference
-
-No direct CLI commands. This skill invokes other skills and coordinates their output.

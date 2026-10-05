@@ -103,7 +103,3 @@ Report under Correctness.
 ## Next Step
 
 Once the findings verdict is `approved`, continue with `/create-implementation`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

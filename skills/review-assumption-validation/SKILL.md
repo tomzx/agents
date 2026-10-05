@@ -111,7 +111,3 @@ A High-risk assumption was Invalidated but the report says "proceed anyway." Fla
 Once the findings verdict is `approved`, continue with `/create-tasks-decomposition`.
 If the findings verdict is `changes-requested`, address the findings and re-run `/validate-assumptions` for the affected experiments.
 If the findings verdict is `rejected`, backtrack to the affected design phase and revise.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context and cross-checks against assumption records and design artifacts.

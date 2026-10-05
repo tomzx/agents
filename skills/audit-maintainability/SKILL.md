@@ -115,7 +115,11 @@ clamp to [0, 100]
 
 Weights are illustrative; record the weights used in the report so the score is reproducible.
 
-### 7. Report
+### 7. Confirm the decisive findings
+
+Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+
+### 8. Report
 
 Print the scorecard and findings. Do not modify files.
 
@@ -144,33 +148,33 @@ Print the scorecard and findings. Do not modify files.
 
 ## Modularity (unique to this audit)
 ### High-coupling / God modules
-| Module | Fan-out | LOC | Severity |
-|---|---|---|---|
+| Module | Fan-out | LOC | Severity | Evidence |
+|---|---|---|---|---|
 
 ### Circular dependencies
-| Cycle | Members | Severity |
-|---|---|---|
+| Cycle | Members | Severity | Evidence |
+|---|---|---|---|
 
 ### Layering violations
-| From | To | Declared rule | Severity |
-|---|---|---|---|
+| From | To | Declared rule | Severity | Evidence |
+|---|---|---|---|---|
 
 ## Aggregated from find-*
 ### Modifiability (find-complexity-hotspots)
-| File:line | CC | Severity |
-|---|---|---|
+| File:line | CC | Severity | Evidence |
+|---|---|---|---|
 
 ### Testability (find-coverage-gaps)
-| File | Coverage | Severity |
-|---|---|---|
+| File | Coverage | Severity | Evidence |
+|---|---|---|---|
 
 ### Reusability (find-code-duplication / find-dead-code)
-| Location | Finding | Severity |
-|---|---|---|
+| Location | Finding | Severity | Evidence |
+|---|---|---|---|
 
 ### Analyzability (find-type-gaps / find-documentation-gaps)
-| Location | Finding | Severity |
-|---|---|---|
+| Location | Finding | Severity | Evidence |
+|---|---|---|---|
 ```
 
 ## Example Usage

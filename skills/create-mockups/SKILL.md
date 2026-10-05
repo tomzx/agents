@@ -154,7 +154,3 @@ Self-check the draft against the [`review-mockups` checklist](../review-mockups/
 
 A review subagent is dispatched automatically to run `/review-mockups` to audit the mockups for coverage, usability, accessibility, consistency, and spec fidelity before moving on.
 Once approved, continue with `/create-plan`.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

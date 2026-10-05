@@ -155,7 +155,3 @@ User proposes adopting a specific library after evaluating three alternatives wi
 - If the verdict is **Holds**: proceed with the plan and consider recording the decision via `/create-decision`.
 - If the verdict is **Needs revision**: address the top recommendations, then re-run `/devils-advocate` on the revised position if the changes are significant.
 - If the verdict is **Reconsider**: use `/create-needs-assessment` or `/create-feasibility` to re-examine the foundation before investing further.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on the position provided in context or via file reads.

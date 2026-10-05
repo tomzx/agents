@@ -88,7 +88,3 @@ Report under Specificity.
 **Scenario 3: Only negatives**
 Document lists 6 issues and 0 positives. Even challenging projects have practices worth repeating.
 Report under Balance.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

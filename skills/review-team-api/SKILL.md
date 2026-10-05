@@ -144,7 +144,3 @@ Both this API and a neighboring team's claim ownership of the billing schema.
 
 Once approved, share it with every team named in Dependencies and Interaction Modes, since a Team API is a contract both sides must agree to.
 Revisit when the team type, a major service, or a key interaction mode changes.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

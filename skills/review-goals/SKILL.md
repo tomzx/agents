@@ -103,7 +103,3 @@ Report under Measurability: every key result needs a measurement method or it is
 
 Once the findings verdict is `approved`, the goals are ready to guide prioritization.
 `create-needs-assessment` reads `.sdlc/context/goals.md` directly when assessing strategic alignment.
-
-## Useful Commands Reference
-
-No CLI commands required. This skill operates on document content provided in context.

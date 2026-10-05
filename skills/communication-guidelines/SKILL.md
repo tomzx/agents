@@ -32,6 +32,7 @@ This is a reference, not a workflow: no command to run and no artifact to produc
 - Mark severity and optionality so the reader can prioritize, using MUST/SHOULD/MAY or an explicit "nit".
 - Assume competence and criticize the work, not the person.
 - For tone rewrites, use [`create-message`](../create-message/SKILL.md).
+- For the full catalog of patterns to remove (AI-favored words, filler, hedging, punctuation, and artificial patterns), apply [`references/writing-rules.md`](references/writing-rules.md).
 
 ## Length budgets
 
