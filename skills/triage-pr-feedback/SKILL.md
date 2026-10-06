@@ -28,9 +28,11 @@ For the reviewer-side flow (verifying that a PR author addressed your review com
 
 ## How feedback is tracked
 
-A feedback item is considered **already handled** once its analysis file exists, and **awaiting a decision** when the file exists but has no `decision:` key. The canonical path, id scheme, frontmatter keys, and the `implement | decline | defer` vocabulary are defined in `handle-pr-reviewer-feedback` under "The reviewer-feedback contract"; this skill relies on them and does not redefine them.
+A feedback item moves through three file-based states: **analyzed** once its analysis file exists, **decided** once the file has a `decision:` key, and **executed** once it also has an `executed_at:` key. An item with a `decision:` but no `executed_at:` is **awaiting execution**: the user already chose the outcome (possibly in the PR feedback dashboard) but the executor has not run it yet. The canonical path, id scheme, frontmatter keys, and the `implement | decline | defer` vocabulary are defined in `handle-pr-reviewer-feedback` under "The reviewer-feedback contract"; this skill relies on them and does not redefine them.
 
 Because the state is file-based and keyed on stable ids, re-running the script (for example on a 15-minute schedule) reports only genuinely new feedback, which is what makes the cadence safe and quiet. Pass `--reanalyze` to ignore existing files and treat everything as new.
+
+A decision can be recorded either in this skill's prompt or in the standalone dashboard (`uv run ~/.agents/scripts/pr_feedback_dashboard.py`), which writes the same files. Either way, `handle-pr-reviewer-feedback` is what executes the decision; the dashboard only records it.
 
 ## Workflow
 
@@ -51,11 +53,14 @@ Run ~/.agents/scripts/triage_pr_feedback.py $@ --json
                 |
                 v
    Prompt user: implement / decline / defer per item
+   (items already decided elsewhere, e.g. in the dashboard,
+    are listed as awaiting execution, not re-prompted)
                 |
                 v
    Hand off to handle-pr-reviewer-feedback (default mode)
    per PR with the approved/declined lists; it executes,
-   records decisions, commits, pushes, and replies
+   commits, pushes, replies, and records decisions +
+   executed_at (and picks up pending_execution items too)
 ```
 
 ## Steps
@@ -81,9 +86,9 @@ Useful flags:
 - `--reanalyze`: ignore existing analysis files and treat all feedback as new
 - `--log-level debug`: see API call timings
 
-It returns a JSON array of PR states. Each PR has `new_feedback` (items with no analysis file) and `pending_decision` (analyzed but undecided), plus `head_commit`, `head_repo`, `head_branch`, `base_ref`, `base_commit`, `title`, `url`, `draft`, and per-item `id`, `kind`, `author`, `body`, `url`, `path`, `line`, `thread_id`, and `analysis_path`.
+It returns a JSON array of PR states. Each PR has `new_feedback` (items with no analysis file), `pending_decision` (analyzed but undecided), and `pending_execution` (decided but not yet run), plus `head_commit`, `head_repo`, `head_branch`, `base_ref`, `base_commit`, `title`, `url`, `draft`, and per-item `id`, `kind`, `author`, `body`, `url`, `path`, `line`, `thread_id`, and `analysis_path`.
 
-If every PR has an empty `new_feedback`, report "no new feedback" and stop. If some PRs have a non-empty `pending_decision` while none have new feedback, list them as awaiting a decision but do not prompt again (their decision is deliberately deferred).
+If every PR has an empty `new_feedback`, report "no new feedback". If some PRs still have non-empty `pending_decision` or `pending_execution`, list them as awaiting a decision or awaiting execution. In an unattended run (`--prepare-only` or `$OUTCOME_YAML` set), stop there and leave them for the next interactive session. In an interactive run, skip the fan-out (step 2) and continue at step 3 so that `pending_execution` items (decisions recorded elsewhere, for example in the dashboard) are handed to `handle-pr-reviewer-feedback` and `pending_decision` items are prompted.
 
 ### 2. Fan out analysis, delegated to handle-pr-reviewer-feedback
 
@@ -120,7 +125,7 @@ Record in the summary that sequential mode was used.
 
 ### 3. Collect and present recommendations
 
-Re-run the discovery script (or re-read the PR states) so the just-written analysis files are reflected, and for each PR take its `pending_decision` items. Read each item's `analysis_path` for its `recommendation` and `confidence` per the contract in `handle-pr-reviewer-feedback`. Build a decision table grouped by repository:
+Re-run the discovery script (or re-read the PR states) so the just-written analysis files are reflected, and for each PR take its `pending_decision` items. Read each item's `analysis_path` for its `recommendation` and `confidence` per the contract in `handle-pr-reviewer-feedback`. Also list each PR's `pending_execution` items (already decided, for example in the dashboard) so the user sees them, but do not prompt for them. Build a decision table grouped by repository:
 
 | Repository | PR | Feedback | Author | Ask | Recommendation | Confidence | Analysis |
 |---|---|---|---|---|---|---|---|
@@ -133,7 +138,7 @@ If the run is unattended (`--prepare-only` argument, or `$OUTCOME_YAML` is set),
 
 ### 4. Prompt the user for decisions
 
-Ask the user, per feedback item, whether to `implement`, `decline`, or `defer`. Use the `question` tool when available; otherwise present the table and ask in prose.
+Ask the user, per `pending_decision` feedback item, whether to `implement`, `decline`, or `defer`. Use the `question` tool when available; otherwise present the table and ask in prose. Do not prompt for `pending_execution` items: their decision is already recorded and the executor will run it.
 
 Recommendations are advisory: the user may override any of them.
 
@@ -141,12 +146,12 @@ Recommendations are advisory: the user may override any of them.
 
 Load the successor skill before running it, per the shared SDLC conventions:
 
-1. For each PR with at least one decided item, load `handle-pr-reviewer-feedback` with the skill tool and run it in default mode, naming the approved and declined items by feedback id and analysis file path:
+1. For each PR with at least one decided item or at least one `pending_execution` item, load `handle-pr-reviewer-feedback` with the skill tool and run it in default mode, naming the approved and declined items by feedback id and analysis file path:
 
    ```
    /handle-pr-reviewer-feedback <N>
    ```
-   Tell it, in the prompt, which feedback items the user approved (`implement`) and which the user declined (`decline`); items left undecided are `defer`. That skill owns the vocabulary and the recording: it executes the changes, commits, pushes, replies on the threads (gated by `should-post-to-github`), and writes `decision` + `decided_at` into each analysis file. Do not record decisions here.
+   Tell it, in the prompt, which feedback items the user approved (`implement`) and which the user declined (`decline`); items left undecided are `defer`. It also picks up the PR's `pending_execution` items on its own. That skill owns the vocabulary and the recording: it executes the changes, commits, pushes, replies on the threads (gated by `should-post-to-github`), and writes `decision` + `decided_at` (when absent) and `executed_at` into each analysis file. Do not record decisions here.
 
 2. Report what was implemented, declined, and deferred, and which PRs were handed off.
 
@@ -196,7 +201,7 @@ Prefer a launchd/cron/OpenChamber task over GitHub Actions when the PRs are in t
 
 | Script | Description |
 |---|---|
-| `~/.agents/scripts/triage_pr_feedback.py` | Discovers your open PRs, extracts unresolved non-author feedback (review threads, change-request reviews, conversation comments), checks each item's analysis file, and outputs the remaining work as JSON (`--json`), dispatch lines (`--dispatch`), or a Rich table. |
+| `~/.agents/scripts/triage_pr_feedback.py` | Discovers your open PRs, extracts unresolved non-author feedback (review threads, change-request reviews, conversation comments), checks each item's analysis file and its decision/execution state, and outputs the remaining work as JSON (`--json`), dispatch lines (`--dispatch`), or a Rich table. |
 
 ## Related Skills
 

@@ -14,13 +14,19 @@ feedback awaiting a response, determines which feedback items have not yet
 been analyzed, and computes the path where the analysis agent should write
 its recommendation file.
 
-State is file-based and idempotent: a feedback item is considered "analyzed"
-once its recommendation file exists under
+State is file-based and idempotent. Each item's state is read from three
+markers in its recommendation file under
 
     $HOME/.sdlc/{owner}/{repo}/pull-requests/{PR}/feedback/{feedback-id}.md
 
-so re-running the script (for example on a 15-minute schedule) only ever
-reports genuinely new feedback. Pass ``--reanalyze`` to ignore existing files.
+- the file exists -> "analyzed"
+- the ``decision`` key is present -> "decided"
+- the ``executed_at`` key is present -> the outcome has been carried out
+
+So re-running the script (for example on a 15-minute schedule) only ever
+reports genuinely new feedback, and a decision recorded without being run
+(for example by the PR feedback dashboard) surfaces as pending execution.
+Pass ``--reanalyze`` to ignore existing files.
 
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
@@ -227,6 +233,7 @@ class FeedbackItem:
     analyzed: bool = False
     analysis_head: str = ""
     decision: str = ""
+    executed_at: str = ""
     error: str = ""
 
 
@@ -260,6 +267,20 @@ class PRFeedbackState:
     def pending_decision(self) -> list[FeedbackItem]:
         """Analyzed feedback items the user has not decided on yet."""
         return [item for item in self.feedback if item.analyzed and not item.decision]
+
+    @property
+    def pending_execution(self) -> list[FeedbackItem]:
+        """Decided feedback items whose outcome has not been carried out yet.
+
+        A decision recorded outside the executor (for example by the PR
+        feedback dashboard) leaves ``executed_at`` empty, so the executor can
+        find and run it without re-prompting for the decision.
+        """
+        return [
+            item
+            for item in self.feedback
+            if item.analyzed and item.decision and not item.executed_at
+        ]
 
 
 def _search_prs(
@@ -425,12 +446,13 @@ def _feedback_dir(pr: PRFeedbackState) -> Path:
 FRONTMATTER_FIELD = re.compile(r"^(\w+):\s*(.*)$")
 
 
-def _read_analysis(path: Path) -> tuple[bool, str, str]:
-    """Read (exists, head_commit, decision) from a recommendation file."""
+def _read_analysis(path: Path) -> tuple[bool, str, str, str]:
+    """Read (exists, head_commit, decision, executed_at) from a recommendation file."""
     if not path.is_file():
-        return False, "", ""
+        return False, "", "", ""
     head = ""
     decision = ""
+    executed_at = ""
     for line in path.read_text(errors="replace").splitlines():
         match = FRONTMATTER_FIELD.match(line)
         if not match:
@@ -440,7 +462,9 @@ def _read_analysis(path: Path) -> tuple[bool, str, str]:
             head = value
         elif key == "decision":
             decision = value
-    return True, head, decision
+        elif key == "executed_at":
+            executed_at = value
+    return True, head, decision, executed_at
 
 
 def extract_feedback(
@@ -538,10 +562,11 @@ def extract_feedback(
     for item in items:
         analysis_path = feedback_dir / f"{item.id}.md"
         item.analysis_path = str(analysis_path)
-        analyzed, head, decision = _read_analysis(analysis_path)
+        analyzed, head, decision, executed_at = _read_analysis(analysis_path)
         item.analyzed = analyzed and not reanalyze
         item.analysis_head = head
         item.decision = decision
+        item.executed_at = executed_at
     return items
 
 
@@ -654,6 +679,7 @@ def build_summary_table(prs: list[PRFeedbackState]) -> Group:
         table.add_column("Head", justify="center")
         table.add_column("New", justify="right")
         table.add_column("Pending", justify="right")
+        table.add_column("Exec", justify="right")
         table.add_column("Latest")
         table.add_column("Status")
 
@@ -662,6 +688,8 @@ def build_summary_table(prs: list[PRFeedbackState]) -> Group:
                 status = f"[red]Error: {pr.error}[/red]"
             elif pr.new_feedback:
                 status = "[bold yellow]New feedback[/bold yellow]"
+            elif pr.pending_execution:
+                status = "[magenta]Awaiting execution[/magenta]"
             elif pr.pending_decision:
                 status = "[cyan]Awaiting decision[/cyan]"
             else:
@@ -681,6 +709,9 @@ def build_summary_table(prs: list[PRFeedbackState]) -> Group:
                 else "[dim]0[/dim]",
                 str(len(pr.pending_decision))
                 if pr.pending_decision
+                else "[dim]0[/dim]",
+                f"[bold magenta]{len(pr.pending_execution)}[/bold magenta]"
+                if pr.pending_execution
                 else "[dim]0[/dim]",
                 _age_cell(latest),
                 status,
@@ -726,6 +757,7 @@ def format_json(prs: list[PRFeedbackState]) -> str:
         data = asdict(pr)
         data["new_feedback"] = [asdict(item) for item in pr.new_feedback]
         data["pending_decision"] = [asdict(item) for item in pr.pending_decision]
+        data["pending_execution"] = [asdict(item) for item in pr.pending_execution]
         payload.append(data)
     return json.dumps(payload, indent=2)
 
@@ -881,6 +913,7 @@ def main() -> int:
         total=len(prs),
         with_new_feedback=sum(1 for p in prs if p.new_feedback),
         new_items=sum(len(p.new_feedback) for p in prs),
+        awaiting_execution=sum(len(p.pending_execution) for p in prs),
         errors=sum(1 for p in prs if p.error),
     )
 

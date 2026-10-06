@@ -483,13 +483,14 @@ The file is Markdown with YAML frontmatter. The keys the orchestrator depends on
 - `confidence` — `high`, `medium`, or `low`.
 - `decision` — set only after the user decides: `implement`, `decline`, or `defer`. Its **absence** marks the item as awaiting a decision; its presence (including `defer`) stops it being re-surfaced.
 - `decided_at` — set alongside `decision`.
+- `executed_at` — set once the decision has been carried out. Its **absence** alongside a present `decision` marks the item as decided but not yet run, so a decision recorded outside the executor (for example by the PR feedback dashboard) can be executed later without re-prompting.
 - `session_link` — the standard session link.
 
 The body carries the verbatim comment, an analysis grounded in `file:line`, a recommended action, and a draft reply.
 
 ### State semantics
 
-There is no separate state file: the presence of an analysis file is the "already analyzed" marker, and the presence of a `decision` key is the "already decided" marker. This is what makes a 10-15 minute scheduled run idempotent and quiet. The store is user-global like the PR review reports: outside any repo, not governed by `SDLC_DIR`, and never committed.
+There is no separate state file. Three keys drive the state machine: the presence of an analysis file is the "analyzed" marker, a `decision` key is the "decided" marker, and an `executed_at` key is the "executed" marker. The gap between a present `decision` and an absent `executed_at` is the "decided but not run" state. This is what makes a 10-15 minute scheduled run idempotent and quiet while still letting a recorded decision be carried out. The store is user-global like the PR review reports: outside any repo, not governed by `SDLC_DIR`, and never committed.
 
 ## Revision Mode (create-* skills)
 

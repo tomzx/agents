@@ -14,6 +14,13 @@ triage-pr-feedback skill, renders them as a control panel, and lets you record
 an implement / decline / defer decision into each file's frontmatter (the same
 keys that skill and handle-pr-reviewer-feedback consume).
 
+Recording a decision writes ``decision`` + ``decided_at`` but not
+``executed_at``, so the item is left in the "decided but not run" state.
+Running handle-pr-reviewer-feedback then picks those items up, carries the
+decision out (change/commit/push/reply), and stamps ``executed_at``. Changing
+or resetting a decision clears any stale ``executed_at`` so the new decision is
+run too.
+
 Run:
     uv run scripts/pr_feedback_dashboard.py
     uv run scripts/pr_feedback_dashboard.py --dir ~/.sdlc --port 8787
@@ -77,6 +84,7 @@ class FeedbackItem:
     session_link: str
     decision: str | None
     decided_at: str | None
+    executed_at: str | None
     title: str
     path: str
     sections: dict[str, str] = field(default_factory=dict)
@@ -84,6 +92,15 @@ class FeedbackItem:
     @property
     def status(self) -> str:
         return self.decision or "pending"
+
+    @property
+    def run_state(self) -> str:
+        """Execution state: ``executed``, ``awaiting``, or ``none``."""
+        if self.executed_at:
+            return "executed"
+        if self.decision:
+            return "awaiting"
+        return "none"
 
 
 def _render_md(text: str) -> str:
@@ -139,6 +156,7 @@ def parse_feedback(path: Path) -> FeedbackItem | None:
         session_link=str(data.get("session_link") or ""),
         decision=(str(data["decision"]) if data.get("decision") else None),
         decided_at=(str(data["decided_at"]) if data.get("decided_at") else None),
+        executed_at=(str(data["executed_at"]) if data.get("executed_at") else None),
         title=title or path.stem,
         path=str(path),
         sections=sections,
@@ -226,6 +244,18 @@ def write_decision(path: Path, decision: str | None) -> None:
         raise HTTPException(status_code=422, detail="file has no frontmatter")
     fm, rest = m.group(1), m.group(2)
 
+    existing = ""
+    for line in fm.splitlines():
+        dm = re.match(r"^decision\s*:\s*(.*)$", line)
+        if dm:
+            existing = dm.group(1).strip().strip("\"'")
+
+    # A new decision (or a reset) has not been carried out yet, so a stale
+    # executed_at must be cleared and the item picked up by the executor
+    # again. Re-clicking the same decision leaves an existing execution
+    # marker untouched.
+    changed = decision != (existing or None)
+
     now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out: list[str] = []
     seen_decision = False
@@ -238,7 +268,10 @@ def write_decision(path: Path, decision: str | None) -> None:
         elif re.match(r"^decided_at\s*:", line):
             seen_decided = True
             if decision:
-                out.append(f"decided_at: {now}")
+                out.append(line if not changed else f"decided_at: {now}")
+        elif re.match(r"^executed_at\s*:", line):
+            if decision and not changed:
+                out.append(line)
         else:
             out.append(line)
     if decision:
@@ -303,12 +336,23 @@ def _card(item: FeedbackItem, state: str = "") -> str:
 
     search_blob = (
         f"{item.title} {item.repo} {item.pr} {item.author} {item.kind}"
-        f" {item.recommendation} {state}"
+        f" {item.recommendation} {state} {item.run_state}"
     ).lower()
 
     state_pill = (
         '<span class="pill state-closed">closed</span>' if state == "closed" else ""
     )
+
+    if item.run_state == "executed":
+        run_pill = (
+            '<span class="pill run executed" data-role="run-pill">executed</span>'
+        )
+    elif item.run_state == "awaiting":
+        run_pill = (
+            '<span class="pill run awaiting" data-role="run-pill">awaiting run</span>'
+        )
+    else:
+        run_pill = '<span class="pill run none hidden" data-role="run-pill"></span>'
 
     def btn(value: str, label: str) -> str:
         active = " active" if (item.decision or "pending") == value else ""
@@ -329,6 +373,8 @@ def _card(item: FeedbackItem, state: str = "") -> str:
   data-rec="{esc(item.recommendation)}"
   data-status="{esc(item.status)}"
   data-state="{esc(state)}"
+  data-executed="{esc(item.executed_at or "")}"
+  data-run="{esc(item.run_state)}"
   data-title="{esc(item.title)}"
   data-date="{esc(item.created_at)}"
   data-confidence="{esc(item.confidence)}"
@@ -344,6 +390,7 @@ def _card(item: FeedbackItem, state: str = "") -> str:
         <span class="pill kind">{esc(item.kind or "comment")}</span>
         {state_pill}
         <span class="pill decision" data-role="decision-pill" style="--c:{decision_color}">{esc(item.status)}</span>
+        {run_pill}
       </div>
       <div class="card-when">{esc((item.created_at or "")[:10])}</div>
     </div>
@@ -400,6 +447,7 @@ def render_page(
     counts = {"pending": 0, "implement": 0, "decline": 0, "defer": 0}
     for i in items:
         counts[i.status] = counts.get(i.status, 0) + 1
+    to_run = sum(1 for i in items if i.run_state == "awaiting")
     cards = "\n".join(
         _card(i, states.get((i.repo, str(i.pr)), "")) for i in items
     ) or (
@@ -440,6 +488,7 @@ h1 {{ font-size:17px; margin:0; font-weight:600; }}
 .stat .l {{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }}
 .stat.pending .n {{ color:#d29922; }} .stat.implement .n {{ color:#3fb950; }}
 .stat.decline .n {{ color:#f85149; }} .stat.defer .n {{ color:#d29922; }}
+.stat.torun .n {{ color:#58a6ff; }}
 .controls {{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }}
 .controls input, .controls select {{
   background:var(--panel); color:var(--fg); border:1px solid var(--border);
@@ -533,6 +582,8 @@ main {{ padding:20px 24px; flex:1; min-width:0; max-width:1100px; }}
 }}
 .pill.rec, .pill.decision {{ color:var(--c); border-color:var(--c); font-weight:600; }}
 .pill.state-closed {{ color:#8b949e; border-color:#484f58; font-style:italic; }}
+.pill.run.executed {{ color:#3fb950; border-color:#3fb950; }}
+.pill.run.awaiting {{ color:#58a6ff; border-color:#58a6ff; }}
 .pill.decision {{ text-transform:uppercase; letter-spacing:.04em; }}
 .card-when {{ color:var(--muted); font-size:12px; white-space:nowrap; }}
 h2 {{ font-size:15px; margin:10px 0 4px; line-height:1.4; }}
@@ -608,6 +659,7 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
     <div class="stat implement"><div class="n" data-count="implement">{counts.get("implement", 0)}</div><div class="l">Implement</div></div>
     <div class="stat decline"><div class="n" data-count="decline">{counts.get("decline", 0)}</div><div class="l">Decline</div></div>
     <div class="stat defer"><div class="n" data-count="defer">{counts.get("defer", 0)}</div><div class="l">Defer</div></div>
+    <div class="stat torun"><div class="n" data-count="to-run">{to_run}</div><div class="l">To run</div></div>
   </div>
   <div class="controls">
     <input id="search" type="search" placeholder="Search title, author, repo, id...">
@@ -636,6 +688,11 @@ details.section[open] summary::before {{ content:"\\25BE"; }}
       <option value="reject">reject</option>
       <option value="clarify">clarify</option>
       <option value="no-action">no-action</option>
+    </select>
+    <select id="exec-filter" title="Filter by execution state">
+      <option value="">Any execution</option>
+      <option value="awaiting">Awaiting run</option>
+      <option value="executed">Executed</option>
     </select>
     <select id="group-by" title="Group feedback into sections by">
       <option value="pr">Group: pull request</option>
@@ -677,6 +734,7 @@ const authorBoxes = Array.from(document.querySelectorAll('[data-author-box]'));
 const selectedAuthors = new Set();
 const statusFilter = document.getElementById('status-filter');
 const recFilter = document.getElementById('rec-filter');
+const execFilter = document.getElementById('exec-filter');
 const toast = document.getElementById('toast');
 const cardsContainer = document.getElementById('cards');
 const sidebarTitle = document.getElementById('sidebar-title');
@@ -840,6 +898,7 @@ function applyFilters() {{
   const state = stateFilter.value;
   const status = statusFilter.value;
   const rec = recFilter.value;
+  const exec = execFilter.value;
   for (const card of cards) {{
     let show = true;
     if (q && !card.dataset.search.includes(q)) show = false;
@@ -849,6 +908,7 @@ function applyFilters() {{
     if (selectedAuthors.size && !selectedAuthors.has(card.dataset.author)) show = false;
     if (status && card.dataset.status !== status) show = false;
     if (rec && card.dataset.rec !== rec) show = false;
+    if (exec && card.dataset.run !== exec) show = false;
     card.classList.toggle('hidden', !show);
   }}
   renderGroups();
@@ -856,12 +916,15 @@ function applyFilters() {{
 
 function updateStats() {{
   const counts = {{}};
+  let toRun = 0;
   for (const card of cards) {{
     const s = card.dataset.status;
     counts[s] = (counts[s] || 0) + 1;
+    if (card.dataset.run === 'awaiting') toRun += 1;
   }}
   document.querySelectorAll('[data-count]').forEach(el => {{
-    el.textContent = counts[el.dataset.count] || 0;
+    if (el.dataset.count === 'to-run') el.textContent = toRun;
+    else el.textContent = counts[el.dataset.count] || 0;
   }});
 }}
 
@@ -894,6 +957,17 @@ async function setDecision(id, decision) {{
   card.querySelectorAll('.decision-btn').forEach(btn => {{
     btn.classList.toggle('active', btn.dataset.decision === status);
   }});
+  const item = data.item || {{}};
+  const executedAt = item.executed_at || '';
+  const runState = executedAt ? 'executed' : (status !== 'pending' ? 'awaiting' : 'none');
+  card.dataset.executed = executedAt;
+  card.dataset.run = runState;
+  const runPill = card.querySelector('[data-role="run-pill"]');
+  if (runPill) {{
+    runPill.className = 'pill run ' + runState + (runState === 'none' ? ' hidden' : '');
+    runPill.textContent = runState === 'executed' ? 'executed'
+      : (runState === 'awaiting' ? 'awaiting run' : '');
+  }}
   updateStats();
   renderGroups();
   showToast(`${{id}} -> ${{status}}`);
@@ -932,7 +1006,7 @@ document.addEventListener('click', (e) => {{
 }});
 
 search.addEventListener('input', applyFilters);
-[repoFilter, stateFilter, statusFilter, recFilter].forEach(el => el.addEventListener('change', applyFilters));
+[repoFilter, stateFilter, statusFilter, recFilter, execFilter].forEach(el => el.addEventListener('change', applyFilters));
 [groupBy, sortBy].forEach(el => el.addEventListener('change', renderGroups));
 
 document.getElementById('reload').addEventListener('click', () => location.reload());

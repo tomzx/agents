@@ -1,5 +1,11 @@
 # Memory
 
+## 2026-10-06: a recorded decision is not an executed one
+
+- The reviewer-feedback analysis file has two terminal markers: `decision` (the user chose implement/decline/defer) and `executed_at` (the executor carried it out). An item with `decision` but no `executed_at` is "decided but not run", surfaced by `triage_pr_feedback.py` as `pending_execution`.
+- This is what lets the PR feedback dashboard (`scripts/pr_feedback_dashboard.py`) record a decision that `handle-pr-reviewer-feedback` later executes. Do not collapse the two markers: treating `decision` as terminal reintroduces the bug where dashboard decisions are never implemented, committed, or replied to.
+- The dashboard writes `decision` + `decided_at` and clears a stale `executed_at` when the decision changes or is reset; the executor stamps `executed_at` for every item it runs (including `defer`, a no-op).
+
 ## 2026-10-02: AGENTS.md is loaded verbatim (no `!`/`@` expansion)
 
 - OpenCode loads `AGENTS.md` content as-is; `!`command`` and `@file` are only expanded in command templates and skills, so a `!`cat file`` directive in AGENTS.md arrives as literal text. Confirmed in source (`instruction-context.ts` renders the file raw) and in the `instruction_blob` DB table.
