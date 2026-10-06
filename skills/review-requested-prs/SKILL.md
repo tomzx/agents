@@ -1,7 +1,7 @@
 ---
 name: review-requested-prs
 description: Orchestrate full PR reviews (assess-pr-risk in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr) across all PRs where you are a requested reviewer (including PRs where a team request was later dropped), or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, opencode run:*), Read, Write, Glob, Grep, Task
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, ~/.agents/scripts/stop_sibling_sessions.py:*, opencode run:*), Read, Write, Glob, Grep, Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
-The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot delay any other PR.
+The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Before dispatching, it stops any older run of the same task in the same directory so only the newest one works there. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot delay any other PR.
 
 The discovery, staleness check, and head-ref resolution are done by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). Its `--dispatch-prs` output is one self-contained `/review-pr-full` command per PR, carrying the precomputed stale steps and head refs:
 
@@ -43,14 +43,18 @@ Run without `--dispatch-prs`, the script prints a human summary table whose PR n
 
 ## Prerequisites
 
-- `uv` installed (for running the Python script)
+- `uv` installed (for running the Python scripts)
 - `gh` CLI authenticated (used by the script as a token fallback, and by `review-pr-full` to fetch head branches)
+- `opencode2` CLI (optional): used by the step 0 concurrency guard to list, detect, and stop older sessions in this directory. When it is unavailable the guard warns and is skipped.
 - `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, and `assess-pr-risk` skills available
 - Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
 
 ## Workflow
 
 ```
+Run ~/.agents/scripts/stop_sibling_sessions.py   (opencode2: stop older sessions here)
+                |
+                v
 Run ~/.agents/scripts/review_requested_prs.py --dispatch-prs
                 |
                 v
@@ -67,6 +71,16 @@ Run ~/.agents/scripts/review_requested_prs.py --dispatch-prs
 ```
 
 ## Steps
+
+### 0. Stop older sessions in this directory
+
+Only one agent session should work in a directory at a time: a scheduled run and an interactive session in the same repo overwrite each other's in-flight work. Before dispatching anything, make sure this (newer) session owns the directory:
+
+```bash
+~/.agents/scripts/stop_sibling_sessions.py --session <current session id>
+```
+
+The script uses `opencode2 api` to list the root sessions in the current directory (`session.list`), find the ones currently running (`session.active`), and interrupt every one created before this session (`session.interrupt`), so the newest session always wins and sessions created after it are left alone. Only runs of the same task count as siblings: this session's title must be `IDENTIFIER YYYY-MM-DD HH:MM` (for example `triage-pr-feedback 2026-09-30 15:00`) and a sibling must share that identifier, so interactive sessions and runs of other tasks are left alone. Passing `--session <current session id>` keeps it from stopping itself (the script also reads `$OPENCODE_SESSION_ID` when set). `session.active` and `session.interrupt` only see executions owned by the OpenCode server `opencode2` talks to, so pass `--server <url>` to target another server. If `opencode2` is missing or unreachable the script warns and exits 0, so the review still proceeds; this guard is best-effort and never blocks dispatch.
 
 ### 1. Run the discovery script
 
@@ -226,6 +240,7 @@ PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and 
 
 | Script | Description |
 |---|---|
+| `~/.agents/scripts/stop_sibling_sessions.py` | Concurrency guard: lists the root sessions in the current directory (`opencode2 api session.list`), finds the running ones of the same task (`session.active`, matching title identifier `IDENTIFIER YYYY-MM-DD HH:MM`), and interrupts every one created before this session (`session.interrupt`), so the newest run of the task wins. Best-effort; warns and exits 0 when `opencode2` is unreachable. Flags: `--dir PATH`, `--session ID`, `--server URL`, `--dry-run`, `--quiet`. |
 | `~/.agents/scripts/review_requested_prs.py` | Discovers PRs (review-requested, already-reviewed, and, with `--notifications`, dropped team review requests from notifications), checks marker staleness (GitHub comments + local `.sdlc` files), resolves head repos/branches, and outputs dispatch commands. Run with `--dispatch-prs` for one self-contained `/review-pr-full` command per PR (used by this skill), `--dispatch` for raw per-step commands, `--json` for structured data, `--notifications` to enable notification-based dropped-request discovery, `--log-level debug` for timings. |
 
 ## Related Skills

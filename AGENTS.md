@@ -7,6 +7,9 @@
 * Avoid running `find /` (or similarly broad filesystem scans) unless really necessary, as it is generally a waste of time; scope the search to a specific path or add a proper depth limit instead.
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
+# Second opinions
+* When you need a second opinion or feedback on work you did as an agent, ask a subagent to do it, so the reviewer does not start from your context and can judge the work on its own.
+
 # Banned terms
 * Avoid these terms unless one is genuinely the most appropriate term: shape, honest, load bearing, load-bearing, real, substrate, posture.
 * `banned-terms.txt` at the skills library root is the canonical list (one term per line): update it there, then mirror the change in the line above.

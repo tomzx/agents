@@ -17,6 +17,13 @@
 - ghx `--json` is a boolean flag (no field list), and its output omits fields gh can produce: `headRefOid`, `headRepository`, `closingIssuesReferences`, `statusCheckRollup` on PRs, and `milestone`/`closedAt`/`stateReason` on issues.
 - Rewriting `gh X --json <fields>` as `ghx X --json` silently drops the requested fields, so confirm each needed field exists before preferring ghx (this happened across several skills and needed a corrective pass).
 
+## 2026-09-30: OpenCode session activity and interrupt are per-server
+
+- `opencode2 api session.active` and `session.interrupt` only see executions owned by the OpenCode server the CLI talks to. `opencode2` defaults to its background service (URL in `~/.local/state/opencode/service.json`); a session hosted by a different server (for example an OpenChamber-managed one) is absent from `session.active` and `session.interrupt` returns `{"interrupted":false}`. Pass `--server <url>` to target another server.
+- `opencode2 api session.list --param directory=<dir> --param parentID=null` returns the root (non-subagent) sessions in a directory. `--param` only takes effect with the operation-id form (`opencode2 api session.list ...`), not the `opencode2 api GET /api/session ...` form.
+- `$OPENCODE_SESSION_ID` is not reliably present in the tool shell environment; pass the session id explicitly when a command needs to know which session is the caller.
+- Scheduled task sessions are titled `IDENTIFIER YYYY-MM-DD HH:MM` (for example `triage-pr-feedback 2026-09-30 15:00`, `review-requested-prs davies 2026-09-30 16:00`); interactive sessions use free-form titles. The identifier is the task plus its arguments, so it scopes "same task" to one scheduled command.
+
 ## 2026-09-30: dropped team review requests are only discoverable via notifications
 
 - When a review is requested from a team, any teammate comment or review removes the team request for every member; afterwards the PR matches neither `review-requested:@me` nor `team-review-requested:` (verified on Shopify/davies#1633).
