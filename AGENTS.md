@@ -8,7 +8,7 @@
 * When a skill explicitly recommends running another skill as an upstream/prerequisite (for example create-article recommending research-article when sources are not yet gathered), and you choose not to follow that recommendation, you must say so and give your reasoning before proceeding, so it can be course-corrected. Surfacing the deviation after the fact is not sufficient.
 
 # Banned terms
-* Avoid these terms unless one is genuinely the most appropriate term: shape, honest, load bearing, load-bearing real, substrate, posture.
+* Avoid these terms unless one is genuinely the most appropriate term: shape, honest, load bearing, load-bearing, real, substrate, posture.
 * `banned-terms.txt` at the skills library root is the canonical list (one term per line): update it there, then mirror the change in the line above.
 
 # Memory
