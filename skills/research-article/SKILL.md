@@ -29,6 +29,13 @@ The output is a research brief that becomes the input to `/create-article`, so t
    Prioritize primary sources (papers, official docs, benchmarks) over secondary commentary, but keep influential blog posts and talks that shape practice.
 4. Triage.
    Rank candidates by relevance, credibility, and recency.
+   Score credibility from concrete authority signals, not impressions:
+   - Papers: a peer-reviewed venue and citations beat an uncited preprint; note the sample size.
+   - Reports and standards: the publishing organization and its methodology (for example NBER, DORA, OpenTelemetry).
+   - Repositories: stars, forks, and recent activity, and flag a small or obscure repo even when it states a useful number.
+   - Vendor content: a company with a product in the category is self-interested; keep it, but label it and never present it as independent.
+   - Blogs: a named author and no sales pitch; a services-company SEO post with no author is Weak.
+   Record an authority signal and a credibility rating (Strong, Moderate, or Weak, with a qualifier such as "Strong (small n)") for every source you keep.
    Keep the strongest 8-15 to deep-read.
    Drop outdated or low-quality sources, but record why so the exclusion is deliberate.
 5. Deep-read the top sources.
@@ -117,9 +124,13 @@ status: draft
 
 ## Key Sources
 
-| Source | Type | Year | Why it matters |
-|---|---|---|---|
-| [Title](https://...) | Paper / Blog / Docs / Standard | <year> | <one line> |
+| Source | Type | Year | Authority signal | Credibility | Why it matters |
+|---|---|---|---|---|---|
+| [Title](https://...) | Paper / Blog / Docs / Standard | <year> | <the concrete signal: venue, org, citations, stars/forks, vendor status, sample size> | Strong / Moderate / Weak (+ qualifier) | <one line> |
+
+Every source you keep must carry an authority signal and a credibility rating.
+Rate vendor content and personal blogs as such rather than treating them as independent.
+List any source cited in the body but not promoted here, and any claim with no link, with its rating so the gap is visible.
 
 ## Open Questions / Gaps
 
@@ -139,15 +150,19 @@ status: draft
 - Answer "what is the state of the art?" with specific names, numbers, and dates, not vague generalities
 - Distinguish what is established from what is contested or emerging
 - Trace claims to primary sources with verifiable links
+- Rate every source's credibility from a concrete authority signal, and separate vendor or personal-blog claims from independent evidence
 - Name the main approaches and how they compare
 - Recommend a concrete angle the article can take
 
 **Avoid:**
 - Listing sources without explaining what each contributes
+- Leaving a source's credibility unrated
+- Presenting vendor, SEO, or personal-blog numbers as independent evidence
 - Treating every source as equally important (triage strictly)
 - Stating opinions or impressions as if they were sourced facts
 - Stopping at the first page of search results without triangulating
 - Em-dash sentence structures, use commas or parentheses instead
+- The banned terms listed in `banned-terms.txt` at the skills library root (one per line), unless one is genuinely the most appropriate term
 
 ## Example Usage
 
