@@ -46,7 +46,7 @@ Gather evidence
  churn of touched files)
           |
           v
-Score risk factors (7, each Low/Medium/High)
+Score risk factors (8, each Low/Medium/High)
           |
           v
 Score confidence (evidence-based rubric)
@@ -125,6 +125,7 @@ git -C "$WORKTREE_DIR" log --since="12 months" --name-only --format= -- <changed
 
 Score each factor Low / Medium / High, citing `file:line` evidence for every non-Low score.
 Trace findings end to end before scoring them: a suspicion you did not confirm by reading the caller, config, or schema does not count.
+For **change proportionality**, presume the change is larger than the issue needs, and lower the score only when the diff and its machinery are demonstrably the smallest that fits. An oversized change must not pass as low risk just because its blast radius is small.
 
 | Factor | Low | Medium | High |
 |---|---|---|---|
@@ -134,6 +135,7 @@ Trace findings end to end before scoring them: a suspicion you did not confirm b
 | **Reversibility** | Fully reversible by revert | Migration or config change with a documented rollback | Destructive or irreversible operation (data drop, permanent transform, one-way door) |
 | **Operational exposure** | Internal only | Behavior change behind a flag or config | Hot path, externally triggered behavior change, or rollout with no guard |
 | **Coverage gap** | Changed behavior covered by tests | Partial coverage, edge cases untested | Core behavior with no test (inspect the diff and the tests it adds or touches) |
+| **Change proportionality** | Diff and machinery match the problem's scope; no new mechanism beyond what the linked issue requires | Some machinery beyond the stated need (a new abstraction, flag, or dependency for a single use; diff noticeably larger than the issue implies) | Diff or machinery far exceeds the issue (a framework or plugin system for one case, a large rewrite for a small fix, or additions unrelated to the issue) |
 | **Churn** | Files stable (few touches in 12 months) | Monthly-level activity | Hotspot: touched weekly or by many authors |
 
 Rollup rules, applied in order:
@@ -141,7 +143,7 @@ Rollup rules, applied in order:
 2. Otherwise two or more factors Medium → **risk: Medium**.
 3. Otherwise → **risk: Low**.
 
-Every High factor must name the concrete failure or future change it makes expensive; if you cannot name it, downgrade to Medium and say why.
+Every High factor must name the concrete failure, cost, or future change it causes (for change proportionality: the machinery beyond the issue's scope and what it costs to carry); if you cannot name it, downgrade to Medium and say why.
 
 ### 5. Score the confidence
 
@@ -216,6 +218,7 @@ Reviewed commit: `SHORT_SHA`
 | Reversibility | ... | ... |
 | Operational exposure | ... | ... |
 | Coverage gap | ... | ... |
+| Change proportionality | Low/Medium/High | <diffstat and the mechanism beyond the issue's scope, or "matches the issue"> |
 | Churn | ... | ... |
 
 ## Confidence
@@ -232,7 +235,7 @@ What would raise confidence: <one sentence>.
 
 ## Top risk drivers
 
-<For each High factor: the concrete failure or expensive future change, with file:line. Omit the section when risk is Low.>
+<For each High factor: the concrete failure, cost, or expensive future change, with file:line. Omit the section when risk is Low.>
 
 ---
 <Attribution footer per github-post-attribution>
@@ -273,6 +276,12 @@ Touches session validation (Security High) with callers across three packages (B
 /assess-pr-risk 61
 ```
 800-line rename touching a helper dispatched through a plugin registry (Blast radius Medium, callers not fully traceable). Linked issue and small diff, but no tests and an incomplete call graph: 2 points, confidence Medium. Verdict `investigate`: run `/review-pr-full` before deciding.
+
+**Scenario 5: Small fix, overengineered**
+```
+/assess-pr-risk 74
+```
+The issue asks to fix an off-by-one in a date formatter. The diff adds a configurable formatting strategy with a plugin registry for one implementation (Change proportionality High), touching that hot file (Churn Medium). Blast radius is Low and tests pass. The High factor alone makes risk High, so the verdict is `block`: the reviewer asks for the small fix the issue implies before merge. The change cannot be fast-tracked on its low blast radius.
 
 ## Next Step
 

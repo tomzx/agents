@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: "Conduct the code-craft review of a GitHub pull request (approach and simplicity, quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
+description: "Conduct the code-craft review of a GitHub pull request (approach and simplicity, including whether the change is larger than the problem needs, quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
 allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
 # Review Pull Request
 
-Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); approach-level notes arriving from `/validate-pr` or `/verify-pr` go there. Writes findings to a structured markdown file.
+Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); the reviewer presumes the change is larger than the problem needs and must work to disprove it before approving. Approach-level notes arriving from `/validate-pr` or `/verify-pr` go there. Writes findings to a structured markdown file.
 
 ## Prerequisites
 
@@ -130,7 +130,7 @@ Before diving into the code:
 	* If `/verify-pr` has run, read its conformance report and treat the criteria status as settled; do not re-examine conformance here
 * PR Metadata
 	* Read the PR title and description - is it clear and complete?
-	* Is the change size appropriate for what is implemented?
+	* Change-size presumption: assume the change is larger than the problem needs and work to disprove it (see Approach & Simplicity). State the smallest change that would deliver the intent; anything beyond it is a finding unless it is argued for.
 * Understanding the Objective
 	* Read the linked issue title and description (use `gh` to pull issue details) for context only
 	* Understand what the PR is meant to do, so craft findings can be weighed against intent
@@ -152,6 +152,8 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 
 Judge the chosen approach, not just the code. These findings do not appear in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
 
+Adopt a falsification stance toward size: presume the change is larger than it needs to be and your job is to convince yourself otherwise. Before accepting the diff, attempt to construct a smaller change that delivers the same behavior and intent (fewer files, no new abstraction, an existing helper or dependency, a narrower surface). State that smaller baseline explicitly, then name why the PR had to exceed it, or file the excess as a finding. A change that could have shipped smaller is a finding even when the larger version is correct and well-written. Treat "no smaller option exists" as a claim to argue with evidence, not a default.
+
 For each significant mechanism the PR introduces (new dependency, new abstraction, new data format, new pattern), answer:
 
 * Alternatives
@@ -162,6 +164,8 @@ For each significant mechanism the PR introduces (new dependency, new abstractio
 	* Speculative generality (a single implementation with no named future consumer) is a finding
 * Proportionality
 	* Is the machinery proportional to the problem (a plugin system for one implementation, a config framework for three settings)?
+	* Is the whole change proportional to the problem, or does it do more than the intent requires even if each part is individually justified?
+	* Does each mechanism have a named present consumer, or is it there for a future use that does not yet exist?
 * Reinvention
 	* Does the codebase or a dependency already provide this?
 	* A reinvented utility is a finding even when well-written
@@ -177,6 +181,8 @@ Rules for findings in this section:
 
 * Every approach finding must name the concrete future change that becomes expensive, or the alternative it loses to
 * If you cannot name a change scenario or an alternative, do not file the finding; unfalsifiable approach critique is opinion, not review
+* The review must state the smallest change that would deliver the intent, and for each part of the PR beyond it, the reason it was necessary. An unargued excess is a finding
+* A change that could have shipped smaller is a finding even when the shipped version is correct, well-tested, and well-written
 
 ### Code Quality & Design
 
@@ -337,7 +343,7 @@ Each finding states its evidence level in the form `L<n> - <Name>` plus a `file:
 
 Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable. Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict.
+Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), then a one-line **smallest sufficient change** statement (the smallest change that would deliver the intent) and a one-line **excess** statement (what the PR adds beyond it and why each part was necessary, or "none"), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable, but the smallest-sufficient and excess statements are required whenever the PR introduces any new mechanism. Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict; if the excess is not empty and not argued, it is a finding.
 
 Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table. Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing. Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
 
@@ -378,6 +384,9 @@ The PR adds a `requests`-based client whose `create_payment` hand-rolls a
 retry loop (3 fixed attempts, no backoff) over a module-level
 `requests.Session`, exposed through a new `POST /payments` route in
 `src/payments/routes.py`.
+
+**Smallest sufficient change:** reuse the existing `@retry` helper and the generic resource router.
+**Excess:** the hand-rolled retry loop (unjustified; the `@retry` helper already covers it). The route placement is not excess (it follows the existing module layout).
 
 | Decision | Alternatives considered | Why chosen | Change-cost |
 |---|---|---|---|
