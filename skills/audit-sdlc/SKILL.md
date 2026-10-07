@@ -6,11 +6,16 @@ argument-hint: "[scope: all | diagnose | harden | clean | observe | comma-separa
 
 # Audit SDLC
 
-Runs multiple audit skills against the project and produces a unified findings report ranked by severity and impact. Optionally turns the highest-priority findings into issues.
+Runs multiple audit skills against the project and produces a unified findings report ranked by severity and impact.
+Optionally turns the highest-priority findings into issues.
 
-Runs audit skills that scan code, dependencies, and infrastructure. Does not modify any files. Safe to run at any time.
+Runs audit skills that scan code, dependencies, and infrastructure.
+Does not modify any files.
+Safe to run at any time.
 
-The audit skills map to the [ISO/IEC 25010 software quality model](https://en.wikipedia.org/wiki/ISO/IEC_25010). `audit-sdlc` is the coordinator for that model: it runs whichever per-characteristic skills exist and produces the unified quality report. [ISO/IEC 25010 Quality Model Mapping](#isoiec-25010-quality-model-mapping) below lists which characteristics are covered today and which are planned gaps.
+The audit skills map to the [ISO/IEC 25010 software quality model](https://en.wikipedia.org/wiki/ISO/IEC_25010).
+`audit-sdlc` is the coordinator for that model: it runs whichever per-characteristic skills exist and produces the unified quality report.
+[ISO/IEC 25010 Quality Model Mapping](#isoiec-25010-quality-model-mapping) below lists which characteristics are covered today and which are planned gaps.
 
 ## Prerequisites
 
@@ -61,7 +66,8 @@ Monitor production health and surface runtime issues.
 
 ## ISO/IEC 25010 Quality Model Mapping
 
-There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and `audit-sdlc` combines them. Run the full sweep with the `25010` scope, or target one characteristic by name.
+There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and `audit-sdlc` combines them.
+Run the full sweep with the `25010` scope, or target one characteristic by name.
 
 | 25010 Characteristic | Skill | Scope | Notes |
 |---|---|---|---|
@@ -74,11 +80,13 @@ There is exactly one `audit-*` skill per ISO/IEC 25010 characteristic (1-1), and
 | Maintainability | `audit-maintainability` | `maintainability` | Modularity, reusability, analyzability, modifiability, testability. Computes coupling/cycles/layering and aggregates the `find-*` family. |
 | Portability | `audit-portability` | `portability` | Adaptability, installability, replaceability. |
 
-**Design principle:** each characteristic is its own narrow `audit-*` skill, so each can run at its own cadence (e.g., security weekly, portability quarterly) and `audit-sdlc` dedups overlapping findings when the full sweep runs. The `find-*` family remains the per-function scanner layer that `audit-maintainability` (and `improve-codebase`) builds on; `audit-dependencies` and `audit-observability` remain standalone specialized audits invoked alongside the characteristic sweep.
+**Design principle:** each characteristic is its own narrow `audit-*` skill, so each can run at its own cadence (e.g., security weekly, portability quarterly) and `audit-sdlc` dedups overlapping findings when the full sweep runs.
+The `find-*` family remains the per-function scanner layer that `audit-maintainability` (and `improve-codebase`) builds on; `audit-dependencies` and `audit-observability` remain standalone specialized audits invoked alongside the characteristic sweep.
 
 ## Scopes
 
-The `$1` argument controls which skills run. Defaults to `diagnose` if not specified.
+The `$1` argument controls which skills run.
+Defaults to `diagnose` if not specified.
 
 | Scope | Skills run |
 |---|---|
@@ -101,11 +109,10 @@ The `$1` argument controls which skills run. Defaults to `diagnose` if not speci
 
 ## Steps
 
-1. Parse `$1` to determine which skills to run. Default to `diagnose`.
+1. Parse `$1` to determine which skills to run.
+   Default to `diagnose`.
 2. Read `.sdlc/context/` files for project-level context.
-3. For each skill in the resolved scope:
-   a. Invoke the skill, passing through any relevant arguments.
-   b. Capture its findings in a structured format.
+3. For each skill in the resolved scope: a. Invoke the skill, passing through any relevant arguments. b. Capture its findings in a structured format.
 4. Merge all findings into a single unified report.
 5. Rank findings by priority using the Severity Classification below.
 6. Write the unified report to `.sdlc/audit-report.md` (repo only; generated reports are never mirrored).
@@ -188,7 +195,8 @@ status: complete
 
 ## Deduplication
 
-When multiple skills find the same issue (e.g., `analyze-git-churn` and `find-complexity-hotspots` both flagging a file), merge them into a single finding with both skills cited as sources. Do not report the same problem twice.
+When multiple skills find the same issue (e.g., `analyze-git-churn` and `find-complexity-hotspots` both flagging a file), merge them into a single finding with both skills cited as sources.
+Do not report the same problem twice.
 
 ## Issue Creation
 
@@ -209,25 +217,32 @@ For medium/low findings, offer to batch them into a single cleanup issue per cat
 ```
 /audit-sdlc diagnose
 ```
-Runs `audit-dependencies`, `audit-security`, and `analyze-git-churn`. Finds 1 critical CVE and 2 high-churn files. Creates one issue for the CVE.
+Runs `audit-dependencies`, `audit-security`, and `analyze-git-churn`.
+Finds 1 critical CVE and 2 high-churn files.
+Creates one issue for the CVE.
 
 **Scenario 2: Pre-release audit**
 ```
 /audit-sdlc all
 ```
-Runs every audit skill. Produces a comprehensive report. Finds no critical issues, 3 high (missing test coverage on new endpoints, no alerting for new service, 1 SQL injection pattern), 12 medium/low. Creates issues for the 3 high findings.
+Runs every audit skill.
+Produces a comprehensive report.
+Finds no critical issues, 3 high (missing test coverage on new endpoints, no alerting for new service, 1 SQL injection pattern), 12 medium/low.
+Creates issues for the 3 high findings.
 
 **Scenario 3: Targeted security check**
 ```
 /audit-sdlc security
 ```
-Runs only `audit-security` and `audit-dependencies`. Confirms no new vulnerabilities since last audit.
+Runs only `audit-security` and `audit-dependencies`.
+Confirms no new vulnerabilities since last audit.
 
 **Scenario 4: Quick quality pass**
 ```
 /audit-sdlc find-complexity-hotspots,find-dead-code
 ```
-Runs only the two named skills. Identifies 3 functions that should be refactored and 2 unused exports.
+Runs only the two named skills.
+Identifies 3 functions that should be refactored and 2 unused exports.
 
 ## Next Step
 

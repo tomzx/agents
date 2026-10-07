@@ -3,10 +3,7 @@ name: start-week
 description: Opens the calendar week with themes, outcomes, and carryover from last week. Use when the user says /start-week, start of week, weekly planning, or Monday kickoff.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-WEEK=!`date +%V`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` WEEK=!`date +%V`
 
 # Start Week
 
@@ -23,7 +20,8 @@ Sets intent for the ISO week: a small number of outcomes, how collaboration fits
 
 ### 1. Resolve week context
 
-Use ISO week `{WEEK}` and year `{YEAR}`. If today is early in the week, treat "last week" as the previous ISO week (handle year boundary by checking weekly folders under `{BASE_DIR}/{YEAR}/weekly/`).
+Use ISO week `{WEEK}` and year `{YEAR}`.
+If today is early in the week, treat "last week" as the previous ISO week (handle year boundary by checking weekly folders under `{BASE_DIR}/{YEAR}/weekly/`).
 
 ### 2. Gather context
 

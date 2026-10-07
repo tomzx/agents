@@ -15,7 +15,9 @@ Orchestrates a bug fix from issue to PR by delegating to specialized skills:
 4. **`validate-implementation`** -- replay the before-command on the fixed code to capture a comparable "after" recording, then present the before/after pair for user sign-off before any PR is opened
 5. **`create-pr`** -- push the branch and open a pull request, embedding the pre-captured before/after pair in a side-by-side section
 
-The before recording (and the manifest naming the demonstration command/URL) flows from `reproduce-issue` to `validate-implementation` via `/tmp/<owner>/<repo>/<issue-id>/`. `validate-implementation` replays the same command/URL on the fixed code so the two recordings are directly comparable, then writes `captured-proof.json`, which `create-pr` consumes. Recording happens before PR creation, at human-review time, so the user can confirm the fix before it is posted.
+The before recording (and the manifest naming the demonstration command/URL) flows from `reproduce-issue` to `validate-implementation` via `/tmp/<owner>/<repo>/<issue-id>/`.
+`validate-implementation` replays the same command/URL on the fixed code so the two recordings are directly comparable, then writes `captured-proof.json`, which `create-pr` consumes.
+Recording happens before PR creation, at human-review time, so the user can confirm the fix before it is posted.
 
 If duplicates are found or reproduction fails, the workflow stops at the relevant step.
 
@@ -105,7 +107,8 @@ This skill handles:
 If the bug cannot be reproduced, `reproduce-issue` posts a comment and stops.
 Do not proceed to step 3.
 
-After `reproduce-issue` creates the worktree, `.sdlc/state.yml` is initialized with `current_phase: reproduce`. Update it to `current_phase: implementation` before invoking `create-implementation`, to `current_phase: validate-implementation` before invoking `validate-implementation`, and to `current_phase: pr` before invoking `create-pr`.
+After `reproduce-issue` creates the worktree, `.sdlc/state.yml` is initialized with `current_phase: reproduce`.
+Update it to `current_phase: implementation` before invoking `create-implementation`, to `current_phase: validate-implementation` before invoking `validate-implementation`, and to `current_phase: pr` before invoking `create-pr`.
 
 ### 3. Implement the fix
 
@@ -147,17 +150,23 @@ This skill handles:
 - Writing `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (`mode: bugfix-pair`)
 - Presenting the before/after pair to the user for visual sign-off before any PR is opened
 
-If the user reports the fix is wrong or incomplete, do not proceed to `create-pr`; route back to `create-implementation`. If recording tools are unavailable, `validate-implementation` reports `tools-missing` and `create-pr` will open without inline proof.
+If the user reports the fix is wrong or incomplete, do not proceed to `create-pr`; route back to `create-implementation`.
+If recording tools are unavailable, `validate-implementation` reports `tools-missing` and `create-pr` will open without inline proof.
 
 ### 5. Create the pull request
 
-Invoke `create-pr` with the issue number and repository. `create-pr` decides whether to create the PR on GitHub via the `should-post-to-github` script; otherwise it drafts the description:
+Invoke `create-pr` with the issue number and repository.
+`create-pr` decides whether to create the PR on GitHub via the `should-post-to-github` script; otherwise it drafts the description:
 
 ```
 /create-pr $REPO $ISSUE_NUMBER
 ```
 
-This skill handles pushing the branch and opening a structured PR. It reads `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (written by `validate-implementation`) and embeds the listed before/after assets in a Before / After section of the PR body. If no manifest exists (tools were unavailable or the surface was unclassifiable), the pair is omitted and the PR opens with the standard sections. `create-pr` never captures recordings itself. If `should-post-to-github` disables posting, it drafts the PR description and shows it for review without creating the PR.
+This skill handles pushing the branch and opening a structured PR.
+It reads `/tmp/<owner>/<repo>/<issue-id>/captured-proof.json` (written by `validate-implementation`) and embeds the listed before/after assets in a Before / After section of the PR body.
+If no manifest exists (tools were unavailable or the surface was unclassifiable), the pair is omitted and the PR opens with the standard sections.
+`create-pr` never captures recordings itself.
+If `should-post-to-github` disables posting, it drafts the PR description and shows it for review without creating the PR.
 
 ## Failure Modes
 
@@ -170,7 +179,8 @@ This skill handles pushing the branch and opening a structured PR. It reads `/tm
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the `fix/` PR is opened. If no PR was opened (reproduction failed, blocked, or it escalates to the full pipeline), omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the `fix/` PR is opened.
+If no PR was opened (reproduction failed, blocked, or it escalates to the full pipeline), omit the file.
 
 ## Example Usage
 
@@ -190,7 +200,8 @@ Reproduces issue #42, records the crash (before), implements null check fix with
 ```
 /fix-issue 88
 ```
-Reproduces issue #88 but fix requires schema migration across 3 services. Stops and suggests `/sdlc requirements`.
+Reproduces issue #88 but fix requires schema migration across 3 services.
+Stops and suggests `/sdlc requirements`.
 
 ## Next Step
 

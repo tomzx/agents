@@ -125,7 +125,8 @@ git -C "$WORKTREE_DIR" log --since="12 months" --name-only --format= -- <changed
 
 Score each factor Low / Medium / High, citing `file:line` evidence for every non-Low score.
 Trace findings end to end before scoring them: a suspicion you did not confirm by reading the caller, config, or schema does not count.
-For **change proportionality**, presume the change is larger than the issue needs, and lower the score only when the diff and its machinery are demonstrably the smallest that fits. An oversized change must not pass as low risk just because its blast radius is small.
+For **change proportionality**, presume the change is larger than the issue needs, and lower the score only when the diff and its machinery are demonstrably the smallest that fits.
+An oversized change must not pass as low risk just because its blast radius is small.
 
 | Factor | Low | Medium | High |
 |---|---|---|---|
@@ -147,7 +148,8 @@ Every High factor must name the concrete failure, cost, or future change it caus
 
 ### 5. Score the confidence
 
-Confidence reflects the evidence base, not a guess. Count points:
+Confidence reflects the evidence base, not a guess.
+Count points:
 
 | Evidence | Points |
 |---|---|
@@ -187,7 +189,9 @@ Start the file with the marker, substituting the verdict token, the risk level, 
 <!-- {"step":"assess-pr-risk","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"VERDICT_TOKEN","risk":"RISK_LEVEL","confidence":"CONFIDENCE_LEVEL"} -->
 ```
 
-Posting as a PR comment is decided by `should-post-to-github`. Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally). If it exits 0, post the report file with the attribution footer per `../github-post-attribution/SKILL.md`.
+Posting as a PR comment is decided by `should-post-to-github`.
+Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
+If it exits 0, post the report file with the attribution footer per `../github-post-attribution/SKILL.md`.
 
 ### 8. Clean up
 
@@ -257,31 +261,44 @@ What would raise confidence: <one sentence>.
 ```
 /assess-pr-risk 42 acme/api
 ```
-Leaf change, no public surface, tests cover it, one commit a year of churn. All factors Low. Linked issue, small diff, tests in the diff, callers traced: 4 points, confidence High. Verdict `fast-track`: merge once checks pass.
+Leaf change, no public surface, tests cover it, one commit a year of churn.
+All factors Low.
+Linked issue, small diff, tests in the diff, callers traced: 4 points, confidence High.
+Verdict `fast-track`: merge once checks pass.
 
 **Scenario 2: Auth change with strong self-contained evidence**
 ```
 /assess-pr-risk 88
 ```
-Touches session validation (Security High) with callers across three packages (Blast radius Medium). Linked issue, small diff, all callers traced, but no tests in the diff for the auth path: 3 points, confidence High. Verdict `block` until the security driver is resolved, with the concrete session-invalidation gap named.
+Touches session validation (Security High) with callers across three packages (Blast radius Medium).
+Linked issue, small diff, all callers traced, but no tests in the diff for the auth path: 3 points, confidence High.
+Verdict `block` until the security driver is resolved, with the concrete session-invalidation gap named.
 
 **Scenario 3: Scary-looking diff, thin evidence**
 ```
 /assess-pr-risk 55
 ```
-1200-line migration touching the billing schema (Reversibility High, Coverage High). No linked issue and a diff over 1000 lines: 1 point, confidence Low (both caps apply). Verdict `hold`: treat as high risk until `/review-pr-full` runs.
+1200-line migration touching the billing schema (Reversibility High, Coverage High).
+No linked issue and a diff over 1000 lines: 1 point, confidence Low (both caps apply).
+Verdict `hold`: treat as high risk until `/review-pr-full` runs.
 
 **Scenario 4: Refactor with a partially traceable call graph**
 ```
 /assess-pr-risk 61
 ```
-800-line rename touching a helper dispatched through a plugin registry (Blast radius Medium, callers not fully traceable). Linked issue and small diff, but no tests and an incomplete call graph: 2 points, confidence Medium. Verdict `investigate`: run `/review-pr-full` before deciding.
+800-line rename touching a helper dispatched through a plugin registry (Blast radius Medium, callers not fully traceable).
+Linked issue and small diff, but no tests and an incomplete call graph: 2 points, confidence Medium.
+Verdict `investigate`: run `/review-pr-full` before deciding.
 
 **Scenario 5: Small fix, overengineered**
 ```
 /assess-pr-risk 74
 ```
-The issue asks to fix an off-by-one in a date formatter. The diff adds a configurable formatting strategy with a plugin registry for one implementation (Change proportionality High), touching that hot file (Churn Medium). Blast radius is Low and tests pass. The High factor alone makes risk High, so the verdict is `block`: the reviewer asks for the small fix the issue implies before merge. The change cannot be fast-tracked on its low blast radius.
+The issue asks to fix an off-by-one in a date formatter.
+The diff adds a configurable formatting strategy with a plugin registry for one implementation (Change proportionality High), touching that hot file (Churn Medium).
+Blast radius is Low and tests pass.
+The High factor alone makes risk High, so the verdict is `block`: the reviewer asks for the small fix the issue implies before merge.
+The change cannot be fast-tracked on its low blast radius.
 
 ## Next Step
 

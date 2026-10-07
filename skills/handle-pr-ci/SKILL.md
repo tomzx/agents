@@ -70,7 +70,8 @@ Done     Loop back to
    gh run view <run-id> --log-failed
    ```
 
-4. Diagnose the root cause of each failure. Distinguish between:
+4. Diagnose the root cause of each failure.
+   Distinguish between:
    - **Flaky/transient failures** (network timeouts, rate limits): note as transient, suggest re-running rather than a code fix.
    - **Code failures** (test failures, lint errors, type errors, build errors): identify the specific file and line causing the failure.
 
@@ -90,7 +91,8 @@ Done     Loop back to
    gh pr checks $1 --watch
    ```
 
-9. If checks pass, report success. If new failures appear, loop back to step 3.
+9. If checks pass, report success.
+   If new failures appear, loop back to step 3.
 
 ## Example Usage
 
@@ -98,19 +100,27 @@ Done     Loop back to
 ```
 /handle-pr-ci 42
 ```
-Check `test` is failing. Log shows `AssertionError` in `test_user_auth.py:88`. Fix: update assertion to match new return shape. Commit, push, CI goes green.
+Check `test` is failing.
+Log shows `AssertionError` in `test_user_auth.py:88`.
+Fix: update assertion to match new return shape.
+Commit, push, CI goes green.
 
 **Scenario 2: Lint error**
 ```
 /handle-pr-ci 77
 ```
-Check `lint` is failing. Log shows `ruff` error: unused import in `utils.py:3`. Fix: remove the import. Commit, push, CI goes green.
+Check `lint` is failing.
+Log shows `ruff` error: unused import in `utils.py:3`.
+Fix: remove the import.
+Commit, push, CI goes green.
 
 **Scenario 3: Transient network failure**
 ```
 /handle-pr-ci 55
 ```
-Check `integration-tests` is failing with a connection timeout to an external service. Diagnosis: transient. Report to user and suggest re-running the check rather than a code fix:
+Check `integration-tests` is failing with a connection timeout to an external service.
+Diagnosis: transient.
+Report to user and suggest re-running the check rather than a code fix:
 ```
 gh run rerun <run-id> --failed
 ```

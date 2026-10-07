@@ -6,12 +6,14 @@ argument-hint: "[owner/repo] [--dry-run] [--limit N] [--concurrency N]"
 
 # Resolve PR Conflicts
 
-Finds every open pull request authored by the current user in a repository that has merge conflicts, then resolves each one **in parallel**. The skill is split into two roles:
+Finds every open pull request authored by the current user in a repository that has merge conflicts, then resolves each one **in parallel**.
+The skill is split into two roles:
 
 - **Orchestrator (this session):** scans the repo, detects which of the user's PRs have conflicts, prepares one worktree per conflicting PR (reusing an existing one when present), discovers the project's verification commands once, then fans out to one sub-agent session per PR and aggregates the results.
 - **Sub-agent (one per PR, concurrent):** works inside its assigned worktree, merges the base branch, resolves the conflict markers, runs verification, pushes, and posts a comment.
 
-Because the PRs are independent, fixing them in separate concurrent sessions is much faster than sequential resolution. Each sub-agent owns a distinct worktree and a distinct head branch, so there are no filesystem or git-push races.
+Because the PRs are independent, fixing them in separate concurrent sessions is much faster than sequential resolution.
+Each sub-agent owns a distinct worktree and a distinct head branch, so there are no filesystem or git-push races.
 
 Designed to be safe to run unattended: ambiguous conflicts and PRs that fail verification are aborted and reported by that PR's sub-agent, never pushed.
 
@@ -23,12 +25,14 @@ Designed to be safe to run unattended: ambiguous conflicts and PRs that fail ver
 - `git worktree` available
 - The current git user is the author of the target PRs (`@me`)
 - The current working directory is a checkout of the target repository, or a target repo is passed as `owner/repo`
-- A sub-agent capable of writing code (use the `general` subagent_type). If sub-agent dispatch is unavailable, fall back to processing PRs sequentially as described in "Fallback: sequential mode".
+- A sub-agent capable of writing code (use the `general` subagent_type).
+  If sub-agent dispatch is unavailable, fall back to processing PRs sequentially as described in "Fallback: sequential mode".
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there
 
 ### Skill attribution (GitHub)
 
-Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `resolve-pr-conflicts`. Each sub-agent appends the same footer for its own PR comment.
+Before posting to GitHub, read `../github-post-attribution/SKILL.md` and append the footer for `SKILL_DIR` = `resolve-pr-conflicts`.
+Each sub-agent appends the same footer for its own PR comment.
 
 ### Communication guidelines (outbound text)
 
@@ -36,10 +40,14 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 ## Arguments and Flags
 
-- `$1` (optional): target repository in `owner/repo` form. If omitted, resolved from `gh repo set-default --view`, then from the `origin` remote of the current directory.
-- `--dry-run`: each sub-agent resolves and verifies locally, but does NOT push and does NOT post a comment. Worktrees are left for review.
-- `--limit N`: maximum number of PRs to scan for conflicts (default `50`). Caps API calls.
-- `--concurrency N`: maximum sub-agents running at once (default `5`). The orchestrator launches in batches of this size.
+- `$1` (optional): target repository in `owner/repo` form.
+  If omitted, resolved from `gh repo set-default --view`, then from the `origin` remote of the current directory.
+- `--dry-run`: each sub-agent resolves and verifies locally, but does NOT push and does NOT post a comment.
+  Worktrees are left for review.
+- `--limit N`: maximum number of PRs to scan for conflicts (default `50`).
+  Caps API calls.
+- `--concurrency N`: maximum sub-agents running at once (default `5`).
+  The orchestrator launches in batches of this size.
 
 ## Parallelization Model
 
@@ -65,9 +73,11 @@ ORCHESTRATOR (this session)
   +-- print summary table
 ```
 
-The orchestrator never edits code or resolves conflicts itself; it only prepares worktrees and dispatches. All per-PR work happens in a dedicated sub-agent so the PRs progress at the same time.
+The orchestrator never edits code or resolves conflicts itself; it only prepares worktrees and dispatches.
+All per-PR work happens in a dedicated sub-agent so the PRs progress at the same time.
 
-Worktree creation is done by the orchestrator (not the sub-agents) so concurrent `git worktree add` calls cannot race on the shared `.git` worktree lock. This follows the worktrunk parallel sub-agent pattern: pre-create each worktree, then hand each sub-agent its absolute path.
+Worktree creation is done by the orchestrator (not the sub-agents) so concurrent `git worktree add` calls cannot race on the shared `.git` worktree lock.
+This follows the worktrunk parallel sub-agent pattern: pre-create each worktree, then hand each sub-agent its absolute path.
 
 ## Orchestrator Steps
 
@@ -92,7 +102,8 @@ Record each PR number.
 
 ### 3. Detect which PRs have merge conflicts
 
-GitHub computes `mergeable` asynchronously, so it can be `UNKNOWN` right after a push. Poll until it settles.
+GitHub computes `mergeable` asynchronously, so it can be `UNKNOWN` right after a push.
+Poll until it settles.
 
 For each PR:
 
@@ -101,10 +112,12 @@ gh pr view $PR --repo "$REPO" \
   --json number,headRefName,baseRefName,headRepository,mergeable,mergeStateStatus
 ```
 
-- If `mergeable == "UNKNOWN"`, wait a few seconds and re-query. Give up after ~30 seconds; treat as "mergeable unknown" (skip, report).
+- If `mergeable == "UNKNOWN"`, wait a few seconds and re-query.
+  Give up after ~30 seconds; treat as "mergeable unknown" (skip, report).
 - Keep the PR if `mergeable == "CONFLICTING"` (or `mergeStateStatus == "CONFLICTING"`).
 
-For each kept PR capture: `HEAD_REF`, `BASE_REF`, and `HEAD_REPO` (the `headRepository.nameWithOwner`; this is the base repository itself for same-repo PRs and the author's fork for cross-repository PRs, so `https://github.com/$HEAD_REPO.git` is the correct fetch URL in both cases). Derive `FORK` as `HEAD_REPO != REPO` and `HEAD_REPO_OWNER` as `${HEAD_REPO%%/*}` (needed for fork push URLs).
+For each kept PR capture: `HEAD_REF`, `BASE_REF`, and `HEAD_REPO` (the `headRepository.nameWithOwner`; this is the base repository itself for same-repo PRs and the author's fork for cross-repository PRs, so `https://github.com/$HEAD_REPO.git` is the correct fetch URL in both cases).
+Derive `FORK` as `HEAD_REPO != REPO` and `HEAD_REPO_OWNER` as `${HEAD_REPO%%/*}` (needed for fork push URLs).
 
 ### 4. Prepare one worktree per conflicting PR (reuse or create)
 
@@ -119,14 +132,16 @@ WT=$(git worktree list --porcelain | awk -v b="refs/heads/$HEAD_REF" '
 ')
 ```
 
-- **Worktree exists** (`$WT` non-empty): reuse it. `WORKDIR="$WT"`.
+- **Worktree exists** (`$WT` non-empty): reuse it.
+  `WORKDIR="$WT"`.
 - **No worktree**: create one.
   ```bash
   REPO_BASE=$(basename "$(pwd)")
   WORKDIR="../${REPO_BASE}-pr-${PR}"
   git worktree add "$WORKDIR" "$HEAD_REF"
   ```
-  `git worktree add <path> <branch>` checks out the existing local `<branch>`, or auto-creates a local tracking branch from `origin/<branch>` when only the remote-tracking ref exists. If `<branch>` is checked out elsewhere, the reuse path above already handles it.
+  `git worktree add <path> <branch>` checks out the existing local `<branch>`, or auto-creates a local tracking branch from `origin/<branch>` when only the remote-tracking ref exists.
+  If `<branch>` is checked out elsewhere, the reuse path above already handles it.
 
 Build a task record for the PR:
 
@@ -149,15 +164,20 @@ git worktree add "$WORKDIR" "pr-$PR"
 
 ### 5. Discover verification commands once
 
-Discover the project's test, lint, and typecheck commands the way `improve-codebase` does: `AGENTS.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`). Record the resolved command strings. These are identical for every worktree (same repo), so they are discovered once and passed into every sub-agent prompt.
+Discover the project's test, lint, and typecheck commands the way `improve-codebase` does: `AGENTS.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`).
+Record the resolved command strings.
+These are identical for every worktree (same repo), so they are discovered once and passed into every sub-agent prompt.
 
 If no verification command can be found, still dispatch but pass `VERIFY_COMMANDS=()` and set `NO_VERIFY=true` in each prompt so sub-agents resolve without verification and default to `--dry-run` behavior for their PR (commit locally, do not push) unless the user opted in.
 
 ### 6. Fan out: launch one sub-agent per task, concurrently
 
-Launch sub-agents with the `Task` tool, `subagent_type: "general"`. Put **multiple Task calls in a single message** so they run concurrently, in batches of `--concurrency`. Do not wait for one to finish before launching the next within a batch; wait for the batch to complete before launching the next batch.
+Launch sub-agents with the `Task` tool, `subagent_type: "general"`.
+Put **multiple Task calls in a single message** so they run concurrently, in batches of `--concurrency`.
+Do not wait for one to finish before launching the next within a batch; wait for the batch to complete before launching the next batch.
 
-Each sub-agent receives a fully self-contained prompt (it starts with a fresh context and cannot see this skill). Use the template below, substituting the task fields, the discovered verification commands, and the flags.
+Each sub-agent receives a fully self-contained prompt (it starts with a fresh context and cannot see this skill).
+Use the template below, substituting the task fields, the discovered verification commands, and the flags.
 
 #### Sub-agent task prompt template
 
@@ -208,7 +228,8 @@ Sub-agents must stay inside their assigned `WORKDIR` and must not create or remo
 
 ### 7. Aggregate verdicts and report
 
-Collect each sub-agent's `VERDICT ...` line. Print a summary table:
+Collect each sub-agent's `VERDICT ...` line.
+Print a summary table:
 
 | PR | Title | Status |
 |---|---|---|
@@ -221,15 +242,20 @@ Include any PRs skipped during orchestration (worktree setup failed, mergeable u
 
 ## Fallback: sequential mode
 
-If sub-agent dispatch is unavailable (no Task tool, or the user passes `--sequential`), the orchestrator performs the per-PR work itself, one PR at a time, following the same steps as the sub-agent prompt template above. Print the same summary table at the end.
+If sub-agent dispatch is unavailable (no Task tool, or the user passes `--sequential`), the orchestrator performs the per-PR work itself, one PR at a time, following the same steps as the sub-agent prompt template above.
+Print the same summary table at the end.
 
 ## Conflict Resolution Rules (applies to every sub-agent)
 
-- Read every `<<<<<<<`, `=======`, `>>>>>>>` block before editing. Understand what each side changed.
+- Read every `<<<<<<<`, `=======`, `>>>>>>>` block before editing.
+  Understand what each side changed.
 - Prefer a resolution that preserves both sides' intent (both edits apply, or one trivially supersedes).
-- **Ambiguity rule (non-negotiable):** only auto-resolve unambiguous conflicts (adjacent additions, one side a superset, pure rename/reformat, one side a no-op given the other). If both sides change the same logic in semantically different ways with no clearly-correct union, abort with `git merge --abort` and report "needs-manual". Never guess on a semantic conflict.
+- **Ambiguity rule (non-negotiable):** only auto-resolve unambiguous conflicts (adjacent additions, one side a superset, pure rename/reformat, one side a no-op given the other).
+  If both sides change the same logic in semantically different ways with no clearly-correct union, abort with `git merge --abort` and report "needs-manual".
+  Never guess on a semantic conflict.
 - Remove ALL conflict markers; never leave a `<<<<<<<` in a pushed file.
-- Never force-push. The merge commit is a normal addition to the head branch.
+- Never force-push.
+  The merge commit is a normal addition to the head branch.
 
 ## Failure Modes
 
@@ -249,31 +275,40 @@ If sub-agent dispatch is unavailable (no Task tool, or the user passes `--sequen
 ```
 /resolve-pr-conflicts
 ```
-Scans the current repo. 4 of my 8 open PRs have conflicts. The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once). Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed). Summary table printed. Wall-clock time is roughly the slowest single PR, not the sum.
+Scans the current repo. 4 of my 8 open PRs have conflicts.
+The orchestrator prepares 4 worktrees and launches 4 sub-agents (batch of 5, so all at once).
+Two resolve cleanly and push; one is a semantic conflict (needs-manual); one fails pytest (verify-failed).
+Summary table printed.
+Wall-clock time is roughly the slowest single PR, not the sum.
 
 **Scenario 2: Scoped to a specific repo, bounded parallelism**
 ```
 /resolve-pr-conflicts acme/api --concurrency 3
 ```
-9 conflicting PRs. Orchestrator creates 9 worktrees, launches sub-agents in batches of 3.
+9 conflicting PRs.
+Orchestrator creates 9 worktrees, launches sub-agents in batches of 3.
 
 **Scenario 3: Dry run before trusting it**
 ```
 /resolve-pr-conflicts --dry-run
 ```
-Each sub-agent resolves and verifies but commits locally without pushing or commenting. Review the worktrees before a real run.
+Each sub-agent resolves and verifies but commits locally without pushing or commenting.
+Review the worktrees before a real run.
 
 **Scenario 4: Reuses existing worktrees**
 ```
 /resolve-pr-conflicts
 ```
-PR #207's head branch `feature-billing` already has a worktree at `../api-pr-207` from an earlier session. `git worktree list` finds it; that sub-agent operates there instead of creating a new one.
+PR #207's head branch `feature-billing` already has a worktree at `../api-pr-207` from an earlier session.
+`git worktree list` finds it; that sub-agent operates there instead of creating a new one.
 
 **Scenario 5: Nothing to do**
 ```
 /resolve-pr-conflicts
 ```
-All my open PRs are mergeable. Report "No conflicting PRs found." No sub-agents launched.
+All my open PRs are mergeable.
+Report "No conflicting PRs found."
+No sub-agents launched.
 
 **Scenario 6: No sub-agent dispatch available**
 ```

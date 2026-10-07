@@ -24,7 +24,8 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 4. Compare claims, figures, and terminology against other related articles in context if available.
 5. Identify issues in each category below.
 6. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-7. Report findings using the output format. Omit categories with no findings.
+7. Report findings using the output format.
+   Omit categories with no findings.
 
 ## Review Checklist
 
@@ -125,29 +126,17 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 
 ## Example Usage
 
-**Scenario 1: Broken hyperlink**
-The article cites a paper with a URL that returns 404.
-🔴 MUST fix the link or find an alternative source.
+**Scenario 1: Broken hyperlink** The article cites a paper with a URL that returns 404. 🔴 MUST fix the link or find an alternative source.
 
-**Scenario 2: Padding in the opening**
-The article starts with "In today's fast-paced world of technology..." before reaching the point.
-🟡 SHOULD rewrite the opening to lead with the core insight.
+**Scenario 2: Padding in the opening** The article starts with "In today's fast-paced world of technology..." before reaching the point. 🟡 SHOULD rewrite the opening to lead with the core insight.
 
-**Scenario 3: Em-dash usage**
-Three sentences use em-dash constructions where commas would work.
-🟢 MAY replace em-dashes with commas or parentheses.
+**Scenario 3: Em-dash usage** Three sentences use em-dash constructions where commas would work. 🟢 MAY replace em-dashes with commas or parentheses.
 
-**Scenario 4: Conflicting figures across articles**
-A companion article in the series reports 40% adoption while this one cites 35% for the same metric and period.
-🔴 MUST reconcile the discrepancy and align both articles.
+**Scenario 4: Conflicting figures across articles** A companion article in the series reports 40% adoption while this one cites 35% for the same metric and period. 🔴 MUST reconcile the discrepancy and align both articles.
 
-**Scenario 5: Not plain language**
-A paragraph says the tool "facilitates stakeholders in the utilization of the mechanism," a passive and jargon-heavy way to say it lets people use the feature.
-🟡 SHOULD rewrite in plain language: common words, short sentences, active voice.
+**Scenario 5: Not plain language** A paragraph says the tool "facilitates stakeholders in the utilization of the mechanism," a passive and jargon-heavy way to say it lets people use the feature. 🟡 SHOULD rewrite in plain language: common words, short sentences, active voice.
 
-**Scenario 6: Figurative language**
-The article says the migration "moved to the center of the roadmap" and the bottleneck "sheds light on the real problem" instead of stating plainly what changed and what the bottleneck revealed.
-🟡 SHOULD replace the metaphors with the literal statement.
+**Scenario 6: Figurative language** The article says the migration "moved to the center of the roadmap" and the bottleneck "sheds light on the real problem" instead of stating plainly what changed and what the bottleneck revealed. 🟡 SHOULD replace the metaphors with the literal statement.
 
 ## Next Step
 

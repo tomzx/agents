@@ -9,9 +9,11 @@ TODAY=!`date +%Y-%m-%d`
 
 # Performance Efficiency Audit (ISO/IEC 25010)
 
-Audits the codebase for **performance efficiency**: response time, resource utilization, and capacity limits. It finds statically detectable performance antipatterns before they appear under load.
+Audits the codebase for **performance efficiency**: response time, resource utilization, and capacity limits.
+It finds statically detectable performance antipatterns before they appear under load.
 
-This is the **Performance efficiency** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `observe-production` (runtime latency/error measurement), this is static analysis of code that *will* be slow or wasteful.
+This is the **Performance efficiency** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
+Distinct from `observe-production` (runtime latency/error measurement), this is static analysis of code that *will* be slow or wasteful.
 
 ## Prerequisites
 
@@ -31,7 +33,8 @@ This is the **Performance efficiency** characteristic of the [ISO/IEC 25010](htt
 
 ### 1. Identify hot paths and data stores
 
-From `architecture.md` and route/endpoint discovery, identify request handlers, batch jobs, and data-access layers. These are where performance findings are most severe.
+From `architecture.md` and route/endpoint discovery, identify request handlers, batch jobs, and data-access layers.
+These are where performance findings are most severe.
 
 ```
 rg -n "@(app|router|api|blueprint)\.(get|post|put|delete|patch|route)" -g '*.py' .
@@ -71,7 +74,8 @@ Nested loops over the same or growing collections:
 ```
 rg -n "for .+ in" -g '*.py' . | wc -l   # then inspect files with high loop density
 ```
-Recursion without memoization on paths that recompute. Flag recursive functions lacking a cache/decorator.
+Recursion without memoization on paths that recompute.
+Flag recursive functions lacking a cache/decorator.
 
 ### 5. Resource utilization
 
@@ -98,7 +102,8 @@ Missing rate limiting on public endpoints; unbounded queues (`queue.Queue()` / c
 
 ### 7. Missing indexes (capacity)
 
-Cross-reference query filters against schema/migrations. Columns used in `.filter()`, `WHERE`, or join conditions that lack an index are capacity findings.
+Cross-reference query filters against schema/migrations.
+Columns used in `.filter()`, `WHERE`, or join conditions that lack an index are capacity findings.
 
 ```
 rg -n "\.filter\(|WHERE |\.where\(" -g '*.{py,sql}' .
@@ -107,15 +112,21 @@ rg -n "create_index|Index\(|indexed=True|db_index" -g '*.{py,sql}' .
 
 ### 8. Existing benchmarks
 
-If a benchmark/load-test suite exists (`bench/`, `benchmarks/`, `locustfile.py`, `k6`, `jest-bench`), note whether it covers the identified hot paths. Missing coverage of a hot path is a finding.
+If a benchmark/load-test suite exists (`bench/`, `benchmarks/`, `locustfile.py`, `k6`, `jest-bench`), note whether it covers the identified hot paths.
+Missing coverage of a hot path is a finding.
 
 ### 9. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 10. Report
 
-Classify by severity and print. Do not modify files.
+Classify by severity and print.
+Do not modify files.
 
 ## Severity
 

@@ -10,6 +10,7 @@ This skill chains **end-of-week-summary** and **end-of-week-review** into a sing
 ## Instructions
 
 1. Read and follow **end-of-week-summary** in full (same outputs, same pipeline, same prerequisites).
-2. Read and follow **end-of-week-review** in full. The review is part of every weekly close, not optional.
+2. Read and follow **end-of-week-review** in full.
+   The review is part of every weekly close, not optional.
 
 Do not invent a separate weekly format; stay consistent with end-of-week-summary and end-of-week-review outputs.

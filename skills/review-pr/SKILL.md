@@ -7,12 +7,19 @@ argument-hint: "<pr-number>"
 
 # Review Pull Request
 
-Answers the **craft** question: "is this code well-built?" Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection. It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role). Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`. Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); the reviewer presumes the change is larger than the problem needs and must work to disprove it before approving. Approach-level notes arriving from `/validate-pr` or `/verify-pr` go there. Writes findings to a structured markdown file.
+Answers the **craft** question: "is this code well-built?"
+Covers approach and simplicity, code quality, architecture, security, tests, and operational concerns as static inspection.
+It does **not** build or run the code (that is `/verify-pr`'s conformance role) and does **not** judge whether the target is the right product (that is `/validate-pr`'s validation role).
+Findings about *whether the criteria are met* go to `/verify-pr`; findings about *whether the right problem is solved* go to `/validate-pr`.
+Judging whether the chosen approach is the simplest and most changeable for this codebase is this skill's job (see Approach & Simplicity); the reviewer presumes the change is larger than the problem needs and must work to disprove it before approving.
+Approach-level notes arriving from `/validate-pr` or `/verify-pr` go there.
+Writes findings to a structured markdown file.
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- Apply the shared evidence standard in [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md): label every finding with a level in the form `L<n> - <Name>`. This review is static, so its ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
+- Apply the shared evidence standard in [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md): label every finding with a level in the form `L<n> - <Name>`.
+  This review is static, so its ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
@@ -68,7 +75,8 @@ Fetch PR metadata + comments ($1)
 
 ## Setup
 
-Fetch PR information by piping the raw `ghx` output directly to a file (do not generate or summarize the content). PR review reports resolve to `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/` per `sdlc/references/shared.md` (PR Review Reports):
+Fetch PR information by piping the raw `ghx` output directly to a file (do not generate or summarize the content).
+PR review reports resolve to `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/` per `sdlc/references/shared.md` (PR Review Reports):
 ```bash
 PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
 mkdir -p "$PR_REVIEW_DIR"
@@ -82,7 +90,8 @@ Extract:
 - `PR_AUTHOR`: the PR author's GitHub username (`author.login`)
 - `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
 - `HEAD_BRANCH`: the PR's head branch name (`headRefName`)
-- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`.
+  Two commits with the same tree have byte-identical content regardless of their SHAs.
 - `PR_STATE`: the PR state (`state` field in the `gh-pr-view.md` cache: `OPEN`, `CLOSED`, or `MERGED`)
 
 ```bash
@@ -95,15 +104,21 @@ ISSUE_NUMBER=$(gh pr view $1 --repo "$REPO" --json closingIssuesReferences --jq 
 
 ### Re-review scope (reuse the previous run when possible)
 
-Read the review state file `$PR_REVIEW_DIR/review.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+Read the review state file `$PR_REVIEW_DIR/review.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports).
+If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings.
+Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
 
-Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before doing any analysis: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental review, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full review. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before doing any analysis: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental review, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full review.
+A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags).
+This skill's incremental rules:
 
 - Evaluate only the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff), re-confirming every `open` finding in the state file against it, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
 - Do not re-evaluate code the delta does not touch, and keep the previous verdict unless the delta invalidates it.
 - Add findings for problems in the new code only.
 
-Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context. If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
+Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context.
+If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup.
+The orchestrator manages the worktree lifecycle.
 
 ```bash
 _WORKTREE_OWNER=false
@@ -122,7 +137,10 @@ If worktree creation fails, stop.
 
 ## Pre-Review Checklist
 
-This skill is static code-craft review. It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role). Establish context, then review craft. Its evidence ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
+This skill is static code-craft review.
+It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role).
+Establish context, then review craft.
+Its evidence ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
 
 Before diving into the code:
 
@@ -130,18 +148,22 @@ Before diving into the code:
 	* If `/verify-pr` has run, read its conformance report and treat the criteria status as settled; do not re-examine conformance here
 * PR Metadata
 	* Read the PR title and description - is it clear and complete?
-	* Change-size presumption: assume the change is larger than the problem needs and work to disprove it (see Approach & Simplicity). State the smallest change that would deliver the intent; anything beyond it is a finding unless it is argued for.
+	* Change-size presumption: assume the change is larger than the problem needs and work to disprove it (see Approach & Simplicity).
+      State the smallest change that would deliver the intent; anything beyond it is a finding unless it is argued for.
 * Understanding the Objective
 	* Read the linked issue title and description (use `gh` to pull issue details) for context only
 	* Understand what the PR is meant to do, so craft findings can be weighed against intent
 
 ## Code Review Checklist
 
-CI handles linting, formatting, type checking, build, and test suite execution; this review does not report on those. Focus on what requires human judgment.
+CI handles linting, formatting, type checking, build, and test suite execution; this review does not report on those.
+Focus on what requires human judgment.
 
 ### Scope & Relevance
 
-Change hygiene only. Whether a change serves an acceptance criterion is a conformance question for `/verify-pr`; whether it serves the real need is a validation question for `/validate-pr`. Here, focus on:
+Change hygiene only.
+Whether a change serves an acceptance criterion is a conformance question for `/verify-pr`; whether it serves the real need is a validation question for `/validate-pr`.
+Here, focus on:
 
 * Changes that obscure or distract from the actual work
 	* Unrelated formatting changes, unrelated refactorings, or unrelated fixes mixed in
@@ -150,9 +172,14 @@ Change hygiene only. Whether a change serves an acceptance criterion is a confor
 
 ### Approach & Simplicity
 
-Judge the chosen approach, not just the code. These findings do not appear in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
+Judge the chosen approach, not just the code.
+These findings do not appear in the diff alone: before judging, read the surrounding codebase until you can name the existing pattern this change should have followed, and search the codebase and its dependencies for existing implementations of the same concept (grep for the concept's synonyms, check sibling modules).
 
-Adopt a falsification stance toward size: presume the change is larger than it needs to be and your job is to convince yourself otherwise. Before accepting the diff, attempt to construct a smaller change that delivers the same behavior and intent (fewer files, no new abstraction, an existing helper or dependency, a narrower surface). State that smaller baseline explicitly, then name why the PR had to exceed it, or file the excess as a finding. A change that could have shipped smaller is a finding even when the larger version is correct and well-written. Treat "no smaller option exists" as a claim to argue with evidence, not a default.
+Adopt a falsification stance toward size: presume the change is larger than it needs to be and your job is to convince yourself otherwise.
+Before accepting the diff, attempt to construct a smaller change that delivers the same behavior and intent (fewer files, no new abstraction, an existing helper or dependency, a narrower surface).
+State that smaller baseline explicitly, then name why the PR had to exceed it, or file the excess as a finding.
+A change that could have shipped smaller is a finding even when the larger version is correct and well-written.
+Treat "no smaller option exists" as a claim to argue with evidence, not a default.
 
 For each significant mechanism the PR introduces (new dependency, new abstraction, new data format, new pattern), answer:
 
@@ -181,7 +208,8 @@ Rules for findings in this section:
 
 * Every approach finding must name the concrete future change that becomes expensive, or the alternative it loses to
 * If you cannot name a change scenario or an alternative, do not file the finding; unfalsifiable approach critique is opinion, not review
-* The review must state the smallest change that would deliver the intent, and for each part of the PR beyond it, the reason it was necessary. An unargued excess is a finding
+* The review must state the smallest change that would deliver the intent, and for each part of the PR beyond it, the reason it was necessary.
+  An unargued excess is a finding
 * A change that could have shipped smaller is a finding even when the shipped version is correct, well-tested, and well-written
 
 ### Code Quality & Design
@@ -192,8 +220,10 @@ Rules for findings in this section:
 		* Are they clear enough?
 		* Are they respecting the naming convention?
 * Design Principles
-	* Does the code respect [SOLID](https://en.wikipedia.org/wiki/SOLID)? (class-level judgment; approach-level judgment lives in Approach & Simplicity above)
-	* Is the code following existing design patterns in the codebase? (name the pattern; if you cannot, do the directed search in Approach & Simplicity)
+	* Does the code respect [SOLID](https://en.wikipedia.org/wiki/SOLID)?
+      (class-level judgment; approach-level judgment lives in Approach & Simplicity above)
+	* Is the code following existing design patterns in the codebase?
+      (name the pattern; if you cannot, do the directed search in Approach & Simplicity)
 	* Are there code duplications that violate DRY principle?
 * Magic Numbers & Dead Code
 	* Are magic numbers/strings extracted as constants or configuration?
@@ -201,7 +231,8 @@ Rules for findings in this section:
 
 ### Testing & Coverage
 
-Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the PR diff and worktree context, and embed its three tables (introduced tests, change coverage, uncovered code) into the Coverage section below. Raise its findings (uncovered behavior changes and uncovered code) in the Findings section with severity proportional to risk.
+Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the PR diff and worktree context, and embed its three tables (introduced tests, change coverage, uncovered code) into the Coverage section below.
+Raise its findings (uncovered behavior changes and uncovered code) in the Findings section with severity proportional to risk.
 
 Whether a test proves a specific acceptance criterion is `/verify-pr`'s conformance concern.
 
@@ -279,7 +310,8 @@ Beyond the delegated analysis, also check:
 	* Are breaking changes documented in CHANGELOG?
 * Technical Debt
 	* Are there TODOs that should be completed within this review?
-	* Is new technical debt being introduced? Is it necessary?
+	* Is new technical debt being introduced?
+      Is it necessary?
 
 ## Context-Specific Reviews
 
@@ -339,18 +371,31 @@ Indicate the date+time (using ISO 8601 format) the file was generated in the fil
 
 Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, so blockers appear at the top.
 
-Each finding states its evidence level in the form `L<n> - <Name>` plus a `file:line` or other pointer. The ceiling is `L2 - Ruled out`, because this review does not run code. A finding that needs execution is not this skill's to prove: route it to `/verify-pr`.
+Each finding states its evidence level in the form `L<n> - <Name>` plus a `file:line` or other pointer.
+The ceiling is `L2 - Ruled out`, because this review does not run code.
+A finding that needs execution is not this skill's to prove: route it to `/verify-pr`.
 
-Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance). Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
+Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance).
+Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
-Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), then a one-line **smallest sufficient change** statement (the smallest change that would deliver the intent) and a one-line **excess** statement (what the PR adds beyond it and why each part was necessary, or "none"), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost). For small PRs a single line ("Approach: ...") is acceptable, but the smallest-sufficient and excess statements are required whenever the PR introduces any new mechanism. Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict; if the excess is not empty and not argued, it is a finding.
+Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), then a one-line **smallest sufficient change** statement (the smallest change that would deliver the intent) and a one-line **excess** statement (what the PR adds beyond it and why each part was necessary, or "none"), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost).
+For small PRs a single line ("Approach: ...") is acceptable, but the smallest-sufficient and excess statements are required whenever the PR introduces any new mechanism.
+Writing this section drives the Approach & Simplicity findings: if you cannot fill in the alternatives column, go back and do the directed search before rendering the verdict; if the excess is not empty and not argued, it is a finding.
 
-Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table. Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing. Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
+Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table.
+Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing.
+Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
 
-First update the review state file `$PR_REVIEW_DIR/review.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`). `title` is a finding's identity: when a delta looks like an existing finding, update that entry instead of adding a duplicate. `first_seen_sha` is informational provenance. Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+First update the review state file `$PR_REVIEW_DIR/review.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`).
+`title` is a finding's identity: when a delta looks like an existing finding, update that entry instead of adding a duplicate.
+`first_seen_sha` is informational provenance.
+Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
-Then write the review to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`). Each run gets its own file named by the reviewed commit, so report history is preserved by filename, and `review-pr.report.md` is pointed at the newest run. A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
-Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed. Substitute `HEAD_COMMIT` with the full head SHA, `HEAD_TREE` with the head commit's tree hash, and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
+Then write the review to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`).
+Each run gets its own file named by the reviewed commit, so report history is preserved by filename, and `review-pr.report.md` is pointed at the newest run.
+A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
+Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed.
+Substitute `HEAD_COMMIT` with the full head SHA, `HEAD_TREE` with the head commit's tree hash, and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
 
 ```bash
 PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
@@ -494,11 +539,14 @@ should be addressed before exposing this publicly.
 
 ### Post the review as a PR comment
 
-The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`, with `$PR_REVIEW_DIR/review-pr.report.md` pointing at the most recent run. Posting it as a PR comment is decided by `should-post-to-github`.
+The review is saved to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md`, with `$PR_REVIEW_DIR/review-pr.report.md` pointing at the most recent run.
+Posting it as a PR comment is decided by `should-post-to-github`.
 
-After writing the review, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
+After writing the review, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
+If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
 
-If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict. The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict.
+The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
@@ -531,19 +579,24 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /review-pr 42
 ```
-PR adds a payment processing endpoint. Review checks the approach (flags a hand-rolled retry loop that duplicates the existing `@retry` helper), code quality and architecture, notes test-quality gaps, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit. (Conformance to the acceptance criteria is `/verify-pr`'s verdict.)
+PR adds a payment processing endpoint.
+Review checks the approach (flags a hand-rolled retry loop that duplicates the existing `@retry` helper), code quality and architecture, notes test-quality gaps, confirms no hardcoded API keys, and notes a 🟡 SHOULD for adding a rate limit.
+(Conformance to the acceptance criteria is `/verify-pr`'s verdict.)
 
 **Scenario 2: Bug fix PR**
 ```
 /review-pr 88
 ```
-PR fixes a null pointer. Review checks that the change is localized and the new test is well-written, and marks 🟢 ready to merge. (Root cause vs. symptom is `/validate-pr`'s call; a regression test proving the fix is `/verify-pr`'s.)
+PR fixes a null pointer.
+Review checks that the change is localized and the new test is well-written, and marks 🟢 ready to merge.
+(Root cause vs. symptom is `/validate-pr`'s call; a regression test proving the fix is `/verify-pr`'s.)
 
 **Scenario 3: Re-review after changes**
 ```
 /review-pr 55
 ```
-`review.yaml` already carries findings from a previous run on an earlier commit (an ancestor of the new head). Review incrementally: evaluate only the delta against the previous feedback, flip the `status` of findings the new commits resolve (e.g., "Test coverage added, rate limit not yet addressed"), add findings for problems in the new code only, and render a short delta-focused `review-pr.$SHORT_SHA.md` (with `review-pr.report.md` pointed at it).
+`review.yaml` already carries findings from a previous run on an earlier commit (an ancestor of the new head).
+Review incrementally: evaluate only the delta against the previous feedback, flip the `status` of findings the new commits resolve (e.g., "Test coverage added, rate limit not yet addressed"), add findings for problems in the new code only, and render a short delta-focused `review-pr.$SHORT_SHA.md` (with `review-pr.report.md` pointed at it).
 
 ## Useful Commands Reference
 

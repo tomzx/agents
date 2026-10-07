@@ -23,11 +23,14 @@ For a single issue, invoke `/check-issue-status <number> [repository]` directly.
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read access to the target repositories.
 - `check-issue-status` skill available.
-- A local checkout of any repository whose issues will be inspected. `check-issue-status` reads code, so it can only verdict on issues whose repo matches the current working directory's checkout. Issues from other repos are deferred (see step 4).
+- A local checkout of any repository whose issues will be inspected.
+  `check-issue-status` reads code, so it can only verdict on issues whose repo matches the current working directory's checkout.
+  Issues from other repos are deferred (see step 4).
 
 ## Scope and modes
 
-Resolve the scope from the arguments, then `$REPO`, then the current directory's `origin` remote. The three modes are filters on `gh search issues`:
+Resolve the scope from the arguments, then `$REPO`, then the current directory's `origin` remote.
+The three modes are filters on `gh search issues`:
 
 | Mode | Argument | Adds to search |
 |---|---|---|
@@ -64,12 +67,14 @@ Aggregate combined summary (implemented first)
 ### 1. Resolve scope and filters
 
 Parse the arguments:
-- Positional `owner/repo` (optional) sets the repository scope. If absent, use `$REPO`, then the current directory's `git remote get-url origin`.
+- Positional `owner/repo` (optional) sets the repository scope.
+  If absent, use `$REPO`, then the current directory's `git remote get-url origin`.
 - `--author <user>` filters by author.
 - `--query "<text>"` adds a free-text search.
 - `--state <state>` (default `open`).
 - `--limit <n>` (default 30) caps how many issues are fetched and processed.
-- `--post` allows `check-issue-status` to post comments on `implemented` verdicts. Off by default, so a batch run is report-only.
+- `--post` allows `check-issue-status` to post comments on `implemented` verdicts.
+  Off by default, so a batch run is report-only.
 
 Determine the current working directory's repository so per-issue code inspection targets the right checkout:
 
@@ -91,30 +96,37 @@ gh search issues \
   ["<query text>"]
 ```
 
-Include `--repo` only when a repository scope is resolved. Include `--author` and the query text only when provided. This single command covers all three modes.
+Include `--repo` only when a repository scope is resolved.
+Include `--author` and the query text only when provided.
+This single command covers all three modes.
 
 If the search returns no results, report "No issues matched the scope." and stop.
 
 ### 3. Group by repository
 
-`gh search issues` can return issues from multiple repositories (author or query mode without a repo scope). Group the results by `repository.nameWithOwner`.
+`gh search issues` can return issues from multiple repositories (author or query mode without a repo scope).
+Group the results by `repository.nameWithOwner`.
 
 ### 4. Delegate per issue
 
-Load `check-issue-status` (via the skill tool) before processing the first issue, then apply its workflow to each issue. For each issue, in result order:
+Load `check-issue-status` (via the skill tool) before processing the first issue, then apply its workflow to each issue.
+For each issue, in result order:
 
 - If its `repository.nameWithOwner` equals `CWD_REPO`, delegate to the singular skill:
   ```
   /check-issue-status <number> <owner/repo>
   ```
-  Unless `--post` is set, run `check-issue-status` in report-only mode: perform the analysis and return the verdict and evidence, but skip its comment-posting step. Collect these for the aggregate report.
-- Otherwise (the issue is in a repo that is not checked out locally), defer it. Do not inspect; `check-issue-status` cannot read code that is not checked out.
+  Unless `--post` is set, run `check-issue-status` in report-only mode: perform the analysis and return the verdict and evidence, but skip its comment-posting step.
+  Collect these for the aggregate report.
+- Otherwise (the issue is in a repo that is not checked out locally), defer it.
+  Do not inspect; `check-issue-status` cannot read code that is not checked out.
 
 Process issues sequentially to avoid rate limiting.
 
 ### 5. Aggregate and report
 
-Sort the inspected issues with `implemented` first (the actionable findings), then `partial`, then `not-implemented`. Output a combined table:
+Sort the inspected issues with `implemented` first (the actionable findings), then `partial`, then `not-implemented`.
+Output a combined table:
 
 ```markdown
 ## Issues Status (scope: <scope description>)
@@ -146,7 +158,9 @@ Sort the inspected issues with `implemented` first (the actionable findings), th
 
 ### 6. Optional posting
 
-If `--post` was set, posting already happened per issue during delegation. Otherwise, if there are `implemented` findings, offer to post their comments now, or let the user rerun with `--post`. Do not post without an explicit choice.
+If `--post` was set, posting already happened per issue during delegation.
+Otherwise, if there are `implemented` findings, offer to post their comments now, or let the user rerun with `--post`.
+Do not post without an explicit choice.
 
 ## Failure Modes
 
@@ -174,13 +188,15 @@ If `$OUTCOME_YAML` is set, emit a batch verdict there per `skills/sdlc/reference
 ```
 /check-issues-status owner/myrepo
 ```
-Lists all open issues in `owner/myrepo`, delegates each to `/check-issue-status` (report-only), aggregates the table. `implemented` findings are surfaced as close candidates.
+Lists all open issues in `owner/myrepo`, delegates each to `/check-issue-status` (report-only), aggregates the table.
+`implemented` findings are surfaced as close candidates.
 
 **Scenario 2: Current repository, default**
 ```
 /check-issues-status
 ```
-No repo given, so scope resolves to the current directory's `origin`. Lists its open issues and checks each.
+No repo given, so scope resolves to the current directory's `origin`.
+Lists its open issues and checks each.
 
 **Scenario 3: Issues by a user**
 ```
@@ -198,7 +214,9 @@ Searches open issues matching the query, inspects each, reports status.
 ```
 /check-issues-status --author jane --limit 50
 ```
-No repo scope, so the search spans repositories. Issues in `owner/myrepo` (the cwd checkout) are inspected; issues in other repos are deferred with their numbers listed. Re-run inside each repo's checkout to inspect them.
+No repo scope, so the search spans repositories.
+Issues in `owner/myrepo` (the cwd checkout) are inspected; issues in other repos are deferred with their numbers listed.
+Re-run inside each repo's checkout to inspect them.
 
 **Scenario 6: Post close-suggestion comments**
 ```
@@ -208,7 +226,9 @@ Same as scenario 1, but `implemented` findings post their evidence comment on th
 
 ## Notes
 
-- Default mode is report-only so a batch run never posts unneeded comments. Use `--post` once the report is reviewed.
+- Default mode is report-only so a batch run never posts unneeded comments.
+  Use `--post` once the report is reviewed.
 - Repeated runs are safe: `check-issue-status` checks for its own prior comment marker before posting and edits in place when the code has moved, so even `--post` runs do not repost an already-flagged issue.
-- The orchestrator does not inspect code itself; it delegates to `check-issue-status`. A local checkout of the target repo is required for any per-issue verdict.
+- The orchestrator does not inspect code itself; it delegates to `check-issue-status`.
+  A local checkout of the target repo is required for any per-issue verdict.
 - For a single issue, skip this orchestrator and call `/check-issue-status <number> [repository]` directly.

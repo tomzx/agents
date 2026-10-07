@@ -20,8 +20,10 @@ Audits a telemetry plan for completeness, actionability, measurability, and cons
 1. Read the telemetry document from `.sdlc/features/N-<slug>/telemetry.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the specification and requirements.
 3. Identify issues in each of the five categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-telemetry.md` with frontmatter `artifact: telemetry`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-telemetry.md` with frontmatter `artifact: telemetry`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -91,17 +93,14 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing error events**
-Specification defines a file upload flow with validation, upload, and processing steps.
+**Scenario 1: Missing error events** Specification defines a file upload flow with validation, upload, and processing steps.
 Telemetry plan only has events for `upload_started` and `upload_completed`.
 Report under Coverage Gaps: no events for upload failure, validation rejection, or processing timeout.
 
-**Scenario 2: Vague metric**
-Success metric says "users should find the feature useful."
+**Scenario 2: Vague metric** Success metric says "users should find the feature useful."
 Report under Measurability: no concrete threshold, no measurement method, no timeframe.
 
-**Scenario 3: Naming inconsistency**
-Specification calls the entity "invoice" but events use "bill" prefix.
+**Scenario 3: Naming inconsistency** Specification calls the entity "invoice" but events use "bill" prefix.
 Report under Consistency: event names should use `invoice_` not `bill_` to match specification terminology.
 
 ## Next Step

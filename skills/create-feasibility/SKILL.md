@@ -6,7 +6,8 @@ argument-hint: "[issue-url or feature-name]"
 
 # Create Feasibility Assessment
 
-Produces a structured feasibility assessment for a proposed feature, evaluating technical, financial, and operational viability before the project invests in full requirements gathering. Acts as a go/no-go gate.
+Produces a structured feasibility assessment for a proposed feature, evaluating technical, financial, and operational viability before the project invests in full requirements gathering.
+Acts as a go/no-go gate.
 
 ## Prerequisites
 
@@ -19,22 +20,32 @@ Produces a structured feasibility assessment for a proposed feature, evaluating 
 
 ## Steps
 
-1. Read the issue or feature description. Fetch from GitHub if a URL is provided.
+1. Read the issue or feature description.
+   Fetch from GitHub if a URL is provided.
 2. Read `.sdlc/context/architecture.md` to understand the current system and technology stack.
 3. Read `.sdlc/context/project-overview.md` to understand project scope and constraints.
 4. Read `.sdlc/features/N-<slug>/codebase-analysis.md` when available, and carry its changeability assessments and migration risks into the technical and effort estimates below.
-5. Assess **technical feasibility**: can the feature be built with the current stack and integrations? Are there unknowns that require a spike?
-6. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)? Are there infrastructure, licensing, or third-party costs?
-7. Assess **operational feasibility**: does the team have the skills and availability? Does it fit the roadmap? What is the maintenance burden?
+5. Assess **technical feasibility**: can the feature be built with the current stack and integrations?
+   Are there unknowns that require a spike?
+6. Assess **financial feasibility**: what is the estimated effort (S/M/L/XL)?
+   Are there infrastructure, licensing, or third-party costs?
+7. Assess **operational feasibility**: does the team have the skills and availability?
+   Does it fit the roadmap?
+   What is the maintenance burden?
 8. For each dimension, assign a verdict: Feasible / Feasible with conditions / Not feasible.
-9. Record assumptions that the feasibility assessment depends on but has not verified. For each assumption that carries meaningful risk (e.g., "the existing ORM supports this query pattern", "the third-party API has no rate limits below our expected volume", "the team has the required expertise"), promote it via `/create-assumption` so it is tracked and can be validated before implementation.
-10. Derive the overall go/no-go decision. If any dimension is "Not feasible", the overall verdict is "No-go". If any dimension is "Feasible with conditions", list the conditions.
-11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
+9. Record assumptions that the feasibility assessment depends on but has not verified.
+   For each assumption that carries meaningful risk (e.g., "the existing ORM supports this query pattern", "the third-party API has no rate limits below our expected volume", "the team has the required expertise"), promote it via `/create-assumption` so it is tracked and can be validated before implementation.
+10. Derive the overall go/no-go decision.
+    If any dimension is "Not feasible", the overall verdict is "No-go".
+    If any dimension is "Feasible with conditions", list the conditions.
+11. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue.
+    Record the related issue number in the frontmatter `issue` field only when an issue exists.
 12. Write the output to `.sdlc/features/N-<slug>/feasibility.md`, creating the directory if it does not exist.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/feasibility.md` (copied to `.sdlc/templates/features/feasibility.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/feasibility.md` (copied to `.sdlc/templates/features/feasibility.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Handling No-Go Verdicts
 
@@ -56,18 +67,19 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Straightforward feature**
-User describes "add CSV export to the dashboard."
-Current stack already handles file generation. Low effort, no new dependencies. Verdict: Go.
+**Scenario 1: Straightforward feature** User describes "add CSV export to the dashboard."
+Current stack already handles file generation.
+Low effort, no new dependencies.
+Verdict: Go.
 
-**Scenario 2: Feature with unknowns**
-User describes "add real-time collaboration like Google Docs."
-Requires WebSocket infrastructure not currently in the stack, high effort, significant operational burden. Verdict: Feasible with conditions (requires infrastructure spike and dedicated team).
+**Scenario 2: Feature with unknowns** User describes "add real-time collaboration like Google Docs."
+Requires WebSocket infrastructure not currently in the stack, high effort, significant operational burden.
+Verdict: Feasible with conditions (requires infrastructure spike and dedicated team).
 Assumptions promoted: "the existing load balancer supports WebSocket upgrades" (Medium risk, validate via spike), "the database can handle the expected write throughput of concurrent edits" (High risk, validate via load test).
 
-**Scenario 3: Clear no-go**
-User describes "migrate the entire platform to a different cloud provider in 2 weeks."
-Not operationally feasible given team size and timeline. Verdict: No-go.
+**Scenario 3: Clear no-go** User describes "migrate the entire platform to a different cloud provider in 2 weeks."
+Not operationally feasible given team size and timeline.
+Verdict: No-go.
 
 ## Completion Checklist
 

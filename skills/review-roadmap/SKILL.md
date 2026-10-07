@@ -20,8 +20,10 @@ Audits a roadmap across six categories: alignment, sequencing, focus and capacit
 1. Read the roadmap from `.sdlc/context/roadmap.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the goals, project overview, and existing features/issues.
 3. Identify issues in each category below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/context/review-roadmap.md` with frontmatter `artifact: roadmap`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, with the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/context/review-roadmap.md` with frontmatter `artifact: roadmap`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, with the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -98,24 +100,19 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/context/
 
 ## Example Usage
 
-**Scenario 1: Orphaned in-flight feature**
-FEAT-17 is in-flight but rolls up to no initiative.
+**Scenario 1: Orphaned in-flight feature** FEAT-17 is in-flight but rolls up to no initiative.
 Report under Alignment: map it to an initiative (and objective), or move it to Not Now with a reason.
 
-**Scenario 2: Dependency violates sequencing**
-A Now initiative depends on an external API migration that sits in Next.
+**Scenario 2: Dependency violates sequencing** A Now initiative depends on an external API migration that sits in Next.
 Report under Sequencing: either move the dependent initiative to Next, or pull the dependency into Now.
 
-**Scenario 3: Output mistaken for outcome**
-Initiative success signal reads "ship the reporting dashboard."
+**Scenario 3: Output mistaken for outcome** Initiative success signal reads "ship the reporting dashboard."
 Report under Evidence and Outcomes: rephrase as the outcome the dashboard enables (e.g., "X% of admins generate a weekly report").
 
-**Scenario 4: Overloaded Now**
-Now lists seven initiatives for a two-person team with no stated capacity headroom.
+**Scenario 4: Overloaded Now** Now lists seven initiatives for a two-person team with no stated capacity headroom.
 Report under Focus and Capacity: Now must be achievable; move lower-confidence items to Next.
 
-**Scenario 5: Stale roadmap**
-Last reviewed date is six months old and two Now initiatives have since shipped.
+**Scenario 5: Stale roadmap** Last reviewed date is six months old and two Now initiatives have since shipped.
 Report under Currency: re-baseline, remove shipped/abandoned items, and reset the review cadence.
 
 ## Next Step

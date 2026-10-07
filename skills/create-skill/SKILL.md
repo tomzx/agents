@@ -11,7 +11,8 @@ TODAY=!`date +%Y-%m-%d`
 
 Authors a new skill by first discovering existing skills that solve a similar problem, studying each one's strengths and weaknesses, then synthesizing the single best skill from what was learned.
 
-The premise is that a skill written from scratch is usually weaker than one built by combining the best techniques already proven across several existing skills. This skill automates that synthesis.
+The premise is that a skill written from scratch is usually weaker than one built by combining the best techniques already proven across several existing skills.
+This skill automates that synthesis.
 
 ## Prerequisites
 
@@ -60,9 +61,11 @@ A good synthesis takes the strongest part from each candidate and combines them 
 SKILL=$1
 ```
 
-If `$1` is empty, ask the user for the skill's purpose and propose a kebab-case name, then confirm. If `$1` already exists as a directory under `skills/`, stop and tell the user to run `/improve-skill $1` instead.
+If `$1` is empty, ask the user for the skill's purpose and propose a kebab-case name, then confirm.
+If `$1` already exists as a directory under `skills/`, stop and tell the user to run `/improve-skill $1` instead.
 
-Normalize the name to kebab-case if needed. Confirm the name does not already exist:
+Normalize the name to kebab-case if needed.
+Confirm the name does not already exist:
 
 ```bash
 test -e "skills/$SKILL" && echo "::error::skills/$SKILL already exists" || echo "target: skills/$SKILL"
@@ -86,9 +89,12 @@ Read the `name` and `description` of every match and keep those whose purpose ge
 npx skills find "$SKILL"
 ```
 
-Also browse the [skills.sh leaderboard](https://skills.sh/) for well-known skills in the field. Search only: never install candidates into this library (see Step 3).
+Also browse the [skills.sh leaderboard](https://skills.sh/) for well-known skills in the field.
+Search only: never install candidates into this library (see Step 3).
 
-Collect the top candidates (typically three to six). Record for each: source, install count, GitHub stars, and a one-line summary of what it does. Apply the `find-skills` quality bar: prefer official sources and 1K+ installs; be skeptical of repos under 100 stars.
+Collect the top candidates (typically three to six).
+Record for each: source, install count, GitHub stars, and a one-line summary of what it does.
+Apply the `find-skills` quality bar: prefer official sources and 1K+ installs; be skeptical of repos under 100 stars.
 
 ### 3. Gather the candidate sources
 
@@ -112,13 +118,17 @@ npx skills add <owner>/<repo> --skill <skill> -y --copy
 # files land in ./.agents/skills/<skill>/, read SKILL.md and references/ from there
 ```
 
-Never run `npx skills add` from the library root, never pass `-g`, and never run `npx skills update` here. The global scope resolves to `~/.agents/skills`, which on this machine is a symlink to this repository, so a global install writes straight into `skills/<name>/` and overwrites any skill sharing the name. The CLI is used here only to search and to read candidates into scratch space outside the repo.
+Never run `npx skills add` from the library root, never pass `-g`, and never run `npx skills update` here.
+The global scope resolves to `~/.agents/skills`, which on this machine is a symlink to this repository, so a global install writes straight into `skills/<name>/` and overwrites any skill sharing the name.
+The CLI is used here only to search and to read candidates into scratch space outside the repo.
 
-If fewer than two usable candidates are found, say so and fall back to writing the skill from first principles using one or two neighboring skills as a style reference. Note that no synthesis basis existed.
+If fewer than two usable candidates are found, say so and fall back to writing the skill from first principles using one or two neighboring skills as a style reference.
+Note that no synthesis basis existed.
 
 ### 4. Analyze each candidate
 
-Read every gathered source end to end. For each candidate, score it along these dimensions (borrowed from `compare-skills`):
+Read every gathered source end to end.
+For each candidate, score it along these dimensions (borrowed from `compare-skills`):
 
 | Dimension | Question |
 |-----------|----------|
@@ -145,7 +155,9 @@ Before writing, decide the structure of the new skill by selecting, per section,
 | Output format | `<candidate>` | retemplate for this repo's conventions |
 | Examples | `<candidate>` | rewrite in this repo's voice |
 
-Resolve every conflict between candidates by picking the clearer, more specific option and noting the reason. The plan is a table, not the prose. Do not start writing the skill until every section has a chosen source and every conflict has a resolution.
+Resolve every conflict between candidates by picking the clearer, more specific option and noting the reason.
+The plan is a table, not the prose.
+Do not start writing the skill until every section has a chosen source and every conflict has a resolution.
 
 ### 6. Write the skill
 
@@ -164,7 +176,8 @@ Apply this repo's conventions exactly:
 - No comments or decorative noise.
 - Section order matching neighboring skills (typically: Prerequisites, Steps, Output Format, Example Usage).
 
-Do not copy any candidate's prose verbatim unless it is a structural template (a table or a command). Rewrite the instructions in this repo's voice so the skill is coherent rather than a patchwork.
+Do not copy any candidate's prose verbatim unless it is a structural template (a table or a command).
+Rewrite the instructions in this repo's voice so the skill is coherent rather than a patchwork.
 
 ### 7. Verify the result
 
@@ -186,11 +199,13 @@ git status --porcelain -- skills/ | grep -v "^?? skills/$SKILL/" | grep -v "^ M 
 
 ### 8. Check for duplicates
 
-Run the duplicate check from `review-skills` against the new skill: compare its name and description against every other skill in the library. If a near-duplicate is found, stop and ask the user whether to merge, rename, or document an explicit scope boundary before continuing.
+Run the duplicate check from `review-skills` against the new skill: compare its name and description against every other skill in the library.
+If a near-duplicate is found, stop and ask the user whether to merge, rename, or document an explicit scope boundary before continuing.
 
 ### 9. Register the skill
 
-Update `README.md` so the skills index stays in sync (required by `AGENTS.md`). Add one row to the most fitting thematic table:
+Update `README.md` so the skills index stays in sync (required by `AGENTS.md`).
+Add one row to the most fitting thematic table:
 
 ```markdown
 | `/$SKILL` | <one-line purpose matching the table's voice> |
@@ -221,7 +236,8 @@ If no candidates were found, state that the skill was written from first princip
 
 ## Output Format
 
-The skill itself is the output. It must conform to this skeleton:
+The skill itself is the output.
+It must conform to this skeleton:
 
 ```markdown
 ---
@@ -271,7 +287,8 @@ Discovers three meeting-summary skills (two local, one on skills.sh with 12K ins
 ```
 /create-skill classify-emoji-sentiment
 ```
-Finds no usable candidates in the library or the registry. Falls back to writing the skill from first principles, using `triage-issue` as a style reference for its classification steps, and notes in the summary that no synthesis basis existed.
+Finds no usable candidates in the library or the registry.
+Falls back to writing the skill from first principles, using `triage-issue` as a style reference for its classification steps, and notes in the summary that no synthesis basis existed.
 
 **Scenario 3: Candidate already exists locally**
 ```

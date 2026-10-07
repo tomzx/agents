@@ -17,11 +17,16 @@ When a `cli-design.md` companion is present, the review covers the CLI design in
 
 ## Steps
 
-1. Read the requirements document from `.sdlc/features/N-<slug>/requirements.md` if present, otherwise from context or as a file path. Read `cli-design.md` too when it exists beside it: the two artifacts are reviewed together as one requirements phase.
+1. Read the requirements document from `.sdlc/features/N-<slug>/requirements.md` if present, otherwise from context or as a file path.
+   Read `cli-design.md` too when it exists beside it: the two artifacts are reviewed together as one requirements phase.
 2. Identify issues in each of the applicable categories below.
-3. Report findings using the output format. Omit any category that has no findings.
-4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them). If a conflict cannot be resolved within the document, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
-5. Write the findings to `.sdlc/features/N-<slug>/review-requirements.md` with frontmatter `artifact: requirements`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+3. Report findings using the output format.
+   Omit any category that has no findings.
+4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them).
+   If a conflict cannot be resolved within the document, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
+5. Write the findings to `.sdlc/features/N-<slug>/review-requirements.md` with frontmatter `artifact: requirements`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -58,7 +63,8 @@ When a `cli-design.md` companion is present, the review covers the CLI design in
 
 ### Conflicts
 
-Identify pairs (or groups) of requirements that cannot all be satisfied at once, or that pull the design in incompatible directions. Check for these conflict types:
+Identify pairs (or groups) of requirements that cannot all be satisfied at once, or that pull the design in incompatible directions.
+Check for these conflict types:
 
 - **Direct contradiction:** two requirements assert opposite behaviors (e.g., FR-2 "data is stored locally only" vs FR-7 "data syncs to the cloud").
 - **Mutual exclusivity:** both are individually valid but cannot hold simultaneously (e.g., offline-first vs real-time sync).
@@ -115,17 +121,15 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing acceptance criteria**
-FR-3 states "the system shall send notifications" but no acceptance criterion defines when, how, or to whom.
+**Scenario 1: Missing acceptance criteria** FR-3 states "the system shall send notifications" but no acceptance criterion defines when, how, or to whom.
 Report under Completeness.
 
-**Scenario 2: Untestable requirement**
-NFR-2 says "the UI must be intuitive."
+**Scenario 2: Untestable requirement** NFR-2 says "the UI must be intuitive."
 Flag under Testability — rewrite as a measurable usability criterion.
 
-**Scenario 3: Conflicting priorities**
-FR-1 is marked Must (offline support) while NFR-1 is Must (real-time sync).
-These conflict. Report under Conflicts.
+**Scenario 3: Conflicting priorities** FR-1 is marked Must (offline support) while NFR-1 is Must (real-time sync).
+These conflict.
+Report under Conflicts.
 
 ## Next Step
 

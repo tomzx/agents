@@ -94,7 +94,8 @@ Expands 5 manifest paths into 19 directories, finds 3 stale indexes (older than 
 ```
 /sync-agent-machine
 ```
-A new project appeared under `~/src/*`. It has no index, so it is classified missing and indexed, while everything current is left untouched.
+A new project appeared under `~/src/*`.
+It has no index, so it is classified missing and indexed, while everything current is left untouched.
 
 **Scenario 3: Force refresh specific directories**
 ```

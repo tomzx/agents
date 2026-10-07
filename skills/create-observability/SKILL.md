@@ -27,13 +27,16 @@ Without this step, features go to production with no monitoring: outages go unde
 4. Define service-level metrics (counters, histograms, gauges) that reflect system health.
 5. Identify where distributed traces should be emitted for cross-service flows.
 6. Define health checks and readiness probes for new services or endpoints.
-7. Specify alerts with clear conditions, severity, and runbook links. When the monitoring stack is Prometheus-compatible, write the normative alert definitions to `.sdlc/features/N-<slug>/alerts.yaml` (Prometheus rule format, template at `skills/sdlc/templates/features/alerts.yaml`) and keep the per-alert tables in the document as the human-readable summary. Validate best-effort with `promtool check rules alerts.yaml` when available; a missing tool is skipped, a validation failure is a defect to fix before handoff.
+7. Specify alerts with clear conditions, severity, and runbook links.
+   When the monitoring stack is Prometheus-compatible, write the normative alert definitions to `.sdlc/features/N-<slug>/alerts.yaml` (Prometheus rule format, template at `skills/sdlc/templates/features/alerts.yaml`) and keep the per-alert tables in the document as the human-readable summary.
+   Validate best-effort with `promtool check rules alerts.yaml` when available; a missing tool is skipped, a validation failure is a defect to fix before handoff.
 8. Determine observability infrastructure requirements (existing vs. new instrumentation).
 9. Write the output to `.sdlc/features/N-<slug>/observability.md` (plus `alerts.yaml` when alerts are defined and the stack is Prometheus-compatible).
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/observability.md` (copied to `.sdlc/templates/features/observability.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/observability.md` (copied to `.sdlc/templates/features/observability.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Logging Guidance
 
@@ -54,12 +57,14 @@ Common metric types for features:
 - **Resource utilization:** CPU, memory, connections used by the feature.
 - **Business metrics:** Counts tied to domain events (orders placed, files uploaded).
 
-Every metric should answer: "If this number changes unexpectedly, what action do I take?" If no action exists, the metric is noise.
+Every metric should answer: "If this number changes unexpectedly, what action do I take?"
+If no action exists, the metric is noise.
 
 ## Alert Guidance
 
 Good alerts are:
-- **Actionable:** Every alert triggers a human response. If nobody acts, remove the alert.
+- **Actionable:** Every alert triggers a human response.
+  If nobody acts, remove the alert.
 - **Specific:** The condition clearly identifies what is wrong, not just "something is slow."
 - **Timely:** Fires fast enough to mitigate impact, but with a `for` duration to avoid flapping.
 - **Sized correctly:** Critical alerts wake someone up; Warning alerts appear in dashboards; Info alerts are logged.
@@ -68,7 +73,8 @@ Every alert must have a runbook: a short list of steps to diagnose and resolve.
 
 ## Tracing Guidance
 
-Add spans at service boundaries and for expensive operations (DB queries, external API calls, large computations). Record attributes that help narrow down the issue: user ID, request ID, operation type, resource identifier.
+Add spans at service boundaries and for expensive operations (DB queries, external API calls, large computations).
+Record attributes that help narrow down the issue: user ID, request ID, operation type, resource identifier.
 
 ## Outcome
 
@@ -77,22 +83,20 @@ In the same emission, list every file you produced under `artifacts:` (`.sdlc/fe
 
 ## Example Usage
 
-**Scenario 1: REST API endpoint**
-Specification defines `POST /orders`.
+**Scenario 1: REST API endpoint** Specification defines `POST /orders`.
 Metrics: `orders_request_total` (counter), `orders_request_duration_seconds` (histogram), `orders_error_total` (counter by status code).
 Logging: INFO on order created (with order_id, user_id), WARN on validation failure, ERROR on DB write failure.
-Alert: fire Critical if error rate > 5% for 5 minutes. Runbook: check DB connectivity, check upstream service.
+Alert: fire Critical if error rate > 5% for 5 minutes.
+Runbook: check DB connectivity, check upstream service.
 SLO: 99.9% availability, p99 latency < 500ms.
 
-**Scenario 2: Background job**
-Specification defines a nightly data export.
+**Scenario 2: Background job** Specification defines a nightly data export.
 Metrics: `export_jobs_total` (counter), `export_duration_seconds` (histogram), `export_records_processed` (counter).
 Logging: INFO on job start/complete (with job_id, record_count), WARN on partial failure, ERROR on full failure.
 Tracing: root span for the job, child spans for each batch.
 Alert: fire Warning if job duration exceeds 2x normal, Critical if job fails 2 consecutive runs.
 
-**Scenario 3: WebSocket connection**
-Specification defines a real-time notification feed.
+**Scenario 3: WebSocket connection** Specification defines a real-time notification feed.
 Metrics: `ws_connections_active` (gauge), `ws_messages_sent_total` (counter), `ws_connection_duration_seconds` (histogram).
 Logging: INFO on connect/disconnect (with user_id), WARN on reconnect storm, ERROR on message delivery failure.
 Health check: readiness probe that verifies the WebSocket server can accept connections.

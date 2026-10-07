@@ -9,7 +9,8 @@ argument-hint: "<issue-number> [repository]"
 
 Reviews a single open issue in a GitHub repository and classifies it across multiple dimensions: type, area, platform, provider, severity qualifiers, urgency, and importance.
 Applies labels and posts a clarification comment when the issue lacks enough information to classify.
-This is the per-issue core of `triage-issues`. Use it directly for event-driven triage on issue open, or for invocation from other skills that need to triage one issue without scanning the whole backlog.
+This is the per-issue core of `triage-issues`.
+Use it directly for event-driven triage on issue open, or for invocation from other skills that need to triage one issue without scanning the whole backlog.
 
 ## Prerequisites
 
@@ -57,7 +58,8 @@ Output triage summary
 
 ## Label Discovery
 
-All dimensional labels (area, platform, provider, perf) are repo-specific and must be discovered from the repository's existing labels before classification begins. Area labels can also be created when a clear new area is identified (see Area Label Creation below).
+All dimensional labels (area, platform, provider, perf) are repo-specific and must be discovered from the repository's existing labels before classification begins.
+Area labels can also be created when a clear new area is identified (see Area Label Creation below).
 
 Fetch the repository's labels once during setup:
 ```
@@ -106,7 +108,8 @@ gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTyp
 | `documentation` | Task |
 | `security` | Bug |
 
-Use the closest match from the available issue types. If no matching type exists, skip issue type assignment.
+Use the closest match from the available issue types.
+If no matching type exists, skip issue type assignment.
 
 Set the issue type via REST API (accepts the type name as a string):
 ```
@@ -128,11 +131,14 @@ Map the issue's content to the best-matching area label(s):
 - Keywords like "login", "auth", "token", "credential" -> `area:auth`
 - Keywords like "permission", "access", "sandbox" -> `area:permissions`
 
-Apply **at most 2 area labels** per issue. If no existing area label matches but a clear area can be identified from the issue content, create one (see Area Label Creation below). If no area can be determined with reasonable confidence, skip area labeling rather than guessing.
+Apply **at most 2 area labels** per issue.
+If no existing area label matches but a clear area can be identified from the issue content, create one (see Area Label Creation below).
+If no area can be determined with reasonable confidence, skip area labeling rather than guessing.
 
 #### Area Label Creation
 
-When classification identifies a clear area that has no matching label in the repo, create it before applying. This keeps the triage process self-contained and avoids deferring work.
+When classification identifies a clear area that has no matching label in the repo, create it before applying.
+This keeps the triage process self-contained and avoids deferring work.
 
 Create a new area label:
 ```
@@ -143,8 +149,10 @@ Guidelines:
 - Use the `area:` prefix for all newly created area labels
 - Derive a short, descriptive name from the issue content (e.g., `area:networking`, `area:storage`, `area:cli`)
 - Write a one-line description explaining what the area covers
-- Assign a color. Use a consistent color for all `area:*` labels (e.g., `0075ca` or pick from the repo's existing area label colors)
-- Only create labels you are confident about. If the area is ambiguous, skip creation and apply no area label
+- Assign a color.
+  Use a consistent color for all `area:*` labels (e.g., `0075ca` or pick from the repo's existing area label colors)
+- Only create labels you are confident about.
+  If the area is ambiguous, skip creation and apply no area label
 
 ### Platform Labels
 
@@ -159,7 +167,8 @@ Detection signals:
 - Browser mentions: "Chrome", "Firefox", "Safari", "web"
 - Error messages containing OS-specific paths (e.g., `C:\Users\` -> Windows, `/Users/` -> macOS, `/home/` -> Linux)
 
-Apply **at most 2 platform labels** per issue. Only apply when there is clear evidence, not speculation.
+Apply **at most 2 platform labels** per issue.
+Only apply when there is clear evidence, not speculation.
 
 ### Provider Labels
 
@@ -203,13 +212,16 @@ Only apply if they exist in the repo's label set.
 |---|---|
 | `needs-info` | Issue is too vague to classify or act on |
 
-Apply `needs-info` alongside posting a clarification comment. Remove `needs-info` once the reporter provides sufficient detail (on re-triage).
+Apply `needs-info` alongside posting a clarification comment.
+Remove `needs-info` once the reporter provides sufficient detail (on re-triage).
 
 ### Duplicate Detection
 
-Before running duplicate detection, check the issue's existing comments for a prior duplicate comment from the current authenticated user or any bot account. If one already exists, skip duplicate detection entirely.
+Before running duplicate detection, check the issue's existing comments for a prior duplicate comment from the current authenticated user or any bot account.
+If one already exists, skip duplicate detection entirely.
 
-Compare the issue against all other issues (open and closed) to identify potential duplicates. This check runs regardless of write permissions, as posting duplicate-suggestion comments requires only comment access (which is typically available even without triage perms on public repos).
+Compare the issue against all other issues (open and closed) to identify potential duplicates.
+This check runs regardless of write permissions, as posting duplicate-suggestion comments requires only comment access (which is typically available even without triage perms on public repos).
 
 Detection signals (weigh multiple signals together; require at least 2 to flag):
 - Very similar titles (high word overlap after removing stop words)
@@ -259,7 +271,8 @@ Triaged with [triage-issue](SKILL_FILE_URL) (`SKILL_SHORT_SHA`)
 
 ### Urgency Labels
 
-Only apply urgency labels to issues in **private repositories**. Skip urgency classification for public repositories.
+Only apply urgency labels to issues in **private repositories**.
+Skip urgency classification for public repositories.
 
 | Label | Criteria |
 |---|---|
@@ -268,7 +281,8 @@ Only apply urgency labels to issues in **private repositories**. Skip urgency cl
 
 ### Importance Labels
 
-Only apply importance labels to issues in **private repositories**. Skip importance classification for public repositories.
+Only apply importance labels to issues in **private repositories**.
+Skip importance classification for public repositories.
 
 | Label | Criteria |
 |---|---|
@@ -277,7 +291,8 @@ Only apply importance labels to issues in **private repositories**. Skip importa
 
 ### Priority Mapping
 
-Derive a priority from the urgency and importance classification. For public repositories (where urgency and importance are not set), classify priority directly from the issue content.
+Derive a priority from the urgency and importance classification.
+For public repositories (where urgency and importance are not set), classify priority directly from the issue content.
 
 | Urgency | Importance | Priority |
 |---|---|---|
@@ -328,11 +343,16 @@ Use the closest match from the repo's label set.
    gh repo view [--repo $2] --json isPrivate --jq '.isPrivate'
    gh api repos/<owner>/<repo> --jq '{push: .permissions.push, triage: .permissions.triage, admin: .permissions.admin, maintain: .permissions.maintain}'
    ```
-   Store `is_private` (urgency and importance are only classified for private repos). Compute three access flags:
-   - `has_push` = `push` or `admin` or `maintain` is true. Gates label creation.
-   - `has_triage` = any of `push`, `triage`, `admin`, or `maintain` is true. Gates label application, issue type setting, and priority setting.
-   - `can_comment` = `has_triage` is true, OR the repository is public (anyone can comment on public repos). Gates comment posting and duplicate-suggestion comments.
-   If `has_triage` is false and `can_comment` is false, output a read-only triage summary and skip all write operations including comments. If `has_triage` is false but `can_comment` is true, skip label/type/priority operations but still post duplicate-suggestion comments and needs-info clarification comments.
+   Store `is_private` (urgency and importance are only classified for private repos).
+   Compute three access flags:
+   - `has_push` = `push` or `admin` or `maintain` is true.
+     Gates label creation.
+   - `has_triage` = any of `push`, `triage`, `admin`, or `maintain` is true.
+     Gates label application, issue type setting, and priority setting.
+   - `can_comment` = `has_triage` is true, OR the repository is public (anyone can comment on public repos).
+     Gates comment posting and duplicate-suggestion comments.
+     If `has_triage` is false and `can_comment` is false, output a read-only triage summary and skip all write operations including comments.
+     If `has_triage` is false but `can_comment` is true, skip label/type/priority operations but still post duplicate-suggestion comments and needs-info clarification comments.
 2. Fetch the repository's available issue types and issue fields (once, before processing the issue):
    ```
    gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first: 20) { nodes { id name } } issueFields(first: 20) { nodes { ... on IssueFieldSingleSelect { id name options { id name } } } } } }'
@@ -347,21 +367,26 @@ Use the closest match from the repo's label set.
    ```
    ghx issue view $1 [--repo $2] --comments
    ```
-   If the issue already has at least one `area:*` label, it is considered triaged. Output "Already triaged" and stop without modifying the issue.
-5. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority. If `is_private` is true, also classify urgency and importance.
+   If the issue already has at least one `area:*` label, it is considered triaged.
+   Output "Already triaged" and stop without modifying the issue.
+5. Classify the issue across all applicable dimensions: type, area, platform, provider, severity qualifiers, repro status, priority.
+   If `is_private` is true, also classify urgency and importance.
 6. If a clear area is identified but no matching `area:*` label exists in the repo and `has_push` is true, create it:
    ```
    gh label create "area:<name>" [--repo $2] --description "<short description>" --color "<hex>"
    ```
-   Only create when confident in the area classification. If `has_push` is false, skip creation and note the missing label in the triage summary instead.
+   Only create when confident in the area classification.
+   If `has_push` is false, skip creation and note the missing label in the triage summary instead.
 7. If the issue is too vague to classify:
    - If `has_triage` is true: apply `needs-info` label (if available), and for bugs without repro steps apply `needs-repro` label (if available)
-   - If `can_comment` is true: post a comment asking for: steps to reproduce (bugs), use case details (features), or more context. Append attribution footer per `github-post-attribution`.
+   - If `can_comment` is true: post a comment asking for: steps to reproduce (bugs), use case details (features), or more context.
+     Append attribution footer per `github-post-attribution`.
 8. If `has_triage` is true, apply the appropriate labels:
    ```
    gh issue edit $1 [--repo $2] --add-label "<type>" --add-label "<area>" --add-label "<platform>" --add-label "<provider>" --add-label "<severity>" --add-label "<repro>" --add-label "<urgency>" --add-label "<importance>" --add-label "<priority>"
    ```
-   Only include labels for dimensions where a match was found. Omit urgency and importance labels for public repositories.
+   Only include labels for dimensions where a match was found.
+   Omit urgency and importance labels for public repositories.
 9. If `has_triage` is true, set the GitHub Issue Type via REST API (if a matching type is available):
    ```
    echo '{"type": "<TypeName>"}' | gh api --method PATCH repos/<owner>/<repo>/issues/$1 --input -
@@ -371,7 +396,8 @@ Use the closest match from the repo's label set.
     - Get the issue node ID: `gh api repos/<owner>/<repo>/issues/$1 --jq '.node_id'`
     - Call `setIssueFieldValue` with the issue node ID, Priority field ID, and option ID
 11. Duplicate detection (runs regardless of `has_triage`):
-    - Check the issue's existing comments for a prior duplicate comment from the current authenticated user or any bot account. If found, skip duplicate detection entirely.
+    - Check the issue's existing comments for a prior duplicate comment from the current authenticated user or any bot account.
+      If found, skip duplicate detection entirely.
     - Compare the issue against all other issues (open and closed):
       ```
       ghx issue list [--repo $2] --state all --json
@@ -419,19 +445,26 @@ Reads issue #42, classifies it, applies type + area + platform + provider + prio
 ```
 /triage-issue 10
 ```
-Issue #10 says "it doesn't work." Apply `needs-info` and `needs-repro` labels, then post comment: "Could you describe the expected behavior, what you observed instead, and the steps to reproduce?"
+Issue #10 says "it doesn't work."
+Apply `needs-info` and `needs-repro` labels, then post comment: "Could you describe the expected behavior, what you observed instead, and the steps to reproduce?"
 
 **Scenario 3: Regression with data loss**
 ```
 /triage-issue 22
 ```
-Issue #22 says "After upgrading to v2, my config file was wiped." Classify as bug, apply `regression`, `data-loss`, and `has-repro` labels. Assign Urgent priority.
+Issue #22 says "After upgrading to v2, my config file was wiped."
+Classify as bug, apply `regression`, `data-loss`, and `has-repro` labels.
+Assign Urgent priority.
 
 **Scenario 4: Read-only mode with duplicate detection (no triage permissions)**
 ```
 /triage-issue 88 owner/publicrepo
 ```
-User lacks triage permissions on a public repo. Issue #88 reports the same crash as #12. Since `can_comment` is true (public repo), post a suggestion comment: "This issue appears similar to #12 (both report a crash on startup with the same error message). If this is a duplicate, consider closing this issue in favor of the existing one." Labels and issue types are skipped.
+User lacks triage permissions on a public repo.
+Issue #88 reports the same crash as #12.
+Since `can_comment` is true (public repo), post a suggestion comment: "This issue appears similar to #12 (both report a crash on startup with the same error message).
+If this is a duplicate, consider closing this issue in favor of the existing one."
+Labels and issue types are skipped.
 
 ## Useful Commands Reference
 

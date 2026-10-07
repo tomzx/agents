@@ -5,8 +5,7 @@ allowed-tools: Bash(ghx:*, gh:*, git:*, rg:*, uv:*, python:*, python3:*, pytest:
 argument-hint: "[repository] [--focus <area>] [--limit N] [--create-issues N] [--since <YYYY-MM-DD>] [--no-verify] [--quick|--deep]"
 ---
 
-TODAY=!`date +%Y-%m-%d`
-REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
+TODAY=!`date +%Y-%m-%d` REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
 
 # Identify Bugs
 
@@ -51,7 +50,8 @@ When a candidate is security-relevant, hand the deep analysis to `audit-security
 
 ## What Counts as a Bug
 
-Treat these as prompts, not a checklist to fill. Read the code paths they point to and judge.
+Treat these as prompts, not a checklist to fill.
+Read the code paths they point to and judge.
 
 | Category | What to look for |
 |---|---|
@@ -68,11 +68,16 @@ Treat these as prompts, not a checklist to fill. Read the code paths they point 
 
 A candidate is reported only when all of these hold:
 
-1. **Concrete wrong behavior.** State the input and state that produce an incorrect result, a crash, or data loss. "This could be a problem" is not a bug report.
-2. **Reachable.** The path can actually execute in production. Exclude dead code, test-only paths, and code behind a flag that is always off. If reachability is uncertain, say so and treat it as suspected, not confirmed.
-3. **Evidence read first-hand.** Cite `file:line` for every location involved and open each one. A finding inherited from a scanner or a subagent is a lead, not a fact.
+1. **Concrete wrong behavior.** State the input and state that produce an incorrect result, a crash, or data loss.
+   "This could be a problem" is not a bug report.
+2. **Reachable.** The path can actually execute in production.
+   Exclude dead code, test-only paths, and code behind a flag that is always off.
+   If reachability is uncertain, say so and treat it as suspected, not confirmed.
+3. **Evidence read first-hand.** Cite `file:line` for every location involved and open each one.
+   A finding inherited from a scanner or a subagent is a lead, not a fact.
 4. **False positives rejected.** Before keeping, rule out the common classes below.
-5. **Verified where possible.** Run the failing test or repro (see Verification). A bug that is statically certain but not run-verified is reported with `verification: static`.
+5. **Verified where possible.** Run the failing test or repro (see Verification).
+   A bug that is statically certain but not run-verified is reported with `verification: static`.
 
 ### Common False Positives to Reject
 
@@ -84,18 +89,24 @@ A candidate is reported only when all of these hold:
 
 ## Verification
 
-Verification is what separates a bug report from a guess. Where a seam exists, confirm the bug before keeping it.
+Verification is what separates a bug report from a guess.
+Where a seam exists, confirm the bug before keeping it.
 
 Follow the seam discipline from `diagnosing-bugs`:
 
 - Build the smallest pass/fail signal that goes red on this exact bug: an existing test, a one-off script, a CLI invocation with a fixture, an HTTP call, or a headless browser check.
-- Prefer the tightest seam that exercises the actual bug pattern at its call site. A shallow unit test that cannot replicate the chain that triggers the bug gives false confidence.
-- Run the repro once and show the command and its output. Redact secrets first, and never write a secret into the report.
+- Prefer the tightest seam that exercises the actual bug pattern at its call site.
+  A shallow unit test that cannot replicate the chain that triggers the bug gives false confidence.
+- Run the repro once and show the command and its output.
+  Redact secrets first, and never write a secret into the report.
 - **If no correct seam exists, that itself is a finding.** Note that the architecture prevents the bug from being locked down by a test.
 
-Verification must leave the working tree unchanged. Use an existing test, a throwaway file under `/tmp`, or a disposable `git worktree`, and delete it afterward. Never commit, and never edit source as part of this skill.
+Verification must leave the working tree unchanged.
+Use an existing test, a throwaway file under `/tmp`, or a disposable `git worktree`, and delete it afterward.
+Never commit, and never edit source as part of this skill.
 
-When `--no-verify` is passed, or the bug is a static certainty with no runnable seam, record `verification: static` and move on. Do not overstate a static finding as confirmed.
+When `--no-verify` is passed, or the bug is a static certainty with no runnable seam, record `verification: static` and move on.
+Do not overstate a static finding as confirmed.
 
 ## The Dedup Contract (ghx)
 
@@ -103,7 +114,8 @@ This is mandatory.
 
 ### Load the known set once, up front
 
-Warm the cache and pull the issue history. Existing issues, open or closed, are the already-known defects.
+Warm the cache and pull the issue history.
+Existing issues, open or closed, are the already-known defects.
 
 ```bash
 ghx cache --repo "$REPO"
@@ -141,13 +153,17 @@ State the exhaustion evidence in the report: what areas were swept, how many can
 
 ### 1. Resolve scope and read context
 
-Resolve the repository from `$1`, then `$REPO`, then the current directory. Apply `--focus` if given.
-Read `.sdlc/context/` and any decision or design docs. Record settled decisions and standard conventions so they are not reported as bugs.
+Resolve the repository from `$1`, then `$REPO`, then the current directory.
+Apply `--focus` if given.
+Read `.sdlc/context/` and any decision or design docs.
+Record settled decisions and standard conventions so they are not reported as bugs.
 Discover and record the exact build, test, and run commands; they are needed for verification.
 
 ### 2. Load the known set with ghx
 
-Run the load commands above. Record the count of existing issues and the prior report IDs. This set is consulted for every candidate in step 4.
+Run the load commands above.
+Record the count of existing issues and the prior report IDs.
+This set is consulted for every candidate in step 4.
 
 ### 3. Map the code surface and the risky paths
 
@@ -160,8 +176,10 @@ For each candidate:
 
 1. State the exact input and state that produce wrong behavior, and cite the `file:line` of every path involved.
 2. Open the cited code and reject false positives (guards, by-design behavior, dead code, generated code).
-3. Verify where a seam exists. Record `verified` with the command and outcome, or `static`.
-4. Run the dedup search. If tracked, discard and continue the loop.
+3. Verify where a seam exists.
+   Record `verified` with the command and outcome, or `static`.
+4. Run the dedup search.
+   If tracked, discard and continue the loop.
 5. Keep it, capturing severity, evidence, trigger, impact, verification status, and a 1-3 sentence fix sketch.
 
 Continue until the `--limit` count is reached or the surface is exhausted.
@@ -182,7 +200,8 @@ Prefer confirmed bugs over static ones at the same severity.
 ### 6. Write the report
 
 Write to `.sdlc/bugs-<TODAY>.md` (repo only).
-Continue the bug ID sequence from the previous report. Use the Output Format below.
+Continue the bug ID sequence from the previous report.
+Use the Output Format below.
 The report is the deliverable and must stand alone; do not reference the live conversation.
 
 ### 7. Optional issue creation
@@ -195,11 +214,14 @@ Before filing, check repository visibility: if the repository is public, confirm
 ## Flags
 
 - `--focus <area>` restricts the hunt to one area (a module path, `api`, `cli`, `ui`, or a category such as `async`).
-- `--limit N` caps the number of kept bugs (default `10`). The loop still runs to exhaustion or until N is reached.
+- `--limit N` caps the number of kept bugs (default `10`).
+  The loop still runs to exhaustion or until N is reached.
 - `--create-issues N` files the top N as GitHub issues (off by default; report-only).
 - `--since <YYYY-MM-DD>` restricts issue dedup and git signal to issues and commits since this date (default: all issues).
 - `--no-verify` skips runtime verification and reports static findings only.
-- `--quick` scans hotspots only (recent churn, critical paths). `--deep` sweeps every package. Default is a hotspot-weighted standard pass.
+- `--quick` scans hotspots only (recent churn, critical paths).
+  `--deep` sweeps every package.
+  Default is a hotspot-weighted standard pass.
 
 ## Output Format
 
@@ -277,19 +299,25 @@ status: complete
 ```
 /identify-bugs
 ```
-Loads all issues with `ghx`, maps the critical paths, and reads the code. Confirms an unawaited promise in the request handler with a failing test, and a swallowed exception on the payment path statically. Two other candidates were dropped because issues already track them. Writes `.sdlc/bugs-2026-10-02.md` with 3 bugs. Files nothing.
+Loads all issues with `ghx`, maps the critical paths, and reads the code.
+Confirms an unawaited promise in the request handler with a failing test, and a swallowed exception on the payment path statically.
+Two other candidates were dropped because issues already track them.
+Writes `.sdlc/bugs-2026-10-02.md` with 3 bugs.
+Files nothing.
 
 **Scenario 2: Exhaustive deep pass**
 ```
 /identify-bugs --deep --limit 20
 ```
-Sweeps every package. Discards 9 candidates that match existing issues, keeps 7 untracked bugs, and reports that no further untracked bug remained after the final sweep.
+Sweeps every package.
+Discards 9 candidates that match existing issues, keeps 7 untracked bugs, and reports that no further untracked bug remained after the final sweep.
 
 **Scenario 3: Focused on async**
 ```
 /identify-bugs --focus async
 ```
-Reads only asynchronous code paths. Surfaces a check-then-act race in a shared cache and a listener that is never removed, and notes that a third candidate was already tracked by issue #141.
+Reads only asynchronous code paths.
+Surfaces a check-then-act race in a shared cache and a listener that is never removed, and notes that a third candidate was already tracked by issue #141.
 
 **Scenario 4: File the top findings**
 ```

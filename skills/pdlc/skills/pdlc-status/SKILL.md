@@ -5,7 +5,8 @@ description: Display a progress dashboard for product initiatives from .pdlc/ di
 
 # PDLC Status
 
-Reads `.pdlc/` and reports the current phase of each initiative across the six PDLC phases, plus the latest gate verdict for each. Read-only: it produces no side effects.
+Reads `.pdlc/` and reports the current phase of each initiative across the six PDLC phases, plus the latest gate verdict for each.
+Read-only: it produces no side effects.
 
 ## Prerequisites
 
@@ -14,7 +15,8 @@ Reads `.pdlc/` and reports the current phase of each initiative across the six P
 
 ## Steps
 
-1. List `.pdlc/initiatives/*/` directories. For each, read `progress.md` frontmatter if present.
+1. List `.pdlc/initiatives/*/` directories.
+   For each, read `progress.md` frontmatter if present.
 2. For each initiative, determine which artifacts exist under its directory and map them to phases:
    - Discover: `problems.md`, `market.md`, `competitors.md`, `opportunity-tree.md`
    - Validate: `assumptions.md`, `experiment-plan.md`, `experiment-result.md`

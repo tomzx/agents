@@ -10,7 +10,8 @@ TODAY=!`date +%Y-%m-%d`
 
 Scaffolds a MkDocs documentation site with the Material theme, creates the initial content structure under `docs/`, and adds a GitHub Actions workflow to build and deploy to GitHub Pages.
 
-Does not overwrite existing files. If `mkdocs.yml` or `docs/` already exist, reports what is present and skips or offers to update.
+Does not overwrite existing files.
+If `mkdocs.yml` or `docs/` already exist, reports what is present and skips or offers to update.
 
 ## Prerequisites
 
@@ -172,11 +173,13 @@ docs/
   changelog.md (if CHANGELOG.md exists at root)
 ```
 
-Do NOT overwrite existing files. For each file:
+Do NOT overwrite existing files.
+For each file:
 
 **`docs/index.md`**: Derive content from `README.md` if it exists, otherwise from `.sdlc/context/project-overview.md`, otherwise write a placeholder.
 
-**`docs/getting-started.md`**: Extract installation and quickstart steps from README, pyproject.toml, or Makefile. Include:
+**`docs/getting-started.md`**: Extract installation and quickstart steps from README, pyproject.toml, or Makefile.
+Include:
 - Prerequisites
 - Installation
 - Quick start example
@@ -184,7 +187,8 @@ Do NOT overwrite existing files. For each file:
 
 **`docs/reference/index.md`**: Create a stub that lists the reference sections that will be populated (CLI, API, configuration).
 
-**`docs/changelog.md`**: If `CHANGELOG.md` exists at the project root, copy its content. Otherwise create a stub with the standard Keep a Changelog format.
+**`docs/changelog.md`**: If `CHANGELOG.md` exists at the project root, copy its content.
+Otherwise create a stub with the standard Keep a Changelog format.
 
 If `.sdlc/context/architecture.md` exists, create `docs/architecture.md` with its content.
 
@@ -261,7 +265,8 @@ If one exists, report it and skip.
 
 ### 7. Add .gitignore entries
 
-Check if `site/` is in `.gitignore`. MkDocs outputs to `site/` by default.
+Check if `site/` is in `.gitignore`.
+MkDocs outputs to `site/` by default.
 
 ```bash
 grep -q "^site/" .gitignore 2>/dev/null || echo "site/" >> .gitignore
@@ -332,13 +337,15 @@ Detects existing docs/, creates mkdocs.yml, preserves existing markdown files, o
 ```
 /setup-docs-site
 ```
-Sets up MkDocs and docs/ content but skips the GHA workflow. Reports that Pages deployment requires a GitHub remote.
+Sets up MkDocs and docs/ content but skips the GHA workflow.
+Reports that Pages deployment requires a GitHub remote.
 
 **Scenario 4: Everything already exists**
 ```
 /setup-docs-site
 ```
-Reports that mkdocs.yml, docs/, and the workflow already exist. Offers to update mkdocs.yml with any missing extensions or plugins.
+Reports that mkdocs.yml, docs/, and the workflow already exist.
+Offers to update mkdocs.yml with any missing extensions or plugins.
 
 ## Relationship to Other Skills
 

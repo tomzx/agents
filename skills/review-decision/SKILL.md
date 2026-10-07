@@ -17,7 +17,8 @@ Audits a decision record and reports findings across four categories: clarity, c
 
 1. Read the decision document.
 2. Evaluate it against the checklist below.
-3. Report findings by category. Omit categories with no findings.
+3. Report findings by category.
+   Omit categories with no findings.
 4. After the review, update `status` in frontmatter to the appropriate value: `Accepted`, `Deprecated`, or `Superseded by [N]`.
 
 ## Review Checklist
@@ -78,18 +79,14 @@ In the same emission, list the record under `artifacts:` when the review changed
 
 ## Example Usage
 
-**Scenario 1: Vague decision statement**
-Decision title is "Database approach" and the decision section says "we'll use PostgreSQL where appropriate."
+**Scenario 1: Vague decision statement** Decision title is "Database approach" and the decision section says "we'll use PostgreSQL where appropriate."
 Report under Clarity: the decision must state specifically what was chosen and for what purpose.
 
-**Scenario 2: Single option considered**
-Only the chosen approach is listed; no alternatives are documented.
+**Scenario 2: Single option considered** Only the chosen approach is listed; no alternatives are documented.
 Report under Completeness: at least one alternative must be described so future readers understand what was ruled out.
 
-**Scenario 3: Unjustified dismissal**
-Option B is listed but has no pros and only one con, with no explanation of why it was rejected.
+**Scenario 3: Unjustified dismissal** Option B is listed but has no pros and only one con, with no explanation of why it was rejected.
 Report under Reasoning Quality.
 
-**Scenario 4: No follow-up captured**
-A decision to use a flat-file config acknowledges it won't scale but records no follow-up task to revisit the choice.
+**Scenario 4: No follow-up captured** A decision to use a flat-file config acknowledges it won't scale but records no follow-up task to revisit the choice.
 Report under Consequence Coverage.

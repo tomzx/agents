@@ -10,7 +10,8 @@ argument-hint: "<issue-url-or-number> [repository]"
 Takes an externally submitted GitHub issue (feature request or bug report) and drives a structured Q&A loop with the reporter until the issue contains enough information to proceed to `/create-requirements`.
 
 Assumes `review-issue` has already been run and identified what is missing.
-This skill owns the iterative clarification loop. It stops when the issue is fully qualified or the reporter is unresponsive.
+This skill owns the iterative clarification loop.
+It stops when the issue is fully qualified or the reporter is unresponsive.
 
 ## Prerequisites
 
@@ -116,7 +117,8 @@ If previous comments already answered some questions, treat those as resolved an
 
 ### 3b. If questions remain open -- post a clarification comment
 
-Group the open questions into a single comment. Do not spread them across multiple comments.
+Group the open questions into a single comment.
+Do not spread them across multiple comments.
 Number the questions so the reporter can answer by number.
 
 ```bash
@@ -134,11 +136,13 @@ EOF
 )"
 ```
 
-Then stop. Inform the user which questions were posted and that the skill should be re-invoked once the reporter replies (e.g. via `/qualify-issue $1`).
+Then stop.
+Inform the user which questions were posted and that the skill should be re-invoked once the reporter replies (e.g. via `/qualify-issue $1`).
 
 ### 4. On re-invocation after reporter replies
 
-Repeat from step 1. The comment history now contains the reporter's answers.
+Repeat from step 1.
+The comment history now contains the reporter's answers.
 Mark each prior question as resolved or still open based on the replies.
 If new ambiguities surfaced in the answers, add them to the open question list.
 Continue until step 3a is reached.
@@ -177,11 +181,13 @@ Updates issue body with the new context, posts qualification comment.
 ```
 /qualify-issue 42
 ```
-Issue says "export fails sometimes." No steps, no version, no error message.
+Issue says "export fails sometimes."
+No steps, no version, no error message.
 Posts three questions: reproduction steps, version, error output.
 Re-invoked after partial reply -- reporter provides version and error but steps are still vague.
 Posts one follow-up question about the steps.
-Re-invoked again -- now fully qualified. Updates body and signals ready.
+Re-invoked again -- now fully qualified.
+Updates body and signals ready.
 
 **Scenario 3: Already answered on re-invocation**
 ```

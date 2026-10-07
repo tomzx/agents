@@ -6,7 +6,8 @@ argument-hint: "[initiative-id]"
 
 # Kill Initiative
 
-Killing an initiative is hard and rarely written down, so it gets its own skill. It converts a `kill` gate verdict (or a manual decision to stop) into a durable record, frees the capacity the initiative was consuming, and tells stakeholders.
+Killing an initiative is hard and rarely written down, so it gets its own skill.
+It converts a `kill` gate verdict (or a manual decision to stop) into a durable record, frees the capacity the initiative was consuming, and tells stakeholders.
 
 ## Prerequisites
 
@@ -16,11 +17,14 @@ Killing an initiative is hard and rarely written down, so it gets its own skill.
 ## Steps
 
 1. Locate the initiative directory under `.pdlc/initiatives/`.
-2. Record the kill via `make-decision` (general decision) if no gate decision already recorded it. The decision body states the rationale: the strongest evidence that killed it (negative experiment, no real problem, cost > value, guardrail breach).
+2. Record the kill via `make-decision` (general decision) if no gate decision already recorded it.
+   The decision body states the rationale: the strongest evidence that killed it (negative experiment, no real problem, cost > value, guardrail breach).
 3. Update the initiative's `progress.md`: set `current_phase: killed`, record `killed_at` date, and write a one-line rationale.
 4. Reallocate capacity: update `.pdlc/context/roadmap.md` to remove or downgrade the initiative from its Now/Next/Later slot, freeing the slot for the next priority.
-5. Capture a learning via `run-retrospective` so the kill produces organizational knowledge, not just a silent deletion. What did we believe that turned out false?
-6. Notify stakeholders: produce a brief via `brief-stakeholders` summarizing the decision, the rationale, and the capacity freed. Do not send anything without explicit user confirmation (commit/push/PR gate).
+5. Capture a learning via `run-retrospective` so the kill produces organizational knowledge, not just a silent deletion.
+   What did we believe that turned out false?
+6. Notify stakeholders: produce a brief via `brief-stakeholders` summarizing the decision, the rationale, and the capacity freed.
+   Do not send anything without explicit user confirmation (commit/push/PR gate).
 7. If the initiative had already shipped something, consider whether `sunset-product` is also needed for the shipped artifact.
 
 ## Output Format

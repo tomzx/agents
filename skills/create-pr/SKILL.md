@@ -107,8 +107,7 @@ stop           |
    ```
    If no commits, stop and inform the user.
 
-2. Confirm tests pass before opening:
-   Run the project's test command.
+2. Confirm tests pass before opening: Run the project's test command.
    If tests fail, stop and list the failures.
 
 3. Compute the diff against the base branch:
@@ -172,7 +171,7 @@ stop           |
    **No proof captured:** If neither manifest exists, omit the Visual proof section entirely and note in the PR description (or in console output before creation) that `/validate-implementation` can capture proof.
    Do not attempt to capture here.
 
-    This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
+   This is a representative proof, not a claim-by-claim demonstration (that is `/verify-pr`'s job).
 
 7. Decide whether to create the PR on GitHub: set `PR_AUTHOR=$(gh api user --jq .login)` and run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
    If it exits 1, skip asset upload and PR creation: present the draft description to the user (referencing local file paths for any proof) and stop.
@@ -204,8 +203,8 @@ stop           |
    EOF
    )" [--draft]
    ```
-   Omit `--repo` if the repository can be inferred from the current working directory.
-   If the design decisions were too large for the description (more than five, per step 5), post them as a follow-up comment instead:
+    Omit `--repo` if the repository can be inferred from the current working directory.
+    If the design decisions were too large for the description (more than five, per step 5), post them as a follow-up comment instead:
    ```
    ghx pr comment <pr-number> --body "<design decisions>"
    ```

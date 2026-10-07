@@ -13,7 +13,8 @@ Given a set of code changes, produce a structured test coverage analysis that an
 2. **Is every behavior change covered by a test?** (change coverage)
 3. **Is there code that no test exercises at all?** (uncovered code)
 
-Changing behavior without a test makes it easy to lose that behavior in a future refactor. This skill reports those risks explicitly.
+Changing behavior without a test makes it easy to lose that behavior in a future refactor.
+This skill reports those risks explicitly.
 
 ## Prerequisites
 
@@ -117,7 +118,8 @@ Include code that is technically covered by a test call path but whose key branc
 
 ### 5. Produce findings for uncovered changes
 
-Each uncovered behavior change or uncovered code item should be formatted as a finding for the parent skill to include in its Findings section. Severity is proportional to risk:
+Each uncovered behavior change or uncovered code item should be formatted as a finding for the parent skill to include in its Findings section.
+Severity is proportional to risk:
 
 - 🔴 MUST: uncovered change to a public API, security-sensitive path, or business-critical logic
 - 🟡 SHOULD: uncovered change to error handling, edge cases, or internal logic with side effects
@@ -127,11 +129,14 @@ If invoked directly (not by a parent skill), include these findings in the repor
 
 ### 6. Return the analysis
 
-Return the three tables and the findings list. If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes nothing. If invoked directly or orchestrated by review-pr-full, continue with the orchestrated-run contract below.
+Return the three tables and the findings list.
+If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes nothing.
+If invoked directly or orchestrated by review-pr-full, continue with the orchestrated-run contract below.
 
 ## Orchestrated runs (review-pr-full)
 
-When dispatched by `review-pr-full` (the first step of its review chain, before `validate-pr`, `verify-pr`, and `review-pr`), the analysis is a standalone, tracked report instead of tables handed to a parent. The worktree already exists at `$WORKTREE_DIR`; use it and do not create or remove one.
+When dispatched by `review-pr-full` (the first step of its review chain, before `validate-pr`, `verify-pr`, and `review-pr`), the analysis is a standalone, tracked report instead of tables handed to a parent.
+The worktree already exists at `$WORKTREE_DIR`; use it and do not create or remove one.
 
 1. Resolve the PR context:
 
@@ -163,7 +168,9 @@ DIFF_REF="origin/${BASE_BRANCH}...HEAD"
 
 Then point the stable name at it: `ln -sf "analyze-test-coverage.$SHORT_SHA.md" "$PR_REVIEW_DIR/analyze-test-coverage.report.md"`.
 
-5. Post the report as a PR comment, decided by `should-post-to-github`. If `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"` exits 1, skip posting (the report is already saved). If it exits 0:
+5. Post the report as a PR comment, decided by `should-post-to-github`.
+   If `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"` exits 1, skip posting (the report is already saved).
+   If it exits 0:
 
 ```bash
 FOOTER="Posted with [analyze-test-coverage](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
@@ -210,19 +217,22 @@ The verdict never gates anything: review-pr-full runs this step first and report
 ```
 review-pr dispatches analyze-test-coverage with the PR diff and worktree.
 ```
-The skill reads the diff, identifies 3 new tests in `test_routes.py`, maps 4 behavior changes (2 covered, 2 not), and finds 1 uncovered function. Returns the tables; review-pr embeds them in its Coverage section and raises findings for the 2 uncovered changes.
+The skill reads the diff, identifies 3 new tests in `test_routes.py`, maps 4 behavior changes (2 covered, 2 not), and finds 1 uncovered function.
+Returns the tables; review-pr embeds them in its Coverage section and raises findings for the 2 uncovered changes.
 
 **Scenario 2: Direct invocation on a branch**
 ```
 /analyze-test-coverage origin/main..HEAD
 ```
-Analyzes all changes on the current branch vs main. Reports that no tests were added despite 5 behavior changes, and lists all 5 as uncovered.
+Analyzes all changes on the current branch vs main.
+Reports that no tests were added despite 5 behavior changes, and lists all 5 as uncovered.
 
 **Scenario 3: No test files in the diff**
 ```
 /analyze-test-coverage
 ```
-The diff contains only source changes, no test files. Reports "No tests introduced or modified" and lists all behavior changes as uncovered with appropriate findings.
+The diff contains only source changes, no test files.
+Reports "No tests introduced or modified" and lists all behavior changes as uncovered with appropriate findings.
 
 ## Related Skills
 

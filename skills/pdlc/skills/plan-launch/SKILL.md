@@ -6,7 +6,9 @@ argument-hint: "[initiative-id]"
 
 # Plan Launch
 
-A launch is a coordinated release, not a deploy. This skill produces the launch plan: who needs to be ready, by when, through which channels, and how we will know it worked. It assumes SDLC has shipped (or is about to ship) the change.
+A launch is a coordinated release, not a deploy.
+This skill produces the launch plan: who needs to be ready, by when, through which channels, and how we will know it worked.
+It assumes SDLC has shipped (or is about to ship) the change.
 
 ## Prerequisites
 
@@ -16,7 +18,8 @@ A launch is a coordinated release, not a deploy. This skill produces the launch 
 ## Steps
 
 1. Define the launch type (minimal/quiet, beta, full GA, phased rollout) and justify it against risk and confidence.
-2. Build the readiness checklist across functions: product, engineering, design, docs, support, sales, marketing, legal. Each item has an owner and a due date.
+2. Build the readiness checklist across functions: product, engineering, design, docs, support, sales, marketing, legal.
+   Each item has an owner and a due date.
 3. Define the timeline: readiness start, launch date, and post-launch review checkpoint.
 4. Choose channels and sequencing (in-product, email, blog, sales) tied to the target segments.
 5. State launch success criteria: the early-window signals (first hours/days) that indicate the launch succeeded, distinct from the long-term success metrics in `goals.md`.

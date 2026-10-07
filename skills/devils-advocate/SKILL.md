@@ -17,22 +17,32 @@ If the position survives serious challenge, the user proceeds with confidence; i
 
 ## How to Be a Useful Adversary
 
-- **Steel-man, do not straw-man.** Construct the strongest version of the opposing view, not a weak one that is easy to knock down. The user benefits from the best counterarguments, not the easiest.
+- **Steel-man, do not straw-man.** Construct the strongest version of the opposing view, not a weak one that is easy to knock down.
+  The user benefits from the best counterarguments, not the easiest.
 - **Be specific, not generic.** "This might fail" is useless; "this fails if the API rate limit is hit during peak hours because the retry logic has no backoff" is useful.
-- **Challenge the problem, not just the solution.** Sometimes the idea is well-executed but solves the wrong problem. Flag that.
-- **Distinguish fatal flaws from manageable risks.** Not every concern is a reason to stop. Be clear about severity.
-- **Stay constructive.** The goal is to strengthen the user's thinking, not to paralyze them. End with a clear verdict and actionable next steps.
+- **Challenge the problem, not just the solution.** Sometimes the idea is well-executed but solves the wrong problem.
+  Flag that.
+- **Distinguish fatal flaws from manageable risks.** Not every concern is a reason to stop.
+  Be clear about severity.
+- **Stay constructive.** The goal is to strengthen the user's thinking, not to paralyze them.
+  End with a clear verdict and actionable next steps.
 
 ## Steps
 
-1. Restate the user's position in your own words to confirm understanding. If the restatement does not match, ask for clarification before proceeding.
-2. Identify the core assumptions the position depends on. Mark each as explicit (stated by the user) or implicit (unstated but necessary).
-3. For each assumption, assess: how confident should the user be that it holds? What evidence supports it? What would disconfirm it?
-4. Construct the strongest counterargument. Argue against the position as if you genuinely believed the opposite, using the best available reasoning.
+1. Restate the user's position in your own words to confirm understanding.
+   If the restatement does not match, ask for clarification before proceeding.
+2. Identify the core assumptions the position depends on.
+   Mark each as explicit (stated by the user) or implicit (unstated but necessary).
+3. For each assumption, assess: how confident should the user be that it holds?
+   What evidence supports it?
+   What would disconfirm it?
+4. Construct the strongest counterargument.
+   Argue against the position as if you genuinely believed the opposite, using the best available reasoning.
 5. Enumerate failure modes: what specifically goes wrong, under what conditions, and what the blast radius is.
 6. Identify blind spots: perspectives, stakeholders, or scenarios the user has not considered.
 7. Consider alternative paths: is there a meaningfully different way to achieve the same goal that the user dismissed or never considered?
-8. Trace second-order effects: what happens after the immediate outcome? What does this enable or block downstream?
+8. Trace second-order effects: what happens after the immediate outcome?
+   What does this enable or block downstream?
 9. Assess opportunity cost and timing: is this the right thing to do now, or is there something more valuable being displaced?
 10. Deliver the verdict and recommendations using the output format below.
 
@@ -60,7 +70,8 @@ If the position survives serious challenge, the user proceeds with confidence; i
 
 ### Alternatives
 - Is there a meaningfully different approach that achieves the same goal?
-- Was an alternative dismissed too quickly? Why?
+- Was an alternative dismissed too quickly?
+  Why?
 - Could a smaller version of this achieve most of the value at a fraction of the cost or risk?
 
 ### Second-Order Effects
@@ -138,17 +149,21 @@ If the position survives serious challenge, the user proceeds with confidence; i
 
 ## Example Usage
 
-**Scenario 1: Challenging a build-vs-buy decision**
-User proposes building an internal feature flag system instead of buying one. The challenge surfaces an implicit assumption that the team will maintain it long-term, a failure mode where the system becomes a maintenance burden with no owner, and an alternative (using a managed service for the first 6 months to learn the real requirements before building). Verdict: Needs revision.
+**Scenario 1: Challenging a build-vs-buy decision** User proposes building an internal feature flag system instead of buying one.
+The challenge surfaces an implicit assumption that the team will maintain it long-term, a failure mode where the system becomes a maintenance burden with no owner, and an alternative (using a managed service for the first 6 months to learn the real requirements before building).
+Verdict: Needs revision.
 
-**Scenario 2: Challenging a technical approach**
-User proposes migrating from REST to gRPC for all internal services. The counterargument points out that the team has no gRPC expertise, the operational tooling (debugging, monitoring) is built around HTTP, and the latency gains are irrelevant at current traffic. Verdict: Reconsider.
+**Scenario 2: Challenging a technical approach** User proposes migrating from REST to gRPC for all internal services.
+The counterargument points out that the team has no gRPC expertise, the operational tooling (debugging, monitoring) is built around HTTP, and the latency gains are irrelevant at current traffic.
+Verdict: Reconsider.
 
-**Scenario 3: Challenging a product direction**
-User proposes adding a complex rules engine to satisfy one enterprise customer. The challenge identifies that the core assumption (other customers will want this) is unsupported by evidence, the opportunity cost is high (3 months of engineering), and a simpler configuration approach would satisfy 80% of the need. Verdict: Needs revision.
+**Scenario 3: Challenging a product direction** User proposes adding a complex rules engine to satisfy one enterprise customer.
+The challenge identifies that the core assumption (other customers will want this) is unsupported by evidence, the opportunity cost is high (3 months of engineering), and a simpler configuration approach would satisfy 80% of the need.
+Verdict: Needs revision.
 
-**Scenario 4: Position survives challenge**
-User proposes adopting a specific library after evaluating three alternatives with benchmarks. The challenge confirms the assumptions are well-grounded, the failure modes are manageable, and the alternatives were fairly considered. Verdict: Holds.
+**Scenario 4: Position survives challenge** User proposes adopting a specific library after evaluating three alternatives with benchmarks.
+The challenge confirms the assumptions are well-grounded, the failure modes are manageable, and the alternatives were fairly considered.
+Verdict: Holds.
 
 ## Next Step
 

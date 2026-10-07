@@ -27,12 +27,16 @@ Without explicit SLOs, reliability is judged by intuition: no one knows when a d
 6. Define SLAs only where a contractual or external obligation exists; keep SLA targets looser than SLOs so internal headroom protects the agreement.
 7. Specify burn-rate or threshold alerts that signal budget depletion before the window ends.
 8. Confirm the measurement infrastructure can actually produce each SLI signal; flag gaps as open questions.
-9. Write the machine-readable definitions (services, SLIs, SLOs with targets, windows, and error budgets, alert policies) to `.sdlc/context/service-levels.yaml` in [OpenSLO](https://github.com/OpenSLO/openslo) format (template at `skills/sdlc/templates/context/service-levels.yaml`). SLAs have no OpenSLO kind and stay in the markdown. Validate best-effort that the YAML parses and each SLO references an existing SLI and service.
-10. Write the output to `.sdlc/context/service-levels.md`. If it already exists, revise per Revision Mode.
+9. Write the machine-readable definitions (services, SLIs, SLOs with targets, windows, and error budgets, alert policies) to `.sdlc/context/service-levels.yaml` in [OpenSLO](https://github.com/OpenSLO/openslo) format (template at `skills/sdlc/templates/context/service-levels.yaml`).
+   SLAs have no OpenSLO kind and stay in the markdown.
+   Validate best-effort that the YAML parses and each SLO references an existing SLI and service.
+10. Write the output to `.sdlc/context/service-levels.md`.
+    If it already exists, revise per Revision Mode.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/context/service-levels.md`. Write the result to `.sdlc/context/service-levels.md`, and the OpenSLO definitions to `.sdlc/context/service-levels.yaml`.
+Use the template at `skills/sdlc/templates/context/service-levels.md`.
+Write the result to `.sdlc/context/service-levels.md`, and the OpenSLO definitions to `.sdlc/context/service-levels.yaml`.
 The two must agree on targets, windows, and indicator definitions; when they drift, `service-levels.yaml` is normative.
 
 ## Revision Mode
@@ -44,12 +48,18 @@ Set the artifact frontmatter `status` to `in-review` while revising, and bump `r
 ## SLO Design Guidance
 
 - **Start with the user, not the system.** Define SLIs over user-visible journeys (a request succeeded and returned fast enough), not internal counters that happen to be easy to measure.
-- **SLI = good / total.** A well-formed SLI is always a ratio. "Error rate" is `1 - (good / total)`. State both numerator and denominator explicitly.
+- **SLI = good / total.** A well-formed SLI is always a ratio.
+  "Error rate" is `1 - (good / total)`.
+  State both numerator and denominator explicitly.
 - **One window.** Use a single rolling window (commonly 30 days) across all SLOs so error budgets are comparable.
-- **Conservative targets first.** 99% is a fine starting SLO; you can tighten once you have measurement. An aspirational 99.99% you cannot meet is worse than a 99% you can.
-- **Error budget is the point.** The budget tells you when to freeze features and prioritize reliability. An SLO with no policy has no effect.
-- **SLA looser than SLO.** The SLO is what you hold yourself to; the SLA is what you owe a customer. Keep clear separation between them.
-- **Few SLOs.** Three to five well-chosen SLOs beat twenty. Each one needs an owner and a policy.
+- **Conservative targets first.** 99% is a fine starting SLO; you can tighten once you have measurement.
+  An aspirational 99.99% you cannot meet is worse than a 99% you can.
+- **Error budget is the point.** The budget tells you when to freeze features and prioritize reliability.
+  An SLO with no policy has no effect.
+- **SLA looser than SLO.** The SLO is what you hold yourself to; the SLA is what you owe a customer.
+  Keep clear separation between them.
+- **Few SLOs.** Three to five well-chosen SLOs beat twenty.
+  Each one needs an owner and a policy.
 
 ## Outcome
 
@@ -59,23 +69,22 @@ In the same emission, list every file you produced under `artifacts:` (`.sdlc/co
 
 ## Example Usage
 
-**Scenario 1: HTTP API**
-Architecture describes a REST API serving a web app.
+**Scenario 1: HTTP API** Architecture describes a REST API serving a web app.
 User journey: a client makes a request and gets a valid response.
-SLI: `good = requests with status < 500 and latency < 800ms`, `total = all requests`. Source: the API gateway access logs.
-SLO: 99.9% of requests are good over a rolling 30-day window. Error budget: 0.1%, about 43 minutes per month.
+SLI: `good = requests with status < 500 and latency < 800ms`, `total = all requests`.
+Source: the API gateway access logs.
+SLO: 99.9% of requests are good over a rolling 30-day window.
+Error budget: 0.1%, about 43 minutes per month.
 Policy: when budget drops below 25% remaining, freeze non-reliability feature work.
 SLA: 99.5% monthly uptime for the enterprise tier; breach triggers a service credit.
 
-**Scenario 2: Background data pipeline**
-Architecture describes a nightly batch job that exports records.
+**Scenario 2: Background data pipeline** Architecture describes a nightly batch job that exports records.
 User journey: the job completes and every queued record is processed.
 SLI: `good = jobs that finish before the deadline with zero dropped records`, `total = all job runs`.
 SLO: 95% of runs succeed fully over a rolling 30-day window.
 Alert: page if two consecutive runs fail.
 
-**Scenario 3: Library with no external users**
-Architecture describes an internal shared library.
+**Scenario 3: Library with no external users** Architecture describes an internal shared library.
 No user-facing service exists, so formal SLOs do not apply.
 Document this as out of scope and recommend measurement (test pass rate, release cadence) instead of availability SLOs.
 

@@ -20,8 +20,11 @@ Audits a resource lifecycle document and reports findings across six categories:
 1. Read the lifecycle document from `.sdlc/features/N-<slug>/lifecycle.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the specification and requirements if available.
 3. Identify issues in each of the six categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-lifecycle.md` with frontmatter `artifact: lifecycle`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-lifecycle.md` with frontmatter `artifact: lifecycle`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -106,20 +109,16 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Unreachable state**
-The lifecycle defines an `archived` state but no transition leads to it.
+**Scenario 1: Unreachable state** The lifecycle defines an `archived` state but no transition leads to it.
 Report under Transition Correctness: state `archived` is unreachable, no incoming transition is documented.
 
-**Scenario 2: Missing API correspondence**
-The lifecycle documents a transition from `pending` to `shipped` but the specification defines no endpoint or sequence that triggers shipping directly from pending (it requires a `paid` state in between).
+**Scenario 2: Missing API correspondence** The lifecycle documents a transition from `pending` to `shipped` but the specification defines no endpoint or sequence that triggers shipping directly from pending (it requires a `paid` state in between).
 Report under Spec Alignment: transition `pending -> shipped` has no corresponding spec sequence; the spec requires `pending -> paid -> shipped`.
 
-**Scenario 3: Invariant not actually invariant**
-The invariant "total_amount must be positive" is documented, but the `refunded` state allows `total_amount = 0`.
+**Scenario 3: Invariant not actually invariant** The invariant "total_amount must be positive" is documented, but the `refunded` state allows `total_amount = 0`.
 Report under Invariant Soundness: the invariant does not hold in the `refunded` state, so it is not a true invariant.
 
-**Scenario 4: Missing retention policy**
-The lifecycle documents an `ApiKey` resource with `revoked` and `expired` states but no retention policy for how long revoked keys are kept.
+**Scenario 4: Missing retention policy** The lifecycle documents an `ApiKey` resource with `revoked` and `expired` states but no retention policy for how long revoked keys are kept.
 Report under Retention Soundness: no retention policy for revoked keys, which may have compliance implications.
 
 ## Next Step

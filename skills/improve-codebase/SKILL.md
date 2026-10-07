@@ -6,13 +6,18 @@ argument-hint: "[--scope all|safety|types|deps|dead-code|lint|docs] [--budget N]
 
 # Improve Codebase
 
-Makes a bounded set of **safe, verified** improvements to a codebase, then opens a single reviewable PR. Designed to run on a weekly cadence so the codebase gets incrementally better without a large one-time refactor.
+Makes a bounded set of **safe, verified** improvements to a codebase, then opens a single reviewable PR.
+Designed to run on a weekly cadence so the codebase gets incrementally better without a large one-time refactor.
 
 ## The Core Problem This Solves
 
-`/audit-sdlc` and `/sync-repository` tell you what is wrong. They produce reports and issues, but the work of actually deleting the dead export, adding the missing type annotation, and running the formatter still falls to a human. That backlog grows faster than anyone clears it.
+`/audit-sdlc` and `/sync-repository` tell you what is wrong.
+They produce reports and issues, but the work of actually deleting the dead export, adding the missing type annotation, and running the formatter still falls to a human.
+That backlog grows faster than anyone clears it.
 
-This skill closes that gap. Each run it scans for the same opportunities the audit skills find, picks a small batch that is safe to apply automatically, applies it, proves it is safe by running the project's own lint/typecheck/test suite, and ships it as one PR. Over weeks, the backlog shrinks instead of grows.
+This skill closes that gap.
+Each run it scans for the same opportunities the audit skills find, picks a small batch that is safe to apply automatically, applies it, proves it is safe by running the project's own lint/typecheck/test suite, and ships it as one PR.
+Over weeks, the backlog shrinks instead of grows.
 
 ## How It Differs From Related Skills
 
@@ -22,13 +27,16 @@ This skill closes that gap. Each run it scans for the same opportunities the aud
 | `sync-repository` | yes | `.sdlc/` only, or `--fix` | no | on demand |
 | **`improve-codebase`** | yes | **yes, source code** | **yes** | **weekly routine** |
 
-Use `audit-sdlc` to find problems. Use `improve-codebase` to fix the safe ones automatically.
+Use `audit-sdlc` to find problems.
+Use `improve-codebase` to fix the safe ones automatically.
 
 ## Prerequisites
 
 - Working directory is the root of a `git` repository on a clean working tree (no uncommitted changes)
 - A default branch to branch from (`main`, or the repo's detected default)
-- A way to verify changes: a test suite, a linter/formatter, or a typechecker. The skill discovers these (see Discovery below). If none can be found, it runs in `--dry-run` only and asks the user to record commands in `AGENTS.md`.
+- A way to verify changes: a test suite, a linter/formatter, or a typechecker.
+  The skill discovers these (see Discovery below).
+  If none can be found, it runs in `--dry-run` only and asks the user to record commands in `AGENTS.md`.
 - Read any files under `.sdlc/context/` for project conventions
 - Network access to push the branch and open a PR (unless `--no-pr`)
 
@@ -38,16 +46,20 @@ These rules make the skill safe to run unattended on a schedule:
 
 1. **Never touch the default branch.** All work happens on a short-lived branch.
 2. **Never auto-fix anything rated higher than "low risk".** Security issues, dependency majors, complexity refactors, and public API changes become issues, not commits.
-3. **Never skip verification.** Every change must be validated by the project's own checks. If verification fails, revert that change and continue with the next candidate.
+3. **Never skip verification.** Every change must be validated by the project's own checks.
+   If verification fails, revert that change and continue with the next candidate.
 4. **One concern per commit, one PR per run.** Reviewers see small atomic commits, not one large diff.
-5. **Respect `.gitignore`, lint configs, and existing suppression comments** (`# noqa`, `//nolint`). Do not go against the project's stated preferences.
+5. **Respect `.gitignore`, lint configs, and existing suppression comments** (`# noqa`, `//nolint`).
+   Do not go against the project's stated preferences.
 6. **Never force-push, never amend published commits, never bypass hooks.**
 7. **Bounded output.** A run stops at the change budget so the PR stays reviewable.
 8. **Never introduce new dependencies.** Only removes or patches existing ones.
 
 ## Improvement Categories
 
-Each category has a risk rating. Only `auto` categories are applied directly. `issue` categories are written to the PR body as follow-up issues (or filed via `/create-issue` with `--create-issues`).
+Each category has a risk rating.
+Only `auto` categories are applied directly.
+`issue` categories are written to the PR body as follow-up issues (or filed via `/create-issue` with `--create-issues`).
 
 | Category | Risk | Action | Examples |
 |---|---|---|---|
@@ -73,7 +85,8 @@ Each category has a risk rating. Only `auto` categories are applied directly. `i
 
 ## Scopes and Flags
 
-`$1` controls which categories run. Defaults to `all` (all `auto` categories; `issue` categories are scanned for the PR body).
+`$1` controls which categories run.
+Defaults to `all` (all `auto` categories; `issue` categories are scanned for the PR body).
 
 | Scope | Categories applied |
 |---|---|
@@ -88,17 +101,21 @@ Each category has a risk rating. Only `auto` categories are applied directly. `i
 
 Flags:
 
-- `--budget N` — maximum number of changes per run (default `20`). The run stops once N changes are committed or no safe candidates remain.
+- `--budget N` — maximum number of changes per run (default `20`).
+  The run stops once N changes are committed or no safe candidates remain.
 - `--dry-run` — scan and produce the report, but make no commits and open no PR.
 - `--no-pr` — commit to a branch but do not push or open a PR (for local review).
-- `--label NAME` — PR label to use (default `codebase-improvement`). Also used for dedup.
+- `--label NAME` — PR label to use (default `codebase-improvement`).
+  Also used for dedup.
 - `--create-issues` — file GitHub issues for `issue`-rated findings, not just list them.
 
 ## Discovery: Finding The Project's Commands
 
-Before changing anything, discover how this project verifies itself. Order of preference:
+Before changing anything, discover how this project verifies itself.
+Order of preference:
 
-1. **`AGENTS.md`** — read it for documented test, lint, typecheck, and format commands. These are authoritative.
+1. **`AGENTS.md`** — read it for documented test, lint, typecheck, and format commands.
+   These are authoritative.
 2. **Language manifests:**
    - `package.json` → `scripts.test`, `scripts.lint`, `scripts.format`, `scripts.typecheck`
    - `pyproject.toml` → `[tool.pytest]`, ruff/mypy config; commands like `uv run pytest`, `uv run ruff`, `uv run mypy`
@@ -107,7 +124,8 @@ Before changing anything, discover how this project verifies itself. Order of pr
    - `go.mod` → `go test ./...`, `go vet ./...`, `gofmt -l`
 3. **Fallback heuristics:** run `pytest`, `npm test`, `go test ./...` and keep whichever exits 0 from a clean tree.
 
-Record the discovered commands at the top of the run report. If nothing is found, stop and ask the user to add them to `AGENTS.md`, then exit in `--dry-run` mode only.
+Record the discovered commands at the top of the run report.
+If nothing is found, stop and ask the user to add them to `AGENTS.md`, then exit in `--dry-run` mode only.
 
 ## The Weekly Loop
 
@@ -149,11 +167,17 @@ Record the discovered commands at the top of the run report. If nothing is found
 
 ### 1. Parse arguments and discover commands
 
-Resolve scope and flags from `$1`. Run Discovery above. Print the resolved command set. If no verification command exists and the user did not pass `--dry-run`, stop and ask them to record commands in `AGENTS.md`.
+Resolve scope and flags from `$1`.
+Run Discovery above.
+Print the resolved command set.
+If no verification command exists and the user did not pass `--dry-run`, stop and ask them to record commands in `AGENTS.md`.
 
 ### 2. Confirm a green baseline
 
-Require a clean working tree (`git status --porcelain` empty). Run the discovered test/lint/typecheck commands on the unmodified tree. **If the baseline is red, stop.** Never apply improvements on top of a failing tree, otherwise red-green ambiguity makes verification meaningless. Report the failing baseline and exit.
+Require a clean working tree (`git status --porcelain` empty).
+Run the discovered test/lint/typecheck commands on the unmodified tree.
+**If the baseline is red, stop.** Never apply improvements on top of a failing tree, otherwise red-green ambiguity makes verification meaningless.
+Report the failing baseline and exit.
 
 ### 3. Dedup against recent runs
 
@@ -163,11 +187,13 @@ List recently merged PRs with the `codebase-improvement` label (default) or the 
 gh pr list --state merged --label "$LABEL" --limit 8 --json number,title,mergedAt,files
 ```
 
-Collect the set of files touched in the last 7 days. Candidates inside those files are skipped this week (to avoid churn on actively-developed code).
+Collect the set of files touched in the last 7 days.
+Candidates inside those files are skipped this week (to avoid churn on actively-developed code).
 
 ### 4. Scan for candidates
 
-Invoke the scanner skills in read-only mode and collect their findings as candidates. Do not let them write anything.
+Invoke the scanner skills in read-only mode and collect their findings as candidates.
+Do not let them write anything.
 
 | Category | Scanner skill | What it yields |
 |---|---|---|
@@ -195,7 +221,8 @@ score = impact × confidence / (effort × risk)
 - **effort:** estimated change size
 - **risk:** auto=1, issue=high
 
-Select the top candidates from `auto` categories until the budget is reached. Cap each category so one noisy scanner (for example, hundreds of lint fixes) cannot take the whole budget from the others:
+Select the top candidates from `auto` categories until the budget is reached.
+Cap each category so one noisy scanner (for example, hundreds of lint fixes) cannot take the whole budget from the others:
 
 - `lint`: at most 40% of the budget
 - `dead-code`, `types`: at most 30% each
@@ -209,14 +236,18 @@ For each selected candidate, in ranked order:
 1. Create the branch once (before the first commit), named `improve/<YYYY-MM-DD>` (or append `-2`, `-3` if it exists).
 2. Make the single change.
 3. Run lint, then typecheck, then the full test suite.
-4. **Green** → commit with an atomic message (see Commit Style). Decrement the budget.
-5. **Red** → `git restore` the change, log it under "Reverted (failed verification)", and continue. Never commit a change that fails verification.
+4. **Green** → commit with an atomic message (see Commit Style).
+   Decrement the budget.
+5. **Red** → `git restore` the change, log it under "Reverted (failed verification)", and continue.
+   Never commit a change that fails verification.
 
 If three consecutive candidates in the same category fail verification, stop pulling from that category for the rest of the run (likely a noisy scanner producing false positives).
 
 ### 7. Aggregate the PR body
 
-Build the PR description from the committed changes plus the issue-rated findings (see Output Format). Group commits by category. Include verification evidence (which commands ran, green status).
+Build the PR description from the committed changes plus the issue-rated findings (see Output Format).
+Group commits by category.
+Include verification evidence (which commands ran, green status).
 
 ### 8. Ship
 
@@ -226,17 +257,20 @@ Unless `--dry-run` or `--no-pr`:
 2. Open a PR with title `chore(codebase-improvement): <YYYY-MM-DD>` using `/create-pr` conventions, labeled `codebase-improvement` (and the `--label` value), targeting the default branch.
 3. If `--create-issues` was passed, file one issue per `issue`-rated critical/high finding via `/create-issue`, and link them from the PR body.
 
-For `--dry-run`, write the full report to `.sdlc/improvement-dryrun-<YYYY-MM-DD>.md` and print it. For `--no-pr`, leave the local branch in place and print instructions to review and push.
+For `--dry-run`, write the full report to `.sdlc/improvement-dryrun-<YYYY-MM-DD>.md` and print it.
+For `--no-pr`, leave the local branch in place and print instructions to review and push.
 
 ### 9. Exit state
 
-- If at least one change shipped: PR is open, ready for human review. Done.
+- If at least one change shipped: PR is open, ready for human review.
+  Done.
 - If nothing was safe to apply this week: report "no safe improvements found", still list the `issue`-rated findings so they are not lost, and suggest a manual `/audit-sdlc` if the list is large.
 - If baseline was red: report it and stop (do not open a PR).
 
 ## Commit Style
 
-Each commit is atomic and self-describing. Use conventional-commit prefixes scoped to the category:
+Each commit is atomic and self-describing.
+Use conventional-commit prefixes scoped to the category:
 
 ```
 refactor(dead-code): remove unused `parseLegacyConfig` export
@@ -247,7 +281,8 @@ feat(types): annotate `calculate_total` return type as Decimal
 docs(api): add docstring to `UserStore.lookup`
 ```
 
-Reference no issue number (these are proactive improvements, not issue-driven). Append the run's co-author trailer if the project convention requires it.
+Reference no issue number (these are proactive improvements, not issue-driven).
+Append the run's co-author trailer if the project convention requires it.
 
 ## Output Format (PR Body)
 
@@ -330,19 +365,23 @@ Skipped N files touched by merged PRs in the last 7 days: `<list>`.
 ```
 /improve-codebase
 ```
-Scans every `auto` category, applies up to 20 safe changes, opens one PR. Also reports 4 issue-rated findings (1 security, 2 complexity, 1 coverage) in the PR body for manual follow-up.
+Scans every `auto` category, applies up to 20 safe changes, opens one PR.
+Also reports 4 issue-rated findings (1 security, 2 complexity, 1 coverage) in the PR body for manual follow-up.
 
 **Scenario 2: Conservative safety-only pass**
 ```
 /improve-codebase safety --budget 10
 ```
-Only dead-code removal, lint auto-fix, and unused-dependency removal. Caps at 10 changes. Good for the first few weekly runs while trust is being built.
+Only dead-code removal, lint auto-fix, and unused-dependency removal.
+Caps at 10 changes.
+Good for the first few weekly runs while trust is being built.
 
 **Scenario 3: Dry run before trusting it**
 ```
 /improve-codebase --dry-run
 ```
-Produces the full report and candidate list at `.sdlc/improvement-dryrun-2026-06-20.md` but commits nothing. Use this to audit what the skill would do before enabling the routine.
+Produces the full report and candidate list at `.sdlc/improvement-dryrun-2026-06-20.md` but commits nothing.
+Use this to audit what the skill would do before enabling the routine.
 
 **Scenario 4: Types-only, no PR (local review)**
 ```
@@ -358,9 +397,12 @@ Ships the safe PR and creates GitHub issues for each critical/high follow-up so 
 
 ## Scheduling (Weekly Cadence)
 
-This skill is designed to be safe to run unattended on a schedule. Three options:
+This skill is designed to be safe to run unattended on a schedule.
+Three options:
 
-- **Paperclip routine (recommended for agents):** create a routine with a weekly cron trigger (for example `0 9 * * 1` for Monday 09:00) whose execution issue instructs the agent to run `/improve-codebase`. Each fire produces a PR for review. See the `paperclip` skill's Routines section.
+- **Paperclip routine (recommended for agents):** create a routine with a weekly cron trigger (for example `0 9 * * 1` for Monday 09:00) whose execution issue instructs the agent to run `/improve-codebase`.
+  Each fire produces a PR for review.
+  See the `paperclip` skill's Routines section.
 - **GitHub Actions workflow:** a weekly schedule that invokes the agent CLI with `/improve-codebase --no-pr` on a self-hosted runner, or opens the PR via `gh`.
 - **Manual:** run `/improve-codebase` each Friday as part of `/end-week`.
 

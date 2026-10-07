@@ -22,10 +22,13 @@ Run this skill for a standalone or second-pass audit of the interface when the d
 
 ## Steps
 
-1. Read the CLI design from `.sdlc/features/N-<slug>/cli-design.md` if present, otherwise from context or as a file path. Read `requirements.md` too when available.
+1. Read the CLI design from `.sdlc/features/N-<slug>/cli-design.md` if present, otherwise from context or as a file path.
+   Read `requirements.md` too when available.
 2. Identify issues in each of the applicable categories below.
-3. Report findings using the output format. Omit any category that has no findings.
-4. Write the findings to `.sdlc/features/N-<slug>/review-cli-design.md` with frontmatter `artifact: cli-design`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+3. Report findings using the output format.
+   Omit any category that has no findings.
+4. Write the findings to `.sdlc/features/N-<slug>/review-cli-design.md` with frontmatter `artifact: cli-design`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -114,20 +117,16 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Inconsistent flag meaning**
-`--output` selects a file on `set` but a format on `get`.
+**Scenario 1: Inconsistent flag meaning** `--output` selects a file on `set` but a format on `get`.
 Report under Cross-Command Consistency; rename one flag (for example `--format`).
 
-**Scenario 2: Unprotected destructive command**
-`secrets delete` runs immediately with no confirmation and no `--yes` skip.
+**Scenario 2: Unprotected destructive command** `secrets delete` runs immediately with no confirmation and no `--yes` skip.
 Report under Error Handling.
 
-**Scenario 3: No error transcript**
-The example sessions show only the happy path.
+**Scenario 3: No error transcript** The example sessions show only the happy path.
 Report under Output Behavior; require at least one error session.
 
-**Scenario 4: Untraceable option**
-A global `--profile` option appears in the design but maps to no requirement or stated goal.
+**Scenario 4: Untraceable option** A global `--profile` option appears in the design but maps to no requirement or stated goal.
 Report under Requirements Traceability.
 
 ## Next Step

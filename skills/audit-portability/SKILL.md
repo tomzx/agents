@@ -9,9 +9,11 @@ TODAY=!`date +%Y-%m-%d`
 
 # Portability Audit (ISO/IEC 25010)
 
-Audits the codebase for **portability**: can the software be adapted to a new environment, installed easily, and replaced or migrated off without lock-in? It finds the assumptions that make software hard to relocate and hard to leave.
+Audits the codebase for **portability**: can the software be adapted to a new environment, installed easily, and replaced or migrated off without lock-in?
+It finds the assumptions that make software hard to relocate and hard to leave.
 
-This is the **Portability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `audit-compatibility` (runs *alongside* other software and speaks standards), this is about running in a different *environment* and being *replaceable*.
+This is the **Portability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
+Distinct from `audit-compatibility` (runs *alongside* other software and speaks standards), this is about running in a different *environment* and being *replaceable*.
 
 ## Prerequisites
 
@@ -48,7 +50,8 @@ rg -n "shelljs|execSync|child_process" -g '*.{ts,js}' .
 
 ### 2. Adaptability: 12-factor config
 
-Configuration baked into code rather than environment. Flag hardcoded credentials, connection strings, feature toggles, and tuning constants that should be env/config:
+Configuration baked into code rather than environment.
+Flag hardcoded credentials, connection strings, feature toggles, and tuning constants that should be env/config:
 ```
 rg -n "(password|secret|token|api_key|apikey|connection_string|dsn|url)\s*[:=]\s*['\"][^'\"]+['\"]" -g '*.{py,ts,js}' . \
   | rg -v "test|spec|example|os\.environ|getenv|process\.env|config\.|settings\."
@@ -60,7 +63,8 @@ Native/C-extension and platform-bound deps that block cross-platform or cross-ar
 ```
 rg -n "cuda|tensorflow|torch|pywin32|win32|libc|apt-get|yum|brew install|dylib|\.dll|\.so|\.dylib" -g '*.{py,ts,js,go}' .
 ```
-(Flag, don't condemn: some are intentional. Record the platform assumption.)
+(Flag, don't condemn: some are intentional.
+Record the platform assumption.)
 
 ### 4. Installability
 
@@ -84,7 +88,8 @@ Direct, scattered use of a cloud/provider SDK with no abstraction layer (every c
 ```
 rg -n "boto3\.|aws_|google\.cloud|azure\.|firebase\.|stripe\.|twilio\.|s3\.|dynamodb|cloudsql" -g '*.{py,ts,js}' .
 ```
-Count distinct call sites per provider. A provider used directly across many modules is lock-in; one used behind a single interface/adaptor is fine.
+Count distinct call sites per provider.
+A provider used directly across many modules is lock-in; one used behind a single interface/adaptor is fine.
 
 ### 6. Replaceability: data egress and standards
 
@@ -97,11 +102,16 @@ Proprietary/unversioned storage formats are replaceability findings.
 
 ### 7. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 8. Report
 
-Classify by severity and print. Do not modify files.
+Classify by severity and print.
+Do not modify files.
 
 ## Severity
 

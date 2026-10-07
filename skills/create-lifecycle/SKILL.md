@@ -25,7 +25,9 @@ For features that do not manage resources with a lifecycle (a pure config change
 ## Steps
 
 1. Read the specification, requirements (if present), and codebase analysis (if present).
-2. Decide whether the feature manages resources with a meaningful lifecycle. If it does not, emit `verdict: skipped` (do not write `lifecycle.md`). The `skipped` verdict routes the pipeline straight to the next phase, bypassing `/review-lifecycle`.
+2. Decide whether the feature manages resources with a meaningful lifecycle.
+   If it does not, emit `verdict: skipped` (do not write `lifecycle.md`).
+   The `skipped` verdict routes the pipeline straight to the next phase, bypassing `/review-lifecycle`.
 3. Identify every resource the feature creates, modifies, or tracks that has a lifecycle (resources that pass through distinct states, have retention policies, or emit events on state changes).
 4. For each resource, determine its lifecycle type:
    - **State Machine:** the resource moves between named states via defined transitions (e.g., order: pending -> paid -> shipped -> delivered).
@@ -34,7 +36,8 @@ For features that do not manage resources with a lifecycle (a pure config change
 5. For each resource with a state machine or linear lifecycle, draw a state diagram showing all states and transitions.
 6. For each state, document its meaning, entry condition, exit condition, and a reference to the specification section that defines the behavior.
 7. For each transition, document the trigger (event, API call, timer, condition), the actor (user, system, external), side effects (notifications, cascading updates, event emissions), and guard conditions (preconditions that must hold).
-8. Define invariants: conditions that must always hold regardless of state (e.g., "a subscription cannot be active without a valid payment method"). Document how each is enforced and what happens on violation.
+8. Define invariants: conditions that must always hold regardless of state (e.g., "a subscription cannot be active without a valid payment method").
+   Document how each is enforced and what happens on violation.
 9. Specify retention and expiry policies: how long resources persist, what triggers expiry, and what cleanup action is taken (hard delete, archive, anonymize).
 10. List events emitted on transitions, including payload, downstream consumers, and cross-references to the specification or telemetry plan.
 11. Write the output to `.sdlc/features/N-<slug>/lifecycle.md`.
@@ -66,7 +69,8 @@ Only document if retention, expiry, or soft-delete behavior applies, since those
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/lifecycle.md` (copied to `.sdlc/templates/features/lifecycle.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/lifecycle.md` (copied to `.sdlc/templates/features/lifecycle.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -82,21 +86,19 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Order processing system**
-The specification defines an `Order` resource with `POST /orders`, payment, and fulfillment endpoints.
+**Scenario 1: Order processing system** The specification defines an `Order` resource with `POST /orders`, payment, and fulfillment endpoints.
 The lifecycle document identifies `Order` as a state machine with states: `pending`, `paid`, `fulfilling`, `shipped`, `delivered`, `cancelled`, `refunded`.
 Each transition is documented with its trigger (payment confirmation, shipping label creation, delivery confirmation), guard conditions (cannot ship without payment), and side effects (email notifications, inventory decrement, event emissions).
 Invariants: "total_amount must equal sum of line items in all states."
 
-**Scenario 2: API key management**
-The specification defines API keys with creation, rotation, and revocation.
+**Scenario 2: API key management** The specification defines API keys with creation, rotation, and revocation.
 The lifecycle document identifies `ApiKey` as a state machine with states: `active`, `rotating`, `revoked`, `expired`.
 Retention policy: revoked keys retained 90 days for audit, then hard deleted.
 Events: `api_key.rotated`, `api_key.revoked` emitted to the audit log.
 
-**Scenario 3: Configuration change, no lifecycle**
-The specification defines a threshold update in a YAML config file.
-The feature manages no resources with a lifecycle. The skill leaves the artifact unwritten and emits `verdict: skipped` so the pipeline continues without a review.
+**Scenario 3: Configuration change, no lifecycle** The specification defines a threshold update in a YAML config file.
+The feature manages no resources with a lifecycle.
+The skill leaves the artifact unwritten and emits `verdict: skipped` so the pipeline continues without a review.
 
 ## Completion Checklist
 

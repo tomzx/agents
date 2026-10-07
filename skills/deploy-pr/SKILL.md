@@ -6,7 +6,8 @@ argument-hint: "<pr-number or merge-sha>"
 
 # Deploy PR
 
-Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists. Covers the step between merging code and having it running in production.
+Deploys a merged pull request to the target environment, runs smoke tests to verify the deployment, and confirms a rollback plan exists.
+Covers the step between merging code and having it running in production.
 
 ## Prerequisites
 
@@ -55,17 +56,17 @@ Fetch merged PR details ($1)
    gh pr view $1 --json title,body,mergeCommit,headRefName,closingIssuesReferences
    ```
 
-2. Identify the target environment(s) from the PR labels, branch name, or project configuration. Common targets:
+2. Identify the target environment(s) from the PR labels, branch name, or project configuration.
+   Common targets:
    - `staging` for non-production validation
    - `production` for user-facing releases
-   - Feature-specific environments (e.g., `preview`, `canary`)
-   If uncertain, ask the user which environment to deploy to.
+   - Feature-specific environments (e.g., `preview`, `canary`) If uncertain, ask the user which environment to deploy to.
 
-3. Check for a rollback plan. Look for:
+3. Check for a rollback plan.
+   Look for:
    - A documented rollback procedure in the PR description or `.sdlc/` artifacts
    - Previous deployment version or tag to roll back to
-   - Database migration rollback if applicable
-   If no rollback plan exists, document one before proceeding.
+   - Database migration rollback if applicable If no rollback plan exists, document one before proceeding.
 
 4. Execute the deployment using the project's CI/CD pipeline or deployment scripts:
    ```
@@ -73,7 +74,8 @@ Fetch merged PR details ($1)
    ```
    Or, if deployment is manual, follow the project's deployment procedure from `architecture.md`.
 
-5. Wait for deployment to complete. Monitor:
+5. Wait for deployment to complete.
+   Monitor:
    ```
    gh run watch <run-id>
    ```
@@ -82,8 +84,7 @@ Fetch merged PR details ($1)
    - Health check endpoints return 200
    - Key user flows are accessible
    - No increase in error rates
-   - Database connectivity is intact
-   Use the project's existing smoke test suite if available, otherwise test the critical path manually.
+   - Database connectivity is intact Use the project's existing smoke test suite if available, otherwise test the critical path manually.
 
 7. If smoke tests pass, verify overall system health:
    - Check monitoring dashboards for anomalies
@@ -123,7 +124,8 @@ Fetch merged PR details ($1)
 ```
 /deploy-pr 42
 ```
-PR #42 was merged to main. Deploy to production via CI/CD pipeline, run smoke tests, confirm healthy.
+PR #42 was merged to main.
+Deploy to production via CI/CD pipeline, run smoke tests, confirm healthy.
 
 **Scenario 2: Staging deploy first**
 ```
@@ -135,7 +137,8 @@ Deploy PR #88 to staging first, run smoke tests, then promote to production if a
 ```
 /deploy-pr 55
 ```
-Smoke tests reveal a 500 error on the checkout flow. Roll back to the previous deployment, confirm system health, report the failure.
+Smoke tests reveal a 500 error on the checkout flow.
+Roll back to the previous deployment, confirm system health, report the failure.
 
 ## Next Step
 

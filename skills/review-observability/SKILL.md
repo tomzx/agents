@@ -19,11 +19,14 @@ Audits an observability plan for completeness, actionability, consistency, and a
 ## Steps
 
 1. Read the observability document from `.sdlc/features/N-<slug>/observability.md` if present, otherwise from context or as a file path.
-2. Run the deterministic checker best-effort: `promtool check rules .sdlc/features/N-<slug>/alerts.yaml` when both the file and the tool exist. A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Actionability.
+2. Run the deterministic checker best-effort: `promtool check rules .sdlc/features/N-<slug>/alerts.yaml` when both the file and the tool exist.
+   A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Actionability.
 3. Cross-reference against the specification, telemetry plan, and requirements.
 4. Identify issues in each of the five categories below.
-5. Report findings. Omit any category that has no findings.
-6. Write the findings to `.sdlc/features/N-<slug>/review-observability.md` with frontmatter `artifact: observability`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+5. Report findings.
+   Omit any category that has no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-observability.md` with frontmatter `artifact: observability`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -95,17 +98,14 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing error alerts**
-Specification defines a payment processing flow with external API calls.
+**Scenario 1: Missing error alerts** Specification defines a payment processing flow with external API calls.
 Observability plan has latency metrics but no alert for API call failures.
 Report under Completeness: no alert for upstream payment provider errors.
 
-**Scenario 2: Unstructured logs**
-Log entries are described as "log a message when the job fails."
+**Scenario 2: Unstructured logs** Log entries are described as "log a message when the job fails."
 Report under Actionability: logs should be structured with job_id, error_type, and timestamp for queryability.
 
-**Scenario 3: Metric overlap**
-Telemetry plan defines `orders_created_total` for business reporting.
+**Scenario 3: Metric overlap** Telemetry plan defines `orders_created_total` for business reporting.
 Observability plan also defines `orders_created_total` for system health.
 Report under Overlap with Telemetry: use `orders_request_total` (observability, includes errors) vs. `orders_created_total` (telemetry, business events only).
 

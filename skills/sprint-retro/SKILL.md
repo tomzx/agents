@@ -3,11 +3,7 @@ name: sprint-retro
 description: Generate a sprint retrospective covering kudos, what went well, what could have gone better, blockers to speed, and action items. Use when the user asks for a sprint retro, retrospective, or sprint review.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-DAY=!`date +%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` DAY=!`date +%d`
 
 # Generate Sprint Retrospective
 
@@ -67,15 +63,18 @@ Concrete next steps to improve the next sprint, derived from the sections above.
 
 ### Guidelines for Each Section
 
-**Kudos**: Look for thanks in Slack messages, helpful PR reviews, unblocking conversations, and collaborative problem-solving. Attribute specific contributions to specific people.
+**Kudos**: Look for thanks in Slack messages, helpful PR reviews, unblocking conversations, and collaborative problem-solving.
+Attribute specific contributions to specific people.
 
 **Went Well**: Identify PRs merged smoothly, features shipped on time, effective processes, good test coverage, smooth deployments, and productive collaborations.
 
-**Could Have Gone Better**: Identify slow PR review cycles, context-switching overhead, unclear requirements, flaky tests, repeated blockers, or communication gaps. Be constructive, not blaming.
+**Could Have Gone Better**: Identify slow PR review cycles, context-switching overhead, unclear requirements, flaky tests, repeated blockers, or communication gaps.
+Be constructive, not blaming.
 
 **What Would I Have Needed to Move Faster**: Identify tooling problems, missing documentation, slow CI, waiting on dependencies, unclear ownership, or gaps in knowledge that caused delays.
 
-**Action Items**: Derive 3-5 concrete, actionable improvements from the "Could Have Gone Better" and "Move Faster" sections. Each item should be specific enough to act on in the next sprint.
+**Action Items**: Derive 3-5 concrete, actionable improvements from the "Could Have Gone Better" and "Move Faster" sections.
+Each item should be specific enough to act on in the next sprint.
 
 ## Example Usage
 
@@ -83,13 +82,14 @@ Concrete next steps to improve the next sprint, derived from the sections above.
 ```
 /sprint-retro
 ```
-Reviews 10 days of notes and activity. Produces a retrospective with 3 kudos, 4 went-well items, 2 improvement areas, 2 speed blockers, and 4 action items.
+Reviews 10 days of notes and activity.
+Produces a retrospective with 3 kudos, 4 went-well items, 2 improvement areas, 2 speed blockers, and 4 action items.
 
-**Scenario 2: Quiet sprint**
-Few notes and low activity. Retrospective is brief; action items focus on whether the quiet sprint was intentional or a sign of blockers.
+**Scenario 2: Quiet sprint** Few notes and low activity.
+Retrospective is brief; action items focus on whether the quiet sprint was intentional or a sign of blockers.
 
-**Scenario 3: Rough sprint**
-Many blockers and slow reviews appear in the data. "Could Have Gone Better" and "Move Faster" sections are detailed; action items are prioritized by impact.
+**Scenario 3: Rough sprint** Many blockers and slow reviews appear in the data.
+"Could Have Gone Better" and "Move Faster" sections are detailed; action items are prioritized by impact.
 
 ## Useful Commands Reference
 

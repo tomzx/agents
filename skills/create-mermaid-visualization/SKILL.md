@@ -14,7 +14,8 @@ The skill selects the right diagram type from the user's intent, writes syntacti
 
 - A subject to visualize: a description from the user, or source material (code, schema, process notes, data).
 - The diagram catalog below and the matching file under `references/`.
-- Optional: `@mermaid-js/mermaid-cli` (`mmdc`) for rendering validation. Check with `command -v mmdc`; if absent, use `npx -y @mermaid-js/mermaid-cli` or fall back to careful review.
+- Optional: `@mermaid-js/mermaid-cli` (`mmdc`) for rendering validation.
+  Check with `command -v mmdc`; if absent, use `npx -y @mermaid-js/mermaid-cli` or fall back to careful review.
 
 ## Steps
 
@@ -29,11 +30,13 @@ Ask for or infer:
 
 ### 2. Select the diagram type
 
-Match intent to type using the catalog below. When two types fit, prefer the one that renders more reliably in the target (stable types over `-beta` types) and answers the user's actual question (who interacts when, how things are structured, what the data shows).
+Match intent to type using the catalog below.
+When two types fit, prefer the one that renders more reliably in the target (stable types over `-beta` types) and answers the user's actual question (who interacts when, how things are structured, what the data shows).
 
 ### 3. Load the family reference
 
-Read only the `references/` file for the chosen family. Follow its syntax exactly; do not mix syntax between families.
+Read only the `references/` file for the chosen family.
+Follow its syntax exactly; do not mix syntax between families.
 
 ### 4. Write the diagram
 
@@ -44,13 +47,15 @@ Read only the `references/` file for the chosen family. Follow its syntax exactl
 
 ### 5. Validate
 
-Run validation before delivering. If `mmdc` is available (or via `npx`):
+Run validation before delivering.
+If `mmdc` is available (or via `npx`):
 
 ```bash
 mmdc -i diagram.mmd -o /tmp/opencode/diagram.svg
 ```
 
-An exit code of 0 means the syntax parses. If `mmdc` is unavailable, re-read the diagram against the family reference line by line and check the pitfalls below.
+An exit code of 0 means the syntax parses.
+If `mmdc` is unavailable, re-read the diagram against the family reference line by line and check the pitfalls below.
 
 Never add a diagram to a document until it passes validation.
 
@@ -62,7 +67,8 @@ Never add a diagram to a document until it passes validation.
 
 ## Diagram Catalog
 
-Stable types render on GitHub and most Markdown viewers. Types marked `beta` may not render on GitHub; check the target before using them.
+Stable types render on GitHub and most Markdown viewers.
+Types marked `beta` may not render on GitHub; check the target before using them.
 
 | Intent | Type | Keyword | Since | Use for |
 |---|---|---|---|---|
@@ -112,7 +118,8 @@ Reference files by family:
 
 ## Common Syntax Rules
 
-- Comments start with `%%`. Unknown words break the parse; misspelled keywords cause a parse error.
+- Comments start with `%%`.
+  Unknown words break the parse; misspelled keywords cause a parse error.
 - Wrap labels containing special characters (`{}`, `[]`, `|`, `;`, quotes) in double quotes: `A["Label (with) chars"]`.
 - Use HTML entities for angle brackets and ampersands inside labels (`&lt;`, `&amp;`), not raw `<` or `&`.
 - Diagram-level front matter config goes at the top, before the keyword:
@@ -127,7 +134,9 @@ flowchart TD
     A --> B
 ````
 
-- Themes: `default`, `forest`, `dark`, `neutral`, `base`. Layout: `layout: dagre` (default) or `layout: elk` for complex graphs. Look: `look: classic` or `look: handDrawn`.
+- Themes: `default`, `forest`, `dark`, `neutral`, `base`.
+  Layout: `layout: dagre` (default) or `layout: elk` for complex graphs.
+  Look: `look: classic` or `look: handDrawn`.
 
 ## Common Pitfalls
 

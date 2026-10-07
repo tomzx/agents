@@ -9,13 +9,16 @@ TODAY=!`date +%Y-%m-%d`
 
 # Maintainability Audit (ISO/IEC 25010)
 
-Audits the codebase for **maintainability**: how easily it can be modified to fix bugs, improve performance, or adapt to a changed environment. It computes the **architectural** maintainability metrics that per-function scanners miss, then combines the `find-*` family's output into one maintainability scorecard.
+Audits the codebase for **maintainability**: how easily it can be modified to fix bugs, improve performance, or adapt to a changed environment.
+It computes the **architectural** maintainability metrics that per-function scanners miss, then combines the `find-*` family's output into one maintainability scorecard.
 
 This is the **Maintainability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
 
 ## What This Skill Adds Beyond the find-* Family
 
-The `find-*` skills are per-function or per-file scanners (complexity, coverage, dead code, duplication, types). They cannot see **structure**: which module depends on which, whether layers are respected, whether cycles exist, whether one module is a God object. This skill computes those structural metrics and combines everything into one view.
+The `find-*` skills are per-function or per-file scanners (complexity, coverage, dead code, duplication, types).
+They cannot see **structure**: which module depends on which, whether layers are respected, whether cycles exist, whether one module is a God object.
+This skill computes those structural metrics and combines everything into one view.
 
 | Source | What it provides here |
 |---|---|
@@ -60,7 +63,9 @@ Keep imports that resolve to internal modules (drop stdlib and third-party).
 
 ### 2. Coupling (fan-out)
 
-For each module, count distinct internal modules it imports. Modules above the 90th percentile (or a fixed threshold like 20) are high-coupling findings. God modules = high fan-out AND high LOC.
+For each module, count distinct internal modules it imports.
+Modules above the 90th percentile (or a fixed threshold like 20) are high-coupling findings.
+God modules = high fan-out AND high LOC.
 
 ```
 wc -l $(find . -name "*.py" -not -path "*/test*" -not -path "*/.venv/*") | sort -rn | head -20
@@ -68,17 +73,22 @@ wc -l $(find . -name "*.py" -not -path "*/test*" -not -path "*/.venv/*") | sort 
 
 ### 3. Circular dependencies
 
-Detect cycles in the internal import graph. A cycle means a change in any member can affect all members. Report the smallest cycles first (easiest to break).
+Detect cycles in the internal import graph.
+A cycle means a change in any member can affect all members.
+Report the smallest cycles first (easiest to break).
 
 For Python, a quick check:
 ```
 rg -n "^from \." -g '*.py' . | sort
 ```
-Then trace relative-import chains for cycles. For JS/TS, map `import ... from "./..."` chains. Flag any cycle found.
+Then trace relative-import chains for cycles.
+For JS/TS, map `import ... from "./..."` chains.
+Flag any cycle found.
 
 ### 4. Layering violations
 
-If `.sdlc/context/architecture.md` declares layers (e.g., `api → service → repository`, or "UI must not import DB"), check actual imports against the rules. Every import that crosses a forbidden direction is a finding.
+If `.sdlc/context/architecture.md` declares layers (e.g., `api → service → repository`, or "UI must not import DB"), check actual imports against the rules.
+Every import that crosses a forbidden direction is a finding.
 
 ```
 rg -n "import" -g '*.py' . | rg "api.*model|model.*api|ui.*db|db.*ui"
@@ -100,7 +110,8 @@ Skip any whose preconditions are not met.
 
 ### 6. Compute the maintainability scorecard
 
-Combine these into a per-module and project-level score. Keep the formula simple and transparent:
+Combine these into a per-module and project-level score.
+Keep the formula simple and transparent:
 
 ```
 maintainability_score = 100
@@ -117,11 +128,16 @@ Weights are illustrative; record the weights used in the report so the score is 
 
 ### 7. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 8. Report
 
-Print the scorecard and findings. Do not modify files.
+Print the scorecard and findings.
+Do not modify files.
 
 ## Severity
 

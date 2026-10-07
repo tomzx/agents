@@ -3,11 +3,7 @@ name: start-day
 description: Opens the workday by grounding priorities in yesterday's plan and goals, and optionally writes a short start-of-day note. Use when the user says /start-day, start of day, morning planning, or daily kickoff.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-DAY=!`date +%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` DAY=!`date +%d`
 
 # Start Day
 
@@ -60,12 +56,15 @@ date: {TODAY}
 
 ## Relationship to other skills
 
-- **end-of-day-summary** writes `{TODAY}.standup.md` the prior evening (as the next workday file). Start-day consumes that file when present.
+- **end-of-day-summary** writes `{TODAY}.standup.md` the prior evening (as the next workday file).
+  Start-day consumes that file when present.
 - Do not duplicate the GitHub or Slack pipelines from end-of-day-summary here.
 
 ## Post update to Slack
 
-As the final step, check whether `SEND_DAILY_SLACK` is set (via `~/.agents/scripts/get-env SEND_DAILY_SLACK`). Only post when it resolves to a truthy value (`1`, `true`, `yes`). If unset or empty, skip this step and inform the user that the Slack update was skipped.
+As the final step, check whether `SEND_DAILY_SLACK` is set (via `~/.agents/scripts/get-env SEND_DAILY_SLACK`).
+Only post when it resolves to a truthy value (`1`, `true`, `yes`).
+If unset or empty, skip this step and inform the user that the Slack update was skipped.
 
 When enabled, post a brief summary to the `tom-rochette-updates` channel using the **post-slack-message** skill:
 
@@ -73,7 +72,9 @@ When enabled, post a brief summary to the `tom-rochette-updates` channel using t
 uv run post_slack_message.py --channel C0BE3BM97B7 "<summary>"
 ```
 
-Format the message as a short brief of the top 3 outcomes and first focus block. Use Slack mrkdwn formatting (e.g. `*bold*`, line breaks with `\n`). Example:
+Format the message as a short brief of the top 3 outcomes and first focus block.
+Use Slack mrkdwn formatting (e.g. `*bold*`, line breaks with `\n`).
+Example:
 
 ```
 *Start of day - {TODAY}*

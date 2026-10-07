@@ -34,7 +34,8 @@ The goal is twofold: avoid rebuilding what already exists, and collect proven ap
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/existing-solutions.md` (copied to `.sdlc/templates/features/existing-solutions.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/existing-solutions.md` (copied to `.sdlc/templates/features/existing-solutions.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -43,17 +44,14 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: A well-served problem**
-Requirements describe rate limiting on an API.
+**Scenario 1: A well-served problem** Requirements describe rate limiting on an API.
 The survey finds mature libraries (token-bucket implementations), recommends adopting one, and notes the FR it does not cover (per-tenant quotas) as a gap to build.
 
-**Scenario 2: Reinvention avoided by internal code**
-Requirements ask for CSV export.
+**Scenario 2: Reinvention avoided by internal code** Requirements ask for CSV export.
 A codebase search finds an existing export helper used elsewhere.
 The recommendation is to reuse and extend it rather than write a new exporter.
 
-**Scenario 3: Build, but learn from prior art**
-Requirements describe a domain-specific scheduler with no off-the-shelf fit.
+**Scenario 3: Build, but learn from prior art** Requirements describe a domain-specific scheduler with no off-the-shelf fit.
 The survey recommends building, and records the data model and failure modes documented by two open-source schedulers as information sources for the specification.
 
 ## Completion Checklist

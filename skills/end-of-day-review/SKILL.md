@@ -3,11 +3,7 @@ name: end-of-day-review
 description: Reflective end-of-day review that forces alignment between your work, your goals, and your team's goals.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-DAY=!`date +%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` DAY=!`date +%d`
 
 # End-of-Day Review
 
@@ -43,9 +39,11 @@ Using the gathered context, identify:
 
 ### 3. Ask Reflective Questions
 
-Ask the user the following questions. Ask all questions in a single message, numbered, so they can answer all at once:
+Ask the user the following questions.
+Ask all questions in a single message, numbered, so they can answer all at once:
 
-1. What were your top 3 priorities for today? Did you accomplish them?
+1. What were your top 3 priorities for today?
+   Did you accomplish them?
 2. On a scale of 1-5, how reactive was today (1 = fully focused, 5 = entirely reactive/interrupted)?
 3. What single activity moved your most important goal forward today?
 4. Did any team member need your attention or unblock that you may have missed or deprioritized?
@@ -101,14 +99,17 @@ A brief reminder of the 1-3 most important current goals (personal and team).
 
 ## Example Usage
 
-**Scenario 1: Focused, goal-aligned day**
-Activity summary shows deep work on a key project. User rates reactivity as 2. Review captures the progress and sets a clear #1 priority for tomorrow.
+**Scenario 1: Focused, goal-aligned day** Activity summary shows deep work on a key project.
+User rates reactivity as 2.
+Review captures the progress and sets a clear #1 priority for tomorrow.
 
-**Scenario 2: Highly reactive day**
-Most time was in meetings and responding to requests. User rates reactivity as 5. The review shows the drift and prompts a decision: what to set aside time for tomorrow.
+**Scenario 2: Highly reactive day** Most time was in meetings and responding to requests.
+User rates reactivity as 5.
+The review shows the drift and prompts a decision: what to set aside time for tomorrow.
 
-**Scenario 3: No summary file available**
-`{DAY}.overall.md` does not exist. Questions are asked without pre-populated context. Review is written based entirely on user responses.
+**Scenario 3: No summary file available** `{DAY}.overall.md` does not exist.
+Questions are asked without pre-populated context.
+Review is written based entirely on user responses.
 
 ## Useful Commands Reference
 

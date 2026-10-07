@@ -6,7 +6,8 @@ argument-hint: "[initiative-id]"
 
 # Review Metrics
 
-Reads the actuals against the targets defined in `goals.md` and `analytics-spec.md`, and produces a health report. It judges both whether success metrics moved *and* whether guardrails stayed within limits — a result that breaks a guardrail is not a success.
+Reads the actuals against the targets defined in `goals.md` and `analytics-spec.md`, and produces a health report.
+It judges both whether success metrics moved *and* whether guardrails stayed within limits — a result that breaks a guardrail is not a success.
 
 ## Prerequisites
 
@@ -16,10 +17,12 @@ Reads the actuals against the targets defined in `goals.md` and `analytics-spec.
 ## Steps
 
 1. Read the actuals for every success metric (`SM-N`) and guardrail metric (`GM-N`) for the review window.
-2. Compare to targets/floors. Classify each as `on-track`, `at-risk`, `missed` (success) or `breached` (guardrail).
+2. Compare to targets/floors.
+   Classify each as `on-track`, `at-risk`, `missed` (success) or `breached` (guardrail).
 3. Surface anomalies: unexpected drops, cohort differences, and changes that coincide with the launch.
 4. Distinguish signal from noise: is the change statistically meaningful given sample size and window?
-5. Produce the verdict: `healthy`, `mixed`, or `unhealthy`. A guardrail breach forces at least `mixed`, usually `unhealthy`.
+5. Produce the verdict: `healthy`, `mixed`, or `unhealthy`.
+   A guardrail breach forces at least `mixed`, usually `unhealthy`.
 6. Recommend actions: double-down (scale), iterate (tune), or roll back.
 7. Write `health-report.md` to the initiative directory.
 

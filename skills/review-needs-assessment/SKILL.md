@@ -17,8 +17,10 @@ Audits a needs assessment and reports findings across four categories: evidence 
 
 1. Read the needs assessment document from `.sdlc/features/N-<slug>/needs-assessment.md` if present, otherwise from context or as a file path.
 2. Identify issues in each of the four categories below.
-3. Report findings using the output format. Omit any category that has no findings.
-4. Write the findings to `.sdlc/features/N-<slug>/review-needs-assessment.md` with frontmatter `artifact: needs-assessment`, `verdict` (`approved` if the overall verdict is Needed or Nice-to-have, `rejected` if Not needed, `changes-requested` if the author must address findings), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+3. Report findings using the output format.
+   Omit any category that has no findings.
+4. Write the findings to `.sdlc/features/N-<slug>/review-needs-assessment.md` with frontmatter `artifact: needs-assessment`, `verdict` (`approved` if the overall verdict is Needed or Nice-to-have, `rejected` if Not needed, `changes-requested` if the author must address findings), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
    - If the overall verdict is **Not needed**: also update the GitHub issue with the findings and stop the pipeline.
 
 ## Review Checklist
@@ -80,17 +82,17 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Solution disguised as problem**
-The needs assessment states "We need a bulk export button" but the problem statement just restates the solution. Flag under Evidence Rigor: the underlying problem (users spend too much time exporting one by one) is not stated.
+**Scenario 1: Solution disguised as problem** The needs assessment states "We need a bulk export button" but the problem statement just restates the solution.
+Flag under Evidence Rigor: the underlying problem (users spend too much time exporting one by one) is not stated.
 
-**Scenario 2: Missing stakeholder**
-Stakeholder table lists "end users" but the feature changes an admin workflow. Flag under Stakeholder Coverage.
+**Scenario 2: Missing stakeholder** Stakeholder table lists "end users" but the feature changes an admin workflow.
+Flag under Stakeholder Coverage.
 
-**Scenario 3: Alternative dismissed without reasoning**
-Alternative paths mention an existing CSV export feature but dismiss it as "limited" without explaining what is missing. Flag under Alternative-Path Completeness.
+**Scenario 3: Alternative dismissed without reasoning** Alternative paths mention an existing CSV export feature but dismiss it as "limited" without explaining what is missing.
+Flag under Alternative-Path Completeness.
 
-**Scenario 4: Weak evidence, strong verdict**
-Evidence rating is Weak but the verdict is Needed. Flag under Verdict Soundness: either gather more evidence or downgrade to Nice-to-have.
+**Scenario 4: Weak evidence, strong verdict** Evidence rating is Weak but the verdict is Needed.
+Flag under Verdict Soundness: either gather more evidence or downgrade to Nice-to-have.
 
 ## Next Step
 

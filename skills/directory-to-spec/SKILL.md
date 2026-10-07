@@ -27,17 +27,17 @@ Analyzes code in the current directory and generates a `spec/` directory contain
 
 ## Example Usage
 
-**Scenario 1: REST API project**
-Working directory contains `auth/`, `orders/`, `payments/`. Produces:
+**Scenario 1: REST API project** Working directory contains `auth/`, `orders/`, `payments/`.
+Produces:
 - `spec/authentication.md`
 - `spec/order-management.md`
 - `spec/payment-processing.md`
 
-**Scenario 2: Single-module library**
-Working directory contains a single Python library with multiple classes. Produces one spec file per major class or responsibility area.
+**Scenario 2: Single-module library** Working directory contains a single Python library with multiple classes.
+Produces one spec file per major class or responsibility area.
 
-**Scenario 3: Frontend application**
-Working directory contains React components. Produces spec files organized around user-facing features rather than individual component names.
+**Scenario 3: Frontend application** Working directory contains React components.
+Produces spec files organized around user-facing features rather than individual component names.
 
 ## Useful Commands Reference
 

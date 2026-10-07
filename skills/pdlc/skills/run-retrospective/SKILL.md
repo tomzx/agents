@@ -6,7 +6,9 @@ argument-hint: "[initiative-id or scope]"
 
 # Run Retrospective
 
-Turns a completed initiative, a sprint, or a killed bet into organizational knowledge. Produces a learning record in `.pdlc/learnings/`. A kill without a retrospective wastes the effort — the point of killing is to learn cheaper than building would have taught.
+Turns a completed initiative, a sprint, or a killed bet into organizational knowledge.
+Produces a learning record in `.pdlc/learnings/`.
+A kill without a retrospective wastes the effort — the point of killing is to learn cheaper than building would have taught.
 
 ## Prerequisites
 
@@ -17,14 +19,16 @@ Turns a completed initiative, a sprint, or a killed bet into organizational know
 
 1. Frame the scope: which initiative or period, and what outcome occurred (shipped, iterated, killed).
 2. Capture what to **keep** (what worked and should be repeated), what to **stop** (what to never do again), and what to **start** (new actions to try).
-3. For each item, name the root cause, not just the symptom. "We were slow" is a symptom; "discovery and build ran in series with no handoff contract" is a root cause.
+3. For each item, name the root cause, not just the symptom.
+   "We were slow" is a symptom; "discovery and build ran in series with no handoff contract" is a root cause.
 4. Tie each learning back to the artifact chain: which assumption, decision, or gate should have caught this earlier?
 5. Convert the strongest start/stop items into concrete next actions with owners (feed the roadmap or a new initiative).
 6. Write the record to `.pdlc/learnings/N-<slug>.md`.
 
 ## Output Format
 
-Use the template at `skills/pdlc/templates/learning.md`. Keep/stop/start sections, each item with root cause and (where relevant) a traceable artifact link.
+Use the template at `skills/pdlc/templates/learning.md`.
+Keep/stop/start sections, each item with root cause and (where relevant) a traceable artifact link.
 
 ## Outcome
 

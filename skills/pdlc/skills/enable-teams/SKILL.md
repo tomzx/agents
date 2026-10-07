@@ -6,7 +6,8 @@ argument-hint: "[initiative-id]"
 
 # Enable Teams
 
-A launch fails in the field when sales, support, and customer success cannot explain or defend the product. This skill produces the enablement kit: the artifacts each front-line team needs to do their job without escalating to the PM.
+A launch fails in the field when sales, support, and customer success cannot explain or defend the product.
+This skill produces the enablement kit: the artifacts each front-line team needs to do their job without escalating to the PM.
 
 ## Prerequisites
 

@@ -20,8 +20,11 @@ Audits UI mockups and wireframes and reports findings across eight categories: c
 1. Read the mockups from `.sdlc/features/N-<slug>/mockups.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the requirements and specification if available.
 3. Identify issues in each of the eight categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-mockups.md` with frontmatter `artifact: mockups`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-mockups.md` with frontmatter `artifact: mockups`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -117,20 +120,16 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing error state**
-A wireframe shows the populated list but never shows what the user sees when the fetch fails.
+**Scenario 1: Missing error state** A wireframe shows the populated list but never shows what the user sees when the fetch fails.
 Report under State Coverage.
 
-**Scenario 2: Unreachable by keyboard**
-The primary action is a custom div with no keyboard handling called out.
+**Scenario 2: Unreachable by keyboard** The primary action is a custom div with no keyboard handling called out.
 Report under Accessibility.
 
-**Scenario 3: Data mismatch**
-The wireframe shows a `user_name` field, but the specification's API contract returns `display_name`.
+**Scenario 3: Data mismatch** The wireframe shows a `user_name` field, but the specification's API contract returns `display_name`.
 Report under Spec Fidelity.
 
-**Scenario 4: Broken on mobile**
-A two-column comparison table has no responsive behavior defined and would overflow on a phone.
+**Scenario 4: Broken on mobile** A two-column comparison table has no responsive behavior defined and would overflow on a phone.
 Report under Responsiveness.
 
 ## Next Step

@@ -21,8 +21,10 @@ This review checks that the contract is complete enough to consume without ad ho
 1. Read the Team API from `teams/<team-slug>/team-api.md` if present, otherwise from context or as a file path.
 2. Read the team's charter and any adjacent Team APIs available.
 3. Identify issues in each category below.
-4. Report findings using the output format. Omit any category with no findings.
-5. Write the findings to `teams/<team-slug>/review-team-api.md` with frontmatter `artifact: team-api`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body. Record any unresolved open questions in the findings body.
+4. Report findings using the output format.
+   Omit any category with no findings.
+5. Write the findings to `teams/<team-slug>/review-team-api.md` with frontmatter `artifact: team-api`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body.
+   Record any unresolved open questions in the findings body.
 6. On `approved`, also update the Team API's frontmatter: set `status: approved` and `last_reviewed: <ISO date>`.
 
 ## Review Checklist
@@ -124,21 +126,13 @@ In the same emission, list the findings file under `artifacts:` (`teams/<team-sl
 
 ## Example Usage
 
-**Scenario 1: Unformed input**
-Inputs lists "stakeholder feedback" with no intake path.
-🟡 SHOULD replace it with a concrete form, for example "a weekly prioritization meeting with the growth lead".
+**Scenario 1: Unformed input** Inputs lists "stakeholder feedback" with no intake path. 🟡 SHOULD replace it with a concrete form, for example "a weekly prioritization meeting with the growth lead".
 
-**Scenario 2: Permanent collaboration**
-Every partner team is in collaboration mode, with no end date.
-🔴 MUST convert steady-state interfaces to x-as-a-service and time-box the remaining collaboration.
+**Scenario 2: Permanent collaboration** Every partner team is in collaboration mode, with no end date. 🔴 MUST convert steady-state interfaces to x-as-a-service and time-box the remaining collaboration.
 
-**Scenario 3: Undiscoverable output**
-The team produces a library but the output says only "internal library".
-🟡 SHOULD state its name, how consumers find it, and how it is versioned.
+**Scenario 3: Undiscoverable output** The team produces a library but the output says only "internal library". 🟡 SHOULD state its name, how consumers find it, and how it is versioned.
 
-**Scenario 4: Ownership overlap**
-Both this API and a neighboring team's claim ownership of the billing schema.
-🔴 MUST name a single owner and move the other claim to "Does not own".
+**Scenario 4: Ownership overlap** Both this API and a neighboring team's claim ownership of the billing schema. 🔴 MUST name a single owner and move the other claim to "Does not own".
 
 ## Next Step
 

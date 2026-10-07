@@ -6,9 +6,11 @@ argument-hint: "[initiative-id]"
 
 # Frame Opportunities
 
-The final step of Discover. This skill takes `problems.md`, `market.md`, and `competitors.md` and builds an opportunity-solution tree: the desired outcome at the top, opportunities beneath, and candidate solutions under each, scored so the gate can decide what to pursue.
+The final step of Discover.
+This skill takes `problems.md`, `market.md`, and `competitors.md` and builds an opportunity-solution tree: the desired outcome at the top, opportunities beneath, and candidate solutions under each, scored so the gate can decide what to pursue.
 
-This is the artifact the **Discover gate** evaluates. A low score here should route back to discovery, not forward to validation.
+This is the artifact the **Discover gate** evaluates.
+A low score here should route back to discovery, not forward to validation.
 
 ## Prerequisites
 
@@ -18,15 +20,18 @@ This is the artifact the **Discover gate** evaluates. A low score here should ro
 ## Steps
 
 1. State the desired outcome (the customer/business result), not a feature.
-2. Branch into 3-7 opportunities that could move that outcome. Each opportunity is a change you can make, not a solution.
+2. Branch into 3-7 opportunities that could move that outcome.
+   Each opportunity is a change you can make, not a solution.
 3. Under each opportunity, list 2-4 candidate solutions (these are provisional — Validate will test the riskiest assumptions, not pick a solution yet).
-4. Score each opportunity on a transparent rubric: customer value, strategic fit (to `goals.md`), reach, and confidence. Record the score, not just a gut ranking.
+4. Score each opportunity on a transparent rubric: customer value, strategic fit (to `goals.md`), reach, and confidence.
+   Record the score, not just a gut ranking.
 5. Recommend the opportunity (or two) to carry into Validate, with the one or two riskiest assumptions called out for testing.
 6. Write `opportunity-tree.md` to the initiative directory.
 
 ## Output Format
 
-Use the template at `skills/pdlc/templates/initiatives/opportunity-tree.md`. Carry the standard initiative frontmatter with `phase: discover`.
+Use the template at `skills/pdlc/templates/initiatives/opportunity-tree.md`.
+Carry the standard initiative frontmatter with `phase: discover`.
 
 ## Outcome
 
@@ -41,4 +46,6 @@ If `$OUTCOME_YAML` is set, emit `verdict: drafted` plus `reason`.
 
 ## Next Step
 
-Run the **Discover gate** via `make-decision`. On `proceed`, load `map-assumptions` to begin Validate. On `pivot`, return to `discover-problems` or `research-market` in revision mode.
+Run the **Discover gate** via `make-decision`.
+On `proceed`, load `map-assumptions` to begin Validate.
+On `pivot`, return to `discover-problems` or `research-market` in revision mode.

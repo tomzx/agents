@@ -6,7 +6,8 @@ argument-hint: "[project directory or repository name]"
 
 # Write README
 
-Produces a `README.md` for a project using a fixed template with centered header, badges, feature list, roadmap, and setup instructions. Derives content from the codebase, existing configuration files, and any available context.
+Produces a `README.md` for a project using a fixed template with centered header, badges, feature list, roadmap, and setup instructions.
+Derives content from the codebase, existing configuration files, and any available context.
 
 ## Prerequisites
 
@@ -23,7 +24,8 @@ Produces a `README.md` for a project using a fixed template with centered header
 6. Determine install steps from the package manifest, Makefile, or build scripts.
 7. Write the README following the output template exactly.
 8. Write the file to `README.md` in the project root.
-9. Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` as the first line of the file, using the current session ID from context. If no session ID is available, omit the comment.
+9. Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` as the first line of the file, using the current session ID from context.
+   If no session ID is available, omit the comment.
 
 ## Output Format
 
@@ -112,12 +114,10 @@ Remove badges that do not apply (e.g., if no storage dependency, omit the storag
 
 ## Example Usage
 
-**Scenario 1: New Go CLI tool**
-Project has `go.mod`, `main.go`, and a `LICENSE`.
+**Scenario 1: New Go CLI tool** Project has `go.mod`, `main.go`, and a `LICENSE`.
 Scan source for CLI commands and flags to populate Included, read `go.mod` for Go version, detect SQLite dependency in imports for the storage badge.
 
-**Scenario 2: Existing project without README**
-Project has `pyproject.toml`, `src/` directory, and GitHub issues labeled "enhancement".
+**Scenario 2: Existing project without README** Project has `pyproject.toml`, `src/` directory, and GitHub issues labeled "enhancement".
 Derive features from the public API, pull roadmap items from open enhancement issues, read `pyproject.toml` for Python version requirement.
 
 ## Next Step

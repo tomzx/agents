@@ -14,16 +14,18 @@ The rules are written to be read before design and implementation work, so feedb
 
 Two jobs:
 
-- **Synthesize** (default): collect reviews, group them, and merge new rules into the store. Incremental: `state.json` records the last run, so only new feedback is processed.
+- **Synthesize** (default): collect reviews, group them, and merge new rules into the store.
+  Incremental: `state.json` records the last run, so only new feedback is processed.
 - **Consult** (`--consult`): print the rules that apply to the current repository, grouped by strength, as a checklist to apply now.
 
 ## Prerequisites
 
 - `ghx` installed and authenticated (reads `GH_TOKEN`/`GITHUB_TOKEN`, or falls back to `gh auth token`).
-- The target repositories are present in the ghx cache. Run `ghx cache -R <owner>/<repo>` first so their PRs and conversation comments are stored; the collector reads PRs and conversation comments from `~/.cache/ghx/cache/cache.db` (override with `GHX_CACHE_DIR`) and fetches inline review threads via `ghx pr threads`. It never calls the GitHub API directly.
+- The target repositories are present in the ghx cache.
+  Run `ghx cache -R <owner>/<repo>` first so their PRs and conversation comments are stored; the collector reads PRs and conversation comments from `~/.cache/ghx/cache/cache.db` (override with `GHX_CACHE_DIR`) and fetches inline review threads via `ghx pr threads`.
+  It never calls the GitHub API directly.
 - `uv` available (the collector runs via its `uv run --script` shebang).
-- The collector script in this skill directory:
-  `~/.agents/skills/learn-from-code-reviews/scripts/collect_reviews.py`.
+- The collector script in this skill directory: `~/.agents/skills/learn-from-code-reviews/scripts/collect_reviews.py`.
 
 ## Scope boundaries
 
@@ -77,9 +79,11 @@ A rule carries its category, strength, the imperative rule text, why it exists, 
 
 Merge semantics when writing:
 
-- **Match an existing rule** (same underlying lesson): append the new evidence, bump the counts, refresh `Last seen`, and refine the wording. Do not create a second rule for the same lesson.
+- **Match an existing rule** (same underlying lesson): append the new evidence, bump the counts, refresh `Last seen`, and refine the wording.
+  Do not create a second rule for the same lesson.
 - **New recurring pattern**: assign the next id in its category and add the rule.
-- **Rule not seen in the run window**: leave it in place, but when a rule has no new evidence for 180 days, set `**Status:** dormant`; for 365 days, `**Status:** retired`. Never delete evidence or delete a rule outright.
+- **Rule not seen in the run window**: leave it in place, but when a rule has no new evidence for 180 days, set `**Status:** dormant`; for 365 days, `**Status:** retired`.
+  Never delete evidence or delete a rule outright.
 
 ## Steps
 
@@ -87,10 +91,13 @@ Merge semantics when writing:
 
 Decide the sources and window from the arguments:
 
-- Targets: `owner/repo` arguments or PR URLs. With no argument, the whole ghx cache (your PRs only). `--mine` is the explicit form of that default; `--include-all-authors` drops the "you authored it" restriction.
+- Targets: `owner/repo` arguments or PR URLs.
+  With no argument, the whole ghx cache (your PRs only).
+  `--mine` is the explicit form of that default; `--include-all-authors` drops the "you authored it" restriction.
 - The repositories must already be in the ghx cache; if the cache is stale, refresh it first with `ghx cache -R <owner>/<repo>`.
 - Window: `--since YYYY-MM-DD`; with no argument the collector reuses `state.json` (last run minus one day) or defaults to the last 30 days.
-- Bots are excluded by default; pass `--include-bots` to include substantive AI reviewers, which count as supporting (not `must`) evidence. Conversation comments are off by default (inline review threads are the signal); add `--include-conversation` to widen the search.
+- Bots are excluded by default; pass `--include-bots` to include substantive AI reviewers, which count as supporting (not `must`) evidence.
+  Conversation comments are off by default (inline review threads are the signal); add `--include-conversation` to widen the search.
 
 ### 2. Collect the feedback
 
@@ -103,14 +110,17 @@ uv run ~/.agents/skills/learn-from-code-reviews/scripts/collect_reviews.py [targ
 ```
 
 It emits one JSON document with `pull_requests`, a flat `feedback[]` array (each item has `repo`, `pr`, `kind`, `id`, `author`, `is_bot`, `path`, `line`, `body`, `url`), and `stats`.
-Take the `feedback[]` array as the input to the next step. If it is empty, report "no new feedback in the window" and stop.
+Take the `feedback[]` array as the input to the next step.
+If it is empty, report "no new feedback in the window" and stop.
 
 `kind` is `review_comment` for an inline review thread (with `path` and `line`) or `conversation` for a top-level PR comment.
-Pass `--update-state` so the next run is incremental (it records `last_run` in `state.json`). Omit it under `--dry-run`, and if the run fails before the store is written, re-run with an explicit `--since` to recover the skipped window.
+Pass `--update-state` so the next run is incremental (it records `last_run` in `state.json`).
+Omit it under `--dry-run`, and if the run fails before the store is written, re-run with an explicit `--since` to recover the skipped window.
 
 ### 3. Cluster feedback into candidate patterns
 
-Read every `feedback[]` item and group by underlying lesson, not by wording. Two comments on different files that both ask for the same guard belong together.
+Read every `feedback[]` item and group by underlying lesson, not by wording.
+Two comments on different files that both ask for the same guard belong together.
 For each group record: the lesson, its category, the number of items and distinct reviewers and PRs, and the representative quotes with their permalinks.
 
 Mark a group that clears the gates above as a rule candidate; put the rest in the Observations appendix.

@@ -5,7 +5,8 @@ description: Assess health across multiple product initiatives and the overall p
 
 # Manage Portfolio
 
-A single initiative can look healthy while the portfolio is unbalanced (too many bets in one phase, no discovery pipeline, one segment over-indexed). This skill reads all initiatives and reports portfolio-level health.
+A single initiative can look healthy while the portfolio is unbalanced (too many bets in one phase, no discovery pipeline, one segment over-indexed).
+This skill reads all initiatives and reports portfolio-level health.
 
 ## Prerequisites
 
@@ -15,9 +16,12 @@ A single initiative can look healthy while the portfolio is unbalanced (too many
 ## Steps
 
 1. Enumerate `.pdlc/initiatives/*/` and read each `progress.md` and latest gate decision.
-2. Compute the distribution of initiatives across the six PDLC phases. A healthy portfolio has flow: some in Discover, some in Validate, fewer in Define/Launch, and a steady Measure loop.
-3. Check capacity allocation against `.pdlc/context/roadmap.md` and any team capacity signal. Flag over-allocation (more Now-slot initiatives than capacity) and starvation (empty Discover pipeline).
-4. Check bet diversity: segments, customer types, and risk levels. Flag concentration risk.
+2. Compute the distribution of initiatives across the six PDLC phases.
+   A healthy portfolio has flow: some in Discover, some in Validate, fewer in Define/Launch, and a steady Measure loop.
+3. Check capacity allocation against `.pdlc/context/roadmap.md` and any team capacity signal.
+   Flag over-allocation (more Now-slot initiatives than capacity) and starvation (empty Discover pipeline).
+4. Check bet diversity: segments, customer types, and risk levels.
+   Flag concentration risk.
 5. Surface initiatives that are stuck (same phase across multiple sessions with no gate progress) — candidates for `kill-initiative`.
 6. Produce the portfolio report and recommended rebalancing actions.
 

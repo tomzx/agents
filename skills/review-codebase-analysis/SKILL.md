@@ -21,8 +21,12 @@ The review verifies that the analysis describes the actual code (not assumptions
 2. Cross-reference against the requirements document if available: every requirement that implies a code change should map to an analyzed component.
 3. Spot-check the analysis against the actual codebase to confirm behavior claims and paths.
 4. Identify issues in each of the categories below.
-5. Report findings. Omit any category that has no findings.
-6. Write the findings to `.sdlc/features/N-<slug>/review-codebase-analysis.md` with frontmatter `artifact: codebase-analysis`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
+5. Report findings.
+   Omit any category that has no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-codebase-analysis.md` with frontmatter `artifact: codebase-analysis`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally.
+   For a chosen change disposition with lasting consequences (e.g. replace vs. extend), invoke `/create-decision`.
 
 ## Review Checklist
 
@@ -92,20 +96,16 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: A touched component was missed**
-The requirements imply changes to a shared cache layer, but the analysis only covers the reconciliation loop.
+**Scenario 1: A touched component was missed** The requirements imply changes to a shared cache layer, but the analysis only covers the reconciliation loop.
 Report under Coverage.
 
-**Scenario 2: Behavior claim contradicts the code**
-The analysis claims a consumer reads asynchronously, but the source shows a synchronous call, which changes the blast radius.
+**Scenario 2: Behavior claim contradicts the code** The analysis claims a consumer reads asynchronously, but the source shows a synchronous call, which changes the blast radius.
 Report under Accuracy.
 
-**Scenario 3: Replace disposition without a migration path**
-The analysis recommends replacing the polling loop with an event-driven consumer but gives no rollout, backward-compatibility, or de-risking plan.
+**Scenario 3: Replace disposition without a migration path** The analysis recommends replacing the polling loop with an event-driven consumer but gives no rollout, backward-compatibility, or de-risking plan.
 Report under Impact and Migration.
 
-**Scenario 4: Risk stated without a driver**
-A component is marked "Replace, High risk" with no explanation of what drives the risk.
+**Scenario 4: Risk stated without a driver** A component is marked "Replace, High risk" with no explanation of what drives the risk.
 Report under Changeability Rigor.
 
 ## Next Step

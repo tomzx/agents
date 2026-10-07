@@ -5,27 +5,31 @@ argument-hint: "[repository] [--create-issues N] [--limit N] [--focus <area>] [-
 allowed-tools: Bash(gh:*, ghx:*), Read, Glob, Grep, Write
 ---
 
-TODAY=!`date +%Y-%m-%d`
-REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
+TODAY=!`date +%Y-%m-%d` REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
 
 # Identify Feature Opportunities
 
-Surfaces **new** feature opportunities by reading the software as it actually exists today and the signals around it, then synthesizing concrete, evidenced ideas ranked by value and strategic fit. This is discovery: it proposes work that does not yet exist, unlike `prioritize-issues` (ranks existing issues), `check-issues-status` (finds done work), or `create-needs-assessment` (validates one proposed idea).
+Surfaces **new** feature opportunities by reading the software as it actually exists today and the signals around it, then synthesizing concrete, evidenced ideas ranked by value and strategic fit.
+This is discovery: it proposes work that does not yet exist, unlike `prioritize-issues` (ranks existing issues), `check-issues-status` (finds done work), or `create-needs-assessment` (validates one proposed idea).
 
 ## The Core Problem This Solves
 
-Roadmaps and backlogs fill up from incoming requests, but they rarely get a bottom-up re-derivation from the software itself. Capabilities get 80% built and abandoned, adjacent expansion paths go unnoticed, repeated issue themes never get generalized into a feature, and stated goals sit with no corresponding code. This skill reads the codebase as evidence of what exists and proposes what is missing.
+Roadmaps and backlogs fill up from incoming requests, but they rarely get a bottom-up re-derivation from the software itself.
+Capabilities get 80% built and abandoned, adjacent expansion paths go unnoticed, repeated issue themes never get generalized into a feature, and stated goals sit with no corresponding code.
+This skill reads the codebase as evidence of what exists and proposes what is missing.
 
 ## Prerequisites
 
 - Working directory is the root of a `git` repository
 - `gh` CLI authenticated with read access to the target repository (for issue and PR signals)
-- Read any files under `.sdlc/context/` (`project-overview.md`, `goals.md`, `roadmap.md`, `architecture.md`) for strategic context. These are optional but materially improve alignment scoring.
+- Read any files under `.sdlc/context/` (`project-overview.md`, `goals.md`, `roadmap.md`, `architecture.md`) for strategic context.
+  These are optional but materially improve alignment scoring.
 - If no argument is provided, operate on `$REPO` (derived from `origin`), then the current working directory.
 
 ## Inputs Synthesized
 
-The skill reasons over five evidence sources. Each opportunity must cite at least one; strong opportunities cite two or more.
+The skill reasons over five evidence sources.
+Each opportunity must cite at least one; strong opportunities cite two or more.
 
 | Source | What it reveals |
 |---|---|
@@ -37,7 +41,8 @@ The skill reasons over five evidence sources. Each opportunity must cite at leas
 
 ## Opportunity Dimensions
 
-Opportunities are derived from seven recurring patterns. Scan for each.
+Opportunities are derived from seven recurring patterns.
+Scan for each.
 
 | Dimension | Signal in the code / signals | Example opportunity |
 |---|---|---|
@@ -51,7 +56,8 @@ Opportunities are derived from seven recurring patterns. Scan for each.
 
 ## Scoring
 
-Each opportunity is scored so the output is ranked, not just listed. Reuse the RICE framing from `prioritize-issues`, extended with an alignment multiplier.
+Each opportunity is scored so the output is ranked, not just listed.
+Reuse the RICE framing from `prioritize-issues`, extended with an alignment multiplier.
 
 ```
 score = (Reach × Impact × Confidence × Alignment) / Effort
@@ -69,16 +75,22 @@ When `.sdlc/context/` is absent, Alignment defaults to 1.0 for all opportunities
 
 ## Flags
 
-- `--create-issues N` — file GitHub issues for the top N opportunities via `/create-issue`. Off by default (report-only). Each issue links back to this report.
-- `--limit N` — maximum opportunities to surface (default 20). The report shows the top N by score.
-- `--focus <area>` — restrict the scan to one area (e.g., `api`, `ui`, `cli`, a module path or a roadmap initiative slug). This narrows the code surface scanned.
-- `--since <YYYY-MM-DD>` — only consider issues and PRs from this date forward when reading signals (default: last 90 days). Useful for a focused recent-signal pass.
+- `--create-issues N` — file GitHub issues for the top N opportunities via `/create-issue`.
+  Off by default (report-only).
+  Each issue links back to this report.
+- `--limit N` — maximum opportunities to surface (default 20).
+  The report shows the top N by score.
+- `--focus <area>` — restrict the scan to one area (e.g., `api`, `ui`, `cli`, a module path or a roadmap initiative slug).
+  This narrows the code surface scanned.
+- `--since <YYYY-MM-DD>` — only consider issues and PRs from this date forward when reading signals (default: last 90 days).
+  Useful for a focused recent-signal pass.
 
 ## Dedup (makes re-runs idempotent and safe to schedule)
 
 Before surfacing an opportunity, check it is not already tracked:
 
-1. Read the most recent prior report at `.sdlc/feature-opportunities-*.md`. Opportunities carried over keep their original ID and are marked `recurring` with the first-seen date, not re-proposed as new.
+1. Read the most recent prior report at `.sdlc/feature-opportunities-*.md`.
+   Opportunities carried over keep their original ID and are marked `recurring` with the first-seen date, not re-proposed as new.
 2. Search open issues for overlapping requests:
    ```
    gh search issues --repo <repo> --state open --limit 50 "<keyword>"
@@ -92,11 +104,15 @@ This makes monthly scheduled runs low-noise: only genuinely new opportunities ap
 
 ### 1. Resolve scope and read context
 
-Resolve the repository from `$1`, then `$REPO`, then the current directory. Read `.sdlc/context/` files that exist. Record whether goals/roadmap are present (they govern Alignment scoring). Apply `--focus` if given.
+Resolve the repository from `$1`, then `$REPO`, then the current directory.
+Read `.sdlc/context/` files that exist.
+Record whether goals/roadmap are present (they govern Alignment scoring).
+Apply `--focus` if given.
 
 ### 2. Map the code surface
 
-Enumerate the actual capability surface. Use the language-appropriate discovery:
+Enumerate the actual capability surface.
+Use the language-appropriate discovery:
 
 - **CLI**: commands and subcommands, flags, `--help` output
 - **API**: routes/endpoints (grep for route decorators: `@app.route`, `@router`, `app.get`, handlers), request/response schemas
@@ -119,11 +135,13 @@ gh search issues --repo <repo> --state open --limit 100 --json number,title,labe
 gh search prs --repo <repo> --state closed --merged --limit 100 --json number,title,mergedAt
 ```
 
-Group open issues by theme (label, keyword, or inferred topic). Any cluster of 3+ same-theme issues becomes an "issue theme cluster" opportunity candidate.
+Group open issues by theme (label, keyword, or inferred topic).
+Any cluster of 3+ same-theme issues becomes an "issue theme cluster" opportunity candidate.
 
 ### 4. Derive opportunities
 
-Apply the seven Opportunity Dimensions to the evidence collected. For each candidate opportunity, record:
+Apply the seven Opportunity Dimensions to the evidence collected.
+For each candidate opportunity, record:
 
 - The dimension it came from
 - The concrete evidence (file:line, issue numbers, roadmap initiative)
@@ -132,19 +150,27 @@ Apply the seven Opportunity Dimensions to the evidence collected. For each candi
 
 ### 5. Dedup against prior reports and open issues
 
-Run the Dedup checks. Drop or annotate candidates already tracked. Assign stable IDs continuing the sequence from the prior report.
+Run the Dedup checks.
+Drop or annotate candidates already tracked.
+Assign stable IDs continuing the sequence from the prior report.
 
 ### 6. Rank and select
 
-Sort by score descending. Apply `--limit`. Group by dimension in the output for readability, but order groups by their top opportunity's score.
+Sort by score descending.
+Apply `--limit`.
+Group by dimension in the output for readability, but order groups by their top opportunity's score.
 
 ### 7. Write the report
 
-Write to `.sdlc/feature-opportunities-<TODAY>.md` (repo only; never mirrored to `SDLC_DIR`). Use the Output Format below.
+Write to `.sdlc/feature-opportunities-<TODAY>.md` (repo only; never mirrored to `SDLC_DIR`).
+Use the Output Format below.
 
 ### 8. Optional issue creation
 
-If `--create-issues N` was passed, file the top N via `/create-issue`. Each issue body cites the evidence and links back to this report. Use a `feature-opportunity` label (create it if absent). Do not file issues without the flag.
+If `--create-issues N` was passed, file the top N via `/create-issue`.
+Each issue body cites the evidence and links back to this report.
+Use a `feature-opportunity` label (create it if absent).
+Do not file issues without the flag.
 
 ## Output Format
 
@@ -215,14 +241,16 @@ status: complete
 
 ## Scheduling (Monthly Cadence)
 
-This skill is designed to run safely unattended on a schedule. Properties that make this safe:
+This skill is designed to run safely unattended on a schedule.
+Properties that make this safe:
 
 - **Read-only by default.** No commits, no PRs, no pushes unless `--create-issues` is passed.
 - **Idempotent.** Stable opportunity IDs, dedup against prior reports and open issues, so monthly runs only surface genuinely new opportunities.
 - **Bounded output.** `--limit` caps the report size.
 - **No side effects on the codebase.** Writes only to `.sdlc/feature-opportunities-<date>.md`.
 
-Recommended cadence: **monthly**. Feature discovery does not need to be weekly; the surface and signals change on a sprint-to-month timescale.
+Recommended cadence: **monthly**.
+Feature discovery does not need to be weekly; the surface and signals change on a sprint-to-month timescale.
 
 Scheduling options (same as `improve-codebase`):
 
@@ -251,7 +279,10 @@ Pair naturally with `/start-month` (discovery feeds monthly planning) and `/crea
 ```
 /identify-feature-opportunities
 ```
-Reads the whole codebase, last 90 days of issues/PRs, and `.sdlc/context/`. Surfaces 12 opportunities ranked by score. Writes `.sdlc/feature-opportunities-2026-08-03.md`. No issues filed.
+Reads the whole codebase, last 90 days of issues/PRs, and `.sdlc/context/`.
+Surfaces 12 opportunities ranked by score.
+Writes `.sdlc/feature-opportunities-2026-08-03.md`.
+No issues filed.
 
 **Scenario 2: Discovery that files the top 3**
 ```
@@ -263,19 +294,22 @@ Same scan, then files the top 3 as GitHub issues labeled `feature-opportunity`, 
 ```
 /identify-feature-opportunities --focus api
 ```
-Restricts the surface scan to the API layer. Useful when the API is the product's main growth area.
+Restricts the surface scan to the API layer.
+Useful when the API is the product's main growth area.
 
 **Scenario 4: First run, no .sdlc context yet**
 ```
 /identify-feature-opportunities
 ```
-Goals and roadmap absent, so Alignment defaults to 1.0 for all. Report notes that strategic context was missing and recommends running `/create-goals` and `/create-roadmap` to improve future scoring.
+Goals and roadmap absent, so Alignment defaults to 1.0 for all.
+Report notes that strategic context was missing and recommends running `/create-goals` and `/create-roadmap` to improve future scoring.
 
 **Scenario 5: Quarterly signal window**
 ```
 /identify-feature-opportunities --since 2026-04-01
 ```
-Only considers issues and PRs from Q2. Useful for a quarterly planning review.
+Only considers issues and PRs from Q2.
+Useful for a quarterly planning review.
 
 ## Useful Commands Reference
 

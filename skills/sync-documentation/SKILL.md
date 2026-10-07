@@ -14,13 +14,16 @@ Unlike `sync-sdlc` (which reconciles `.sdlc/` artifacts), this skill reconciles 
 
 ## The Core Problem This Solves
 
-Code changes constantly; documentation changes when someone remembers to update it. The result is docs that reference functions renamed three releases ago, CLI flags that no longer exist, code examples that fail to run, and nav entries pointing at deleted files.
-`/find-documentation-gaps` reports *what is missing*. This skill goes further: it detects *every* kind of drift (stale, missing, broken, outdated), fixes the mechanical ones without human input, and hands the rest to a human as a prioritized report.
+Code changes constantly; documentation changes when someone remembers to update it.
+The result is docs that reference functions renamed three releases ago, CLI flags that no longer exist, code examples that fail to run, and nav entries pointing at deleted files.
+`/find-documentation-gaps` reports *what is missing*.
+This skill goes further: it detects *every* kind of drift (stale, missing, broken, outdated), fixes the mechanical ones without human input, and hands the rest to a human as a prioritized report.
 
 ## Prerequisites
 
 - Working directory is the root of the repository
-- A `docs/` directory exists (or the `$1` path points at one). If neither exists, report that there is nothing to sync and suggest `/setup-docs-site`.
+- A `docs/` directory exists (or the `$1` path points at one).
+  If neither exists, report that there is nothing to sync and suggest `/setup-docs-site`.
 - Read access to the source tree and `docs/`
 - Optional: a docs build tool installed to verify the build (`mkdocs`, `sphinx-build`, `npm`)
 - `git` repository with commit history (used to scope drift to recent changes when `--fix` is off)
@@ -44,14 +47,18 @@ Code changes constantly; documentation changes when someone remembers to update 
 
 ## Mode
 
-- **Report mode (default):** detect all drift, classify it, and print a prioritized report. No files change. Safe to run anytime.
-- **Fix mode (`--fix`):** also apply the mechanical fixes listed above. Missing-documentation items are *never* auto-written (prose needs a human); they are reported so a human can write them with `/create-documentation`.
+- **Report mode (default):** detect all drift, classify it, and print a prioritized report.
+  No files change.
+  Safe to run anytime.
+- **Fix mode (`--fix`):** also apply the mechanical fixes listed above.
+  Missing-documentation items are *never* auto-written (prose needs a human); they are reported so a human can write them with `/create-documentation`.
 
 ## Steps
 
 ### 1. Parse arguments and locate the docs root
 
-- `$1` (optional): path to the docs directory. Defaults to `docs/`.
+- `$1` (optional): path to the docs directory.
+  Defaults to `docs/`.
 - `--fix`: apply mechanical fixes after detecting drift.
 - `--check-links`: validate external links via HTTP HEAD (slow; off by default).
 - If the docs root does not exist, report "nothing to sync" and suggest `/setup-docs-site`, then stop.
@@ -84,14 +91,17 @@ npm run build 2>&1 | tail -40
 ```
 
 `--strict` / `-W` turn warnings (broken references, missing files) into errors, which reports nav and link drift directly.
-Record pass/fail and capture the warnings for the report. Do not fail the whole skill on a broken build; a broken build is itself a finding.
+Record pass/fail and capture the warnings for the report.
+Do not fail the whole skill on a broken build; a broken build is itself a finding.
 
 ### 4. Check nav / sidebar consistency
 
 For MkDocs, parse `mkdocs.yml` `nav:` and compare against `docs/**/*.md`:
 
-- **Missing files (nav drift):** entries in `nav` whose target file does not exist. With `--fix`, remove the entry (and note it).
-- **Orphaned pages:** markdown files under `docs/` not reachable from `nav`. With `--fix`, add them under a sensible section or flag them.
+- **Missing files (nav drift):** entries in `nav` whose target file does not exist.
+  With `--fix`, remove the entry (and note it).
+- **Orphaned pages:** markdown files under `docs/` not reachable from `nav`.
+  With `--fix`, add them under a sensible section or flag them.
 
 For Sphinx, walk `toctree` directives in `.rst` files the same way.
 For Docusaurus, parse `sidebars.js`.
@@ -108,11 +118,13 @@ grep -roh --include="*.md" --include="*.rst" '`[A-Za-z_][A-Za-z0-9_.]*`' docs/ 2
 ```
 
 For each referenced symbol, confirm it exists in the source tree (use `grep -r` over `--include="*.py" --include="*.ts" --include="*.go"` etc., or an AST-based lookup for precision).
-A symbol that appears in docs but nowhere in source is **stale**. With `--fix`, attempt a rename resolution (see step 7); otherwise report it.
+A symbol that appears in docs but nowhere in source is **stale**.
+With `--fix`, attempt a rename resolution (see step 7); otherwise report it.
 
 ### 6. Detect missing documentation
 
-Run the read-only scan from `/find-documentation-gaps` (conceptually, or by invoking it) to find public APIs, CLI commands, endpoints, and config keys that have no corresponding doc. These are reported but never auto-written.
+Run the read-only scan from `/find-documentation-gaps` (conceptually, or by invoking it) to find public APIs, CLI commands, endpoints, and config keys that have no corresponding doc.
+These are reported but never auto-written.
 
 ### 7. Detect outdated code examples and signatures
 
@@ -122,7 +134,9 @@ For each fenced code block and signature shown in docs that maps to a real symbo
 - CLI: do the flags and subcommands shown still exist (check `--help` output or the command definitions)?
 - Config: do the keys and their default values match the current config schema / `.env.example`?
 
-A mismatch is an **outdated example**. With `--fix`, regenerate the snippet from the current source (signatures, `--help` output, config dump) where it can be done without losing content. If the example has surrounding prose that would become invalid, report it instead of rewriting.
+A mismatch is an **outdated example**.
+With `--fix`, regenerate the snippet from the current source (signatures, `--help` output, config dump) where it can be done without losing content.
+If the example has surrounding prose that would become invalid, report it instead of rewriting.
 
 ### 8. Check internal links
 
@@ -137,7 +151,9 @@ grep -rn --include="*.md" -E '\]\([^)]+\)|\[\[[^]]+\]\]' docs/ 2>/dev/null
 
 ### 9. Check external links (only with `--check-links`)
 
-For each `http(s)://` link in docs, issue a HEAD request. Report any non-2xx/3xx as a broken external link. Never auto-edit external links (a redirect may be intentional).
+For each `http(s)://` link in docs, issue a HEAD request.
+Report any non-2xx/3xx as a broken external link.
+Never auto-edit external links (a redirect may be intentional).
 
 ### 10. Apply fixes (only with `--fix`)
 
@@ -149,11 +165,13 @@ Apply, in order, the mechanical fixes identified above:
 4. Regenerate outdated signature/CLI/config snippets from source.
 5. Repair internal links using the rename map.
 
-After applying, **re-run the docs build** (step 3) to confirm the fixes did not introduce new errors. If the build regresses, revert the offending fix and report it as needing manual review.
+After applying, **re-run the docs build** (step 3) to confirm the fixes did not introduce new errors.
+If the build regresses, revert the offending fix and report it as needing manual review.
 
 ### 11. Write the sync report
 
-Produce the report (see Output Format). If `--fix` was used, summarize what changed and what still needs a human.
+Produce the report (see Output Format).
+If `--fix` was used, summarize what changed and what still needs a human.
 
 ## Output Format
 
@@ -253,19 +271,22 @@ status: complete
 ```
 /sync-documentation
 ```
-Reports that `docs/api.md` references `Client.fetch` (renamed to `Client.get`), two new CLI flags are undocumented, and `nav` points at a deleted `legacy.md`. No files change.
+Reports that `docs/api.md` references `Client.fetch` (renamed to `Client.get`), two new CLI flags are undocumented, and `nav` points at a deleted `legacy.md`.
+No files change.
 
 **Scenario 2: After a refactor, apply safe fixes**
 ```
 /sync-documentation docs --fix
 ```
-Renames `Client.fetch` -> `Client.get` across docs, removes the dead `legacy.md` nav entry, regenerates the CLI flags table from current `--help` output, and re-runs `mkdocs build --strict` to confirm it passes. Reports the 3 missing-docs items it could not auto-write.
+Renames `Client.fetch` -> `Client.get` across docs, removes the dead `legacy.md` nav entry, regenerates the CLI flags table from current `--help` output, and re-runs `mkdocs build --strict` to confirm it passes.
+Reports the 3 missing-docs items it could not auto-write.
 
 **Scenario 3: Catch broken external links before a release**
 ```
 /sync-documentation --check-links
 ```
-Same drift checks plus an HTTP HEAD sweep of every external link. Reports two 404s pointing at upstream docs that moved.
+Same drift checks plus an HTTP HEAD sweep of every external link.
+Reports two 404s pointing at upstream docs that moved.
 
 **Scenario 4: Sphinx project**
 ```

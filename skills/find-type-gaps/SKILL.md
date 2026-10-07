@@ -9,7 +9,9 @@ TODAY=!`date +%Y-%m-%d`
 
 # Find Type Gaps
 
-Identifies missing or incomplete type annotations in gradually-typed codebases. Type coverage is a safety net that supports test coverage: typed code catches a class of bugs at analysis time, makes refactoring safer, and reduces the effort of reading unfamiliar code. This skill lists gaps ranked by how much adding types would help — prioritizing public API surfaces and high-churn files.
+Identifies missing or incomplete type annotations in gradually-typed codebases.
+Type coverage is a safety net that supports test coverage: typed code catches a class of bugs at analysis time, makes refactoring safer, and reduces the effort of reading unfamiliar code.
+This skill lists gaps ranked by how much adding types would help — prioritizing public API surfaces and high-churn files.
 
 ## Prerequisites
 
@@ -37,7 +39,8 @@ Identifies missing or incomplete type annotations in gradually-typed codebases. 
 find ${1:-.} -type f | sed 's/.*\.//' | sort | uniq -c | sort -rn | head -5
 ```
 
-Proceed only if Python, TypeScript, or JavaScript files are present. Report "not applicable" for fully-typed languages.
+Proceed only if Python, TypeScript, or JavaScript files are present.
+Report "not applicable" for fully-typed languages.
 
 ### 2. Measure Type Coverage
 
@@ -166,8 +169,7 @@ cat mypy.ini setup.cfg pyproject.toml 2>/dev/null | rg -A10 "\[mypy\]|\[tool.myp
 
 Recommend adding to CI if not present.
 
-**TypeScript — check for strict mode:**
-If `strict: true` is not set in `tsconfig.json`, recommend enabling it incrementally:
+**TypeScript — check for strict mode:** If `strict: true` is not set in `tsconfig.json`, recommend enabling it incrementally:
 1. Enable `noImplicitAny` first
 2. Then `strictNullChecks`
 3. Then full `strict`
@@ -239,19 +241,24 @@ def fetch(url: str, timeout: int = 30) -> dict[str, Any]:
 ```
 /find-type-gaps
 ```
-61% of functions are typed. Public `Client` class has 8 untyped methods — the primary entry point for library users. Generates suggested signatures for all 8 based on call-site analysis.
+61% of functions are typed.
+Public `Client` class has 8 untyped methods — the primary entry point for library users.
+Generates suggested signatures for all 8 based on call-site analysis.
 
 **Scenario 2: TypeScript strictness audit**
 ```
 /find-type-gaps src/api
 ```
-`strict` mode is off. Finds 34 uses of `as any` and 12 implicit-any function parameters. Recommends enabling `noImplicitAny` first and lists the 12 parameters to fix.
+`strict` mode is off.
+Finds 34 uses of `as any` and 12 implicit-any function parameters.
+Recommends enabling `noImplicitAny` first and lists the 12 parameters to fix.
 
 **Scenario 3: Pre-refactor safety check**
 ```
 /find-type-gaps src/payments
 ```
-The payments module is 20% typed. Before refactoring, recommends annotating the 5 core functions so mypy can catch regressions during the refactor.
+The payments module is 20% typed.
+Before refactoring, recommends annotating the 5 core functions so mypy can catch regressions during the refactor.
 
 ## Useful Commands Reference
 

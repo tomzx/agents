@@ -20,8 +20,10 @@ Audits a domain model and reports findings across six categories: entity coverag
 1. Read the domain model from its artifact path if present, otherwise from context or as a file path.
 2. Cross-reference against available requirements, specification, or architecture documents to confirm entities and quantities cover the relevant domain.
 3. Identify issues in each of the six categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings beside the domain model with frontmatter `artifact: domain-model`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings beside the domain model with frontmatter `artifact: domain-model`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -97,17 +99,17 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing entity**
-The requirements repeatedly refer to "shipments" but the model has no shipment entity. Flag under Entity Coverage.
+**Scenario 1: Missing entity** The requirements repeatedly refer to "shipments" but the model has no shipment entity.
+Flag under Entity Coverage.
 
-**Scenario 2: Redefined project term**
-The glossary redefines "tenant" differently from `.sdlc/context/vocabulary.md`. Flag under Vocabulary Consistency: reuse the project term or explicitly note the divergence.
+**Scenario 2: Redefined project term** The glossary redefines "tenant" differently from `.sdlc/context/vocabulary.md`.
+Flag under Vocabulary Consistency: reuse the project term or explicitly note the divergence.
 
-**Scenario 3: Invariant with exceptions**
-An "invariant" says "every order has exactly one payment method" but split payments are known to exist. Flag under Invariant Validity.
+**Scenario 3: Invariant with exceptions** An "invariant" says "every order has exactly one payment method" but split payments are known to exist.
+Flag under Invariant Validity.
 
-**Scenario 4: Drift beyond scope**
-The model includes a full billing subsystem when the feature is only about export latency. Flag under Boundary Clarity.
+**Scenario 4: Drift beyond scope** The model includes a full billing subsystem when the feature is only about export latency.
+Flag under Boundary Clarity.
 
 ## Next Step
 

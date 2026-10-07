@@ -26,17 +26,22 @@ This skill goes deeper into the internal architecture you are about to modify: i
 
 1. Read the requirements document and extract the functional and non-functional requirements that imply changes to existing code.
 2. Read `.sdlc/context/architecture.md` (if present) to ground the analysis in the documented system topology, and read the existing solutions survey if one was produced.
-3. Determine the **analysis scope**: which parts of the codebase this feature will touch, integrate with, or replace. Trace inward from the requirements to concrete modules, services, data stores, and interfaces.
-4. Locate the relevant code by searching the codebase. Record the entry points used (queries, paths) so the search is auditable.
+3. Determine the **analysis scope**: which parts of the codebase this feature will touch, integrate with, or replace.
+   Trace inward from the requirements to concrete modules, services, data stores, and interfaces.
+4. Locate the relevant code by searching the codebase.
+   Record the entry points used (queries, paths) so the search is auditable.
 5. For each relevant component, capture its name, location (file or module path), current responsibility, and how the feature interacts with it (reads, writes, extends, replaces).
-6. Map **dependencies and coupling** between the relevant components and any external systems as a Mermaid `flowchart LR` with one node per component and class assignments matching the change dispositions (reuse / extend / refactor / replace). Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part in the accompanying prose. The diagram makes unintended coupling visible; the prose carries what the diagram cannot.
+6. Map **dependencies and coupling** between the relevant components and any external systems as a Mermaid `flowchart LR` with one node per component and class assignments matching the change dispositions (reuse / extend / refactor / replace).
+   Call out shared state, synchronous vs. asynchronous boundaries, and the blast radius of changing each part in the accompanying prose.
+   The diagram makes unintended coupling visible; the prose carries what the diagram cannot.
 7. For each component, decide a **change disposition** and justify it:
    - **Reuse as-is** — the component already does what is needed; do not modify it.
    - **Extend** — add to the component along its existing seams (new method, new config, new consumer) without altering current behavior.
    - **Refactor** — restructure the component's internals to accept the change, while preserving its observable behavior.
    - **Replace** — supersede the component (or a path through it) with a new implementation.
 8. For every **Refactor** or **Replace** disposition, outline migration and impact: the path from current to target behavior, backward compatibility, rollout strategy, what else breaks, and how to de-risk (feature flag, dual-run, shadow comparison).
-9. Record **assumptions about existing behavior** that the analysis relies on but has not fully verified. Promote any that carry meaningful risk via `/create-assumption`, and log architectural choices via `/create-decision`.
+9. Record **assumptions about existing behavior** that the analysis relies on but has not fully verified.
+   Promote any that carry meaningful risk via `/create-assumption`, and log architectural choices via `/create-decision`.
 10. Flag open questions where the changeability of a part cannot be decided without more investigation.
 11. Write the output to `.sdlc/features/N-<slug>/codebase-analysis.md`.
 
@@ -44,11 +49,13 @@ This skill goes deeper into the internal architecture you are about to modify: i
 
 If there is no relevant existing code to analyze (the feature introduces an entirely new subsystem with nothing to touch or integrate with):
 - Write a short note stating that the feature is greenfield, name the integration boundary (where it will attach to existing systems, if any), and stop.
-- Do not fabricate components. A one-paragraph "no relevant existing code" record is a valid, complete output.
+- Do not fabricate components.
+  A one-paragraph "no relevant existing code" record is a valid, complete output.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/codebase-analysis.md` (copied to `.sdlc/templates/features/codebase-analysis.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/codebase-analysis.md` (copied to `.sdlc/templates/features/codebase-analysis.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -57,16 +64,17 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Replacing an implementation strategy**
-Requirements ask for real-time Kubernetes state instead of minute-level polling reconciliation.
-The analysis finds the reconciliation loop, its informer-backed cache, and the consumers of its output. It recommends replacing the polling loop with an event-driven consumer (reusing the existing cache and its resync fallback) while keeping the output contract stable so downstream consumers are untouched. Migration runs both paths behind a feature flag with shadow comparison.
+**Scenario 1: Replacing an implementation strategy** Requirements ask for real-time Kubernetes state instead of minute-level polling reconciliation.
+The analysis finds the reconciliation loop, its informer-backed cache, and the consumers of its output.
+It recommends replacing the polling loop with an event-driven consumer (reusing the existing cache and its resync fallback) while keeping the output contract stable so downstream consumers are untouched.
+Migration runs both paths behind a feature flag with shadow comparison.
 
-**Scenario 2: Extend, do not rewrite**
-Requirements ask for per-tenant quotas on top of an existing rate limiter.
-The analysis shows the limiter is well-factored with a clean tenant key seam. Disposition: Extend (add a tenant-scoped counter) rather than Replace. Low risk.
+**Scenario 2: Extend, do not rewrite** Requirements ask for per-tenant quotas on top of an existing rate limiter.
+The analysis shows the limiter is well-factored with a clean tenant key seam.
+Disposition: Extend (add a tenant-scoped counter) rather than Replace.
+Low risk.
 
-**Scenario 3: Greenfield subsystem**
-Requirements ask for a brand-new export pipeline with no existing equivalent.
+**Scenario 3: Greenfield subsystem** Requirements ask for a brand-new export pipeline with no existing equivalent.
 The analysis records a greenfield note, names the single integration boundary (the queue it will read from), and stops.
 
 ## Completion Checklist

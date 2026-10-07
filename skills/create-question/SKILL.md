@@ -25,11 +25,14 @@ Questions differ from assumptions and decisions: an assumption is a belief held 
 5. Set a needed-by date or milestone after which the block becomes costly.
 6. Save the document to `.sdlc/knowledge/questions/` using the filename pattern `N-<slug>.md` where `N` is the next available number (counting existing files in that directory).
 
-When the answer arrives, record it via `/review-question`. When the answer cannot be obtained in time and work proceeds on a belief instead, promote the question to an assumption via `/create-assumption`. When the answer requires choosing between options, record the choice via `/create-decision` and link it from the question.
+When the answer arrives, record it via `/review-question`.
+When the answer cannot be obtained in time and work proceeds on a belief instead, promote the question to an assumption via `/create-assumption`.
+When the answer requires choosing between options, record the choice via `/create-decision` and link it from the question.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/knowledge/question.md` (copied to `.sdlc/templates/knowledge/question.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/knowledge/question.md` (copied to `.sdlc/templates/knowledge/question.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -38,22 +41,20 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/que
 
 ## Example Usage
 
-**Scenario 1: Scope question to a stakeholder**
-Question: which export formats must the first release support, PDF only or CSV too?
+**Scenario 1: Scope question to a stakeholder** Question: which export formats must the first release support, PDF only or CSV too?
 Context: surfaced by `/create-requirements` for FEAT-12; the data layer differs per format.
 Answered by: the product owner, in Thursday's sync.
 Impact if unanswered: export module specification is blocked (High).
 Needed by: sprint planning on 2026-08-20.
 
-**Scenario 2: External dependency question**
-Question: does the payment provider support multi-currency refunds on the plan we purchased?
+**Scenario 2: External dependency question** Question: does the payment provider support multi-currency refunds on the plan we purchased?
 Context: surfaced by `/create-feasibility` for FEAT-8.
 Answered by: vendor support, via the account channel.
 Impact if unanswered: refund flow stays generic in the specification (Medium).
 Needed by: before specification review.
 
-**Scenario 3: Question that becomes an assumption**
-Question: will the database migration finish before the launch freeze? No answer by the needed-by date.
+**Scenario 3: Question that becomes an assumption** Question: will the database migration finish before the launch freeze?
+No answer by the needed-by date.
 Promoted via `/create-assumption` (work proceeds assuming the migration completes on time), then resolved via `/review-question` with a link to the assumption.
 
 ## Completion Checklist

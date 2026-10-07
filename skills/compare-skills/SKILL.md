@@ -45,7 +45,8 @@ Patterns in "mine" that "theirs" has evolved away from or that are demonstrably 
 
 ## What Counts as a Disagreement
 
-Conflicting instructions that give the agent incompatible guidance. These are higher priority than removal candidates because they actively cause wrong behavior.
+Conflicting instructions that give the agent incompatible guidance.
+These are higher priority than removal candidates because they actively cause wrong behavior.
 
 | Scope | What to Detect | Example |
 |-------|---------------|---------|
@@ -64,7 +65,8 @@ MINE_DIR=$1
 THEIRS_DIR=$2
 ```
 
-Validate both directories exist and contain at least one `SKILL.md`. If arguments are missing or directories are invalid, report the error and stop.
+Validate both directories exist and contain at least one `SKILL.md`.
+If arguments are missing or directories are invalid, report the error and stop.
 
 ### 2. Inventory Skills
 
@@ -129,7 +131,8 @@ For each matched pair, compare along these dimensions:
 
 ### 6. Identify Removal Candidates in Mine
 
-For each skill in `<mine-dir>`, check for the removal candidate signals above. Cross-reference with "theirs" where a matched skill exists:
+For each skill in `<mine-dir>`, check for the removal candidate signals above.
+Cross-reference with "theirs" where a matched skill exists:
 
 - If theirs omits a section mine has, determine if the omission is intentional (the section adds no value) or a gap in theirs
 - If theirs has a cleaner version of the same instruction, flag mine's version as a simplification target
@@ -300,16 +303,19 @@ Conflicting instructions found, sorted by scope and severity:
 ```
 /compare-skills ~/.opencode/skills /path/to/reference-repo/skills
 ```
-Finds that the reference repo consistently includes `allowed-tools` frontmatter and Example sections, while yours lacks them on 12 skills. Produces a checklist to add these to each affected skill.
+Finds that the reference repo consistently includes `allowed-tools` frontmatter and Example sections, while yours lacks them on 12 skills.
+Produces a checklist to add these to each affected skill.
 
 **Scenario 2: Compare two team members' skill sets**
 ```
 /compare-skills ~/my-skills ~/teammate-skills
 ```
-Discovers 5 unique skills in teammate's directory that cover workflows you also perform. Recommends adopting them.
+Discovers 5 unique skills in teammate's directory that cover workflows you also perform.
+Recommends adopting them.
 
 **Scenario 3: Upgrade your skills after pulling upstream changes**
 ```
 /compare-skills ~/.agents/skills ~/.opencode/skills
 ```
-Finds that the upstream `.opencode/skills` has improved output formatting and added error handling sections. Prioritizes which improvements to backport.
+Finds that the upstream `.opencode/skills` has improved output formatting and added error handling sections.
+Prioritizes which improvements to backport.

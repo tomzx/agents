@@ -46,7 +46,8 @@ Worktrees on branches with no upstream at all were never pushed, so there is no 
 
 ### 3. Verify merge state against GitHub
 
-For each candidate branch, list merged PRs from that head. `ghx pr list` does not expose `headRefOid`, so use `gh`:
+For each candidate branch, list merged PRs from that head.
+`ghx pr list` does not expose `headRefOid`, so use `gh`:
 
 ```
 gh pr list --state merged --head <branch> --json number,headRefOid,mergedAt
@@ -54,9 +55,12 @@ gh pr list --state merged --head <branch> --json number,headRefOid,mergedAt
 
 Compare the newest merged PR's `headRefOid` with the local tip (`git rev-parse <branch>`) and classify:
 
-- **Merged (verified)**: a merged PR exists and its head SHA equals the local tip, so nothing was added to the branch after the merge. Safe to remove.
-- **At risk**: no merged PR for that head, or the local tip differs from the PR head (commits after the merge). Keep the worktree and report why.
-- **Unverifiable**: `gh` is unavailable or unauthenticated. Treat every candidate as at risk, say that verification was impossible, and stop before any deletion.
+- **Merged (verified)**: a merged PR exists and its head SHA equals the local tip, so nothing was added to the branch after the merge.
+  Safe to remove.
+- **At risk**: no merged PR for that head, or the local tip differs from the PR head (commits after the merge).
+  Keep the worktree and report why.
+- **Unverifiable**: `gh` is unavailable or unauthenticated.
+  Treat every candidate as at risk, say that verification was impossible, and stop before any deletion.
 
 Gone upstream alone never proves the work shipped: a branch can be deleted on the remote while still holding unmerged commits.
 
@@ -125,25 +129,29 @@ If everything was already clean, report "nothing to prune" with the count of wor
 ```
 /prune-merged-worktrees
 ```
-Three worktrees exist, two branches are `gone` upstream, both have merged PRs whose head SHAs match the local tips, both worktrees are clean. Present the table, get confirmation, remove both worktrees, delete both branches with `-D`, delete the `prs/<n>/review` tags, run `git worktree prune -v`.
+Three worktrees exist, two branches are `gone` upstream, both have merged PRs whose head SHAs match the local tips, both worktrees are clean.
+Present the table, get confirmation, remove both worktrees, delete both branches with `-D`, delete the `prs/<n>/review` tags, run `git worktree prune -v`.
 
 **Scenario 2: Dirty worktree on a merged branch**
 ```
 /prune-merged-worktrees --force
 ```
-PR #17 is merged but the worktree holds 3 uncommitted files. With `--force` the worktree is removed after the user confirms the summary table; without `--force` it would be reported and skipped.
+PR #17 is merged but the worktree holds 3 uncommitted files.
+With `--force` the worktree is removed after the user confirms the summary table; without `--force` it would be reported and skipped.
 
 **Scenario 3: Squash-merged branch that git thinks is unmerged**
 ```
 /prune-merged-worktrees
 ```
-`git branch -d` would refuse and `git rev-list main..<branch>` shows commits, because the squash merge created a new SHA. `gh pr list --state merged --head <branch>` finds merged PR #23 with `headRefOid` equal to the local tip, so the branch is classified merged (verified) and pruned.
+`git branch -d` would refuse and `git rev-list main..<branch>` shows commits, because the squash merge created a new SHA.
+`gh pr list --state merged --head <branch>` finds merged PR #23 with `headRefOid` equal to the local tip, so the branch is classified merged (verified) and pruned.
 
 **Scenario 4: Commits added after the merge**
 ```
 /prune-merged-worktrees
 ```
-PR #9 is merged, but the local tip differs from the PR head: someone committed to the branch after the merge. The worktree is classified at risk, kept, and surfaced in the report for a human decision.
+PR #9 is merged, but the local tip differs from the PR head: someone committed to the branch after the merge.
+The worktree is classified at risk, kept, and surfaced in the report for a human decision.
 
 ## Useful Commands Reference
 

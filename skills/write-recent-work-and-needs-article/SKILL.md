@@ -5,13 +5,16 @@ description: Write a personal status article covering what you have been working
 
 # Write Recent Work and Needs Article
 
-Produces a personal status article with two sections: what you have been working on recently, and what you see as your current needs. Useful for blog posts, manager syncs, team updates, or personal reflection.
+Produces a personal status article with two sections: what you have been working on recently, and what you see as your current needs.
+Useful for blog posts, manager syncs, team updates, or personal reflection.
 
 ## Steps
 
 ### 1. Summarize the Previous Article
 
-Before gathering new information, find the previous article in this series (the most recent article in the blog repository following this structure). Take its "What I Currently Need" section and summarize it as one bullet point per paragraph. This summary serves two purposes:
+Before gathering new information, find the previous article in this series (the most recent article in the blog repository following this structure).
+Take its "What I Currently Need" section and summarize it as one bullet point per paragraph.
+This summary serves two purposes:
 
 - It refreshes what was needed last time, so continuity is not lost
 - It gives the user a checklist to react to: they can drop resolved needs and carry unresolved ones into the new article
@@ -33,7 +36,8 @@ Present the summary to the user and ask them to confirm, correct, and add work t
 
 Ask the user:
 
-> "What have you been working on recently? List anything significant from the past few weeks: features shipped, problems solved, decisions made, investigations, collaborations."
+> "What have you been working on recently?
+> List anything significant from the past few weeks: features shipped, problems solved, decisions made, investigations, collaborations."
 
 Prompt for specifics if the response is vague:
 - What was the outcome, not just the activity?
@@ -44,7 +48,8 @@ Prompt for specifics if the response is vague:
 
 Ask the user:
 
-> "What do you currently need? Think about: blockers waiting on someone else, decisions that haven't been made, resources or access you're missing, areas where the goal or approach is still unclear."
+> "What do you currently need?
+> Think about: blockers waiting on someone else, decisions that haven't been made, resources or access you're missing, areas where the goal or approach is still unclear."
 
 Prompt for specifics if the response is vague:
 - Who needs to act for the blocker to clear?
@@ -58,14 +63,19 @@ Using the information gathered, write the article according to the structure bel
 - Under current needs, be specific: name the blocker, the person whose input is needed, or the resource required
 - Avoid vague language ("working on various things", "need more support") -- name the thing
 - Omit the needs section entirely if the user has none
-- Use the same formatting style for both sections. If one section uses bold lead paragraphs, the other should too. Do not mix lists and paragraphs.
+- Use the same formatting style for both sections.
+  If one section uses bold lead paragraphs, the other should too.
+  Do not mix lists and paragraphs.
 - When mentioning named tools, skills, or projects that have a public URL, link to them on first mention.
 
 ### 5. Confirm and Deliver
 
-Present the draft to the user. Ask if anything should be added, removed, or reworded before finalizing.
+Present the draft to the user.
+Ask if anything should be added, removed, or reworded before finalizing.
 
-Save the final article to a file in the blog repository. Create a directory named after the slugified title containing an `index.md` file. Follow the naming and frontmatter conventions of recent articles in the repository (check the most recent directories for title, created date, type, status, tags, and readability fields).
+Save the final article to a file in the blog repository.
+Create a directory named after the slugified title containing an `index.md` file.
+Follow the naming and frontmatter conventions of recent articles in the repository (check the most recent directories for title, created date, type, status, tags, and readability fields).
 
 ## Article Structure
 
@@ -100,11 +110,11 @@ Omit this section entirely if there are no real needs right now.]
 
 ## Example Usage
 
-**Scenario 1: Manager sync**
-User describes shipping a feature and one open blocker waiting on a team decision. Output: a focused article naming what shipped, what is in progress, and a specific ask for the decision.
+**Scenario 1: Manager sync** User describes shipping a feature and one open blocker waiting on a team decision.
+Output: a focused article naming what shipped, what is in progress, and a specific ask for the decision.
 
-**Scenario 2: Quiet period**
-User reports mostly maintenance and no blockers. Output: honest brief summary of maintenance work done, no needs section.
+**Scenario 2: Quiet period** User reports mostly maintenance and no blockers.
+Output: honest brief summary of maintenance work done, no needs section.
 
-**Scenario 3: Many open threads**
-User lists five workstreams. Output: groups related items into two or three themes rather than listing all five separately.
+**Scenario 3: Many open threads** User lists five workstreams.
+Output: groups related items into two or three themes rather than listing all five separately.

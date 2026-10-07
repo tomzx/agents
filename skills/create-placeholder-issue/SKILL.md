@@ -8,7 +8,9 @@ argument-hint: "[feature]"
 
 Creates a minimal placeholder GitHub issue for a **pending** SDLC feature, then promotes the feature to issue-driven form: renames the directory to the new issue number and rewrites every `FEAT-p<seq>` cross-reference to `FEAT-<issue>`.
 
-This is the promotion step defined by the Feature Directory Naming convention in `skills/sdlc/references/shared.md`. Use it for features created bottom-up (e.g. by `sync-sdlc` from code analysis) that have no GitHub issue yet. For top-down work where you start from a feature request, use `/create-issue`, which produces a full structured issue.
+This is the promotion step defined by the Feature Directory Naming convention in `skills/sdlc/references/shared.md`.
+Use it for features created bottom-up (e.g. by `sync-sdlc` from code analysis) that have no GitHub issue yet.
+For top-down work where you start from a feature request, use `/create-issue`, which produces a full structured issue.
 
 ## Prerequisites
 
@@ -30,13 +32,18 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 ## Steps
 
-1. **Resolve the target feature.** Use `$1` if provided (a feature id like `FEAT-p1`, the token `p1`, or a directory name `p1-<slug>`). Otherwise read `.sdlc/state.yml` `feature`; if that is unset and exactly one `p`-prefixed directory exists under `.sdlc/features/`, use it. If none can be resolved, stop and report `not-found`.
+1. **Resolve the target feature.** Use `$1` if provided (a feature id like `FEAT-p1`, the token `p1`, or a directory name `p1-<slug>`).
+   Otherwise read `.sdlc/state.yml` `feature`; if that is unset and exactly one `p`-prefixed directory exists under `.sdlc/features/`, use it.
+   If none can be resolved, stop and report `not-found`.
 
-2. **Locate the feature directory** via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repo}/.sdlc/`). Record both locations when mirrored.
+2. **Locate the feature directory** via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repo}/.sdlc/`).
+   Record both locations when mirrored.
 
-3. **Verify it is pending.** If the directory token is numeric, the feature is already issue-driven: stop and report `already-issue-driven` with the issue number from its frontmatter. If the token is not `p`-prefixed, stop with an error.
+3. **Verify it is pending.** If the directory token is numeric, the feature is already issue-driven: stop and report `already-issue-driven` with the issue number from its frontmatter.
+   If the token is not `p`-prefixed, stop with an error.
 
-4. **Duplicate check.** Read the feature's frontmatter `issue` field; if it is already set, treat the feature as already promoted (`already-issue-driven`). Otherwise search for an existing open issue mentioning the feature slug and "placeholder":
+4. **Duplicate check.** Read the feature's frontmatter `issue` field; if it is already set, treat the feature as already promoted (`already-issue-driven`).
+   Otherwise search for an existing open issue mentioning the feature slug and "placeholder":
    ```
    ghx issue list --search "<slug> placeholder" --state open --limit 10
    ```
@@ -44,13 +51,17 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 5. **Derive the issue title and body.**
    - **Title:** the feature's frontmatter `title` if present, otherwise humanize the `<slug>` (e.g. `notification-system` -> `Notification system`).
-   - **Body:** build a placeholder body. If the feature has a `requirements.md`, include its overview paragraph and acceptance criteria (rendered as a checklist) so the issue is immediately useful; otherwise use a minimal stub. Always include:
+   - **Body:** build a placeholder body.
+     If the feature has a `requirements.md`, include its overview paragraph and acceptance criteria (rendered as a checklist) so the issue is immediately useful; otherwise use a minimal stub.
+     Always include:
      - a visible one-line note that this is a placeholder auto-created for a pending SDLC feature, which a later pass will complete (this visible text also makes the duplicate search work),
      - an HTML comment marker `<!-- sdlc-placeholder:p<seq>-<slug> -->` recording the originating feature directory,
      - a reference to the feature directory path.
    - Append the **Created with** attribution footer resolved from `github-post-attribution/SKILL.md`.
 
-6. **Create the issue.** Apply labels only if they already exist: prefer a `sdlc-placeholder` label if present (so placeholders are filterable), otherwise apply no labels. Do not create labels. Omit `--repo` to let `gh` infer the repository from the working directory.
+6. **Create the issue.** Apply labels only if they already exist: prefer a `sdlc-placeholder` label if present (so placeholders are filterable), otherwise apply no labels.
+   Do not create labels.
+   Omit `--repo` to let `gh` infer the repository from the working directory.
    ```
    gh issue create --title "<title>" --body "$(cat <<'EOF'
    <body>
@@ -59,22 +70,28 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
    ```
    Capture the returned issue number as `M` and the URL.
 
-7. **Rename the feature directory.** `p<seq>-<slug>` -> `M-<slug>`. Use `git mv` when the directory is inside a git work tree (`.sdlc/` is tracked); otherwise plain `mv`. Apply the rename in every resolved location (repo and SDLC_DIR mirror).
+7. **Rename the feature directory.** `p<seq>-<slug>` -> `M-<slug>`.
+   Use `git mv` when the directory is inside a git work tree (`.sdlc/` is tracked); otherwise plain `mv`.
+   Apply the rename in every resolved location (repo and SDLC_DIR mirror).
    ```
    git mv .sdlc/features/p<seq>-<slug> .sdlc/features/M-<slug>
    ```
 
-8. **Rewrite the feature identifier everywhere.** Replace every occurrence of `FEAT-p<seq>` with `FEAT-M` across all `.md` and `.yml` files under `.sdlc/` (and the mirror). This covers frontmatter `feature:` fields, qualified cross-references like `FEAT-p1-FR-2`, and progress/state files.
+8. **Rewrite the feature identifier everywhere.** Replace every occurrence of `FEAT-p<seq>` with `FEAT-M` across all `.md` and `.yml` files under `.sdlc/` (and the mirror).
+   This covers frontmatter `feature:` fields, qualified cross-references like `FEAT-p1-FR-2`, and progress/state files.
 
-   Match the token with a trailing non-digit boundary so adjacent ids are not corrupted (e.g. `FEAT-p2` must not match inside `FEAT-p20`). With the real values substituted (here `p2` -> `137`):
+   Match the token with a trailing non-digit boundary so adjacent ids are not corrupted (e.g. `FEAT-p2` must not match inside `FEAT-p20`).
+   With the real values substituted (here `p2` -> `137`):
    ```
    rg -l --no-ignore 'FEAT-p2' .sdlc | xargs perl -i -pe 's/\bFEAT-p2(?!\d)/FEAT-137/g'
    ```
    The `(?!\d)` lookahead prevents the partial-match problem; `\b` anchors the left side at the `F`.
 
-9. **Set the issue reference in frontmatter.** In every artifact under the renamed feature directory that has YAML frontmatter, set `issue: "#M"` (add the field if absent, update if present). Update `.sdlc/state.yml`: set `github_ref: "#M"` and, if its `feature:` field referenced this feature, update it to `FEAT-M-<slug>`.
+9. **Set the issue reference in frontmatter.** In every artifact under the renamed feature directory that has YAML frontmatter, set `issue: "#M"` (add the field if absent, update if present).
+   Update `.sdlc/state.yml`: set `github_ref: "#M"` and, if its `feature:` field referenced this feature, update it to `FEAT-M-<slug>`.
 
-10. **Leave the placeholder marker in place.** Do not complete the issue body here. The `<!-- sdlc-placeholder -->` marker is cleared only once a later pass (or `/create-issue` in revision) replaces the stub with full background, acceptance criteria, and time budget.
+10. **Leave the placeholder marker in place.** Do not complete the issue body here.
+    The `<!-- sdlc-placeholder -->` marker is cleared only once a later pass (or `/create-issue` in revision) replaces the stub with full background, acceptance criteria, and time budget.
 
 11. **Emit outcome** (see Outcome).
 

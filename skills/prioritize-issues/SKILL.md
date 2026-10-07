@@ -69,7 +69,8 @@ Fetches all open issues, scores them on RICE, and outputs a ranked table.
 ```
 /prioritize-issues owner/myrepo
 ```
-User says "only issues in milestone v2.0." Filter with:
+User says "only issues in milestone v2.0."
+Filter with:
 ```
 ghx issue list [--repo $1] --milestone "v2.0" --state open
 ```

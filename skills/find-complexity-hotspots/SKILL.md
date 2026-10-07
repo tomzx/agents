@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Complexity Hotspots
 
-Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions. This pairs well with `/analyze-git-churn`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
+Identifies the most complex code in the codebase — by cyclomatic complexity, function length, and nesting depth — and produces targeted refactoring suggestions.
+This pairs well with `/analyze-git-churn`: files that are both frequently changed and structurally complex are the highest-priority refactoring targets.
 
 ## Prerequisites
 
@@ -30,7 +31,8 @@ Identifies the most complex code in the codebase — by cyclomatic complexity, f
 | Nesting depth | Maximum indentation depth inside a function | ≥ 4 levels |
 | File length | Total lines in a file | ≥ 500 |
 
-Flag any unit that exceeds **any** threshold. Rank by the number of thresholds exceeded, then by severity within each metric.
+Flag any unit that exceeds **any** threshold.
+Rank by the number of thresholds exceeded, then by severity within each metric.
 
 ## Steps
 
@@ -110,7 +112,9 @@ find ${1:-.} -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*
 
 ### 6. Rank and Deduplicate
 
-Build a unified hotspot list. Score each file/function: +1 for each threshold exceeded, weighted by severity. Remove duplicates so each file appears once in the summary with all its violations listed.
+Build a unified hotspot list.
+Score each file/function: +1 for each threshold exceeded, weighted by severity.
+Remove duplicates so each file appears once in the summary with all its violations listed.
 
 ### 7. Inspect Each Hotspot
 
@@ -181,13 +185,15 @@ Suggested order of operations, including whether to write tests before refactori
 ```
 /find-complexity-hotspots
 ```
-Finds a 900-line router file with average cyclomatic complexity of F(31). Suggests splitting into sub-routers and replacing a 15-branch `if/elif` chain with a dispatch table.
+Finds a 900-line router file with average cyclomatic complexity of F(31).
+Suggests splitting into sub-routers and replacing a 15-branch `if/elif` chain with a dispatch table.
 
 **Scenario 2: Targeted scan**
 ```
 /find-complexity-hotspots src/api
 ```
-Scans only the `src/api` directory. Surfaces two handler functions each over 80 lines; recommends extracting validation and serialization into separate helpers.
+Scans only the `src/api` directory.
+Surfaces two handler functions each over 80 lines; recommends extracting validation and serialization into separate helpers.
 
 ## Useful Commands Reference
 

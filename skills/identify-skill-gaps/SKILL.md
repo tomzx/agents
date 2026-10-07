@@ -19,11 +19,13 @@ Surfaces manual workflows that could become skills, then prompts to scaffold or 
 
 ### 1. Inventory existing skills
 
-List all directories under `~/agents/skills/`. This is the current skill library.
+List all directories under `~/agents/skills/`.
+This is the current skill library.
 
 ### 2. Extract workflows from context
 
-From any activity context available in the session (GitHub summary, Slack summary, overall summary, standup, review, or conversation), identify distinct **repeated or multi-step workflows** the user executed. Focus on:
+From any activity context available in the session (GitHub summary, Slack summary, overall summary, standup, review, or conversation), identify distinct **repeated or multi-step workflows** the user executed.
+Focus on:
 
 - Things done more than once, or done the same way as on previous days.
 - Multi-step tasks that follow a clear pattern (collect → process → write → send).
@@ -32,11 +34,13 @@ From any activity context available in the session (GitHub summary, Slack summar
 
 ### 3. Compare against existing skills
 
-For each workflow identified, check if a matching skill already exists in the library. A skill "covers" a workflow if its name or description clearly matches the intent.
+For each workflow identified, check if a matching skill already exists in the library.
+A skill "covers" a workflow if its name or description clearly matches the intent.
 
 ### 4. Report gaps
 
-Present a short bulleted list of workflows that have **no matching skill**, grouped by rough category (e.g., communication, code review, reporting, planning). For each gap include:
+Present a short bulleted list of workflows that have **no matching skill**, grouped by rough category (e.g., communication, code review, reporting, planning).
+For each gap include:
 
 - A one-sentence description of the workflow.
 - A suggested skill name (kebab-case).

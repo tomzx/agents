@@ -9,15 +9,20 @@ argument-hint: "[pr-url ... | owner/repo ...]"
 
 Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment concurrently with the chain).
 
-The orchestrator (this session) only discovers work and aggregates results. It never runs a review step itself. Before dispatching, it stops any older run of the same task in the same directory so only the newest one works there. Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot delay any other PR.
+The orchestrator (this session) only discovers work and aggregates results.
+It never runs a review step itself.
+Before dispatching, it stops any older run of the same task in the same directory so only the newest one works there.
+Each PR is owned end to end by one `review-pr-full` subagent, so a slow step on one PR (for example a `verify-pr` build) cannot delay any other PR.
 
-The discovery, staleness check, and head-ref resolution are done by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`). Its `--dispatch-prs` output is one self-contained `/review-pr-full` command per PR, carrying the precomputed stale steps and head refs:
+The discovery, staleness check, and head-ref resolution are done by a deterministic Python script (`~/.agents/scripts/review_requested_prs.py`).
+Its `--dispatch-prs` output is one self-contained `/review-pr-full` command per PR, carrying the precomputed stale steps and head refs:
 
 ```
 /review-pr-full 42 acme/api --steps validate-pr,verify-pr --head-repo acme/api --head-branch feature-x
 ```
 
-Because the command is self-contained, `review-pr-full` starts the checks immediately: it does not re-query GitHub for staleness or PR status. This is what keeps the orchestrator from slowing the work down.
+Because the command is self-contained, `review-pr-full` starts the checks immediately: it does not re-query GitHub for staleness or PR status.
+This is what keeps the orchestrator from slowing the work down.
 
 ## Marker format
 
@@ -27,7 +32,8 @@ Each sub-skill posts a comment (or writes locally when posting is disabled) with
 <!-- {"step":"validate-pr","sha":"abc123","tree":"3f9c2e1","verdict":"pass"} -->
 ```
 
-The verdict is either `pass` (continue to the next step) or `fail` (halt the pipeline for this PR). Each sub-skill maps its own verdict vocabulary to these two values:
+The verdict is either `pass` (continue to the next step) or `fail` (halt the pipeline for this PR).
+Each sub-skill maps its own verdict vocabulary to these two values:
 
 | Step | Internal verdicts | `pass` | `fail` |
 |------|-------------------|--------|--------|
@@ -37,17 +43,23 @@ The verdict is either `pass` (continue to the next step) or `fail` (halt the pip
 | review-pr | approved, changes-requested, rejected | approved | changes-requested, rejected |
 | analyze-test-coverage | pass, fail | Fully covered (every behavior change covered, no uncovered code) | At least one uncovered change or code path |
 
-The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan. `assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step. `analyze-test-coverage` also sits outside the cutoff: it runs before `validate-pr`, its `fail` verdict never gates anything, and a failed `validate-pr` does not drop it. The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
+The script reads these markers (both GitHub PR comments and local report files under `~/.sdlc/<owner>/<repo>/pull-requests/<pr>/`) to decide which steps are stale, applies the pass/fail cutoff (chain steps after a failed prior step are not dispatched), and emits the resulting plan.
+`assess-pr-risk` sits outside the cutoff: it is stale independently of the chain, is never dropped because a chain step failed, and never drops a chain step.
+`analyze-test-coverage` also sits outside the cutoff: it runs before `validate-pr`, its `fail` verdict never gates anything, and a failed `validate-pr` does not drop it.
+The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
 
-Run without `--dispatch-prs`, the script prints a human summary table whose PR number carries an auto-approve light (🟢 could be approved automatically, 🟡 needs attention, 🔴 blocked) derived from the same signals: chain verdicts, review-step staleness, approvals, changes requested, and the assess-pr-risk route. An existing approval is not required for green; the light decides whether to approve, not whether approval already happened.
+Run without `--dispatch-prs`, the script prints a human summary table whose PR number carries an auto-approve light (🟢 could be approved automatically, 🟡 needs attention, 🔴 blocked) derived from the same signals: chain verdicts, review-step staleness, approvals, changes requested, and the assess-pr-risk route.
+An existing approval is not required for green; the light decides whether to approve, not whether approval already happened.
 
 ## Prerequisites
 
 - `uv` installed (for running the Python scripts)
 - `gh` CLI authenticated (used by the script as a token fallback, and by `review-pr-full` to fetch head branches)
-- `opencode2` CLI (optional): used by the step 0 concurrency guard to list, detect, and stop older sessions in this directory. When it is unavailable the guard warns and is skipped.
+- `opencode2` CLI (optional): used by the step 0 concurrency guard to list, detect, and stop older sessions in this directory.
+  When it is unavailable the guard warns and is skipped.
 - `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, and `assess-pr-risk` skills available
-- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, fall back to sequential mode.
+- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`).
+  If unavailable, fall back to sequential mode.
 
 ## Workflow
 
@@ -74,13 +86,18 @@ Run ~/.agents/scripts/review_requested_prs.py --dispatch-prs
 
 ### 0. Stop older sessions in this directory
 
-Only one agent session should work in a directory at a time: a scheduled run and an interactive session in the same repo overwrite each other's in-flight work. Before dispatching anything, make sure this (newer) session owns the directory:
+Only one agent session should work in a directory at a time: a scheduled run and an interactive session in the same repo overwrite each other's in-flight work.
+Before dispatching anything, make sure this (newer) session owns the directory:
 
 ```bash
 ~/.agents/scripts/stop_sibling_sessions.py --session <current session id>
 ```
 
-The script uses `opencode2 api` to list the root sessions in the current directory (`session.list`), find the ones currently running (`session.active`), and interrupt every one created before this session (`session.interrupt`), so the newest session always wins and sessions created after it are left alone. Only runs of the same task count as siblings: this session's title must be `IDENTIFIER YYYY-MM-DD HH:MM` (for example `triage-pr-feedback 2026-09-30 15:00`) and a sibling must share that identifier, so interactive sessions and runs of other tasks are left alone. Passing `--session <current session id>` keeps it from stopping itself (the script also reads `$OPENCODE_SESSION_ID` when set). `session.active` and `session.interrupt` only see executions owned by the OpenCode server `opencode2` talks to, so pass `--server <url>` to target another server. If `opencode2` is missing or unreachable the script warns and exits 0, so the review still proceeds; this guard is best-effort and never blocks dispatch.
+The script uses `opencode2 api` to list the root sessions in the current directory (`session.list`), find the ones currently running (`session.active`), and interrupt every one created before this session (`session.interrupt`), so the newest session always wins and sessions created after it are left alone.
+Only runs of the same task count as siblings: this session's title must be `IDENTIFIER YYYY-MM-DD HH:MM` (for example `triage-pr-feedback 2026-09-30 15:00`) and a sibling must share that identifier, so interactive sessions and runs of other tasks are left alone.
+Passing `--session <current session id>` keeps it from stopping itself (the script also reads `$OPENCODE_SESSION_ID` when set).
+`session.active` and `session.interrupt` only see executions owned by the OpenCode server `opencode2` talks to, so pass `--server <url>` to target another server.
+If `opencode2` is missing or unreachable the script warns and exits 0, so the review still proceeds; this guard is best-effort and never blocks dispatch.
 
 ### 1. Run the discovery script
 
@@ -91,21 +108,27 @@ Run the script to discover PRs and get one ready-to-run command per PR with stal
 ```
 
 The script accepts the same arguments as the skill:
-- No arguments: searches all open PRs where you are a requested reviewer (plus open PRs you have already reviewed). Notification-based discovery is off unless `--notifications` is passed
+- No arguments: searches all open PRs where you are a requested reviewer (plus open PRs you have already reviewed).
+  Notification-based discovery is off unless `--notifications` is passed
 - `owner/repo` arguments: scopes the search to those repos
 - PR URL arguments: processes only those specific PRs
 - Mixed: processes the union of explicit PRs and search results
 
 Useful flags:
 - `--limit N`: cap the number of PRs discovered per source (default 100)
-- `--notifications`: enable notification-based discovery of dropped review requests (per repo when `owner/repo` is given, global otherwise). Off by default; needs the notifications or repo scope and can be slow
+- `--notifications`: enable notification-based discovery of dropped review requests (per repo when `owner/repo` is given, global otherwise).
+  Off by default; needs the notifications or repo scope and can be slow
 - `--workers N`: number of PRs and drop-check batches to process in parallel (default 8)
 - `--draft`: include draft PRs (excluded by default)
 - `--log-level debug`: see API call timings for debugging
 
 ### Dropped team review requests
 
-When a review is requested from a team, GitHub removes the team request for every member as soon as one teammate comments or reviews. The PR then stops matching `review-requested:@me` and `team-review-requested:`, but its `review_requested` notification survives. With `--notifications`, the script recovers those PRs from notifications: per repo for explicit `owner/repo` targets, or globally when no repo is given. They appear in the summary table with a `team-dropped` source and the team that was requested, and flow through the normal staleness and dispatch path. This is off by default.
+When a review is requested from a team, GitHub removes the team request for every member as soon as one teammate comments or reviews.
+The PR then stops matching `review-requested:@me` and `team-review-requested:`, but its `review_requested` notification survives.
+With `--notifications`, the script recovers those PRs from notifications: per repo for explicit `owner/repo` targets, or globally when no repo is given.
+They appear in the summary table with a `team-dropped` source and the team that was requested, and flow through the normal staleness and dispatch path.
+This is off by default.
 
 `--dispatch-prs` emits one self-contained `/review-pr-full` command per PR needing work, in execution order, with PR plan blocks separated by `---`:
 
@@ -117,21 +140,27 @@ When a review is requested from a team, GitHub removes the team request for ever
 /review-pr-full 55 acme/api --steps analyze-test-coverage,review-pr --head-repo acme/api --head-branch add-export
 ```
 
-If the script outputs nothing, print "nothing to dispatch" and stop. Every discovered PR is already fully reviewed for its current HEAD.
+If the script outputs nothing, print "nothing to dispatch" and stop.
+Every discovered PR is already fully reviewed for its current HEAD.
 
 ### 2. Parse the plans
 
-Split the script output on `---` into per-PR blocks. Each block is a single `/review-pr-full` command line. Extract the PR number and repository from it (the second and third tokens); the rest is passed through verbatim.
+Split the script output on `---` into per-PR blocks.
+Each block is a single `/review-pr-full` command line.
+Extract the PR number and repository from it (the second and third tokens); the rest is passed through verbatim.
 
-Each command is already in the exact form `review-pr-full` expects, so do not reconstruct or reorder it. The script has already dropped steps blocked by an earlier failed verdict.
+Each command is already in the exact form `review-pr-full` expects, so do not reconstruct or reorder it.
+The script has already dropped steps blocked by an earlier failed verdict.
 
 ### 3. Fan out one subagent per PR
 
-Launch one subagent per PR with the `Task` tool, `subagent_type: "general"`. Put **multiple Task calls in a single message** so they run concurrently; if there are many PRs, launch in batches (for example 5 at a time) and wait for each batch before starting the next.
+Launch one subagent per PR with the `Task` tool, `subagent_type: "general"`.
+Put **multiple Task calls in a single message** so they run concurrently; if there are many PRs, launch in batches (for example 5 at a time) and wait for each batch before starting the next.
 
 This is the core reason for the skill: the orchestrator dispatches and waits; each subagent runs its PR's pipeline to completion on its own, so PRs progress independently.
 
-Each subagent starts with a fresh context, so its prompt must be self-contained. Use this template verbatim, substituting the command:
+Each subagent starts with a fresh context, so its prompt must be self-contained.
+Use this template verbatim, substituting the command:
 
 ```
 Run the review-pr-full skill for this PR. Its plan was computed against the
@@ -175,11 +204,13 @@ If the `Task` tool is unavailable, run each command sequentially with `opencode 
 opencode run --auto "<COMMAND_FROM_STEP_2>"
 ```
 
-This loses the parallelism across PRs; process them one at a time and aggregate the same way. Record in the summary that sequential mode was used.
+This loses the parallelism across PRs; process them one at a time and aggregate the same way.
+Record in the summary that sequential mode was used.
 
 ### 4. Aggregate and report
 
-Collect each subagent's final `VERDICT ...` line. Map statuses to the summary:
+Collect each subagent's final `VERDICT ...` line.
+Map statuses to the summary:
 
 | Repository | PR | Steps run | Result |
 |---|---|---|---|
@@ -198,13 +229,16 @@ If a subagent returns no parseable verdict, surface its raw output and mark that
 ```
 /review-requested-prs
 ```
-Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all five steps, 1 needs only analyze-test-coverage and review-pr. Fans out 3 subagents, one per PR; each runs its steps to completion (the risk assessment concurrently with the chain). A slow verify-pr build on one PR does not delay the others.
+Finds 4 open PRs across multiple repos. 1 is fully reviewed already (the script omits it), 2 need all five steps, 1 needs only analyze-test-coverage and review-pr.
+Fans out 3 subagents, one per PR; each runs its steps to completion (the risk assessment concurrently with the chain).
+A slow verify-pr build on one PR does not delay the others.
 
 **Scenario 2: Filter to specific repositories**
 ```
 /review-requested-prs acme/api acme/web-app
 ```
-Searches only those two repos. Fans out one subagent per PR with stale steps.
+Searches only those two repos.
+Fans out one subagent per PR with stale steps.
 
 **Scenario 3: Single PR by URL**
 ```
@@ -216,13 +250,15 @@ Processes only PR #42. validate-pr and verify-pr are current, analyze-test-cover
 ```
 /review-requested-prs https://github.com/acme/api/pull/42 https://github.com/acme/web-app/pull/88
 ```
-Processes exactly those two PRs. No search is performed.
+Processes exactly those two PRs.
+No search is performed.
 
 **Scenario 5: All PRs already reviewed**
 ```
 /review-requested-prs
 ```
-The script outputs nothing (all markers match HEAD). Reports "nothing to dispatch".
+The script outputs nothing (all markers match HEAD).
+Reports "nothing to dispatch".
 
 **Scenario 6: Fork PR**
 ```
@@ -234,7 +270,8 @@ A PR whose head is on a contributor's fork is emitted with `--head-repo alice/ap
 ```
 /review-requested-prs
 ```
-PR #15 has a `fail` validate-pr marker. The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk and analyze-test-coverage (coverage precedes validate and is never gated), so the only command emitted is `--steps assess-pr-risk,analyze-test-coverage,validate-pr`, and no time is spent verifying conformance to a wrong target while the risk and coverage reports still land for the human deciding what to do with the PR.
+PR #15 has a `fail` validate-pr marker.
+The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk and analyze-test-coverage (coverage precedes validate and is never gated), so the only command emitted is `--steps assess-pr-risk,analyze-test-coverage,validate-pr`, and no time is spent verifying conformance to a wrong target while the risk and coverage reports still land for the human deciding what to do with the PR.
 
 ## Script Reference
 

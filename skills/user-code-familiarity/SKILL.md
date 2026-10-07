@@ -41,13 +41,15 @@ Builds per-user familiarity profiles by analyzing GitHub contributions - commits
 ```
 /user-code-familiarity alice
 ```
-Fetches alice's commits and PRs, finds she primarily contributes to `src/auth/` and `src/payments/`, resolves mostly `bug` and `security` issues, works in Python and SQL. Writes to `{NOTES_DIR}/users/alice/codebase-familiarity.md`.
+Fetches alice's commits and PRs, finds she primarily contributes to `src/auth/` and `src/payments/`, resolves mostly `bug` and `security` issues, works in Python and SQL.
+Writes to `{NOTES_DIR}/users/alice/codebase-familiarity.md`.
 
 **Scenario 2: User within a specific organization**
 ```
 /user-code-familiarity bob MyOrg
 ```
-Scopes the search to the MyOrg GitHub organization. Profiles bob's contributions across all repos in that org.
+Scopes the search to the MyOrg GitHub organization.
+Profiles bob's contributions across all repos in that org.
 
 **Scenario 3: Multiple users**
 ```

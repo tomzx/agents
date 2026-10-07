@@ -5,7 +5,8 @@ description: End-of-session checklist covering code quality (tests, docs, specs,
 
 # Session Review
 
-Runs a structured end-of-session review to ensure every change made during the session is properly covered by tests, documented, specified, intentional, and as clean as possible. Also extracts and records any newly identified practices.
+Runs a structured end-of-session review to ensure every change made during the session is properly covered by tests, documented, specified, intentional, and as clean as possible.
+Also extracts and records any newly identified practices.
 
 ## Prerequisites
 
@@ -19,21 +20,27 @@ Runs a structured end-of-session review to ensure every change made during the s
 
 Review `git diff HEAD~..HEAD` (or all commits since the session started) and ask the user:
 
-> "What was the goal of this session? What problem were you solving, and what approach did you take?"
+> "What was the goal of this session?
+> What problem were you solving, and what approach did you take?"
 
-Record the stated intent. If the user does not respond, infer the intent from commit messages and changed code.
+Record the stated intent.
+If the user does not respond, infer the intent from commit messages and changed code.
 
 ### 2. Simplicity Review
 
 Before writing any tests or docs, review the changed code and ask:
 
-> "Could this be implemented more simply, cleanly, succinctly, or elegantly? Are there any abstractions that can be removed, renamed, or consolidated? Is there anything here that is over-engineered for what is actually needed?"
+> "Could this be implemented more simply, cleanly, succinctly, or elegantly?
+> Are there any abstractions that can be removed, renamed, or consolidated?
+> Is there anything here that is over-engineered for what is actually needed?"
 
-Apply any improvements the review finds. Tests, docs, and specs are written against this final, clean implementation.
+Apply any improvements the review finds.
+Tests, docs, and specs are written against this final, clean implementation.
 
 ### 3. Add Tests to Cover the Change
 
-Identify all changed or added functions, classes, and modules. For each:
+Identify all changed or added functions, classes, and modules.
+For each:
 
 - Check whether a test already exists that exercises the new or modified behavior.
 - If no test covers it, write one (or ask the user to confirm before writing).
@@ -89,7 +96,8 @@ Step back from the implementation and ask whether the change sits cleanly within
 - Does the abstraction feel right at this level, or is it either too leaky or too opaque?
 - Would a future developer reading this code find it obvious where the logic lives and why?
 
-If the design feels awkward, note it. Either fix it now or record it explicitly as debt in step 9.
+If the design feels awkward, note it.
+Either fix it now or record it explicitly as debt in step 9.
 
 ### 8. Breaking Changes
 
@@ -115,8 +123,10 @@ Assess how easy it would be to undo this change if it causes problems in product
 
 Reflect on whether the session improved or worsened the codebase's long-term health:
 
-- Were any shortcuts taken that should be tracked? Create issues for them rather than leaving silent TODOs.
-- Was any existing debt paid down? Note it so the trend is visible over time.
+- Were any shortcuts taken that should be tracked?
+  Create issues for them rather than leaving silent TODOs.
+- Was any existing debt paid down?
+  Note it so the trend is visible over time.
 - Did the change make the next related change easier or harder?
 
 ### 11. Communication / Coordination
@@ -132,7 +142,8 @@ For each, determine whether to notify now, at deploy time, or after observing pr
 
 ### 12. Update AGENTS.md
 
-Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions. For each:
+Reflect on the session and identify any practices, patterns, constraints, or lessons learned that should be encoded for future sessions.
+For each:
 
 - Write a concise rule in the appropriate section of `AGENTS.md`.
 - Prefer concrete, actionable statements over vague guidance.
@@ -198,14 +209,14 @@ After completing all steps, print a summary:
 
 ## Example Usage
 
-**Scenario 1: Python feature addition**
-New endpoint added to a FastAPI service. Session review adds a pytest test for the happy path, updates the OpenAPI description in the spec file, confirms the README example still works, and encodes a rule in AGENTS.md about always using `structlog` for endpoint logging.
+**Scenario 1: Python feature addition** New endpoint added to a FastAPI service.
+Session review adds a pytest test for the happy path, updates the OpenAPI description in the spec file, confirms the README example still works, and encodes a rule in AGENTS.md about always using `structlog` for endpoint logging.
 
-**Scenario 2: Refactor session**
-Internal module restructured with no behavior change. Session review confirms all existing tests still pass, updates the architecture spec to reflect the new module boundary, and notes in AGENTS.md that the old module name is deprecated.
+**Scenario 2: Refactor session** Internal module restructured with no behavior change.
+Session review confirms all existing tests still pass, updates the architecture spec to reflect the new module boundary, and notes in AGENTS.md that the old module name is deprecated.
 
-**Scenario 3: Bug fix**
-Off-by-one error fixed in a date calculation. Session review adds a regression test for the specific input that triggered the bug, updates the relevant spec with a note about boundary conditions, and the simplicity review confirms no further changes are needed.
+**Scenario 3: Bug fix** Off-by-one error fixed in a date calculation.
+Session review adds a regression test for the specific input that triggered the bug, updates the relevant spec with a note about boundary conditions, and the simplicity review confirms no further changes are needed.
 
 ## Useful Commands Reference
 

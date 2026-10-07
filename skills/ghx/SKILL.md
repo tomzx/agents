@@ -14,15 +14,11 @@ cli: ghx
 
 # ghx Skill
 
-`ghx` is an extended GitHub CLI. It talks to the GitHub GraphQL API directly to
-provide two kinds of capability:
+`ghx` is an extended GitHub CLI.
+It talks to the GitHub GraphQL API directly to provide two kinds of capability:
 
-1. **Cached browsing** — fetches issues, pull requests, and their comments and
-   caches every result to `~/.cache/ghx/cache/<host>/<owner>/<repo>` to minimise
-   API calls.
-2. **Comment operations** — inline review comments, line-range comments, thread
-   replies, pending reviews, and a local "stash" for offline review comments,
-   none of which the standard `gh` CLI supports.
+1. **Cached browsing** — fetches issues, pull requests, and their comments and caches every result to `~/.cache/ghx/cache/<host>/<owner>/<repo>` to minimise API calls.
+2. **Comment operations** — inline review comments, line-range comments, thread replies, pending reviews, and a local "stash" for offline review comments, none of which the standard `gh` CLI supports.
 
 ---
 
@@ -38,13 +34,12 @@ if ! command -v ghx &>/dev/null; then
 fi
 ```
 
-Pre-built binaries are also available at
-<https://github.com/TomzxCode/ghx/releases/tag/latest>.
+Pre-built binaries are also available at <https://github.com/TomzxCode/ghx/releases/tag/latest>.
 
 ### Authentication
 
-`ghx` reads `GH_TOKEN` or `GITHUB_TOKEN` from the environment, and falls back
-to `gh auth token` (GitHub CLI). Set the token if neither is available:
+`ghx` reads `GH_TOKEN` or `GITHUB_TOKEN` from the environment, and falls back to `gh auth token` (GitHub CLI).
+Set the token if neither is available:
 
 ```bash
 export GH_TOKEN=<token>
@@ -52,9 +47,9 @@ export GH_TOKEN=<token>
 
 ### Target repository
 
-All commands accept `--repo [HOST/]OWNER/REPO` (or `-R`). When omitted, the repo
-is auto-detected from the `origin` remote of the current directory. Confirm the
-target before running expensive or write operations:
+All commands accept `--repo [HOST/]OWNER/REPO` (or `-R`).
+When omitted, the repo is auto-detected from the `origin` remote of the current directory.
+Confirm the target before running expensive or write operations:
 
 ```bash
 git remote get-url origin
@@ -66,8 +61,7 @@ git remote get-url origin
 
 ### Pre-populate the cache
 
-Run `cache` once to pull everything down so subsequent list/view commands are
-served instantly from disk:
+Run `cache` once to pull everything down so subsequent list/view commands are served instantly from disk:
 
 ```bash
 ghx cache                            # default: stale after 60 min
@@ -184,24 +178,21 @@ ghx pr comment 42 --body-file comment.txt
 
 ### Pending vs immediate
 
-By default the comment is posted immediately. Use `--pending` to attach the
-comment to a pending review instead:
+By default the comment is posted immediately.
+Use `--pending` to attach the comment to a pending review instead:
 
 ```bash
 ghx pr comment 42 --file src/main.go --line 10 --body "Nit" --pending
 ghx pr comment 42 --reply-thread <thread-id> --body "Reply"   --pending
 ```
 
-GitHub does not allow mixing immediate and pending review comments on the same
-PR. When you submit an immediate inline/reply comment while a pending review
-exists, `ghx` automatically stashes the pending comments to disk, posts the
-immediate comment, then restores the pending review.
+GitHub does not allow mixing immediate and pending review comments on the same PR.
+When you submit an immediate inline/reply comment while a pending review exists, `ghx` automatically stashes the pending comments to disk, posts the immediate comment, then restores the pending review.
 
 ### Stash a comment locally (no API call)
 
-`--stash` saves the comment to a local YAML file under a stash entry instead
-of contacting GitHub. Stashes work like `git stash` and support multiple
-entries:
+`--stash` saves the comment to a local YAML file under a stash entry instead of contacting GitHub.
+Stashes work like `git stash` and support multiple entries:
 
 ```bash
 ghx pr comment 42 --file src/main.go --line 10 --body "Nit" --stash
@@ -235,8 +226,7 @@ ghx pr review discard <review-id>        # discard a pending review
 
 ## Review-comment stashes
 
-The stash stores pending-review comments locally so you can post immediate
-comments, accumulate review notes offline, or move them between PR states.
+The stash stores pending-review comments locally so you can post immediate comments, accumulate review notes offline, or move them between PR states.
 
 ```bash
 ghx pr review stash push 42                  # save pending -> stash@{0}, delete pending
@@ -278,24 +268,19 @@ ghx issue comment edit   <comment-id> --body-file updated.txt
 ghx issue comment delete <comment-id>
 ```
 
-`ghx pr comment edit/delete` and `ghx issue comment edit/delete` operate on
-the same underlying GitHub comment types; ghx auto-detects whether a comment id
-refers to a review comment or an issue comment.
+`ghx pr comment edit/delete` and `ghx issue comment edit/delete` operate on the same underlying GitHub comment types; ghx auto-detects whether a comment id refers to a review comment or an issue comment.
 
 ---
 
 ## Tips
 
-- Run `ghx cache` at the start of a session to avoid hitting the API rate-limit
-  during bulk investigation.
+- Run `ghx cache` at the start of a session to avoid hitting the API rate-limit during bulk investigation.
 - Use `--json` and pipe to `jq` for scripting:
   ```bash
   ghx issue list --json | jq '[.[] | {number, title, state}]'
   ```
-- For inline review comments on multiple lines, prefer one `--pending` comment
-  per location, then `ghx pr review submit` once with the desired `--event`.
-- Use `--stash` (no API call) when iterating on draft feedback you are not
-  ready to send.
+- For inline review comments on multiple lines, prefer one `--pending` comment per location, then `ghx pr review submit` once with the desired `--event`.
+- Use `--stash` (no API call) when iterating on draft feedback you are not ready to send.
 - Read bodies from a file (`--body-file`) for multi-line markdown.
 
 ---
@@ -305,7 +290,5 @@ refers to a review comment or an issue comment.
 After completing the user's request, summarise:
 
 1. Which repository and PR/issue was targeted.
-2. Whether the cache was used, the API was called, or a comment was posted
-   immediately, added to a pending review, or saved to a local stash.
-3. The IDs (comment id, thread id, review id) of any objects created, so the
-   user can edit/delete/submit later.
+2. Whether the cache was used, the API was called, or a comment was posted immediately, added to a pending review, or saved to a local stash.
+3. The IDs (comment id, thread id, review id) of any objects created, so the user can edit/delete/submit later.

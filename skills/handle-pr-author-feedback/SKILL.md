@@ -7,9 +7,12 @@ argument-hint: "<pr-number>"
 
 # Handle PR Author Feedback
 
-As the reviewer of a GitHub pull request, verifies that the author's fixes actually address the review feedback left earlier. For each unresolved review thread, inspects the current code and diff to decide whether the comment is addressed, partially addressed, not addressed, or reasonably rejected, then resolves the fixed threads and replies on the rest. Whether replies are posted and threads resolved on GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
+As the reviewer of a GitHub pull request, verifies that the author's fixes actually address the review feedback left earlier.
+For each unresolved review thread, inspects the current code and diff to decide whether the comment is addressed, partially addressed, not addressed, or reasonably rejected, then resolves the fixed threads and replies on the rest.
+Whether replies are posted and threads resolved on GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise replies are drafted without posting.
 
-This skill never modifies the PR's code. To implement fixes on your own PR, use `handle-pr-reviewer-feedback` instead.
+This skill never modifies the PR's code.
+To implement fixes on your own PR, use `handle-pr-reviewer-feedback` instead.
 
 ## Prerequisites
 
@@ -78,20 +81,23 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
    - unresolved, and
    - authored by the current user (the first comment's author is you).
 
-   Threads started by other reviewers are skipped; report them as out of scope.
+Threads started by other reviewers are skipped; report them as out of scope.
 
-3. For each thread, inspect the fix. The diff is cumulative, so the test is "is the concern addressed in the current code", not "which commit touched it":
+3. For each thread, inspect the fix.
+   The diff is cumulative, so the test is "is the concern addressed in the current code", not "which commit touched it":
    - Read the thread's comment (file, line, request) and any author replies.
    - Fetch the current diff: `gh pr diff $1`.
-   - Read the current file content at the commented location when the diff alone is insufficient:
-     `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq .content | base64 -d`.
+   - Read the current file content at the commented location when the diff alone is insufficient: `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq .content | base64 -d`.
    - Optionally check the commits added since the comment for citation: `gh pr view $1 --json commits --jq '.commits[].oid'`.
 
 4. Assign a verdict per thread:
-   - **Addressed**: the code now satisfies the comment correctly (not a cosmetic rename that avoids the issue). If the comment asked for tests, tests exist and plausibly cover the case.
-   - **Partially addressed**: part of the request is done, part remains. Record precisely what remains.
+   - **Addressed**: the code now satisfies the comment correctly (not a cosmetic rename that avoids the issue).
+     If the comment asked for tests, tests exist and plausibly cover the case.
+   - **Partially addressed**: part of the request is done, part remains.
+     Record precisely what remains.
    - **Not addressed**: no meaningful change and no substantive author reply.
-   - **Rebuttal**: the author replied explaining why the change will not be made. Evaluate the justification on its facts; if it is sound (style preference, out of scope, documented trade-off), accept it; otherwise prepare a counter-argument citing code or requirements.
+   - **Rebuttal**: the author replied explaining why the change will not be made.
+     Evaluate the justification on its facts; if it is sound (style preference, out of scope, documented trade-off), accept it; otherwise prepare a counter-argument citing code or requirements.
 
 5. Present a verdict table to the user for approval: thread, comment summary, verdict, and the proposed reply or resolve action.
 
@@ -107,7 +113,7 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
    - Accepted rebuttals and addressed threads resolve only after the reply succeeds.
    - Append the **Skill attribution** footer to each reply.
 
-   If it exits 1, present the drafted replies and the resolve list to the user without posting or resolving.
+If it exits 1, present the drafted replies and the resolve list to the user without posting or resolving.
 
 7. If every thread is resolved and your latest review was `CHANGES_REQUESTED` (check `gh pr view $1 --json reviews`), the PR is no longer blocked from your side: suggest running `/quick-pr-review <owner>/<repo> $1` to re-review and approve the new commit, or run `ghx pr review submit $1 --event APPROVE --body "..."` directly when the user prefers an immediate approval.
 
@@ -119,14 +125,16 @@ All threads resolved? --Yes--> Suggest /quick-pr-review
 ```
 Thread: "This function doesn't handle `user` being null."
 The diff adds a null guard plus a test.
-Verdict: addressed. Reply + resolve.
+Verdict: addressed.
+Reply + resolve.
 
 **Scenario 2: Partial fix**
 ```
 /handle-pr-author-feedback 100
 ```
 Thread asked for a null guard and a test; only the guard was added.
-Verdict: partially addressed. Reply listing the missing test; keep the thread open.
+Verdict: partially addressed.
+Reply listing the missing test; keep the thread open.
 
 **Scenario 3: Sound rebuttal**
 ```
@@ -134,14 +142,16 @@ Verdict: partially addressed. Reply listing the missing test; keep the thread op
 ```
 Comment: "Rename `processBatch` to `run`."
 Author replies that `run` shadows an existing helper and would break the public API.
-Verdict: rebuttal accepted. Reply acknowledging; resolve.
+Verdict: rebuttal accepted.
+Reply acknowledging; resolve.
 
 **Scenario 4: Unsupported rebuttal**
 ```
 /handle-pr-author-feedback 88
 ```
 Author replies "done" but the code is unchanged.
-Verdict: not addressed. Reply pointing at the unchanged code and the missing change; keep the thread open.
+Verdict: not addressed.
+Reply pointing at the unchanged code and the missing change; keep the thread open.
 
 **Scenario 5: Posting disabled**
 ```

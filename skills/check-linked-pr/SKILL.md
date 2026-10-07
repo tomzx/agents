@@ -11,18 +11,21 @@ Detects pull requests authored by someone else that have been linked to a GitHub
 
 Unlike `check-duplicates` (a one-time pre-flight check run before any work starts), this skill is meant to run **repeatedly during an in-progress SDLC flow** to catch a competing PR that appears after work has already begun.
 
-It is read-only with respect to GitHub: it never comments, labels, or opens anything. The only side effect is updating `.sdlc/state.yml` to remember which PRs the user already decided to ignore (so the recurring check does not re-prompt every phase).
+It is read-only with respect to GitHub: it never comments, labels, or opens anything.
+The only side effect is updating `.sdlc/state.yml` to remember which PRs the user already decided to ignore (so the recurring check does not re-prompt every phase).
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`), then from `.sdlc/state.yml` `github_ref`.
 - `gh` CLI authenticated with read access to the target repository.
-- A GitHub issue number to check. If the feature has no issue yet (a `p`-prefixed feature), there is nothing to link to: report clear and stop.
+- A GitHub issue number to check.
+  If the feature has no issue yet (a `p`-prefixed feature), there is nothing to link to: report clear and stop.
 
 ## What counts as "linked"
 
-A PR is considered linked to the issue when GitHub records a connection. The skill checks, in order of reliability:
+A PR is considered linked to the issue when GitHub records a connection.
+The skill checks, in order of reliability:
 
 1. The issue **timeline** `cross-referenced` / `connected` events whose source is a pull request (covers manual "Development" links, PRs that reference the issue number in their body, and `closes #N` / `fixes #N` keywords).
 2. A keyword **search** of open PRs mentioning the issue number (fallback when timeline is empty or unavailable).
@@ -33,7 +36,8 @@ A PR is **excluded** (not competing) when any of these hold:
 - Its number matches the SDLC flow's own PR (the PR number recorded in `.sdlc/state.yml` `github_ref` once `create-pr` has run).
 - Its number is listed in `linked_prs_acknowledged` in `.sdlc/state.yml` (the user already chose to ignore it this run).
 
-Only **open** PRs from other authors count as competing. A merged PR means the issue may already be resolved: surface it separately as a signal that the flow may be obsolete.
+Only **open** PRs from other authors count as competing.
+A merged PR means the issue may already be resolved: surface it separately as a signal that the flow may be obsolete.
 
 ## Steps
 
@@ -62,7 +66,8 @@ gh api "repos/{owner}/{repo}/issues/$ISSUE_NUMBER/timeline" --paginate \
     | {number: .source.issue.number, title: .source.issue.title, state: .source.issue.state, author: .source.issue.user.login, draft: (.source.issue.draft // false)}]'
 ```
 
-Deduplicate by PR number. Keep only `state == "OPEN"` entries as candidates; note any merged/closed ones separately.
+Deduplicate by PR number.
+Keep only `state == "OPEN"` entries as candidates; note any merged/closed ones separately.
 
 ### 3. Collect linked PRs (search, fallback)
 
@@ -84,7 +89,8 @@ Remove candidates that are:
 
 ### 5. Decide
 
-- **No competing PRs:** report "clear" and stop. Emit `verdict: clear`.
+- **No competing PRs:** report "clear" and stop.
+  Emit `verdict: clear`.
 - **Competing PR(s) found:** present each (number, author, draft/open, title, one-line summary of what it changes) and ask the user to choose, per the options below.
 
 ### 6. Handle the user's choice
@@ -101,7 +107,9 @@ When multiple competing PRs exist, default the Review option to the most relevan
 
 ## State
 
-The only file this skill writes is `.sdlc/state.yml`, to extend `linked_prs_acknowledged` (a list of PR numbers already dismissed this run). It never modifies GitHub. `state.yml` is local-only and never committed (see `references/shared.md`).
+The only file this skill writes is `.sdlc/state.yml`, to extend `linked_prs_acknowledged` (a list of PR numbers already dismissed this run).
+It never modifies GitHub.
+`state.yml` is local-only and never committed (see `references/shared.md`).
 
 ```yaml
 linked_prs_acknowledged: []   # PR numbers the user chose to ignore this run
@@ -121,7 +129,8 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `depend` | The reviewed PR was approved and the flow should depend on it |
 | `competing-pr` | A competing PR was found but no decision could be made (e.g. automation with no user to ask) |
 
-Under automation (`$OUTCOME_YAML` set, no interactive user), do not block: detect competing PRs, emit `competing-pr` (or `clear`), and let the runner route. Do not invoke `/review-pr` automatically.
+Under automation (`$OUTCOME_YAML` set, no interactive user), do not block: detect competing PRs, emit `competing-pr` (or `clear`), and let the runner route.
+Do not invoke `/review-pr` automatically.
 
 ## Example Usage
 
@@ -129,19 +138,23 @@ Under automation (`$OUTCOME_YAML` set, no interactive user), do not block: detec
 ```
 /check-linked-pr 42
 ```
-Timeline for #42 references no open PRs from other authors. Reports clear; the flow continues uninterrupted.
+Timeline for #42 references no open PRs from other authors.
+Reports clear; the flow continues uninterrupted.
 
 **Scenario 2: Someone opened a PR mid-flow**
 ```
 /check-linked-pr 42
 ```
-Finds open PR #88 by `@jane` linked to #42, not yet acknowledged. Presents continue / stop / review. The user picks **Review**; `/review-pr 88` returns `approved`, so the flow stops and records that it depends on #88.
+Finds open PR #88 by `@jane` linked to #42, not yet acknowledged.
+Presents continue / stop / review.
+The user picks **Review**; `/review-pr 88` returns `approved`, so the flow stops and records that it depends on #88.
 
 **Scenario 3: Acknowledged PR, next phase**
 ```
 /check-linked-pr 42
 ```
-PR #88 is still linked but already in `linked_prs_acknowledged` (the user chose **Continue** last phase). Reports clear without re-prompting.
+PR #88 is still linked but already in `linked_prs_acknowledged` (the user chose **Continue** last phase).
+Reports clear without re-prompting.
 
 ## Useful Commands Reference
 

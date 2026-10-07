@@ -27,11 +27,13 @@ Without stated goals, prioritization is ad hoc: every feature feels equally impo
 6. Name an owner for each objective.
 7. List explicit non-goals to prevent scope creep.
 8. Populate the alignment table: map existing features and planned initiatives to the objective they advance.
-9. Write the output to `.sdlc/context/goals.md`. If it already exists, revise per Revision Mode.
+9. Write the output to `.sdlc/context/goals.md`.
+   If it already exists, revise per Revision Mode.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/context/goals.md`. Write the result to `.sdlc/context/goals.md`.
+Use the template at `skills/sdlc/templates/context/goals.md`.
+Write the result to `.sdlc/context/goals.md`.
 
 ## Revision Mode
 
@@ -40,10 +42,15 @@ Preserve content the review did not challenge.
 
 ## Goal Design Guidance
 
-- **Objectives are qualitative; key results are quantitative.** An objective says what we want to be true; a key result proves it with a number. "Be the fastest" is an objective; "p99 < 200ms" is a key result.
-- **Key results are outcomes, not outputs.** "Ship the notifications feature" is an output. "70% of users view a notification within 24h" is an outcome. Measure the change in the world, not the work done.
+- **Objectives are qualitative; key results are quantitative.** An objective says what we want to be true; a key result proves it with a number.
+  "Be the fastest" is an objective; "p99 < 200ms" is a key result.
+- **Key results are outcomes, not outputs.** "Ship the notifications feature" is an output.
+  "70% of users view a notification within 24h" is an outcome.
+  Measure the change in the world, not the work done.
 - **Three to five key results per objective.** More dilutes focus; fewer is fine.
-- **KPIs are ongoing.** A KPI is an indicator you watch indefinitely (conversion rate, uptime). A key result is a target for this period (conversion rate reaches 5% by quarter end). Keep them separate.
+- **KPIs are ongoing.** A KPI is an indicator you watch indefinitely (conversion rate, uptime).
+  A key result is a target for this period (conversion rate reaches 5% by quarter end).
+  Keep them separate.
 - **Name owners.** An objective without an owner has no one to advocate for it when priorities conflict.
 - **Non-goals matter as much as goals.** Stating what is deliberately not pursued protects focus.
 - **Measurable or it does not belong.** If a key result has no measurement method, it is an aspiration, not a key result.
@@ -56,22 +63,19 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/context/goals
 
 ## Example Usage
 
-**Scenario 1: Growth-focused quarter**
-Project overview describes a SaaS product with flat adoption.
+**Scenario 1: Growth-focused quarter** Project overview describes a SaaS product with flat adoption.
 Objective: "Make existing users more active."
 Key results: weekly active users +30% by quarter end; median sessions per user from 2 to 4; activation rate from 40% to 60%.
 KPIs (ongoing): weekly active users, activation rate, churn.
 Non-goal: new user acquisition (a separate team owns it this period).
 
-**Scenario 2: Reliability-focused half**
-Architecture describes a service with frequent outages.
+**Scenario 2: Reliability-focused half** Architecture describes a service with frequent outages.
 Objective: "Reduce customer-visible downtime."
 Key results: incidents per month from 4 to 1; mean time to recover from 90m to 15m; SLO compliance from 97% to 99.5%.
 KPIs (ongoing): uptime, incident count, MTTR.
 Alignment: FEAT-42 (automated rollback) advances this objective.
 
-**Scenario 3: Early product, no metrics yet**
-No baseline data exists for any key result.
+**Scenario 3: Early product, no metrics yet** No baseline data exists for any key result.
 Define objectives and key results with targets, but mark each measurement method as "to be instrumented" and flag it as an open question until telemetry exists.
 Recommend running `/create-telemetry` on the next feature to close the gap.
 

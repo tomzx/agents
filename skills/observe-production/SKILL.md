@@ -6,7 +6,8 @@ argument-hint: "[service-name or feature-slug]"
 
 # Observe Production
 
-Checks the health of a deployed service or feature by reviewing SLOs, error rates, latency, throughput, and recent alerts. Produces a health report suitable for maintenance reviews, post-deploy verification, or incident triage.
+Checks the health of a deployed service or feature by reviewing SLOs, error rates, latency, throughput, and recent alerts.
+Produces a health report suitable for maintenance reviews, post-deploy verification, or incident triage.
 
 ## Prerequisites
 
@@ -29,12 +30,12 @@ Checks the health of a deployed service or feature by reviewing SLOs, error rate
 
 1. Read `.sdlc/context/architecture.md` to identify services, endpoints, and infrastructure to check.
 
-2. Determine available observability tooling. Look for:
+2. Determine available observability tooling.
+   Look for:
    - Metrics: Prometheus, Datadog, CloudWatch, Grafana
    - Logging: ELK, Loki, CloudWatch Logs
    - Tracing: Jaeger, Zipkin, Datadog APM
-   - Alerting: PagerDuty, OpsGenie, Grafana alerts
-   If no tooling is configured, report that observability is not set up and recommend `/audit-observability`.
+   - Alerting: PagerDuty, OpsGenie, Grafana alerts If no tooling is configured, report that observability is not set up and recommend `/audit-observability`.
 
 3. Check error rates for the target service(s):
    - HTTP 5xx rate over the last 1 hour, 24 hours, and 7 days
@@ -119,19 +120,22 @@ Checks the health of a deployed service or feature by reviewing SLOs, error rate
 ```
 /observe-production notification-service
 ```
-Just deployed a new notification feature. Check that error rates and latency are within normal ranges for the notification service.
+Just deployed a new notification feature.
+Check that error rates and latency are within normal ranges for the notification service.
 
 **Scenario 2: Routine health check**
 ```
 /observe-production
 ```
-Periodic check across all services. Identify any degraded conditions before they become incidents.
+Periodic check across all services.
+Identify any degraded conditions before they become incidents.
 
 **Scenario 3: Incident investigation**
 ```
 /observe-production api-gateway
 ```
-Alerts are firing on the API gateway. Pull error rates, latency, and throughput to assess the scope of the issue.
+Alerts are firing on the API gateway.
+Pull error rates, latency, and throughput to assess the scope of the issue.
 
 ## Next Step
 

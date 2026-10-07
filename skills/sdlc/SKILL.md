@@ -233,7 +233,8 @@ When in doubt, include more phases rather than fewer.
 
 ### Rules for fast paths
 
-1. Create an issue when the change needs context, discussion, or prioritization. For self-explanatory changes (typo fix, config toggle, version bump), the PR description is sufficient traceability.
+1. Create an issue when the change needs context, discussion, or prioritization.
+   For self-explanatory changes (typo fix, config toggle, version bump), the PR description is sufficient traceability.
 2. Always open a PR, even for hotfixes, so CI runs and the change is reviewable after the fact.
 3. Skip requirements, specifications, plan, and tasks only when the change is well-understood and fits in a single commit.
 4. Include `review-implementation` when the fix is non-trivial or touches security-adjacent code.
@@ -332,7 +333,12 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
         └── N-<slug>.md         # Created by /create-question; one file per question
 ```
 
-**Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind). `N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`); otherwise `N` is a `p`-prefixed sequence number marking a feature that is **pending a placeholder issue** (e.g., `p1-<slug>` with feature ID `FEAT-p1`). Slug is lowercase, hyphens for spaces, no special characters. The related GitHub issue is recorded in frontmatter when present. The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below). The full rules live in `references/shared.md` under Feature Directory Naming.
+**Feature directory naming:** directories under `features/` are named `N-<slug>` (no `FEAT-` prefix, since the parent directory already conveys the kind).
+`N` is the issue number, used verbatim with no zero-padding, when the work is tied to a GitHub issue (e.g., issue `#42` → directory `42-<slug>` with feature ID `FEAT-42`); otherwise `N` is a `p`-prefixed sequence number marking a feature that is **pending a placeholder issue** (e.g., `p1-<slug>` with feature ID `FEAT-p1`).
+Slug is lowercase, hyphens for spaces, no special characters.
+The related GitHub issue is recorded in frontmatter when present.
+The **feature ID** `FEAT-N` is used in cross-references (see ID Formats below).
+The full rules live in `references/shared.md` under Feature Directory Naming.
 
 ## Artifact Location Resolution (SDLC_DIR)
 
@@ -355,11 +361,14 @@ Each artifact type uses a consistent ID format:
 | Decision | `N` | Project-wide | `2` |
 | Question | `N` | Project-wide | `5` |
 
-All SDLC numeric identifiers are unpadded: `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded. A feature with no issue yet uses a `p`-prefixed id instead (e.g. `FEAT-p1`, directory `p1-<slug>`); see Feature Directory Naming. The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
+All SDLC numeric identifiers are unpadded: `FEAT-42`, `FR-1`, `TC-5`, task `3` use the bare number, never zero-padded.
+A feature with no issue yet uses a `p`-prefixed id instead (e.g. `FEAT-p1`, directory `p1-<slug>`); see Feature Directory Naming.
+The `FEAT-` prefix marks the feature **cross-reference ID** only; the on-disk directory drops it (`N-<slug>` under `features/`).
 
 **Within a feature document**, use bare IDs (`FR-1`, `NFR-2`, `TC-5`) — the feature scope is implied by the file location.
 
-**Across features**, qualify with the feature prefix: `FEAT-1-FR-1`, `FEAT-2-NFR-3`. Use this form whenever a requirement, test case, or task is referenced from outside its own feature directory (e.g., in a plan dependency, a cross-cutting assumption, or a shared specification).
+**Across features**, qualify with the feature prefix: `FEAT-1-FR-1`, `FEAT-2-NFR-3`.
+Use this form whenever a requirement, test case, or task is referenced from outside its own feature directory (e.g., in a plan dependency, a cross-cutting assumption, or a shared specification).
 
 Each pipeline artifact carries YAML frontmatter tracking its state:
 
@@ -372,7 +381,8 @@ status: draft        # set on creation; review outcome lives in review-<artifact
 ```
 
 `create-*` pipeline skills write artifacts with `status: draft`.
-`review-*` pipeline skills do not modify the artifact `status`; they write a `review-<artifact>.md` findings file (verdict `approved` / `changes-requested` / `rejected`) beside the artifact, per `skills/sdlc/references/shared.md`. Downstream phases gate on that findings verdict, not on the artifact `status`.
+`review-*` pipeline skills do not modify the artifact `status`; they write a `review-<artifact>.md` findings file (verdict `approved` / `changes-requested` / `rejected`) beside the artifact, per `skills/sdlc/references/shared.md`.
+Downstream phases gate on that findings verdict, not on the artifact `status`.
 Domain lifecycle statuses are the exception and are still set by their review skill: task `pending` (set by `review-tasks-decomposition`), and the knowledge-record terminals: assumption (`Active → Validated | Invalidated | Deferred`), decision (`Proposed → Accepted | Deprecated | Superseded`), question (`Open → Resolved | Deferred | Dismissed`), and learnings (`draft → complete`).
 
 ### Task Status Lifecycle
@@ -399,7 +409,9 @@ draft → pending → in-progress → done
 When a task reaches `done`, set `completed_date` to the current date (ISO format).
 When a task is `blocked`, set `blocker` to a brief description in the task frontmatter.
 
-Open questions surfaced during review are recorded in that review's findings body; questions that need tracking (a named answerer and a needed-by date) are promoted to question records via `/create-question`. When `propagate-changes` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it. When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
+Open questions surfaced during review are recorded in that review's findings body; questions that need tracking (a named answerer and a needed-by date) are promoted to question records via `/create-question`.
+When `propagate-changes` or `sync-sdlc` detects that an artifact drifted from the code, it regresses that artifact's `review-<artifact>.md` from `approved` to `changes-requested` (recording the drift in the body) so the forward pipeline resyncs and re-reviews it.
+When a question carries meaningful risk, promote it to a formal assumption via `/create-assumption`.
 Architectural choices made during any phase are logged via `/create-decision` to `.sdlc/knowledge/decisions/`.
 
 ## Entry Points
@@ -463,7 +475,8 @@ linked_prs_acknowledged: []     # PR numbers from other authors the user chose t
 ```
 
 - **On first entry**: create `.sdlc/state.yml`, populating `current_phase` with the entry point and `github_ref` if known.
-- **After each phase completes**: update `current_phase` to the name of the next phase to run. This is the single rule: `current_phase` always holds what comes next.
+- **After each phase completes**: update `current_phase` to the name of the next phase to run.
+  This is the single rule: `current_phase` always holds what comes next.
 - **When a feature directory is created**: populate `feature`.
 - **When `github_ref` changes** (issue created, PR opened): update `github_ref`.
 - **When the Linked-PR Guard runs** and the user dismisses a competing PR: append its number to `linked_prs_acknowledged` so the guard does not re-prompt for it (see Linked-PR Guard).
@@ -483,38 +496,70 @@ state.yml
 features/*/progress.md
 ```
 
-`status-report.html` (the generated output of `/sdlc-status`) is also local-only. `/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`.
+`status-report.html` (the generated output of `/sdlc-status`) is also local-only.
+`/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`.
 
 If you commit/push manually, never `git add` these paths or `status-report.html`.
 
 ## Steps
 
-1. Read `.sdlc/state.yml` if it exists. Use its values as defaults for `current_phase`, `github_ref`, and `feature` unless the user provides explicit arguments.
-2. Determine the entry point: normalize `$1` to lowercase and check against the supported entry points. If a match is found, use it. If `$1` does not match any supported entry point (case-insensitive), do not attempt to infer the phase from the text. Instead, inform the user that the phase is not recognized and ask them to pick a valid entry point. If the entry point is `continue`, run the Automatic Resume flow instead of advancing through the pipeline.
-3. If the entry point is `status`, invoke the `sdlc-status` skill. Do not advance the pipeline or modify any artifacts.
-4. If the entry point is `qualify`, invoke the `qualify-issue` skill directly. It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood. It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply. Re-enter at `qualify` when the reporter replies. Proceed to `requirements` once qualification is complete.
-5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly. It orchestrates `reproduce-issue` → `create-implementation` → `validate-implementation` → `create-pr` and does not proceed through the remaining SDLC phases. If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
-6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly. It handles worktree creation and reproduction. It stops after posting results and does not proceed to implementation.
-7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones). Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
-8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly. It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report. This is a standalone operation that does not advance the pipeline.
-9. If the entry point is `project`, invoke the `create-project` skill directly. It interviews the user to populate the core context files under `.sdlc/context/` (running `initialize-sdlc-directory` first when `.sdlc/` is absent), then invoke `review-project` and address findings. This is a standalone operation that does not advance the pipeline. Prefer it over `sync` when the project has no code to analyze.
-10. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline. The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
+1. Read `.sdlc/state.yml` if it exists.
+   Use its values as defaults for `current_phase`, `github_ref`, and `feature` unless the user provides explicit arguments.
+2. Determine the entry point: normalize `$1` to lowercase and check against the supported entry points.
+   If a match is found, use it.
+   If `$1` does not match any supported entry point (case-insensitive), do not attempt to infer the phase from the text.
+   Instead, inform the user that the phase is not recognized and ask them to pick a valid entry point.
+   If the entry point is `continue`, run the Automatic Resume flow instead of advancing through the pipeline.
+3. If the entry point is `status`, invoke the `sdlc-status` skill.
+   Do not advance the pipeline or modify any artifacts.
+4. If the entry point is `qualify`, invoke the `qualify-issue` skill directly.
+   It drives a multi-round Q&A loop with the external reporter, updating the issue body once the issue is fully understood.
+   It stops when all questions are answered (issue qualified) or when a clarification comment has been posted and the reporter must reply.
+   Re-enter at `qualify` when the reporter replies.
+   Proceed to `requirements` once qualification is complete.
+5. If the entry point is `bugfix`, invoke the `fix-issue` skill directly.
+   It orchestrates `reproduce-issue` → `create-implementation` → `validate-implementation` → `create-pr` and does not proceed through the remaining SDLC phases.
+   If the fix turns out to be non-trivial, `fix-issue` will escalate back to the full pipeline at the `requirements` phase.
+6. If the entry point is `reproduce`, invoke the `reproduce-issue` skill directly.
+   It handles worktree creation and reproduction.
+   It stops after posting results and does not proceed to implementation.
+7. If the entry point is `maintenance`, ask the user which maintenance skill to run (or run all applicable ones).
+   Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
+8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly.
+   It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report.
+   This is a standalone operation that does not advance the pipeline.
+9. If the entry point is `project`, invoke the `create-project` skill directly.
+   It interviews the user to populate the core context files under `.sdlc/context/` (running `initialize-sdlc-directory` first when `.sdlc/` is absent), then invoke `review-project` and address findings.
+   This is a standalone operation that does not advance the pipeline.
+   Prefer it over `sync` when the project has no code to analyze.
+10. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline.
+    The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 11. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
-12. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue. If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options. Only proceed to the sub-skill when the guard is clear or the user chose to continue. This runs at every phase transition.
-13. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above). A phase's rules take effect only once loaded, so always load first, then perform the skill's steps. Never run a phase's commit, push, or PR actions without loading the governing skill first. Execute sub-skills in order from the entry point to the end of the pipeline.
+12. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue.
+    If a competing PR is found that the user has not already dismissed, stop and present the continue / stop / review options.
+    Only proceed to the sub-skill when the guard is clear or the user chose to continue.
+    This runs at every phase transition.
+13. **Before executing each sub-skill, load it with the `skill` tool.** This is mandatory (see *Load Each Phase Skill* above).
+    A phase's rules take effect only once loaded, so always load first, then perform the skill's steps.
+    Never run a phase's commit, push, or PR actions without loading the governing skill first.
+    Execute sub-skills in order from the entry point to the end of the pipeline.
 14. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
 15. When all review findings are resolved, move to the next phase.
-16. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed. Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below). This update is mandatory before proceeding or ending the session.
+16. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed.
+    Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below).
+    This update is mandatory before proceeding or ending the session.
 17. When the session ends (user stops, pipeline stops, or session is complete), write a session boundary marker to `progress.md` (see Session Boundary Markers below).
 18. After learnings are captured and reviewed, the cycle is complete.
 
 ### Status Report (entry: `status`)
 
-Delegate to the `sdlc-status` skill, which handles all reporting logic including the HTML dashboard script and text-based fallback. See `sdlc-status/SKILL.md` for details.
+Delegate to the `sdlc-status` skill, which handles all reporting logic including the HTML dashboard script and text-based fallback.
+See `sdlc-status/SKILL.md` for details.
 
 ### Linked-PR Guard (between phases)
 
-Before every sub-skill runs (step 12), the orchestrator checks whether someone else has linked a pull request to the issue being worked on. This catches a competing PR that appears after work has already started, so effort is not duplicated.
+Before every sub-skill runs (step 12), the orchestrator checks whether someone else has linked a pull request to the issue being worked on.
+This catches a competing PR that appears after work has already started, so effort is not duplicated.
 
 Invoke the `check-linked-pr` skill against the current issue (resolved from `github_ref`):
 
@@ -559,8 +604,7 @@ It is updated automatically by the orchestrator after each phase completes.
 - When a blocker is encountered or resolved (update Current Blocker).
 - At session start and end (add entry to Session Log).
 
-**Updating task status during implementation:**
-When `create-implementation` starts work on a task, set its frontmatter `status: in-progress`.
+**Updating task status during implementation:** When `create-implementation` starts work on a task, set its frontmatter `status: in-progress`.
 When the task checklist passes, set `status: done` and `completed_date`.
 If blocked, set `status: blocked` and fill in `blocker`.
 After each task status change, update the Task Progress table in `progress.md`.
@@ -603,7 +647,8 @@ Use the rules below to decide whether to backtrack, retry, or stop.
 ### Backtracking rules
 
 1. **Backtrack to the nearest phase that owns the root cause.** If `create-implementation` fails because the spec is ambiguous, backtrack to `create-specifications`, not to `create-issue`.
-2. **Re-derive downstream artifacts after revising.** Any change to an upstream artifact invalidates everything below it. Re-run each `create-*` phase from the revision point forward.
+2. **Re-derive downstream artifacts after revising.** Any change to an upstream artifact invalidates everything below it.
+   Re-run each `create-*` phase from the revision point forward.
 3. **Record why you backtracked.** Use `/create-decision` to capture the backtrack reason and the corrective action taken.
 4. **Limit backtrack depth.** If backtracking would return you more than two phases upstream (e.g., from `implementation` back to `issue`), stop and ask the user whether to continue or split the work.
 5. **Do not quietly skip a failed phase.** If a phase cannot produce its output, state why and either backtrack or stop.
@@ -717,4 +762,5 @@ When the pipeline reaches a phase that would commit, push, or open a PR:
 
 This applies to all entry points and fast paths, including `bugfix`.
 
-GitHub content writes (PR creation, PR description updates, comments, reviews) are gated by the `should-post-to-github` script (`~/.sdlc/config.yaml`), which `create-pr`, `validate-pr`, `verify-pr`, and `review-pr` consult. Git write operations (push, merge, deploy) are not gated by that script.
+GitHub content writes (PR creation, PR description updates, comments, reviews) are gated by the `should-post-to-github` script (`~/.sdlc/config.yaml`), which `create-pr`, `validate-pr`, `verify-pr`, and `review-pr` consult.
+Git write operations (push, merge, deploy) are not gated by that script.

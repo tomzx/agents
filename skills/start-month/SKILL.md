@@ -3,13 +3,7 @@ name: start-month
 description: Opens the calendar month with a theme, monthly outcomes, and carryover from the prior month review. Use when the user says /start-month, start of month, monthly planning, or new month kickoff.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-MONTH_NAME=!`date +%B`
-PREV_MONTH=!`date -d "last month" +%m`
-PREV_YEAR=!`date -d "last month" +%Y`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` MONTH_NAME=!`date +%B` PREV_MONTH=!`date -d "last month" +%m` PREV_YEAR=!`date -d "last month" +%Y`
 
 # Start Month
 
@@ -26,7 +20,8 @@ Sets intent for the calendar month: theme, a small set of outcomes, carryover fr
 
 ### 1. Resolve month context
 
-Use calendar month `{MONTH}` and `{YEAR}`. For “last month,” use `{PREV_YEAR}` and `{PREV_MONTH}` (handles January rolling to December of the prior year when using the same `date` patterns as **end-of-month-review**).
+Use calendar month `{MONTH}` and `{YEAR}`.
+For “last month,” use `{PREV_YEAR}` and `{PREV_MONTH}` (handles January rolling to December of the prior year when using the same `date` patterns as **end-of-month-review**).
 
 ### 2. Gather context
 

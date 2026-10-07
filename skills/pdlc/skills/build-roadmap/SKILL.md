@@ -6,7 +6,9 @@ argument-hint: "[initiative-id]"
 
 # Build Roadmap
 
-An outcome-based roadmap, not a feature delivery calendar. Initiatives are sequenced by outcome and confidence across Now / Next / Later horizons, aligned to the goals in `goals.md`. The roadmap communicates *what we believe will create value and when*, and it is expected to change.
+An outcome-based roadmap, not a feature delivery calendar.
+Initiatives are sequenced by outcome and confidence across Now / Next / Later horizons, aligned to the goals in `goals.md`.
+The roadmap communicates *what we believe will create value and when*, and it is expected to change.
 
 ## Prerequisites
 
@@ -21,13 +23,15 @@ An outcome-based roadmap, not a feature delivery calendar. Initiatives are seque
    - **Next** — validated enough to plan around (medium confidence).
    - **Later** — plausible but not yet validated (low confidence).
 3. For each, record the outcome it targets (tie to an objective in `goals.md`), the owning team, and the confidence level.
-4. Enforce realistic capacity: the Now column must fit available capacity. If it does not, move items down.
+4. Enforce realistic capacity: the Now column must fit available capacity.
+   If it does not, move items down.
 5. Make sequencing trade-offs explicit: what comes first and why (dependency, value, learning value, risk reduction).
 6. Write the result to `.pdlc/context/roadmap.md`.
 
 ## Output Format
 
-Use the template at `skills/pdlc/templates/context/roadmap.md`. Three horizon columns; each row carries initiative, outcome, owner, confidence.
+Use the template at `skills/pdlc/templates/context/roadmap.md`.
+Three horizon columns; each row carries initiative, outcome, owner, confidence.
 
 ## Outcome
 

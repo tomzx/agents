@@ -7,9 +7,12 @@ argument-hint: "[owner/repo ... | pr-url ...] [--limit N] [--concurrency N] [--e
 
 # Handle Failing PR CI
 
-Lists the current user's open pull requests with their combined CI status, then fixes every PR whose checks are failing by giving each one its own `handle-pr-ci` session. PRs are independent, so they are processed in parallel: one sub-agent per failing PR, each with its own worktree.
+Lists the current user's open pull requests with their combined CI status, then fixes every PR whose checks are failing by giving each one its own `handle-pr-ci` session.
+PRs are independent, so they are processed in parallel: one sub-agent per failing PR, each with its own worktree.
 
-The orchestrator (this session) only discovers work and prepares worktrees. It never edits code. Each failing PR is handled end to end by one sub-agent running `handle-pr-ci`.
+The orchestrator (this session) only discovers work and prepares worktrees.
+It never edits code.
+Each failing PR is handled end to end by one sub-agent running `handle-pr-ci`.
 
 ## Prerequisites
 
@@ -18,7 +21,8 @@ The orchestrator (this session) only discovers work and prepares worktrees. It n
 - `gh` CLI authenticated with read/write access to the target repositories
 - `git` with `git worktree` available
 - The `handle-pr-ci` skill available
-- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`). If unavailable, use sequential mode instead.
+- Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`).
+  If unavailable, use sequential mode instead.
 
 ## Workflow
 
@@ -51,7 +55,9 @@ Run the discovery script:
 ~/.agents/scripts/my_prs_ci.py $@ --exclude-check "PR Review Bot Comments Addressed" --json
 ```
 
-The `PR Review Bot Comments Addressed` check is excluded by default because it is a noisy bot gate that does not reflect actual CI health. Any `--exclude-check` / `--include-check` the user passes is applied on top of it, and exclusions take precedence, so the bot check stays excluded. To include it in a particular run, scope the query with an explicit PR URL and call the script directly without this skill.
+The `PR Review Bot Comments Addressed` check is excluded by default because it is a noisy bot gate that does not reflect actual CI health.
+Any `--exclude-check` / `--include-check` the user passes is applied on top of it, and exclusions take precedence, so the bot check stays excluded.
+To include it in a particular run, scope the query with an explicit PR URL and call the script directly without this skill.
 
 The script accepts the same arguments as the skill:
 
@@ -64,8 +70,13 @@ Useful flags:
 - `--limit N`: cap the number of PRs discovered (default 100)
 - `--draft`: include draft PRs (excluded by default)
 - `--workers N`: PRs fetched in parallel (default 8)
-- `--exclude-check NAME`: exclude a check from the CI status so an excluded failing check does not make a PR fail. Repeatable, accepts shell-style globs (e.g. `buildkite/*`), case-insensitive. The skill already applies `--exclude-check "PR Review Bot Comments Addressed"`; pass this to exclude additional checks. Excluded checks are dropped during dispatch, so no sub-agent is launched for a PR whose only failures are excluded.
-- `--include-check NAME`: the inverse, consider only the named checks and exclude every other check. Repeatable, accepts shell-style globs, case-insensitive. Combining it with `--exclude-check` narrows further (a check must match `--include-check` and not match `--exclude-check`).
+- `--exclude-check NAME`: exclude a check from the CI status so an excluded failing check does not make a PR fail.
+  Repeatable, accepts shell-style globs (e.g. `buildkite/*`), case-insensitive.
+  The skill already applies `--exclude-check "PR Review Bot Comments Addressed"`; pass this to exclude additional checks.
+  Excluded checks are dropped during dispatch, so no sub-agent is launched for a PR whose only failures are excluded.
+- `--include-check NAME`: the inverse, consider only the named checks and exclude every other check.
+  Repeatable, accepts shell-style globs, case-insensitive.
+  Combining it with `--exclude-check` narrows further (a check must match `--include-check` and not match `--exclude-check`).
 - `--only-failing`: show only PRs with failing checks (the JSON output is what matters; use this only when reading the output by eye)
 - `--log-level debug`: see API call timings
 
@@ -81,17 +92,22 @@ To act only on Buildkite checks and exclude everything else:
 /handle-failing-pr-ci --include-check "buildkite/*"
 ```
 
-The script emits a JSON array. Each entry has: `repo`, `number`, `title`, `author`, `url`, `draft`, `head_commit`, `head_branch`, `head_repo`, `mergeable`, `review_decision`, `checks_state` (`passing`, `failing`, `pending`, `none`, or `error`), `failing_checks`, `pending_checks`, `excluded_checks`, `total_checks`, `considered_checks`, `error`.
+The script emits a JSON array.
+Each entry has: `repo`, `number`, `title`, `author`, `url`, `draft`, `head_commit`, `head_branch`, `head_repo`, `mergeable`, `review_decision`, `checks_state` (`passing`, `failing`, `pending`, `none`, or `error`), `failing_checks`, `pending_checks`, `excluded_checks`, `total_checks`, `considered_checks`, `error`.
 
-Keep every entry where `checks_state == "failing"` and `error` is empty. These are the PRs to fix.
+Keep every entry where `checks_state == "failing"` and `error` is empty.
+These are the PRs to fix.
 
-If there are none, print "No PRs with failing CI." and stop. Optionally show the full table by re-running the script without `--json`.
+If there are none, print "No PRs with failing CI." and stop.
+Optionally show the full table by re-running the script without `--json`.
 
 ### 2. Prepare one worktree per failing PR
 
-Each sub-agent must work on the PR's head branch, and multiple PRs may live in the same repository, so prepare a dedicated worktree per PR. The orchestrator does this (single-threaded) so concurrent `git worktree add` calls cannot conflict on a repository's worktree lock.
+Each sub-agent must work on the PR's head branch, and multiple PRs may live in the same repository, so prepare a dedicated worktree per PR.
+The orchestrator does this (single-threaded) so concurrent `git worktree add` calls cannot conflict on a repository's worktree lock.
 
-Group failing PRs by `repo` (the base repository). For each repo, keep one base clone under a cache directory, then add one worktree per PR:
+Group failing PRs by `repo` (the base repository).
+For each repo, keep one base clone under a cache directory, then add one worktree per PR:
 
 ```bash
 CACHE="$HOME/.cache/agents/pr-ci"
@@ -116,15 +132,19 @@ WT="$CACHE/worktrees/<owner>-<repo>-pr-<number>"
 git -C "$BASE" worktree add -B "pr-<number>" "$WT" "refs/remotes/fork/<head_branch>"
 ```
 
-Reuse an existing worktree if `git -C "$BASE" worktree list --porcelain` already has one for `pr-<number>`. If worktree setup fails for a PR, skip it and record "worktree setup failed" in the summary; do not dispatch a sub-agent for it.
+Reuse an existing worktree if `git -C "$BASE" worktree list --porcelain` already has one for `pr-<number>`.
+If worktree setup fails for a PR, skip it and record "worktree setup failed" in the summary; do not dispatch a sub-agent for it.
 
 Record a task per PR: `{repo, number, head_branch, head_repo, fork, workdir, failing_checks}`.
 
 ### 3. Fan out one sub-agent per failing PR
 
-Launch one sub-agent per PR with the `Task` tool, `subagent_type: "general"`. Put **multiple Task calls in a single message** so they run concurrently, in batches of `--concurrency` (default 5). Wait for a batch before starting the next.
+Launch one sub-agent per PR with the `Task` tool, `subagent_type: "general"`.
+Put **multiple Task calls in a single message** so they run concurrently, in batches of `--concurrency` (default 5).
+Wait for a batch before starting the next.
 
-Each sub-agent starts with a fresh context, so its prompt must be self-contained. Use this template verbatim, substituting the fields:
+Each sub-agent starts with a fresh context, so its prompt must be self-contained.
+Use this template verbatim, substituting the fields:
 
 ```
 Run the handle-pr-ci skill for a single pull request, then report the result.
@@ -172,7 +192,8 @@ If the `Task` tool is unavailable, process each PR sequentially in the current s
 opencode run --auto "Run /handle-pr-ci <number> <repo>"
 ```
 
-This loses the parallelism across PRs. Record in the summary that sequential mode was used.
+This loses the parallelism across PRs.
+Record in the summary that sequential mode was used.
 
 ### 4. Aggregate and report
 
@@ -194,25 +215,31 @@ If a sub-agent returns no parseable verdict, surface its raw output and mark tha
 ```
 /handle-failing-pr-ci
 ```
-Lists all open PRs. 5 have failing checks across 2 repos. Prepares 5 worktrees and fans out 5 sub-agents. Three push fixes and go green; one is a transient network failure (re-run triggered); one needs manual attention. Summary table printed.
+Lists all open PRs. 5 have failing checks across 2 repos.
+Prepares 5 worktrees and fans out 5 sub-agents.
+Three push fixes and go green; one is a transient network failure (re-run triggered); one needs manual attention.
+Summary table printed.
 
 **Scenario 2: Scoped to a repository**
 ```
 /handle-failing-pr-ci acme/api
 ```
-Only searches `acme/api`. Failing PRs there are fixed in parallel.
+Only searches `acme/api`.
+Failing PRs there are fixed in parallel.
 
 **Scenario 3: Single PR by URL**
 ```
 /handle-failing-pr-ci https://github.com/acme/api/pull/42
 ```
-Fetches only PR #42. If its checks are failing, one sub-agent is dispatched; otherwise it reports "No PRs with failing CI."
+Fetches only PR #42.
+If its checks are failing, one sub-agent is dispatched; otherwise it reports "No PRs with failing CI."
 
 **Scenario 4: Nothing failing**
 ```
 /handle-failing-pr-ci
 ```
-All checks are passing or pending. Reports "No PRs with failing CI." and launches nothing.
+All checks are passing or pending.
+Reports "No PRs with failing CI." and launches nothing.
 
 **Scenario 5: Bounded parallelism**
 ```

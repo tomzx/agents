@@ -21,11 +21,16 @@ It is richer than the project-level `.sdlc/context/vocabulary.md`, which it reus
 ## Steps
 
 1. Read available context (requirements, specification, architecture, vocabulary) to identify the domain.
-2. Read `.sdlc/context/vocabulary.md` if present. Reuse existing project terms; only add terms that are specific to this domain and not already defined.
-3. Identify the **core entities**: the nouns in the domain that carry meaning (people, things, events, records, concepts). Capture each with a short description and the attributes that matter.
-4. Identify the **relationships** between entities, with cardinality (one-to-one, one-to-many, many-to-many) and any constraint or rule that governs the relationship. Render the entity model as a Mermaid `classDiagram`: one class per entity with its key attributes, edges carrying cardinality, and each invariant attached as a `note` on the entity it constrains.
-5. Build a **glossary**: give each term a precise definition, and disambiguate any overloaded term (one word used two ways). Note where a term differs from general usage.
-6. State **invariants**: rules that always hold in this domain (business rules, constraints, identities). These are testable truths, not implementation details.
+2. Read `.sdlc/context/vocabulary.md` if present.
+   Reuse existing project terms; only add terms that are specific to this domain and not already defined.
+3. Identify the **core entities**: the nouns in the domain that carry meaning (people, things, events, records, concepts).
+   Capture each with a short description and the attributes that matter.
+4. Identify the **relationships** between entities, with cardinality (one-to-one, one-to-many, many-to-many) and any constraint or rule that governs the relationship.
+   Render the entity model as a Mermaid `classDiagram`: one class per entity with its key attributes, edges carrying cardinality, and each invariant attached as a `note` on the entity it constrains.
+5. Build a **glossary**: give each term a precise definition, and disambiguate any overloaded term (one word used two ways).
+   Note where a term differs from general usage.
+6. State **invariants**: rules that always hold in this domain (business rules, constraints, identities).
+   These are testable truths, not implementation details.
 7. Identify the **key quantities and metrics** the domain depends on, why each matters, and its current value if known.
 8. Define **boundaries**: what is in this domain versus adjacent domains it touches but does not model.
 9. Record **open questions** where the model is uncertain.
@@ -33,7 +38,8 @@ It is richer than the project-level `.sdlc/context/vocabulary.md`, which it reus
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/domain-model.md` (copied to `.sdlc/templates/features/domain-model.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/domain-model.md` (copied to `.sdlc/templates/features/domain-model.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -48,17 +54,17 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Unfamiliar regulatory domain**
-The feature concerns a new tax-reporting requirement. The model captures the entities (transactions, jurisdictions, tax codes), their relationships, the invariants (a transaction maps to exactly one jurisdiction at report time), and the key quantity (reportable volume per period), giving the team a shared vocabulary before any code is written.
+**Scenario 1: Unfamiliar regulatory domain** The feature concerns a new tax-reporting requirement.
+The model captures the entities (transactions, jurisdictions, tax codes), their relationships, the invariants (a transaction maps to exactly one jurisdiction at report time), and the key quantity (reportable volume per period), giving the team a shared vocabulary before any code is written.
 
-**Scenario 2: Overloaded term disambiguated**
-"Account" is used to mean both a customer account and a billing account. The glossary disambiguates them as distinct entities and notes the relationship between them.
+**Scenario 2: Overloaded term disambiguated** "Account" is used to mean both a customer account and a billing account.
+The glossary disambiguates them as distinct entities and notes the relationship between them.
 
-**Scenario 3: Reusing project vocabulary**
-The project's `.sdlc/context/vocabulary.md` already defines "tenant". The model reuses that term verbatim and only adds the domain-specific entity "tenant quota".
+**Scenario 3: Reusing project vocabulary** The project's `.sdlc/context/vocabulary.md` already defines "tenant".
+The model reuses that term verbatim and only adds the domain-specific entity "tenant quota".
 
-**Scenario 4: Too early to model**
-The available context is still too vague to identify entities reliably. Verdict: `needs-info`, recommending more requirements detail first.
+**Scenario 4: Too early to model** The available context is still too vague to identify entities reliably.
+Verdict: `needs-info`, recommending more requirements detail first.
 
 ## Completion Checklist
 

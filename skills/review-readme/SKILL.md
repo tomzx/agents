@@ -23,7 +23,8 @@ This skill handles the README specifically: it checks the fixed README template,
 2. Read the project's `LICENSE`, package manifest, and, when needed, the source tree to verify claimed values.
 3. Identify issues in each category below.
 4. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-5. Report findings using the output format. Omit categories with no findings.
+5. Report findings using the output format.
+   Omit categories with no findings.
 
 ## Review Checklist
 
@@ -109,21 +110,13 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 
 ## Example Usage
 
-**Scenario 1: Stale version badge**
-The badge says Go 1.20 but `go.mod` requires 1.22.
-🔴 MUST update the badge to match the manifest.
+**Scenario 1: Stale version badge** The badge says Go 1.20 but `go.mod` requires 1.22. 🔴 MUST update the badge to match the manifest.
 
-**Scenario 2: Internal functions listed as features**
-The Included section lists every exported function.
-🟡 SHOULD rewrite the list as user-facing capabilities.
+**Scenario 2: Internal functions listed as features** The Included section lists every exported function. 🟡 SHOULD rewrite the list as user-facing capabilities.
 
-**Scenario 3: Getting Started assumes prior setup**
-The first step runs `make build` but Requirements never mentions that a compiler is needed.
-🔴 MUST add the compiler to Requirements or the install steps.
+**Scenario 3: Getting Started assumes prior setup** The first step runs `make build` but Requirements never mentions that a compiler is needed. 🔴 MUST add the compiler to Requirements or the install steps.
 
-**Scenario 4: Empty placeholder section**
-The Roadmap heading is present but contains no items.
-🟢 MAY remove the empty Roadmap section.
+**Scenario 4: Empty placeholder section** The Roadmap heading is present but contains no items. 🟢 MAY remove the empty Roadmap section.
 
 ## Next Step
 

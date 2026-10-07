@@ -20,8 +20,10 @@ The review answers one question: could an agent that has never seen this project
 1. Read the context files from `.sdlc/context/` if present, otherwise from context or as file paths.
 2. Cross-reference the files against each other, and, where code exists, against the repository.
 3. Identify issues in each category below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/context/review-project.md` with frontmatter `artifact: project`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/context/review-project.md` with frontmatter `artifact: project`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -29,7 +31,8 @@ The review answers one question: could an agent that has never seen this project
 
 - Does every section of every context file contain substantive content, with no template placeholders (`<...>`, "TBD") left?
 - For an empty project, are not-yet-built parts (architecture, infrastructure) explicitly marked as planned rather than presented as existing?
-- Is `goals.md` absent? Note it as informational with a pointer to `/create-goals`; it is not a blocker for this review.
+- Is `goals.md` absent?
+  Note it as informational with a pointer to `/create-goals`; it is not a blocker for this review.
 
 ### Consistency
 
@@ -51,7 +54,8 @@ The review answers one question: could an agent that has never seen this project
 
 ### Currency
 
-- Where code exists, do the recorded stack and conventions match the repository (dependency manifests, config files, actual file naming)? Drift is a finding.
+- Where code exists, do the recorded stack and conventions match the repository (dependency manifests, config files, actual file naming)?
+  Drift is a finding.
 - Are planned sections dated or anchored so staleness is detectable later?
 
 ## Output Format
@@ -92,21 +96,18 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/context/
 
 ## Example Usage
 
-**Scenario 1: Placeholder left behind**
-`architecture.md` still contains the template's `<name>` component row.
+**Scenario 1: Placeholder left behind** `architecture.md` still contains the template's `<name>` component row.
 Report under Completeness: the section is a stub; identify which questions were skipped and point back to `/create-project` revision mode.
 
-**Scenario 2: Vocabulary drift**
-`project-overview.md` says "workspace", `architecture.md` says "tenant", and `vocabulary.md` defines neither.
+**Scenario 2: Vocabulary drift** `project-overview.md` says "workspace", `architecture.md` says "tenant", and `vocabulary.md` defines neither.
 Report under Consistency: pick one term, define it in `vocabulary.md`, and use it everywhere.
 
-**Scenario 3: Unenforceable convention**
-`conventions.md` lists "keep the code simple" as a coding standard.
+**Scenario 3: Unenforceable convention** `conventions.md` lists "keep the code simple" as a coding standard.
 Report under Actionability: replace with a checkable rule, or drop it.
 
-**Scenario 4: Empty project, aspirational architecture**
-`architecture.md` describes components that do not exist yet and are explicitly marked "planned".
-No finding under Currency: the plan marker is correct. Only unmarked descriptions of unbuilt parts are findings.
+**Scenario 4: Empty project, aspirational architecture** `architecture.md` describes components that do not exist yet and are explicitly marked "planned".
+No finding under Currency: the plan marker is correct.
+Only unmarked descriptions of unbuilt parts are findings.
 
 ## Next Step
 

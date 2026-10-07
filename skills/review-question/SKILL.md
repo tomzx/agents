@@ -18,8 +18,10 @@ When an answer is available, records it in the Answer section and closes the que
 
 1. Read the question document.
 2. Evaluate it against the checklist below.
-3. Report findings by category. Omit categories with no findings.
-4. After the review, update `status` in frontmatter to the appropriate value: `Resolved` (answer recorded in the Answer section), `Deferred` (cannot be answered yet; risk acknowledged and a revisit date set), or `Dismissed` (no longer relevant; reason recorded in the Answer section). Leave `Open` when no resolution applies yet.
+3. Report findings by category.
+   Omit categories with no findings.
+4. After the review, update `status` in frontmatter to the appropriate value: `Resolved` (answer recorded in the Answer section), `Deferred` (cannot be answered yet; risk acknowledged and a revisit date set), or `Dismissed` (no longer relevant; reason recorded in the Answer section).
+   Leave `Open` when no resolution applies yet.
 
 ## Review Checklist
 
@@ -86,18 +88,14 @@ In the same emission, list the record under `artifacts:` when the review changed
 
 ## Example Usage
 
-**Scenario 1: Unanswerable as written**
-Question says "what about compliance?" with no scope.
+**Scenario 1: Unanswerable as written** Question says "what about compliance?" with no scope.
 Report under Specificity: restate so a named source can answer directly (e.g., "Does EU user data require residency guarantees under the current data processing agreement?").
 
-**Scenario 2: No answerer named**
-Context and impact are clear, but no one is identified to ask.
+**Scenario 2: No answerer named** Context and impact are clear, but no one is identified to ask.
 Report under Answerability: name the person, team, or source that holds the answer.
 
-**Scenario 3: Answer that avoids the question**
-Status is Resolved, but the Answer section discusses adjacent work without answering what was asked.
+**Scenario 3: Answer that avoids the question** Status is Resolved, but the Answer section discusses adjacent work without answering what was asked.
 Report under Resolution Quality: reopen (status `Open`) or record the actual answer with its source.
 
-**Scenario 4: Overdue with no consequence named**
-The needed-by date passed a week ago and blocking is High.
+**Scenario 4: Overdue with no consequence named** The needed-by date passed a week ago and blocking is High.
 Report under Impact and Urgency: flag the overdue date, or promote via `/create-assumption` if work proceeded without the answer.

@@ -23,7 +23,8 @@ Reference files are synced from [worktrunk.dev](https://worktrunk.dev) documenta
 - **reference/troubleshooting.md**: Troubleshooting for LLM and hooks
 - **reference/agent-integration.md**: Agent CLI plugins (installation, activity tracking)
 
-For command-specific options, run `wt <command> --help`. For configuration, follow the workflows below.
+For command-specific options, run `wt <command> --help`.
+For configuration, follow the workflows below.
 
 ## Two Types of Configuration
 
@@ -65,7 +66,8 @@ When a user asks for configuration help, determine which type based on:
 
 ### Setting Up Commit Message Generation (User Config)
 
-Most common request. See `reference/llm-commits.md` for supported tools and exact command syntax.
+Most common request.
+See `reference/llm-commits.md` for supported tools and exact command syntax.
 
 1. **Detect available tools**
    ```bash
@@ -94,7 +96,8 @@ Most common request. See `reference/llm-commits.md` for supported tools and exac
 
 ### Setting Up Project Hooks (Project Config)
 
-Common request for workflow automation. Follow discovery process:
+Common request for workflow automation.
+Follow discovery process:
 
 1. **Detect project type**
    ```bash
@@ -249,7 +252,8 @@ grep -A 20 "## Warning Messages" reference/shell-integration.md
 
 ## Hook Approvals in Non-Interactive Sessions
 
-Project hooks and project aliases prompt for approval on first run, so an untrusted `.config/wt.toml` can't silently execute arbitrary commands. Agents running `wt merge`, `wt switch`, or other commands that trigger hooks will hit an error like:
+Project hooks and project aliases prompt for approval on first run, so an untrusted `.config/wt.toml` can't silently execute arbitrary commands.
+Agents running `wt merge`, `wt switch`, or other commands that trigger hooks will hit an error like:
 
 ```
 ▲ cargo-difftest needs approval to execute 1 command:
@@ -261,14 +265,20 @@ Project hooks and project aliases prompt for approval on first run, so an untrus
 
 Two resolutions exist — pick based on who the agent is running for:
 
-- **`wt config approvals add`** — interactive prompt that stores approvals to `~/.config/worktrunk/approvals.toml`. Run once per project; persists across invocations until the command template changes or the project moves. This is the right choice when the human owns the trust decision.
-- **`--yes`** / `-y` — bypasses approval for a single invocation. Appropriate for CI/CD where hook contents are controlled by the pipeline itself.
+- **`wt config approvals add`** — interactive prompt that stores approvals to `~/.config/worktrunk/approvals.toml`.
+  Run once per project; persists across invocations until the command template changes or the project moves.
+  This is the right choice when the human owns the trust decision.
+- **`--yes`** / `-y` — bypasses approval for a single invocation.
+  Appropriate for CI/CD where hook contents are controlled by the pipeline itself.
 
-**When invoked as an agent, stop and escalate to the user** — pre-approval is a security decision about whether this project's hooks should be trusted to run arbitrary commands on their machine. Tell the user to run `wt config approvals add` (or review and re-run with `--yes` if they accept the CI-style one-shot bypass). Don't use `--yes` on the user's behalf just to unblock the command.
+**When invoked as an agent, stop and escalate to the user** — pre-approval is a security decision about whether this project's hooks should be trusted to run arbitrary commands on their machine.
+Tell the user to run `wt config approvals add` (or review and re-run with `--yes` if they accept the CI-style one-shot bypass).
+Don't use `--yes` on the user's behalf just to unblock the command.
 
 ## Advanced: Agent Handoffs
 
-When the user requests spawning a worktree with an agent in a background session ("spawn a worktree for...", "hand off to another agent"), use the appropriate pattern for their terminal multiplexer. Substitute `<agent-cli>` with the command that launches your agent CLI (e.g. `'opencode run'` for OpenCode).
+When the user requests spawning a worktree with an agent in a background session ("spawn a worktree for...", "hand off to another agent"), use the appropriate pattern for their terminal multiplexer.
+Substitute `<agent-cli>` with the command that launches your agent CLI (e.g. `'opencode run'` for OpenCode).
 
 **tmux** (check `$TMUX` env var):
 ```bash

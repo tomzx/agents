@@ -6,7 +6,9 @@ argument-hint: "[initiative-id or topic]"
 
 # Analyze Competition
 
-Maps who else addresses the problem, how they position, and where the gaps are. The output is positioning opportunities, not feature checklists. Pairs with `research-market` and feeds `frame-opportunities`.
+Maps who else addresses the problem, how they position, and where the gaps are.
+The output is positioning opportunities, not feature checklists.
+Pairs with `research-market` and feeds `frame-opportunities`.
 
 ## Prerequisites
 
@@ -17,14 +19,16 @@ Maps who else addresses the problem, how they position, and where the gaps are. 
 
 1. Enumerate alternatives the target customer could use, including the current default and workarounds (the most common "competitor" is doing nothing).
 2. For each, capture positioning: who they target, the job they claim to do, their price/range, and their strongest and weakest points.
-3. Build a positioning map across two axes that matter to the customer (e.g., ease vs. power, price vs. completeness). Identify empty quadrants.
+3. Build a positioning map across two axes that matter to the customer (e.g., ease vs. power, price vs. completeness).
+   Identify empty quadrants.
 4. Identify differentiation opportunities: where the problem is underserved, mis-served, or served for the wrong segment.
 5. Note moats and switching costs that affect viability, not just desirability.
 6. Write `competitors.md` to the initiative directory.
 
 ## Output Format
 
-Use the template at `skills/pdlc/templates/initiatives/competitors.md`. Carry the standard initiative frontmatter with `phase: discover`.
+Use the template at `skills/pdlc/templates/initiatives/competitors.md`.
+Carry the standard initiative frontmatter with `phase: discover`.
 
 ## Outcome
 

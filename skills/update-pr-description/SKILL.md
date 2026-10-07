@@ -79,23 +79,27 @@ Produce updated PR description markdown
    ghx issue view $2 --repo $1
    ```
 
-5. Compare the existing description against the current diff and commit list. For each section of the existing description, decide:
+5. Compare the existing description against the current diff and commit list.
+   For each section of the existing description, decide:
    - **Keep as-is** -- the section is still accurate and complete.
    - **Edit minimally** -- only the parts that are now inaccurate or incomplete; do not rewrite prose that is still correct.
    - **Add** -- new information required by the new commits (e.g. a new "What" bullet, an additional test step).
    - **Remove** -- anything that described work that was reverted or superseded.
 
-   Bias strongly toward keeping existing text. Only change what the new commits have made inaccurate or incomplete.
+Bias strongly toward keeping existing text.
+Only change what the new commits have made inaccurate or incomplete.
 
 6. Resolve agents attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `update-pr-description`.
 
 7. Produce the updated description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
 
-8. Return the result inside a markdown code block with each sentence on its own line. Do not line wrap the description; each paragraph/bullet should be a single long line.
+8. Return the result inside a markdown code block with each sentence on its own line.
+   Do not line wrap the description; each paragraph/bullet should be a single long line.
 
 ## Output Format
 
-The output must follow the same structure as the existing PR description. Do not add or remove sections unless the new commits require it.
+The output must follow the same structure as the existing PR description.
+Do not add or remove sections unless the new commits require it.
 
 ```markdown
 # What
@@ -148,7 +152,8 @@ Fetches the existing PR description, diffs it against the current branch state, 
 ```
 /update-pr-description owner/myrepo 42
 ```
-Fetches issue #42 and re-assesses acceptance criteria. Adds newly covered items to "Acceptance criteria covered" without touching the rest of the section.
+Fetches issue #42 and re-assesses acceptance criteria.
+Adds newly covered items to "Acceptance criteria covered" without touching the rest of the section.
 
 **Scenario 3: A commit reverted earlier work**
 ```

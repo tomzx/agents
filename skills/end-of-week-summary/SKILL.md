@@ -3,13 +3,7 @@ name: end-of-week-summary
 description: Summarize weekly Slack activity, colleague activity, action items, and thanks for the week.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-WEEK=!`date +%V`
-WEEK_START=!`date -d "$(date +%Y-%m-%d) -$(( $(date +%u) - 1 )) days" +%Y-%m-%d`
-WEEK_START_MINUS_ONE=!`date -d "$WEEK_START - 1 day" +%Y-%m-%d`
-TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` WEEK=!`date +%V` WEEK_START=!`date -d "$(date +%Y-%m-%d) -$(( $(date +%u) - 1 )) days" +%Y-%m-%d` WEEK_START_MINUS_ONE=!`date -d "$WEEK_START - 1 day" +%Y-%m-%d` TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
 
 # Generate End-of-Week Summary
 
@@ -39,11 +33,13 @@ Thanks          --> {BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md
 
 ### 1. Summarize Personal Slack Activity
 
-Summarize `.slack.md` files in `{BASE_DIR}` from the week ending {TODAY}. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.md`.
+Summarize `.slack.md` files in `{BASE_DIR}` from the week ending {TODAY}.
+Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.md`.
 
 ### 2. Summarize #help-ml-infrastructure Channel
 
-Fetch messages from the #help-ml-infrastructure Slack channel during the week ending {TODAY} using `build_thread_kb.py`. `WEEK_START` is Monday of the current week; `TOMORROW` is used as the exclusive upper bound.
+Fetch messages from the #help-ml-infrastructure Slack channel during the week ending {TODAY} using `build_thread_kb.py`.
+`WEEK_START` is Monday of the current week; `TOMORROW` is used as the exclusive upper bound.
 
 ```bash
 HELP_ML_CHANNEL_ID=`~/.agents/scripts/get-env HELP_ML_CHANNEL_ID`
@@ -79,7 +75,8 @@ Resolve the colleagues list:
 ~/.agents/scripts/get-env COLLEAGUES
 ```
 
-For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`. Slack's `after:` is exclusive, so pass the day before `WEEK_START` as `--after` and `TOMORROW` as `--before`:
+For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`.
+Slack's `after:` is exclusive, so pass the day before `WEEK_START` as `--after` and `TOMORROW` as `--before`:
 
 ```bash
 uv run skills/slack-kb-individual/collect_individual_threads.py \
@@ -94,11 +91,13 @@ Aggregate into `{BASE_DIR}/{YEAR}/weekly/{WEEK}/slack.colleagues.md`.
 
 ### 4. Summarize Action Items
 
-Review all notes from the week in `{BASE_DIR}` and extract pending action items. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`.
+Review all notes from the week in `{BASE_DIR}` and extract pending action items.
+Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/action-items.md`.
 
 ### 5. Summarize Thanks
 
-Compile thanks from the week's notes. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md`.
+Compile thanks from the week's notes.
+Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/thanks.md`.
 
 ## Example Usage
 
@@ -106,13 +105,13 @@ Compile thanks from the week's notes. Write to `{BASE_DIR}/{YEAR}/weekly/{WEEK}/
 ```
 /end-of-week-summary
 ```
-Processes week 15 of 2026. Creates `{NOTES_DIR}/2026/weekly/15/` with all output files.
+Processes week 15 of 2026.
+Creates `{NOTES_DIR}/2026/weekly/15/` with all output files.
 
-**Scenario 2: Multiple colleagues**
-With 4 colleagues in `COLLEAGUES`, 4 subagents run in parallel to fetch their Slack activity, then results are merged into `slack.colleagues.md`.
+**Scenario 2: Multiple colleagues** With 4 colleagues in `COLLEAGUES`, 4 subagents run in parallel to fetch their Slack activity, then results are merged into `slack.colleagues.md`.
 
-**Scenario 3: Quiet week**
-Few Slack messages and no action items. Summaries are brief; `action-items.md` notes "No outstanding action items."
+**Scenario 3: Quiet week** Few Slack messages and no action items.
+Summaries are brief; `action-items.md` notes "No outstanding action items."
 
 ## Useful Commands Reference
 

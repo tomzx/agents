@@ -7,15 +7,18 @@ argument-hint: "<github_username> [count] [--orgs <org>...]"
 
 # Initialize Developer Trust Profile
 
-Bootstraps a developer trust profile by processing the last N PRs authored by a developer across **all repositories** visible to `gh` (not a single repo), delegating each one to `/developer-trust-profile`. Samples both merged and rejected PRs to avoid survivorship bias, and derives the outcome from actual review data rather than assuming all merged PRs are clean approvals.
+Bootstraps a developer trust profile by processing the last N PRs authored by a developer across **all repositories** visible to `gh` (not a single repo), delegating each one to `/developer-trust-profile`.
+Samples both merged and rejected PRs to avoid survivorship bias, and derives the outcome from actual review data rather than assuming all merged PRs are clean approvals.
 
-Optionally pass **`--orgs`** followed by one or more GitHub organization logins to restrict results to PRs in repos owned by those orgs (or use multiple `--owner` flags in the commands below). Omit `--orgs` to consider PRs in any repo the token can access.
+Optionally pass **`--orgs`** followed by one or more GitHub organization logins to restrict results to PRs in repos owned by those orgs (or use multiple `--owner` flags in the commands below).
+Omit `--orgs` to consider PRs in any repo the token can access.
 
 ## Prerequisites
 
 - `gh` CLI authenticated with read access to the repositories you expect to search (public repos work without extra scope; private repos need appropriate token access)
 - `$1`: GitHub username of the developer
-- `$2` (optional): number of PRs to scan (default: 10). Must be a positive integer if provided.
+- `$2` (optional): number of PRs to scan (default: 10).
+  Must be a positive integer if provided.
 - `--orgs` (optional): one or more organization names; only PRs under those orgs are included
 
 ## Workflow
@@ -55,11 +58,14 @@ Stop       For each PR (oldest first):
 - `COUNT`: second positional if it is a positive integer, otherwise default `10`
 - `ORGS`: empty unless `--orgs` appears; every token after `--orgs` until the end of the argument list is an organization login (e.g. `acme-corp`, `myorg`)
 
-Build an array of extra `gh` flags for org scoping. For each org in `ORGS`, add `--owner <org>` to **both** search invocations below. If `ORGS` is empty, do not pass `--owner` (search spans all visible repos).
+Build an array of extra `gh` flags for org scoping.
+For each org in `ORGS`, add `--owner <org>` to **both** search invocations below.
+If `ORGS` is empty, do not pass `--owner` (search spans all visible repos).
 
 ### 2. Fetch PRs
 
-Use `gh search prs` (not `gh pr list --repo`). It returns `repository.nameWithOwner` as the repo slug for later `gh pr view` calls.
+Use `gh search prs` (not `gh pr list --repo`).
+It returns `repository.nameWithOwner` as the repo slug for later `gh pr view` calls.
 
 **Owner flags:** If you use shell variables, something like `EXTRA_OWNERS=(--owner acme --owner beta)` when orgs are `acme` and `beta`.
 
@@ -85,9 +91,12 @@ gh search prs --author {GITHUB_USERNAME} --merged=false --state closed \
   --jq '[.[] | {number, repo: .repository.nameWithOwner, date: (.closedAt // .updatedAt), merged: false}]'
 ```
 
-Combine both JSON arrays, sort by `date` descending, take the first `COUNT` entries. If the combined list is empty, report to the user and stop. Do not create a profile.
+Combine both JSON arrays, sort by `date` descending, take the first `COUNT` entries.
+If the combined list is empty, report to the user and stop.
+Do not create a profile.
 
-**Note:** Search uses GitHub’s search index; very new PRs can appear slightly later than on the web UI. Results respect private-repo access for the authenticated user.
+**Note:** Search uses GitHub’s search index; very new PRs can appear slightly later than on the web UI.
+Results respect private-repo access for the authenticated user.
 
 ### 3. Determine outcome for each PR
 
@@ -113,7 +122,8 @@ For each PR (oldest first), invoke:
 /developer-trust-profile {GITHUB_USERNAME} --after-review {REPO} {PR_NUMBER} {OUTCOME}
 ```
 
-`REPO` is `repository.nameWithOwner` from search (e.g. `acme/webapp`). This handles fetching the diff, synthesizing observations, updating the trust level, writing the profile, and committing.
+`REPO` is `repository.nameWithOwner` from search (e.g. `acme/webapp`).
+This handles fetching the diff, synthesizing observations, updating the trust level, writing the profile, and committing.
 
 ### 5. Report summary
 
@@ -155,7 +165,8 @@ Only PRs in repositories owned by `acme-corp` or `beta-labs` are considered.
 /initialize-developer-trust-profile dave --orgs single-org
 ```
 
-No PRs match the search. Reports the absence and stops.
+No PRs match the search.
+Reports the absence and stops.
 
 **Scenario 5: Mixed history**
 
@@ -163,7 +174,9 @@ No PRs match the search. Reports the absence and stops.
 /initialize-developer-trust-profile erin 10
 ```
 
-Finds merged and rejected PRs in various repos. Outcomes follow review data. Final profile reflects the mixed track record.
+Finds merged and rejected PRs in various repos.
+Outcomes follow review data.
+Final profile reflects the mixed track record.
 
 ## Useful Commands Reference
 

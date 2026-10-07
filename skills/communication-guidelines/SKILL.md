@@ -36,7 +36,8 @@ This is a reference, not a workflow: no command to run and no artifact to produc
 
 ## Length budgets
 
-These are ceilings, not targets. Shorter is almost always better.
+These are ceilings, not targets.
+Shorter is almost always better.
 
 | Surface | Budget |
 |---|---|
@@ -88,23 +89,26 @@ These are ceilings, not targets. Shorter is almost always better.
 
 ## Examples
 
-Inline comment, too verbose:
-"Great work here! I was reading through this and it looks like the function may not handle the case where the input is None. It might be worth considering adding a guard, because otherwise it could potentially raise an AttributeError. What do you think?"
+Inline comment, too verbose: "Great work here!
+I was reading through this and it looks like the function may not handle the case where the input is None.
+It might be worth considering adding a guard, because otherwise it could potentially raise an AttributeError.
+What do you think?"
 
-Inline comment, succinct:
-"This raises AttributeError when `input` is None. Add a guard, or document that None is a precondition."
+Inline comment, succinct: "This raises AttributeError when `input` is None.
+Add a guard, or document that None is a precondition."
 
-Thread reply, too verbose:
-"Thanks for the feedback, that is a good point. I went ahead and made the change you suggested and also updated the tests. It should be pushed now."
+Thread reply, too verbose: "Thanks for the feedback, that is a good point.
+I went ahead and made the change you suggested and also updated the tests.
+It should be pushed now."
 
-Thread reply, succinct:
-"Done: added the null guard and a regression test in abc1234."
+Thread reply, succinct: "Done: added the null guard and a regression test in abc1234."
 
-Slack message, too verbose:
-"Hey team, quick update on the migration work. Over the last few days I have been working through the schema changes and I am happy to report that the first phase is now complete. Next up we will be looking at the backfill."
+Slack message, too verbose: "Hey team, quick update on the migration work.
+Over the last few days I have been working through the schema changes and I am happy to report that the first phase is now complete.
+Next up we will be looking at the backfill."
 
-Slack message, succinct:
-"Migration phase 1 done (schema changes merged). Next: backfill, starting Monday."
+Slack message, succinct: "Migration phase 1 done (schema changes merged).
+Next: backfill, starting Monday."
 
 ## Notes
 

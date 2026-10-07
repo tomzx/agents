@@ -3,11 +3,7 @@ name: end-of-week-review
 description: Reflective end-of-week review covering goal progress, time and attention patterns, team health, and what to change next week. Runs the audit-attention skill to classify the week's activities as compounding or depreciating.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-WEEK=!`date +%V`
-NEXT_WEEK=!`date -d "next Monday" +%V`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` WEEK=!`date +%V` NEXT_WEEK=!`date -d "next Monday" +%V`
 
 # End-of-Week Review
 
@@ -52,7 +48,8 @@ Before asking questions, analyze the gathered data to identify:
 
 ### 3. Run Attention Audit
 
-Invoke the **audit-attention** skill against this week's activities, using the gathered context and synthesized patterns as the activity list. Apply the two-year test to classify each significant activity as compounding or depreciating, estimate the fraction of the week that landed on compounding work, and note any boundary moves since the last audit.
+Invoke the **audit-attention** skill against this week's activities, using the gathered context and synthesized patterns as the activity list.
+Apply the two-year test to classify each significant activity as compounding or depreciating, estimate the fraction of the week that landed on compounding work, and note any boundary moves since the last audit.
 
 If the gathered context does not yield a clear activity list, ask the user to enumerate the significant activities of the week before proceeding.
 
@@ -62,10 +59,13 @@ Capture the audit output; it becomes the `## Attention Allocation` section of th
 
 Present a summary of the synthesized patterns and the attention audit results, then ask the user the following questions in a single message:
 
-1. What were your top 3 goals for the week? Rate progress on each (0%, 25%, 50%, 75%, 100%).
-2. What was the most impactful thing you did this week? What made it possible?
+1. What were your top 3 goals for the week?
+   Rate progress on each (0%, 25%, 50%, 75%, 100%).
+2. What was the most impactful thing you did this week?
+   What made it possible?
 3. What consumed time that, in hindsight, you should have declined, delegated, or deferred?
-4. Which team member needs more from you next week? Which is set up to do their best work?
+4. Which team member needs more from you next week?
+   Which is set up to do their best work?
 5. What one behavior or habit would make next week meaningfully better?
 6. Is there a decision you have been avoiding that this week made more urgent?
 
@@ -153,14 +153,16 @@ date: {TODAY}
 
 ## Example Usage
 
-**Scenario 1: Goal-aligned week**
-Daily reviews show mostly proactive work. Goal table shows 75-100% on priorities. Review confirms the pattern and identifies one area (a recurring meeting) to cut.
+**Scenario 1: Goal-aligned week** Daily reviews show mostly proactive work.
+Goal table shows 75-100% on priorities.
+Review confirms the pattern and identifies one area (a recurring meeting) to cut.
 
-**Scenario 2: Reactive week**
-Most days scored 4-5 on reactivity. Goal progress is low. Review shows the drift clearly, names the source of interruptions, and proposes one structural change (e.g., block focus time each morning).
+**Scenario 2: Reactive week** Most days scored 4-5 on reactivity.
+Goal progress is low.
+Review shows the drift clearly, names the source of interruptions, and proposes one structural change (e.g., block focus time each morning).
 
-**Scenario 3: Team concern surfaced**
-Colleague summary shows a team member is absent from key discussions. Review flags it, user notes they should check in, action carries forward to next week.
+**Scenario 3: Team concern surfaced** Colleague summary shows a team member is absent from key discussions.
+Review flags it, user notes they should check in, action carries forward to next week.
 
 ## Useful Commands Reference
 

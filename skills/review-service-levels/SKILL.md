@@ -17,11 +17,14 @@ Audits a service-level objective set for measurability, coverage, policy soundne
 ## Steps
 
 1. Read the SLO document from `.sdlc/context/service-levels.md` if present, otherwise from context or as a file path.
-2. Read `.sdlc/context/service-levels.yaml` if present, and check it structurally (best-effort): the YAML parses, every SLO references an existing SLI and service, and each SLO has a target, window, and error budget. A failure is a blocking finding under Measurability.
+2. Read `.sdlc/context/service-levels.yaml` if present, and check it structurally (best-effort): the YAML parses, every SLO references an existing SLI and service, and each SLO has a target, window, and error budget.
+   A failure is a blocking finding under Measurability.
 3. Cross-reference against the architecture (services, journeys) and goals, and confirm `service-levels.yaml` and `service-levels.md` agree (the YAML is normative on drift).
 4. Identify issues in each category below.
-5. Report findings. Omit any category that has no findings.
-6. Write the findings to `.sdlc/context/review-service-levels.md` with frontmatter `artifact: service-levels`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, with the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+5. Report findings.
+   Omit any category that has no findings.
+6. Write the findings to `.sdlc/context/review-service-levels.md` with frontmatter `artifact: service-levels`, `verdict` (`approved` if no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, with the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -88,16 +91,13 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/context/
 
 ## Example Usage
 
-**Scenario 1: SLI without a clear denominator**
-SLI says "low error rate" with no definition of total events.
+**Scenario 1: SLI without a clear denominator** SLI says "low error rate" with no definition of total events.
 Report under Measurability: define good and total events explicitly; an SLI must be a ratio.
 
-**Scenario 2: No error budget policy**
-SLO target is 99.9% but nothing states what happens when the budget runs out.
+**Scenario 2: No error budget policy** SLO target is 99.9% but nothing states what happens when the budget runs out.
 Report under Error Budget and Policy: an SLO without a depletion policy cannot govern prioritization.
 
-**Scenario 3: SLA tighter than SLO**
-SLA promises 99.95% but the SLO target is only 99.9%.
+**Scenario 3: SLA tighter than SLO** SLA promises 99.95% but the SLO target is only 99.9%.
 Report under Agreements: the SLA must be looser than the SLO or the agreement has no headroom.
 
 ## Next Step

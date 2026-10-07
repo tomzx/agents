@@ -153,18 +153,15 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Duplication and an untestable clock**
-`create-implementation` added three report methods that each repeat the same period-validation block and each call `datetime.now()` directly.
+**Scenario 1: Duplication and an untestable clock** `create-implementation` added three report methods that each repeat the same period-validation block and each call `datetime.now()` directly.
 The skill extracts the validation into one private method (duplication with one reason to change) and adds a clock parameter to the constructor (untestable boundary).
 It does not extract an interface for the database client: the tests reach it through the existing test database, so there is no justification.
 It records the database decision under "Deliberately Not Refactored".
 
-**Scenario 2: Speculative indirection in fresh code**
-The implementation introduced a `Notifier` interface, a `NotifierFactory`, and a `NotifierConfig` for a single email path called from one place.
+**Scenario 2: Speculative indirection in fresh code** The implementation introduced a `Notifier` interface, a `NotifierFactory`, and a `NotifierConfig` for a single email path called from one place.
 The skill inlines the factory and config back into the one call site, keeps the interface only if a test double genuinely replaces the email client, and records the removal.
 
-**Scenario 3: Nothing to do**
-The diff is a small, cohesive change already covered by tests, with no duplication and no blocked boundary.
+**Scenario 3: Nothing to do** The diff is a small, cohesive change already covered by tests, with no duplication and no blocked boundary.
 The skill applies the Minimum Abstraction Rule, finds no justification, writes a `refactorings.md` whose "Refactorings Applied" table is empty, and leaves the code untouched.
 
 ## Completion Checklist

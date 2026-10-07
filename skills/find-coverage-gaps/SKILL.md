@@ -9,7 +9,9 @@ TODAY=!`date +%Y-%m-%d`
 
 # Coverage Gaps
 
-Finds the parts of the codebase with the least test coverage, then ranks them by churn and complexity so the most important gaps appear first. Low coverage in a stable file is a minor concern. Low coverage in a file that changes constantly and is hard to understand is a production risk.
+Finds the parts of the codebase with the least test coverage, then ranks them by churn and complexity so the most important gaps appear first.
+Low coverage in a stable file is a minor concern.
+Low coverage in a file that changes constantly and is hard to understand is a production risk.
 
 ## Prerequisites
 
@@ -190,13 +192,16 @@ For each recommendation, name the specific functions to cover and the edge cases
 ```
 /find-coverage-gaps
 ```
-Overall coverage is 61%. Finds `src/billing/invoice.py` (8%, 12 churn commits) as the top risk. Recommends unit tests for the three calculation functions and an integration test for the PDF export path.
+Overall coverage is 61%.
+Finds `src/billing/invoice.py` (8%, 12 churn commits) as the top risk.
+Recommends unit tests for the three calculation functions and an integration test for the PDF export path.
 
 **Scenario 2: Pre-refactor safety check**
 ```
 /find-coverage-gaps src/legacy
 ```
-The legacy module has 3% coverage. Recommends writing characterization tests for all public functions before any refactoring begins, to lock in current behavior.
+The legacy module has 3% coverage.
+Recommends writing characterization tests for all public functions before any refactoring begins, to lock in current behavior.
 
 ## Useful Commands Reference
 

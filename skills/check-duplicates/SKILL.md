@@ -78,7 +78,8 @@ Search for open PRs that reference this issue:
 ghx pr list --repo $REPO --search "$ISSUE_NUMBER" --state open --limit 10
 ```
 
-If a fix PR already exists, inform the user and stop. Optionally offer to review it with `/review-pr`.
+If a fix PR already exists, inform the user and stop.
+Optionally offer to review it with `/review-pr`.
 
 ### 4. Check assignment and status
 
@@ -112,16 +113,19 @@ If `$OUTCOME_YAML` is set, also emit your routing verdict there per `skills/sdlc
 ```
 /check-duplicates 20 owner/myrepo
 ```
-Finds issue #12 describes the same bug. Comments on #20 linking to #12.
+Finds issue #12 describes the same bug.
+Comments on #20 linking to #12.
 
 **Scenario 2: Existing PR found**
 ```
 /check-duplicates 30 owner/myrepo
 ```
-Finds PR #45 already references issue #30. Informs user and offers to review.
+Finds PR #45 already references issue #30.
+Informs user and offers to review.
 
 **Scenario 3: Clear to work on**
 ```
 /check-duplicates 42 owner/myrepo
 ```
-No duplicates, no existing PRs, no assignment conflicts. Reports clear.
+No duplicates, no existing PRs, no assignment conflicts.
+Reports clear.

@@ -19,8 +19,10 @@ Audits documentation and reports findings across five categories: completeness, 
 1. Read the documentation thoroughly.
 2. Compare it against the feature or component being documented, if accessible.
 3. Identify issues in each category below.
-4. Report findings. Omit categories with no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-documentation.md` with frontmatter `artifact: documentation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+4. Report findings.
+   Omit categories with no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-documentation.md` with frontmatter `artifact: documentation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -91,14 +93,11 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Outdated example**
-The getting-started guide uses a deprecated API method replaced in v2.
+**Scenario 1: Outdated example** The getting-started guide uses a deprecated API method replaced in v2.
 Report under Accuracy.
 
-**Scenario 2: No error documentation**
-Reference lists all method parameters but never mentions which errors each method can throw.
+**Scenario 2: No error documentation** Reference lists all method parameters but never mentions which errors each method can throw.
 Report under Completeness.
 
-**Scenario 3: Mixed content**
-Reference section contains conceptual explanations that belong in an Explanation section.
+**Scenario 3: Mixed content** Reference section contains conceptual explanations that belong in an Explanation section.
 Report under Structure.

@@ -28,7 +28,8 @@ Generates a structured profile for a colleague by synthesizing their Slack and G
    gh search commits --author={COLLEAGUE} --limit 50
    gh search prs --author={COLLEAGUE} --limit 50
    ```
-3. Review their Slack messages and threads via the Slack MCP server. Do not read local files.
+3. Review their Slack messages and threads via the Slack MCP server.
+   Do not read local files.
 4. Synthesize observations into the profile format below.
 5. Write the profile to `{BASE_DIR}/colleagues/{COLLEAGUE}.md`.
 
@@ -74,7 +75,8 @@ If `{NOTES_DIR}/colleagues/bob.md` already exists, overwrite it with a refreshed
 ```
 /describe-colleague carol
 ```
-Carol's contributions are primarily via Slack. Profile is weighted toward Slack observations, with a note that GitHub data is sparse.
+Carol's contributions are primarily via Slack.
+Profile is weighted toward Slack observations, with a note that GitHub data is sparse.
 
 ## Useful Commands Reference
 

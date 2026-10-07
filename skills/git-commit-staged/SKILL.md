@@ -42,16 +42,14 @@ Generates a Conventional Commits-formatted commit message from only the staged c
 
 ## Example Usage
 
-**Scenario 1: Partial commit - only test changes staged**
-Staged: `tests/test_auth.py`. Unstaged: `src/auth.py`.
+**Scenario 1: Partial commit - only test changes staged** Staged: `tests/test_auth.py`.
+Unstaged: `src/auth.py`.
 Commit: `test(auth): add unit tests for JWT validation`
 
-**Scenario 2: Config change staged**
-Staged: `pyproject.toml` adding a new dependency.
+**Scenario 2: Config change staged** Staged: `pyproject.toml` adding a new dependency.
 Commit: `chore(deps): add structlog dependency`
 
-**Scenario 3: Multi-file feature staged**
-Staged: `src/payments.py` and `migrations/0042_payments.sql`.
+**Scenario 3: Multi-file feature staged** Staged: `src/payments.py` and `migrations/0042_payments.sql`.
 ```
 feat(payments): add Stripe payment processing
 

@@ -116,7 +116,8 @@ For each cycle found:
 2. Determine if the cycle is **intentional** (e.g., a retry loop like `handle-pr-ci` -> `handle-pr-ci`) or **unintentional**
 3. For unintentional cycles, suggest where to break the cycle (usually the weakest dependency)
 
-Also check for **excessively long chains**: a path of more than 5 skill invocations without reaching a leaf skill. Flag these as a maintainability concern.
+Also check for **excessively long chains**: a path of more than 5 skill invocations without reaching a leaf skill.
+Flag these as a maintainability concern.
 
 ### 6. Check for orphaned skills
 
@@ -142,8 +143,10 @@ Classify orphans:
 For each pair of skills that reference each other (A calls B), verify:
 
 1. **Interface compatibility**: If A passes arguments to B, does B's `argument-hint` accept those arguments?
-2. **Prerequisite compatibility**: If A requires tool X and B requires tool Y, are both available when A calls B? Check `allowed-tools` for conflicts.
-3. **Output compatibility**: If A consumes B's output, does B actually produce that output? Check B's output format section against what A expects.
+2. **Prerequisite compatibility**: If A requires tool X and B requires tool Y, are both available when A calls B?
+   Check `allowed-tools` for conflicts.
+3. **Output compatibility**: If A consumes B's output, does B actually produce that output?
+   Check B's output format section against what A expects.
 4. **Side effect conflicts**: Do A and B both modify the same files or resources in incompatible ways (e.g., both write to the same output file with different formats)?
 5. **Environment compatibility**: Do A and B require different environment variables or working directory states?
 
@@ -151,14 +154,20 @@ Flag any pair where composability is broken or uncertain.
 
 ### 8. Check re-run safety
 
-For each skill, determine whether it is safe to invoke multiple times with the same arguments. A skill is re-run safe if repeating it produces the same result without data loss, duplication, or corruption.
+For each skill, determine whether it is safe to invoke multiple times with the same arguments.
+A skill is re-run safe if repeating it produces the same result without data loss, duplication, or corruption.
 
 Check for these signals in the skill's steps and output format:
 
-1. **Idempotent writes**: Does the skill overwrite its output file unconditionally, or does it append? Overwrite is safe; append on re-run produces duplicates.
-2. **State mutation**: Does the skill create git branches, push commits, open PRs, or create issues? If so, does it check whether the resource already exists before creating it? (e.g., `git rev-parse --verify <branch>` before `git checkout -b`)
-3. **External side effects**: Does the skill post comments, send messages, or make API calls? Does it check for existing comments/messages before posting?
-4. **Cleanup on failure**: If the skill fails partway through, does it leave behind partial state (branches, temp files, draft PRs)? Does it document rollback or cleanup steps?
+1. **Idempotent writes**: Does the skill overwrite its output file unconditionally, or does it append?
+   Overwrite is safe; append on re-run produces duplicates.
+2. **State mutation**: Does the skill create git branches, push commits, open PRs, or create issues?
+   If so, does it check whether the resource already exists before creating it?
+   (e.g., `git rev-parse --verify <branch>` before `git checkout -b`)
+3. **External side effects**: Does the skill post comments, send messages, or make API calls?
+   Does it check for existing comments/messages before posting?
+4. **Cleanup on failure**: If the skill fails partway through, does it leave behind partial state (branches, temp files, draft PRs)?
+   Does it document rollback or cleanup steps?
 5. **Convergence**: If the skill is run again after a previous successful run, does it converge to the same end state, or does it produce new artifacts each time?
 
 Classify each skill:
@@ -173,16 +182,22 @@ For skills rated Caution or Unsafe, suggest a specific fix (e.g., "check for exi
 
 ### 9. Check CLI-backed skills against the installed CLI
 
-Some skills document a purpose-built command-line tool rather than a workflow. When that CLI changes (renamed commands, new or removed flags, shifted subcommand paths, changed defaults), the skill drifts out of date with no warning. Audit every CLI-backed skill against the CLI actually installed on this machine.
+Some skills document a purpose-built command-line tool rather than a workflow.
+When that CLI changes (renamed commands, new or removed flags, shifted subcommand paths, changed defaults), the skill drifts out of date with no warning.
+Audit every CLI-backed skill against the CLI actually installed on this machine.
 
-**Identify CLI-backed skills.** A skill is CLI-backed when it documents commands for a specific executable. Detect in order of confidence:
+**Identify CLI-backed skills.** A skill is CLI-backed when it documents commands for a specific executable.
+Detect in order of confidence:
 
-1. A frontmatter `cli:` field listing one or more shell command prefixes (comma-separated). This is the explicit, preferred declaration; the prefix is usually just the executable (`ghx`, `slackx`, `wt`) but may include a subcommand or runner (`gh stack`, `npx hyperframes`). Probe each with `<prefix> --help`.
+1. A frontmatter `cli:` field listing one or more shell command prefixes (comma-separated).
+   This is the explicit, preferred declaration; the prefix is usually just the executable (`ghx`, `slackx`, `wt`) but may include a subcommand or runner (`gh stack`, `npx hyperframes`).
+   Probe each with `<prefix> --help`.
 2. A Prerequisites "Binary" section, or any `command -v <tool>` / `which <tool>` check.
 3. A description that names an executable ("the `wt` CLI", "use the `slackx` CLI").
 4. Several bash blocks that all invoke the same leading command.
 
-Focus on the purpose-built CLIs a skill wraps (`ghx`, `slackx`, `wt`, `gh stack`, `hyperframes`, `asciinema`, `agg`, `mmdc`, ...). Do not audit generic, ubiquitous tools (`git`, `gh`, `bash`, `ls`, `npm`) that no single skill owns; a CLI counts only when a skill is its primary documentation.
+Focus on the purpose-built CLIs a skill wraps (`ghx`, `slackx`, `wt`, `gh stack`, `hyperframes`, `asciinema`, `agg`, `mmdc`, ...).
+Do not audit generic, ubiquitous tools (`git`, `gh`, `bash`, `ls`, `npm`) that no single skill owns; a CLI counts only when a skill is its primary documentation.
 
 For a skill that clearly wraps a specific CLI but has no `cli:` frontmatter, record a **Low**-priority finding: "add `cli: <tool>` to the frontmatter so this skill is auditable."
 
@@ -194,9 +209,13 @@ command -v <tool> || echo "NOT INSTALLED"
 <tool> --help 2>/dev/null
 ```
 
-If the binary is not installed, record it as such and skip the drift comparison for that skill. Do not install the tool and do not fail the audit over a missing binary.
+If the binary is not installed, record it as such and skip the drift comparison for that skill.
+Do not install the tool and do not fail the audit over a missing binary.
 
-**Enumerate the real command surface.** From `<tool> --help`, list the top-level commands. Then, for each command path the skill documents, run `<tool> <path> --help` to get its subcommands and flags. Bound the traversal (for example, stop after two levels or at commands with no further subcommands) so a large CLI does not consume the whole audit. Prefer a machine-readable command tree, completion output, or `--help` in JSON when the tool offers one; otherwise parse the human help.
+**Enumerate the real command surface.** From `<tool> --help`, list the top-level commands.
+Then, for each command path the skill documents, run `<tool> <path> --help` to get its subcommands and flags.
+Bound the traversal (for example, stop after two levels or at commands with no further subcommands) so a large CLI does not consume the whole audit.
+Prefer a machine-readable command tree, completion output, or `--help` in JSON when the tool offers one; otherwise parse the human help.
 
 **Compare the skill against the CLI.** Extract the commands, subcommands, and flags the skill documents (from bash code blocks, any command-tree block, and option tables) and compare in both directions:
 
@@ -208,7 +227,8 @@ If the binary is not installed, record it as such and skip the drift comparison 
 | **Undocumented** | The CLI exposes a top-level command or notable flag the skill never mentions | Low |
 | **Unverifiable** | The CLI is not installed, or its help output cannot be parsed | Low |
 
-Only flag **Removed** or **Undocumented** when the evidence is unambiguous: a documented flag is absent from `--help`, or `--help` lists a top-level command the skill's command tree omits. Never infer removal from a wording difference alone.
+Only flag **Removed** or **Undocumented** when the evidence is unambiguous: a documented flag is absent from `--help`, or `--help` lists a top-level command the skill's command tree omits.
+Never infer removal from a wording difference alone.
 
 For each finding, record the exact command the skill documents, the CLI's current equivalent (or "no equivalent"), and the CLI version tested, so the drift can be reproduced.
 
@@ -375,7 +395,8 @@ Scans the user's skills directory, finds a near-duplicate pair (`start-day` vs `
 ```
 /review-skills
 ```
-Run periodically to track the health of the skill library. The statistics section provides metrics to compare across runs.
+Run periodically to track the health of the skill library.
+The statistics section provides metrics to compare across runs.
 
 **Scenario 4: Catch CLI drift**
 ```

@@ -117,14 +117,12 @@ When the figure accompanies a document, also make the relative-path edit in that
 
 ## Example Usage
 
-**Scenario 1: Architecture diagram for a README**
-User: "Draw our ingest pipeline as an SVG for the README."
+**Scenario 1: Architecture diagram for a README** User: "Draw our ingest pipeline as an SVG for the README."
 Gather context, load the style guide, compute the geometry (three 160px boxes, 32px gaps, 700px canvas), write the SVG with one accent on the bottleneck node, validate with xmllint plus a render check, write `docs/assets/ingest-pipeline.svg`, and reference it from the README.
 
-**Scenario 2: Iterating on an existing SVG**
-User: "Move the cache box left and make errors red."
+**Scenario 2: Iterating on an existing SVG** User: "Move the cache box left and make errors red."
 Collect the full change list, apply both changes in one pass, update the cache box's arrows and labels in lockstep, then reply with the change list and the final file.
 
-**Scenario 3: Renderer compatibility**
-User: "The diagram looks broken when attached in Slack."
-The compatibility table predicts chat previews strip `<style>` and filters. Move critical styling to presentation attributes, drop the shadow, re-validate, and deliver a portable variant.
+**Scenario 3: Renderer compatibility** User: "The diagram looks broken when attached in Slack."
+The compatibility table predicts chat previews strip `<style>` and filters.
+Move critical styling to presentation attributes, drop the shadow, re-validate, and deliver a portable variant.

@@ -32,7 +32,8 @@ Without this step, features ship without instrumentation, making it impossible t
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/telemetry.md` (copied to `.sdlc/templates/features/telemetry.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/telemetry.md` (copied to `.sdlc/templates/features/telemetry.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Event Naming Conventions
 
@@ -65,20 +66,17 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: New notification system**
-Requirements describe a notification center with email and in-app notifications.
+**Scenario 1: New notification system** Requirements describe a notification center with email and in-app notifications.
 Success metrics: 70% of users view notifications within 24h, < 2% unsubscribe rate.
 Funnel: notification_sent → notification_viewed → notification_clicked → target_action_completed.
 Counter metrics: notification_delivery_failure_rate > 1%.
 
-**Scenario 2: API endpoint for file uploads**
-Requirements describe a bulk file upload feature.
+**Scenario 2: API endpoint for file uploads** Requirements describe a bulk file upload feature.
 Success metrics: 95% upload success rate, median upload time < 5s for 10MB files.
 Events: upload_started (with file_count, total_bytes), upload_completed, upload_failed (with error_type).
 Counter metrics: retry_rate > 10%, user_abandonment_after_failure > 50%.
 
-**Scenario 3: Internal tool dashboard**
-Requirements describe an admin analytics dashboard.
+**Scenario 3: Internal tool dashboard** Requirements describe an admin analytics dashboard.
 Success metrics: 80% of admins use it weekly, average session time 2-5 minutes (not too short = confused, not too long = struggling).
 Events: dashboard_viewed, filter_applied (with filter_type), export_clicked.
 

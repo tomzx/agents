@@ -6,7 +6,8 @@ argument-hint: "[initiative-id or topic]"
 
 # Research Market
 
-Quantifies the opportunity space around a candidate problem: how big, who's in it, where it's heading, and whether the timing window is open. Pairs with `analyze-competition` and feeds `frame-opportunities`.
+Quantifies the opportunity space around a candidate problem: how big, who's in it, where it's heading, and whether the timing window is open.
+Pairs with `analyze-competition` and feeds `frame-opportunities`.
 
 ## Prerequisites
 
@@ -15,16 +16,21 @@ Quantifies the opportunity space around a candidate problem: how big, who's in i
 
 ## Steps
 
-1. Define the market boundary tied to the problem (TAM/SAM/SOM), using a clearly stated method (bottom-up counts, value-based, or top-down proxy). State assumptions explicitly.
-2. Segment the market: who has the problem most acutely. Rank segments by acuity, reachability, and value.
+1. Define the market boundary tied to the problem (TAM/SAM/SOM), using a clearly stated method (bottom-up counts, value-based, or top-down proxy).
+   State assumptions explicitly.
+2. Segment the market: who has the problem most acutely.
+   Rank segments by acuity, reachability, and value.
 3. Map trends affecting the space (technology, regulation, behavior, economy) and assess whether each helps or hinders the opportunity.
-4. Assess timing: is the window opening, open, or closing? What event opens or closes it?
-5. Flag data confidence: mark each figure `measured` / `estimated` / `guessed`. A market sized entirely by guesses is a finding, not a result.
+4. Assess timing: is the window opening, open, or closing?
+   What event opens or closes it?
+5. Flag data confidence: mark each figure `measured` / `estimated` / `guessed`.
+   A market sized entirely by guesses is a finding, not a result.
 6. Write `market.md` to the initiative directory.
 
 ## Output Format
 
-Use the template at `skills/pdlc/templates/initiatives/market.md`. Carry the standard initiative frontmatter with `phase: discover`.
+Use the template at `skills/pdlc/templates/initiatives/market.md`.
+Carry the standard initiative frontmatter with `phase: discover`.
 
 ## Outcome
 

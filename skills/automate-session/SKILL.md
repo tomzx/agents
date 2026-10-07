@@ -15,7 +15,8 @@ Reflects on the current session and identifies which steps could have been handl
 
 ### 1. Reconstruct the session workflow
 
-Build a chronological list of the steps taken during this session. Sources to draw from:
+Build a chronological list of the steps taken during this session.
+Sources to draw from:
 
 - Conversation turns: what did the user ask, decide, or approve?
 - `git log --oneline` since session start: what changed?
@@ -46,7 +47,8 @@ A step is **Human** if it involves priority trade-offs, novel design decisions, 
 
 ### 3. Identify the automation patterns
 
-Group the Auto and Review-gate steps into one or more named automation patterns. For each pattern, describe:
+Group the Auto and Review-gate steps into one or more named automation patterns.
+For each pattern, describe:
 
 - **What it would do**: the concrete actions it would take
 - **Trigger**: what event starts it (commit pushed, PR opened, cron schedule, file saved, manual `/skill`)
@@ -77,7 +79,8 @@ Low-value candidates: one-off tasks, steps that are mostly thinking, or steps wh
 
 For the top-ranked pattern(s), ask:
 
-> "Want me to implement [pattern name] now? I can [create a skill / add a hook / set up a scheduled agent]."
+> "Want me to implement [pattern name] now?
+> I can [create a skill / add a hook / set up a scheduled agent]."
 
 If the user says yes, implement it immediately using the appropriate primitive.
 If the user says no or wants to backlog it, append the suggestion to `~/notes/automation-backlog.md` (create if absent) with today's date and a one-line description.

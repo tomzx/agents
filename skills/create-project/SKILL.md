@@ -22,15 +22,19 @@ This skill closes that gap: it asks, one topic per round, the questions the stub
 
 ## Steps
 
-1. If the project root already contains source code (not just scaffolding like `.git/` or a README), ask the user whether `/sync-sdlc` is the better tool, since code analysis produces more accurate context than an interview. Proceed only if the user confirms.
+1. If the project root already contains source code (not just scaffolding like `.git/` or a README), ask the user whether `/sync-sdlc` is the better tool, since code analysis produces more accurate context than an interview.
+   Proceed only if the user confirms.
 
 2. If `.sdlc/` does not exist at the project root, load and run `initialize-sdlc-directory` with `$1` first, per the Skill Handoff rule in shared.md, then continue here.
 
-3. Read every existing file under `.sdlc/context/`. Sections that are already filled in count as answered; only ask about what is missing or still a placeholder.
+3. Read every existing file under `.sdlc/context/`.
+   Sections that are already filled in count as answered; only ask about what is missing or still a placeholder.
 
 4. If `.sdlc/context/review-project.md` exists with `verdict: changes-requested`, operate in Revision Mode (below) instead of running the full interview.
 
-5. Run one interview round per topic, in this order. Each round presents four to six numbered questions about that topic only, then waits for the answers. The user may skip any question.
+5. Run one interview round per topic, in this order.
+   Each round presents four to six numbered questions about that topic only, then waits for the answers.
+   The user may skip any question.
 
    | Round | File | Ask about |
    |---|---|---|
@@ -40,14 +44,16 @@ This skill closes that gap: it asks, one topic per round, the questions the stub
    | 4 | `conventions.md` | Naming (files, functions, classes), directory structure, coding standards, commit message format, branching strategy, how SDLC artifacts should be written |
    | 5 | `vocabulary.md` | Domain terms the project will use, technical terms, acronyms and abbreviations |
 
-6. After each round, write the answers into the corresponding file using its template at `skills/sdlc/templates/context/`. Keep the template's section order and structure.
+6. After each round, write the answers into the corresponding file using its template at `skills/sdlc/templates/context/`.
+   Keep the template's section order and structure.
 
 7. Unanswered questions are not a failure: leave the template placeholder in place and record the item as an open question in the final report.
 
 ## Interview Guidance
 
 - **One topic per round.** Never mix overview questions with infrastructure questions; the round ends only when its file is written.
-- **Ask, do not infer.** If the user is unsure, that section stays a placeholder. Fabricated context is worse than missing context because downstream skills trust these files.
+- **Ask, do not infer.** If the user is unsure, that section stays a placeholder.
+  Fabricated context is worse than missing context because downstream skills trust these files.
 - **Prefer concrete over generic.** For conventions, push for enforceable rules ("kebab-case file names", "Conventional Commits") over aspirations ("clean code").
 - **Seed vocabulary from earlier rounds.** When rounds 1 to 3 introduce domain terms, propose them for round 5 instead of asking the user to recall them.
 

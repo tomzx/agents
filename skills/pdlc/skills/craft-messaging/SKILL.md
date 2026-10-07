@@ -6,18 +6,21 @@ argument-hint: "[initiative-id]"
 
 # Craft Messaging
 
-Turns the validated vision and positioning into launch-ready messaging. It is a *consumer* of `vision.md` (from `define-vision`) and `pricing.md` (from `set-pricing`) — messaging that drifts from the validated vision causes products to be rebranded into irrelevance, so this skill anchors to those sources.
+Turns the validated vision and positioning into launch-ready messaging.
+It is a *consumer* of `vision.md` (from `define-vision`) and `pricing.md` (from `set-pricing`) — messaging that drifts from the validated vision causes products to be rebranded into irrelevance, so this skill anchors to those sources.
 
 ## Prerequisites
 
 - Apply the shared PDLC conventions in `skills/pdlc/references/shared.md`.
-- `vision.md` and `prd.md`. `pricing.md` if pricing is decided.
+- `vision.md` and `prd.md`.
+  `pricing.md` if pricing is decided.
 
 ## Steps
 
 1. State the core value proposition in one sentence, derived from the positioning in `vision.md`.
 2. Build the messaging house: the single core message at the top, 3 pillars beneath, each with proof points drawn from `experiment-result.md` or `competitors.md`.
-3. Write audience-specific narratives for each priority segment (tie to `market.md` segments). Same core message, different entry points.
+3. Write audience-specific narratives for each priority segment (tie to `market.md` segments).
+   Same core message, different entry points.
 4. Produce channel-ready assets: headline options, short descriptions, and a one-paragraph narrative per channel.
 5. Check against the positioning: does every message reinforce the chosen differentiation, or does any weaken it?
 6. Write `messaging.md` to the initiative directory.

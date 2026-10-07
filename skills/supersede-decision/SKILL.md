@@ -28,18 +28,23 @@ A number resolves to the file `N-<slug>.md` in the decisions directory.
 ## Steps
 
 1. Resolve both arguments to files under `.sdlc/knowledge/decisions/` (or the project's existing ADR directory, same resolution as `create-decision`), applying the `SDLC_DIR` read fallback in `shared.md` when the repo path is absent.
-2. Validate the relationship against the Rules below. Stop and report on any violation; change no files.
-3. In the **old** decision, set frontmatter `status: Superseded by [N]` and update the body `**Status:**` line to match. The frontmatter remains the source of truth; the body line is kept in sync for readers.
+2. Validate the relationship against the Rules below.
+   Stop and report on any violation; change no files.
+3. In the **old** decision, set frontmatter `status: Superseded by [N]` and update the body `**Status:**` line to match.
+   The frontmatter remains the source of truth; the body line is kept in sync for readers.
 4. In the **new** decision, add frontmatter `supersedes: N` (only if absent) and a `**Supersedes:** N-<slug>` line directly beneath `**Status:**`.
 5. Report the result and emit the outcome.
 
 ## Rules
 
-- Refuse if `old-decision` is already `Deprecated` or `Superseded by [...]`. Terminal states cannot be re-superseded; point the caller at the live decision at the head of the chain instead.
-- Refuse if `new-decision` is `Deprecated` or `Superseded by [...]`. A retired decision cannot replace a live one.
+- Refuse if `old-decision` is already `Deprecated` or `Superseded by [...]`.
+  Terminal states cannot be re-superseded; point the caller at the live decision at the head of the chain instead.
+- Refuse if `new-decision` is `Deprecated` or `Superseded by [...]`.
+  A retired decision cannot replace a live one.
 - Refuse if the two resolve to the same file.
 - Refuse a cycle: follow the `supersedes` links from `new-decision` and refuse if any reaches `old-decision` (i.e. the replacement already supersedes the target, directly or through another link).
-- Edit only status fields. Supersession is a lifecycle transition, not a content revision; do not rewrite context, options, or consequences.
+- Edit only status fields.
+  Supersession is a lifecycle transition, not a content revision; do not rewrite context, options, or consequences.
 
 ## Output Format
 
@@ -77,17 +82,15 @@ It does not gate on review and is safe to run independently of the `create-decis
 
 ## Example Usage
 
-**Scenario 1: Number arguments**
-`/supersede-decision 3 9` marks decision 3 as superseded by 9 and records the reverse link on 9.
+**Scenario 1: Number arguments** `/supersede-decision 3 9` marks decision 3 as superseded by 9 and records the reverse link on 9.
 
-**Scenario 2: Filename arguments**
-`/supersede-decision 3-use-memcached.md 9-use-redis.md` resolves by filename and behaves identically.
+**Scenario 2: Filename arguments** `/supersede-decision 3-use-memcached.md 9-use-redis.md` resolves by filename and behaves identically.
 
-**Scenario 3: Already superseded**
-`/supersede-decision 3 9` where 3 already reads `Superseded by 7`. Refused: report the live decision (7) and suggest re-running against it or its successor.
+**Scenario 3: Already superseded** `/supersede-decision 3 9` where 3 already reads `Superseded by 7`.
+Refused: report the live decision (7) and suggest re-running against it or its successor.
 
-**Scenario 4: Reverse relationship exists**
-`/supersede-decision 3 9` where 9 already supersedes 3. Refused as a cycle; the relationship is already recorded in the opposite direction.
+**Scenario 4: Reverse relationship exists** `/supersede-decision 3 9` where 9 already supersedes 3.
+Refused as a cycle; the relationship is already recorded in the opposite direction.
 
-**Scenario 5: Pure deprecation, no replacement**
-Out of scope. A decision that should retire with no successor is set to `Deprecated` by `/review-decision`.
+**Scenario 5: Pure deprecation, no replacement** Out of scope.
+A decision that should retire with no successor is set to `Deprecated` by `/review-decision`.

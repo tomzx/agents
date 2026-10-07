@@ -19,9 +19,12 @@ Skills that post content to GitHub should append a small footer: link to the **i
 
 ## Resolve repository root, commit, and GitHub base URL
 
-`REPO_ROOT` = the directory that contains `skills/` (the agents checkout). The path to this file is always known from the `Read` call that loaded it. Use it directly -- no additional filesystem exploration needed.
+`REPO_ROOT` = the directory that contains `skills/` (the agents checkout).
+The path to this file is always known from the `Read` call that loaded it.
+Use it directly -- no additional filesystem exploration needed.
 
-Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`. Resolve symlinks (e.g. `~/.agents/skills → ~/src/agents/skills`) and capture all values in one call:
+Every skill file lives at `<REPO_ROOT>/skills/<SKILL_DIR>/SKILL.md`.
+Resolve symlinks (e.g. `~/.agents/skills → ~/src/agents/skills`) and capture all values in one call:
 
 ```bash
 SKILL_MD_DIR=$(dirname "$(readlink -f /path/to/this/SKILL.md)")
@@ -31,7 +34,8 @@ SKILL_SHORT_SHA=${SKILL_COMMIT:0:7}
 REMOTE_URL=$(cd "$REPO_ROOT" && git remote get-url origin)
 ```
 
-Replace `/path/to/this/SKILL.md` with the absolute path used in the `Read` call. `readlink -f` resolves any symlinks before `git` sees the path, so `--show-toplevel` always returns the real repo root.
+Replace `/path/to/this/SKILL.md` with the absolute path used in the `Read` call.
+`readlink -f` resolves any symlinks before `git` sees the path, so `--show-toplevel` always returns the real repo root.
 
 From `REMOTE_URL`, normalize to `https://github.com/{owner}/{repo}`:
 
@@ -42,7 +46,9 @@ Call that `{BASE}`.
 
 ## Resolve model name
 
-The model that executed the skill is identified by its short name (e.g. `glm-5.1`, `claude-sonnet-4-20250514`). The agent knows its own model at runtime from its environment. Set `MODEL_NAME` to the model's human-facing label:
+The model that executed the skill is identified by its short name (e.g. `glm-5.1`, `claude-sonnet-4-20250514`).
+The agent knows its own model at runtime from its environment.
+Set `MODEL_NAME` to the model's human-facing label:
 
 ```bash
 MODEL_NAME="glm-5.1"  # replace with the actual model name at runtime
@@ -59,15 +65,12 @@ Optional feedback link (same repo as the skill): `{BASE}/issues/new`
 
 ## Footer lines (after main content)
 
-Add a horizontal rule, then append one footer line. Patterns (use the real `SKILL_FILE_URL`, 7-char SHA, and `MODEL_NAME` from above):
+Add a horizontal rule, then append one footer line.
+Patterns (use the real `SKILL_FILE_URL`, 7-char SHA, and `MODEL_NAME` from above):
 
-- **Comment / line review:** end with
-  `Posted with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
-- **Issue create:** end with
-  `Created with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
-- **Quick PR review:** end with
-  `Reviewed with [quick-pr-review](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
-  Optional sub-line: feedback at `{BASE}/issues/new`.
+- **Comment / line review:** end with `Posted with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
+- **Issue create:** end with `Created with [SKILL_DIR](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)`
+- **Quick PR review:** end with `Reviewed with [quick-pr-review](SKILL_FILE_URL) via MODEL_NAME (` + short SHA + `)` Optional sub-line: feedback at `{BASE}/issues/new`.
 
 Example:
 
@@ -81,7 +84,8 @@ Link text in brackets must match the **invoking** skill's `SKILL_DIR` (except qu
 
 ## SDLC phase footer (when posting during an `sdlc` pipeline run)
 
-When the post is produced while running the SDLC pipeline (the `sdlc` skill or any of its `create-*` / `review-*` / `publish-*` sub-skills operating on a feature), prepend an **SDLC phase line** above the `Posted with` / `Created with` line, under the same horizontal rule. Use exactly this two-line footer:
+When the post is produced while running the SDLC pipeline (the `sdlc` skill or any of its `create-*` / `review-*` / `publish-*` sub-skills operating on a feature), prepend an **SDLC phase line** above the `Posted with` / `Created with` line, under the same horizontal rule.
+Use exactly this two-line footer:
 
 ```
 ---
@@ -105,12 +109,15 @@ Posted with [review-requirements](https://github.com/owner/repo/blob/abc1234.../
 
 ## Shell escaping: expand variables AND keep backticks literal
 
-The footer mixes shell variables (`${SKILL_FILE_URL}`, `${SKILL_SHORT_SHA}`) with markdown backticks. These conflict inside a single heredoc:
+The footer mixes shell variables (`${SKILL_FILE_URL}`, `${SKILL_SHORT_SHA}`) with markdown backticks.
+These conflict inside a single heredoc:
 
-- A **quoted** delimiter `<<'EOF'` keeps backticks literal BUT disables parameter expansion, so `${SKILL_FILE_URL}` and `${SKILL_SHORT_SHA}` are posted as literal `${...}` text. Watch for this: the footer looks right in the source but ships with unsubstituted placeholders.
+- A **quoted** delimiter `<<'EOF'` keeps backticks literal BUT disables parameter expansion, so `${SKILL_FILE_URL}` and `${SKILL_SHORT_SHA}` are posted as literal `${...}` text.
+  Watch for this: the footer looks right in the source but ships with unsubstituted placeholders.
 - An **unquoted** delimiter `<<EOF` expands `${VAR}` BUT turns every backtick in the body into command substitution, so any example backticks elsewhere in the template (e.g. `file.py:42` in code spans) break.
 
-Do NOT put the footer inside the body heredoc. Split them: keep the body in a **quoted** heredoc (all backticks literal), and put the footer in a separate **double-quoted** string where `${VAR}` expands and the SHA backtick is backslash-escaped:
+Do NOT put the footer inside the body heredoc.
+Split them: keep the body in a **quoted** heredoc (all backticks literal), and put the footer in a separate **double-quoted** string where `${VAR}` expands and the SHA backtick is backslash-escaped:
 
 ```bash
 BODY="$(cat <<'EOF'
@@ -125,7 +132,8 @@ ghx pr comment $N --repo $REPO --body "${BODY}
 ${FOOTER}"
 ```
 
-Then check before posting: the rendered body must contain no `${` and no literal `SKILL_FILE_URL` / `SKILL_SHORT_SHA` tokens. For backtick-free bodies, an unquoted `<<EOF` heredoc with a backslash-escaped SHA backtick also works; the split form above is the safe default because it is unaffected by backticks elsewhere in the template.
+Then check before posting: the rendered body must contain no `${` and no literal `SKILL_FILE_URL` / `SKILL_SHORT_SHA` tokens.
+For backtick-free bodies, an unquoted `<<EOF` heredoc with a backslash-escaped SHA backtick also works; the split form above is the safe default because it is unaffected by backticks elsewhere in the template.
 
 ## Notes
 

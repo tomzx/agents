@@ -9,15 +9,12 @@ description: >
 
 # Sync Opinions
 
-Scan markdown files in a target directory, extract opinions and supporting
-evidence, then generate a consolidated OPINIONS.md file.
+Scan markdown files in a target directory, extract opinions and supporting evidence, then generate a consolidated OPINIONS.md file.
 
 ## When to use
 
-- The user says `/sync-opinions`, "sync opinions", "extract opinions", or wants
-  to compile opinions from a set of documents.
-- Periodic refresh of an OPINIONS.md file after documents in the target
-  directory have changed.
+- The user says `/sync-opinions`, "sync opinions", "extract opinions", or wants to compile opinions from a set of documents.
+- Periodic refresh of an OPINIONS.md file after documents in the target directory have changed.
 - Initial creation of an OPINIONS.md file for a new directory.
 
 ## Prerequisites
@@ -29,7 +26,8 @@ evidence, then generate a consolidated OPINIONS.md file.
 
 ### 1. Identify the target directory
 
-The user provides a directory path. If none is provided, prompt for one.
+The user provides a directory path.
+If none is provided, prompt for one.
 
 ```bash
 # Verify the directory exists and list markdown files
@@ -40,14 +38,12 @@ Exclude any existing `OPINIONS.md` from the scan (it is the output, not input).
 
 ### 2. Read all markdown files
 
-Read every `.md` file in the target directory (non-recursive by default,
-recursive if the user passes `--recursive`). For each file, load the full
-content.
+Read every `.md` file in the target directory (non-recursive by default, recursive if the user passes `--recursive`).
+For each file, load the full content.
 
 ### 3. Extract opinions
 
-For each document, identify **opinions**: statements that express a judgment,
-preference, recommendation, belief, or position rather than an objective fact.
+For each document, identify **opinions**: statements that express a judgment, preference, recommendation, belief, or position rather than an objective fact.
 
 An opinion is any statement that:
 
@@ -66,9 +62,9 @@ Distinguish opinions from:
 
 ### 4. Group opinions by topic
 
-Group extracted opinions into topics based on their subject matter. Use the
-headings and structure already present in the source documents as a guide. If
-the same topic appears in multiple files, merge the opinions under one heading.
+Group extracted opinions into topics based on their subject matter.
+Use the headings and structure already present in the source documents as a guide.
+If the same topic appears in multiple files, merge the opinions under one heading.
 
 ### 5. Attach supporting evidence
 
@@ -77,20 +73,19 @@ For each opinion, include:
 - **The opinion statement** itself, paraphrased into a concise claim.
 - **Source**: the file it was extracted from.
 - **Quote**: the original text (or relevant excerpt) that expresses the opinion.
-- **Supporting evidence**: any arguments, examples, data, or reasoning given
-  in the same document that backs up the opinion. This includes:
+- **Supporting evidence**: any arguments, examples, data, or reasoning given in the same document that backs up the opinion.
+  This includes:
   - Rationale given immediately before or after the opinion.
   - Examples or analogies used to justify it.
   - References to experience, measurements, or outcomes.
   - Contrasting alternatives mentioned and why they were rejected.
 
-If no supporting evidence is present in the source text, note "No supporting
-evidence found in source material."
+If no supporting evidence is present in the source text, note "No supporting evidence found in source material."
 
 ### 6. Generate OPINIONS.md
 
-Write the consolidated output to `<target-dir>/OPINIONS.md` using the format
-below. If the file already exists, overwrite it with the updated version.
+Write the consolidated output to `<target-dir>/OPINIONS.md` using the format below.
+If the file already exists, overwrite it with the updated version.
 
 ## Output Format
 
@@ -167,8 +162,7 @@ Extracted from documents in `<target-dir>/` on YYYY-MM-DD.
 ```
 /sync-opinions /home/user/notes
 ```
-Scans all `.md` files in `/home/user/notes/`, extracts opinions with supporting
-evidence, and writes `/home/user/notes/OPINIONS.md`.
+Scans all `.md` files in `/home/user/notes/`, extracts opinions with supporting evidence, and writes `/home/user/notes/OPINIONS.md`.
 
 **Scenario 2: Recursive scan**
 ```

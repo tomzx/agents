@@ -9,9 +9,11 @@ TODAY=!`date +%Y-%m-%d`
 
 # Usability Audit (ISO/IEC 25010)
 
-Audits the software's **interfaces** for usability: how easily the intended users can recognize what it does, learn it, operate it, recover from errors, and (for web UIs) access it. It treats the CLI, the API, and any web surface as the product's usability surface.
+Audits the software's **interfaces** for usability: how easily the intended users can recognize what it does, learn it, operate it, recover from errors, and (for web UIs) access it.
+It treats the CLI, the API, and any web surface as the product's usability surface.
 
-This is the **Usability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. It applies to user-facing software; for libraries with no CLI/API/UI surface, report "no usability surface" and exit.
+This is the **Usability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
+It applies to user-facing software; for libraries with no CLI/API/UI surface, report "no usability surface" and exit.
 
 ## Prerequisites
 
@@ -40,11 +42,13 @@ rg -n "@(app|router)\.(get|post|put|delete|patch|route)" -g '*.{py,ts,js}' .
 ls src/components app/templates templates 2>/dev/null
 ```
 
-Record which surfaces exist. If none, report "no usability surface" and stop.
+Record which surfaces exist.
+If none, report "no usability surface" and stop.
 
 ### 2. Recognizability
 
-- CLI: does every command have help? Missing `-h`/`--help` or empty help strings:
+- CLI: does every command have help?
+  Missing `-h`/`--help` or empty help strings:
   ```
    rg -n "add_parser|@click|@app\.command|add_argument" -g '*.py' . | rg -v "help="
   ```
@@ -59,7 +63,8 @@ Record which surfaces exist. If none, report "no usability surface" and stop.
 
 - Examples present in help or docs (`examples/`, `--example`, usage strings).
 - Quickstart in README.
-- Naming consistency: do commands/flags follow one convention? Mixed styles (kebab + snake + camel across flags) is a finding.
+- Naming consistency: do commands/flags follow one convention?
+  Mixed styles (kebab + snake + camel across flags) is a finding.
 
 ### 4. Operability
 
@@ -95,11 +100,16 @@ Flag images without `alt`, inputs without an associated label, click-only handle
 
 ### 7. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 8. Report
 
-Classify by severity and print. Note that some usability issues (contrast, copy quality) need human judgment; surface the static-checkable subset and flag the rest as "manual review".
+Classify by severity and print.
+Note that some usability issues (contrast, copy quality) need human judgment; surface the static-checkable subset and flag the rest as "manual review".
 
 ## Severity
 

@@ -9,7 +9,8 @@ Fetches cs.AI papers from arXiv published since the last checkpoint date, calls 
 
 ## Prerequisites
 
-`ARXIV_DIRECTORY` must be set to the directory where archived articles are stored (e.g., `~/arxiv-articles`). If the variable is unset, stop and ask the user to set it.
+`ARXIV_DIRECTORY` must be set to the directory where archived articles are stored (e.g., `~/arxiv-articles`).
+If the variable is unset, stop and ask the user to set it.
 
 ```bash
 echo "${ARXIV_DIRECTORY:?ARXIV_DIRECTORY is not set}"
@@ -38,7 +39,9 @@ cat ~/.arxiv-catchup/state.yaml 2>/dev/null
 
 If the file does not exist or is empty, ask the user:
 
-> "No catchup state found. From what date should I start? (YYYY-MM-DD)"
+> "No catchup state found.
+> From what date should I start?
+> (YYYY-MM-DD)"
 
 Wait for the user's answer, then use it as `last_date`.
 
@@ -55,9 +58,12 @@ If the response is empty or the status is non-200, report the error and stop wit
 
 ### 3. Extract HTML article links
 
-The catchup page contains three sections: **New submissions**, **Cross-lists**, and **Replacements**. Ignore all articles under the Replacements section.
+The catchup page contains three sections: **New submissions**, **Cross-lists**, and **Replacements**.
+Ignore all articles under the Replacements section.
 
-Parse the HTML to collect links from New submissions and Cross-lists only. In the page source, replacement entries appear after a heading such as `Replacements` or `replaced`. Discard any `/html/` links that appear after that heading.
+Parse the HTML to collect links from New submissions and Cross-lists only.
+In the page source, replacement entries appear after a heading such as `Replacements` or `replaced`.
+Discard any `/html/` links that appear after that heading.
 
 Extract links following the pattern `/html/{arxiv_id}`:
 
@@ -74,7 +80,8 @@ If that yields nothing, also try the absolute-URL form:
 rg -oP 'https://arxiv\.org/html/[^\s"<>]+' /tmp/arxiv_catchup.html | sort -u
 ```
 
-Collect the deduplicated list. If the list is still empty after both attempts, report that no HTML-version links were found and stop.
+Collect the deduplicated list.
+If the list is still empty after both attempts, report that no HTML-version links were found and stop.
 
 ### 4. Report what was found
 
@@ -86,7 +93,9 @@ Found {N} articles to process (since {last_date}): {new} new, {cross} cross-list
 
 ### 5. Process each article in parallel
 
-Dispatch one subagent per article URL, all in parallel. Each subagent runs the **arxiv-article** skill for its assigned URL. Collect all summaries and print them as they arrive.
+Dispatch one subagent per article URL, all in parallel.
+Each subagent runs the **arxiv-article** skill for its assigned URL.
+Collect all summaries and print them as they arrive.
 
 ### 6. Clean up
 

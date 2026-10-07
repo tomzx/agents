@@ -75,20 +75,19 @@ Only include this section if there are quotes that capture important decisions, 
 - Omit sections that have no content (e.g., if there are no decisions, skip the Decisions section).
 - Merge closely related topics to avoid excessive granularity (aim for 3-8 topics for a typical one-hour meeting).
 - Attribute action items to specific people where the transcript identifies them; use "Unassigned" otherwise.
-- Do not invent information not present in the transcript. If something is ambiguous, note it as uncertain.
-- Preserve the intent and nuance of what was said. Do not editorialize or add opinions.
+- Do not invent information not present in the transcript.
+  If something is ambiguous, note it as uncertain.
+- Preserve the intent and nuance of what was said.
+  Do not editorialize or add opinions.
 - If the transcript is very long (multi-hour meeting), group topics under higher-level themes rather than listing every subtopic.
 
 ## Example Usage
 
-**Scenario 1: Weekly team standup**
-Input: `transcripts/2026-06-04-standup.md` containing a 30-minute standup transcript.
+**Scenario 1: Weekly team standup** Input: `transcripts/2026-06-04-standup.md` containing a 30-minute standup transcript.
 Output: `transcripts/2026-06-04-standup-summary.md` with 4-5 topics, action items with owners, and any blockers noted.
 
-**Scenario 2: Design review meeting**
-Input: `meetings/auth-redesign.md` containing a 90-minute design review.
+**Scenario 2: Design review meeting** Input: `meetings/auth-redesign.md` containing a 90-minute design review.
 Output: `meetings/auth-redesign-summary.md` with key design decisions, trade-offs discussed, and follow-up tasks assigned.
 
-**Scenario 3: Brief sync with no decisions**
-Input: `sync.md` containing a short 10-minute sync.
+**Scenario 3: Brief sync with no decisions** Input: `sync.md` containing a short 10-minute sync.
 Output: `sync-summary.md` with topics discussed and open questions, omitting the Decisions and Action Items sections since none were present.

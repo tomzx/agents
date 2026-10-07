@@ -7,7 +7,8 @@ argument-hint: "<description> [--repo owner/repo]"
 
 # Search Existing Issues
 
-Takes a free-text description of a problem (bug, error, feature request) and searches a GitHub repository for potentially matching open or closed issues. Use before creating a new issue to avoid duplicates.
+Takes a free-text description of a problem (bug, error, feature request) and searches a GitHub repository for potentially matching open or closed issues.
+Use before creating a new issue to avoid duplicates.
 
 Unlike `check-duplicates` (which takes an existing issue number), this skill starts from a raw description the user provides.
 
@@ -20,7 +21,8 @@ Unlike `check-duplicates` (which takes an existing issue number), this skill sta
 
 ### 1. Determine the repository
 
-If `--repo` is provided, use it. Otherwise, infer the repository from:
+If `--repo` is provided, use it.
+Otherwise, infer the repository from:
 
 1. The current working directory's git remote (`gh repo view --json nameWithOwner --jq .nameWithOwner`)
 2. Any `.sdlc/context/` files that reference a repository
@@ -28,7 +30,8 @@ If `--repo` is provided, use it. Otherwise, infer the repository from:
 
 ### 2. Extract search terms from the description
 
-From the user's description, extract 2-4 distinct keyword combinations for searching. Good search terms come from:
+From the user's description, extract 2-4 distinct keyword combinations for searching.
+Good search terms come from:
 
 - **Error messages**: exact or partial error strings (quote them in the search)
 - **Component or module names**: file paths, class names, function names
@@ -115,7 +118,8 @@ Based on findings:
 /search-existing-issues "Getting 'ConnectionPool exhausted' error when running bulk imports with 100+ concurrent workers" --repo myorg/api-service
 ```
 Extracts search terms: `"ConnectionPool exhausted"`, `ConnectionPool bulk import`, `ConnectionPool concurrent`.
-Finds #55 (open) with the same error. Recommends adding details to #55.
+Finds #55 (open) with the same error.
+Recommends adding details to #55.
 
 **Scenario 2: Feature request**
 ```
@@ -128,13 +132,16 @@ Recommends adding a comment to #12 requesting CSV format support.
 ```
 /search-existing-issues "Dashboard widgets disappear after browser refresh since v3.2" --repo myorg/dashboard
 ```
-No matching issues found. Recommends proceeding with `/create-issue`.
+No matching issues found.
+Recommends proceeding with `/create-issue`.
 
 **Scenario 4: Fixed in a previous version**
 ```
 /search-existing-issues "File upload returns 500 error for files over 10MB"
 ```
-Finds #30 (closed), fixed in v2.4. User is on v2.3. Recommends upgrading.
+Finds #30 (closed), fixed in v2.4.
+User is on v2.3.
+Recommends upgrading.
 
 ## Useful Commands Reference
 

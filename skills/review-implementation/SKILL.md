@@ -27,8 +27,10 @@ A 🔴 MUST finding must reach `L3 - Executed` or be marked `unproven` with the 
 3. Identify issues in each category below.
 4. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
 5. Label each finding with an evidence level in the form `L<n> - <Name>` plus an artifact, per the shared evidence standard.
-6. Report findings using the output format. Omit categories with no findings.
-7. Write the findings to `.sdlc/features/N-<slug>/review-implementation.md` with frontmatter `artifact: implementation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body.
+6. Report findings using the output format.
+   Omit categories with no findings.
+7. Write the findings to `.sdlc/features/N-<slug>/review-implementation.md` with frontmatter `artifact: implementation`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
 
 ## Review Checklist
 
@@ -45,7 +47,8 @@ A 🔴 MUST finding must reach `L3 - Executed` or be marked `unproven` with the 
 - Is dead code or commented-out code absent?
 
 ### Test Coverage
-- Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the implementation diff, and embed its three tables (introduced tests, change coverage, uncovered code) into the Test Coverage section below. Raise its findings in the findings body.
+- Delegate the coverage analysis to [`/analyze-test-coverage`](../analyze-test-coverage/SKILL.md): invoke it with the implementation diff, and embed its three tables (introduced tests, change coverage, uncovered code) into the Test Coverage section below.
+  Raise its findings in the findings body.
 - Are tests verifying behavior rather than implementation details?
 - Do tests cover error paths and edge cases?
 
@@ -153,17 +156,11 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing error handling**
-Handler returns 500 for all errors instead of specific codes defined in the spec.
-🔴 MUST fix.
+**Scenario 1: Missing error handling** Handler returns 500 for all errors instead of specific codes defined in the spec. 🔴 MUST fix.
 
-**Scenario 2: N+1 query**
-A loop fetches user data individually for each item in a list.
-🟡 SHOULD fix with a batch query.
+**Scenario 2: N+1 query** A loop fetches user data individually for each item in a list. 🟡 SHOULD fix with a batch query.
 
-**Scenario 3: Variable naming**
-Variable `d` used instead of `discount_rate`.
-🟢 MAY improve.
+**Scenario 3: Variable naming** Variable `d` used instead of `discount_rate`. 🟢 MAY improve.
 
 ## Next Step
 

@@ -6,7 +6,8 @@ argument-hint: "[path or service-name]"
 
 # Audit Observability
 
-Scans the codebase and running services for missing or insufficient observability: logging, metrics, tracing, and alerting. Produces a gaps report ranked by risk so teams can prioritize adding instrumentation before issues arise in production.
+Scans the codebase and running services for missing or insufficient observability: logging, metrics, tracing, and alerting.
+Produces a gaps report ranked by risk so teams can prioritize adding instrumentation before issues arise in production.
 
 ## Prerequisites
 
@@ -44,7 +45,7 @@ Scans the codebase and running services for missing or insufficient observabilit
    rg -n -i "(except|catch|error|raise|throw)" \
      -g '*.{py,ts,js,go}' ${1:-.} | rg -v "log|logger|sentry|capture" | head -30
    ```
-   Flag error handlers that catch exceptions without logging them.
+     Flag error handlers that catch exceptions without logging them.
 
 4. Audit **metrics** coverage:
    - Are HTTP endpoints instrumented (request count, latency, error rate)?
@@ -56,7 +57,7 @@ Scans the codebase and running services for missing or insufficient observabilit
    rg -n -i "(counter|histogram|gauge|summary|metric|observe|inc\(|time\()" \
      -g '*.{py,ts,js,go}' ${1:-.} | head -30
    ```
-   Identify endpoints and services with no metrics instrumentation.
+     Identify endpoints and services with no metrics instrumentation.
 
 5. Audit **tracing** coverage:
    - Is OpenTelemetry or equivalent configured?
@@ -146,19 +147,24 @@ Scans the codebase and running services for missing or insufficient observabilit
 ```
 /audit-observability
 ```
-Project has logging via structlog but no metrics, tracing, or alerting. Recommends adding Prometheus for metrics and OpenTelemetry for tracing as the top priorities.
+Project has logging via structlog but no metrics, tracing, or alerting.
+Recommends adding Prometheus for metrics and OpenTelemetry for tracing as the top priorities.
 
 **Scenario 2: Pre-production readiness**
 ```
 /audit-observability src/api
 ```
-Scanning the API layer before going to production. Finds 3 endpoints without latency metrics and 2 error handlers that catch exceptions without logging. Recommends adding metrics and error logging before launch.
+Scanning the API layer before going to production.
+Finds 3 endpoints without latency metrics and 2 error handlers that catch exceptions without logging.
+Recommends adding metrics and error logging before launch.
 
 **Scenario 3: Post-incident follow-up**
 ```
 /audit-observability
 ```
-After an incident caused by undetected error rate spike. Finds no alerts configured for 5xx rate. Recommends adding SLO-based alerting as the top priority.
+After an incident caused by undetected error rate spike.
+Finds no alerts configured for 5xx rate.
+Recommends adding SLO-based alerting as the top priority.
 
 ## Next Step
 

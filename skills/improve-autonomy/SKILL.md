@@ -5,9 +5,11 @@ description: Reflect on the current session and identify what would have been ne
 
 # Improve Autonomy
 
-Asks: "What would have been needed to run this session autonomously, end to end, with no human in the loop?" Produces a structured readiness assessment that lists missing context, missing tools, missing decisions, and missing guardrails that prevented full autonomy.
+Asks: "What would have been needed to run this session autonomously, end to end, with no human in the loop?"
+Produces a structured readiness assessment that lists missing context, missing tools, missing decisions, and missing guardrails that prevented full autonomy.
 
-This is not about incremental automation (see `/automate-session` for that). This is about imagining the fully autonomous version of the session and working backward to identify every gap.
+This is not about incremental automation (see `/automate-session` for that).
+This is about imagining the fully autonomous version of the session and working backward to identify every gap.
 
 ## Prerequisites
 
@@ -17,7 +19,8 @@ This is not about incremental automation (see `/automate-session` for that). Thi
 
 ### 1. Reconstruct the session as an autonomous pipeline
 
-Build a chronological trace of the session, then rewrite it as if an autonomous agent had performed it. For each step, describe:
+Build a chronological trace of the session, then rewrite it as if an autonomous agent had performed it.
+For each step, describe:
 
 - **What the agent would need to know** before executing it (context, requirements, constraints, preferences)
 - **What the agent would need to access** (files, APIs, databases, environments, tools)
@@ -44,7 +47,8 @@ For each instance where the human provided input, classify it:
 
 ### 3. Identify the missing capabilities
 
-From the analysis above, enumerate every gap that prevented full autonomy. Group them into categories:
+From the analysis above, enumerate every gap that prevented full autonomy.
+Group them into categories:
 
 #### Missing Context
 Information the agent needed but did not have at the start.
@@ -97,7 +101,8 @@ Compute the session's overall autonomy readiness as the weighted average across 
 
 ### 5. Produce the autonomous session specification
 
-Write a concise spec for the fully autonomous version of this session. Include:
+Write a concise spec for the fully autonomous version of this session.
+Include:
 
 - **Inputs required before start**: everything the agent needs up front
 - **Step-by-step autonomous workflow**: the full pipeline with no human checkpoints
@@ -121,7 +126,8 @@ For each gap, specify:
 
 For the top-ranked gap(s), ask:
 
-> "Want me to fill this gap now? I can [update AGENTS.md / create a skill / add a config / write a spec]."
+> "Want me to fill this gap now?
+> I can [update AGENTS.md / create a skill / add a config / write a spec]."
 
 If the user says yes, implement it immediately.
 If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agentic-gaps-backlog.md` (create if absent) with today's date and a one-line description.
@@ -198,7 +204,8 @@ If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agenti
 
 ## Example
 
-**Session:** User asked the agent to fix a failing CI pipeline. The agent read the error log, identified a missing dependency, added it to `pyproject.toml`, ran the tests, committed, and pushed.
+**Session:** User asked the agent to fix a failing CI pipeline.
+The agent read the error log, identified a missing dependency, added it to `pyproject.toml`, ran the tests, committed, and pushed.
 
 **Autonomous Pipeline:**
 1. Detect CI failure from GitHub notification — Score: 4/5 (needs webhook or polling setup)
@@ -211,10 +218,13 @@ If the user says no or wants to backlog it, append the gap to `{BASE_DIR}/agenti
 
 **Overall readiness: 4.1 / 5.0**
 
-**Top gap:** Missing decision framework for "should I also fix the related warning?" — fillable by adding a rule to AGENTS.md: "When fixing CI, address only the reported failure. Do not touch unrelated code."
+**Top gap:** Missing decision framework for "should I also fix the related warning?" — fillable by adding a rule to AGENTS.md: "When fixing CI, address only the reported failure.
+Do not touch unrelated code."
 
 ## Differentiation from `/automate-session`
 
-`/automate-session` asks "which steps could be automated and what hooks/skills should I create?" It focuses on incremental automation within the current session structure.
+`/automate-session` asks "which steps could be automated and what hooks/skills should I create?"
+It focuses on incremental automation within the current session structure.
 
-`/improve-autonomy` asks "what would it take to run this entire session with zero human input?" It starts from the ideal (full autonomy) and works backward to identify every gap, including gaps in context, decision-making, and error recovery that `/automate-session` may not surface because it accepts the current workflow as given.
+`/improve-autonomy` asks "what would it take to run this entire session with zero human input?"
+It starts from the ideal (full autonomy) and works backward to identify every gap, including gaps in context, decision-making, and error recovery that `/automate-session` may not surface because it accepts the current workflow as given.

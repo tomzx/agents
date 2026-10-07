@@ -3,13 +3,7 @@ name: end-of-month-review
 description: Reflective end-of-month review covering OKR/goal progress, time allocation trends, team trajectory, and strategic focus adjustments for the next month.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-MONTH_NAME=!`date +%B`
-PREV_MONTH=!`date -d "last month" +%m`
-PREV_MONTH_NAME=!`date -d "last month" +%B`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` MONTH_NAME=!`date +%B` PREV_MONTH=!`date -d "last month" +%m` PREV_MONTH_NAME=!`date -d "last month" +%B`
 
 # End-of-Month Review
 
@@ -39,11 +33,14 @@ Read the following files if they exist:
 
 Aggregate data across the month's weekly reviews to identify:
 
-**Time allocation trend:** Average and trend (improving/declining) across the four weeks for (a) goal-driven deep work, (b) collaboration, (c) reactive work, (d) overhead. Flag any week that was a significant outlier.
+**Time allocation trend:** Average and trend (improving/declining) across the four weeks for (a) goal-driven deep work, (b) collaboration, (c) reactive work, (d) overhead.
+Flag any week that was a significant outlier.
 
-**Goal trajectory:** For each goal in `goals.md` and `team-goals.md`, reconstruct weekly progress to show the trajectory across the month. Identify goals with no movement (stalled), linear progress, or accelerating progress.
+**Goal trajectory:** For each goal in `goals.md` and `team-goals.md`, reconstruct weekly progress to show the trajectory across the month.
+Identify goals with no movement (stalled), linear progress, or accelerating progress.
 
-**Carried-forward actions:** List any action items that appeared in multiple weekly reviews without resolution. These are the items that keep getting deferred.
+**Carried-forward actions:** List any action items that appeared in multiple weekly reviews without resolution.
+These are the items that keep getting deferred.
 
 **Decisions avoided:** Aggregate any decisions flagged as avoided across the month's reviews.
 
@@ -54,11 +51,15 @@ Aggregate data across the month's weekly reviews to identify:
 Present the synthesized patterns, then ask the user the following questions in a single message:
 
 1. For each goal, rate your satisfaction with the month's progress (1-5) and name the single biggest reason it went the way it did.
-2. Looking at your time allocation trends: what pattern bothers you most? What enabled the best weeks?
-3. Which team members grew this month? Who needs a direct conversation about trajectory or support?
-4. What was the most important decision you made this month? What was the most important one you avoided?
+2. Looking at your time allocation trends: what pattern bothers you most?
+   What enabled the best weeks?
+3. Which team members grew this month?
+   Who needs a direct conversation about trajectory or support?
+4. What was the most important decision you made this month?
+   What was the most important one you avoided?
 5. If you could give advice to yourself at the start of this month, what would it be?
-6. What should be your single most important focus next month? What needs to be deprioritized to make room for it?
+6. What should be your single most important focus next month?
+   What needs to be deprioritized to make room for it?
 
 ### 4. Write the Review
 
@@ -136,17 +137,19 @@ These items appeared in multiple weekly reviews without resolution:
 
 ## Example Usage
 
-**Scenario 1: OKR-driven month**
-User has formal OKRs. Review maps each OKR to a trajectory curve, shows two that stalled despite intent, and produces a focused plan for next month with one OKR explicitly deprioritized.
+**Scenario 1: OKR-driven month** User has formal OKRs.
+Review maps each OKR to a trajectory curve, shows two that stalled despite intent, and produces a focused plan for next month with one OKR explicitly deprioritized.
 
-**Scenario 2: Pattern of reactive work**
-Across four weekly reviews, reactive work averaged 60%. Review shows it clearly, names the source (a recurring escalation pattern), and produces one structural change to trial next month.
+**Scenario 2: Pattern of reactive work** Across four weekly reviews, reactive work averaged 60%.
+Review shows it clearly, names the source (a recurring escalation pattern), and produces one structural change to trial next month.
 
-**Scenario 3: Team member at risk**
-Three consecutive weekly team health tables show a team member as "blocked" or absent. Monthly review makes the pattern undeniable. User commits to a direct 1:1 conversation as the primary action.
+**Scenario 3: Team member at risk** Three consecutive weekly team health tables show a team member as "blocked" or absent.
+Monthly review makes the pattern undeniable.
+User commits to a direct 1:1 conversation as the primary action.
 
-**Scenario 4: No weekly reviews available**
-Weekly `review.md` files don't exist. Proceed with goals files and user responses only. Note the gap and recommend running end-of-week-review going forward.
+**Scenario 4: No weekly reviews available** Weekly `review.md` files don't exist.
+Proceed with goals files and user responses only.
+Note the gap and recommend running end-of-week-review going forward.
 
 ## Useful Commands Reference
 

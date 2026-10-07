@@ -38,11 +38,14 @@ For each URL it:
      In an empirical comparison on chrome-heavy pages (Wikipedia, GitHub), trafilatura produced 3-13x smaller markdown with near-zero nav/footer noise, versus the pure converters below.
    - **html2markdown** (first fallback), a pure converter ([JohannesKaufmann/html-to-markdown](https://github.com/JohannesKaufmann/html-to-markdown)) that keeps nav/footer but respects local image links.
    - **pandoc** (last resort), a pure converter, present on most systems.
-3. Optionally downloads images: with `--with-images`, it mirrors the page with `wget -p -k` so images are saved and `<img src>` is rewritten to local relative paths, then trafilatura emits markdown whose image links point at those local files. Images wget cannot fetch stay as remote URLs.
+3. Optionally downloads images: with `--with-images`, it mirrors the page with `wget -p -k` so images are saved and `<img src>` is rewritten to local relative paths, then trafilatura emits markdown whose image links point at those local files.
+   Images wget cannot fetch stay as remote URLs.
 
-External tools the script shells out to when needed: `wget` (only for `--with-images`), `html2markdown` and `pandoc` (only as fallbacks). Only one of the three converters needs to be available for the script to produce output; trafilatura comes via the preamble, so a fresh machine needs nothing installed to get clean text.
+External tools the script shells out to when needed: `wget` (only for `--with-images`), `html2markdown` and `pandoc` (only as fallbacks).
+Only one of the three converters needs to be available for the script to produce output; trafilatura comes via the preamble, so a fresh machine needs nothing installed to get clean text.
 
-If every converter returns empty (e.g. a page with no body), the script records `converter: "failed"` in `meta.json`, exits non-zero, and leaves only `raw.html` plus `meta.json`. Do not invent content for a page that failed to snapshot.
+If every converter returns empty (e.g. a page with no body), the script records `converter: "failed"` in `meta.json`, exits non-zero, and leaves only `raw.html` plus `meta.json`.
+Do not invent content for a page that failed to snapshot.
 
 ## Directory Layout
 
@@ -145,8 +148,7 @@ Extraction notes:
   Use the date portion of `fetched_at` (when the page was snapshotted) for the **Snapshotted** column, not `date` (which is the source's own publication date from its metadata).
 - If `meta.json` shows `converter: "failed"`, or `http_status` is 4xx/5xx, record the failure in `sources.md` and fall back to `WebFetch` for that URL.
   Do not fabricate content for a page that failed to snapshot.
-- `converter` is one of `trafilatura`, `html2markdown`, `pandoc`, or `failed`.
-  trafilatura runs against the archived `raw.html` (or the wget-rewritten HTML when `--with-images` is set), so the markdown provably derives from the snapshot rather than a re-fetch.
+- `converter` is one of `trafilatura`, `html2markdown`, `pandoc`, or `failed`. trafilatura runs against the archived `raw.html` (or the wget-rewritten HTML when `--with-images` is set), so the markdown provably derives from the snapshot rather than a re-fetch.
 - For PDFs, the script does not convert them; save the file as `raw.pdf` and run `pandoc -f pdf -o content.md raw.pdf` (or the `docx` reader), then set `converter` in `meta.json` manually.
 
 ### 7. Build the sources manifest
@@ -283,18 +285,15 @@ If the topic is too large to map fully, narrow the scope and say so explicitly i
 
 ## Example Usage
 
-**Scenario 1: Technical explainer with primary sources**
-Topic: "how WebRTC handles NAT traversal", scope: "STUN, TURN, ICE, last 3 years".
+**Scenario 1: Technical explainer with primary sources** Topic: "how WebRTC handles NAT traversal", scope: "STUN, TURN, ICE, last 3 years".
 Search official specs (RFC 8445, RFC 8489) and engineering blogs, snapshot each, map STUN vs. TURN vs. ICE, surface the open question of TURN server cost.
 Output a research document grounded in the spec snapshots.
 
-**Scenario 2: Comparative landscape**
-Topic: "React Server Components vs. Remix", scope: "data loading and bundling trade-offs, 2024-2025".
+**Scenario 2: Comparative landscape** Topic: "React Server Components vs. Remix", scope: "data loading and bundling trade-offs, 2024-2025".
 Search both projects' docs plus independent analyses, snapshot all, contrast on data flow and bundle strategy, note where the community disagrees on mental model.
 Output a side-by-side themes section.
 
-**Scenario 3: Quick background scan**
-Topic: "the 2024 SQLite virtual table changes", scope: "what changed and what breaks".
+**Scenario 3: Quick background scan** Topic: "the 2024 SQLite virtual table changes", scope: "what changed and what breaks".
 Search the SQLite changelog and release notes, snapshot 4-6 sources, summarize the changes and migration impact.
 Output an abbreviated research document with a single themes section.
 

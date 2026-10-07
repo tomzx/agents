@@ -7,7 +7,8 @@ argument-hint: "<pr-url>"
 
 # Handle PR Comment
 
-Evaluates a comment on a GitHub pull request and responds appropriately, either implementing the requested change or drafting a reply explaining why the change will not be made. On user approval it commits and pushes code changes; whether the reply comment is posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise the drafted reply is shown without posting.
+Evaluates a comment on a GitHub pull request and responds appropriately, either implementing the requested change or drafting a reply explaining why the change will not be made.
+On user approval it commits and pushes code changes; whether the reply comment is posted to GitHub is decided by `should-post-to-github` (based on `~/.sdlc/config.yaml`), otherwise the drafted reply is shown without posting.
 
 ## Prerequisites
 
@@ -72,7 +73,9 @@ Fetch PR metadata + comment history
 7. Present reasoning to the user for approval.
 8. On approval:
    - For code changes: commit and push to the PR branch (push is not gated).
-   - For posting a reply comment: get the PR author (`gh pr view $1 --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 0, post the reply via `gh` with the **Skill attribution** footer on the comment body. If it exits 1, present the drafted reply to the user without posting.
+   - For posting a reply comment: get the PR author (`gh pr view $1 --json author --jq .author.login`), then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
+     If it exits 0, post the reply via `gh` with the **Skill attribution** footer on the comment body.
+     If it exits 1, present the drafted reply to the user without posting.
 
 ## Example Usage
 
@@ -88,7 +91,8 @@ Action: Implement refactor, commit to PR branch, push.
 /handle-pr-comment https://github.com/owner/repo/pull/88
 ```
 Comment: "Can you also fix the unrelated bug in `utils.py`?"
-Action: Post reply: "That's out of scope for this PR. I'll open a separate issue."
+Action: Post reply: "That's out of scope for this PR.
+I'll open a separate issue."
 
 **Scenario 3: Incorrect suggestion**
 ```

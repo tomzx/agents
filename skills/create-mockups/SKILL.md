@@ -24,7 +24,9 @@ For features with no user interface (a pure API, a background job, a CLI), skip 
 ## Steps
 
 1. Read the requirements, the specification if present, and the codebase analysis if present.
-2. Decide whether the feature has a UI surface. If it does not, emit `verdict: skipped` (do not write `mockups.md`). The `skipped` verdict routes the pipeline straight to the next phase, bypassing `/review-mockups`.
+2. Decide whether the feature has a UI surface.
+   If it does not, emit `verdict: skipped` (do not write `mockups.md`).
+   The `skipped` verdict routes the pipeline straight to the next phase, bypassing `/review-mockups`.
 3. Inventory every screen, view, or dialog the feature needs, cross-referenced against the requirements and the spec's flows.
 4. For each screen, draw an ASCII wireframe inside a fenced block, annotated with the regions, primary action, and data shown.
 5. Break the UI down into components, marking which already exist in the codebase (reuse), which must be extended, and which are new.
@@ -38,7 +40,10 @@ For features with no user interface (a pure API, a background job, a CLI), skip 
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/mockups.md` (copied to `.sdlc/templates/features/mockups.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/mockups.md` (copied to `.sdlc/templates/features/mockups.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
+
+```
 +-----------------------------------------------+
 |  <logo>              <nav>            <avatar> |
 +-----------------------------------------------+

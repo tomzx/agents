@@ -31,17 +31,22 @@ A formatted status report displayed to the user, containing:
 
 ## Steps
 
-1. Locate the `.sdlc/` directory. Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root. Apply `sdlc/references/shared.md` for path resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); `state.yml` and `progress.md` are never read from the mirror.
-2. Read `.sdlc/state.yml` if it exists. Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see quickly what the pipeline was last doing.
+1. Locate the `.sdlc/` directory.
+   Use `$1` if it specifies a path, otherwise use `.sdlc/` in the current repository root.
+   Apply `sdlc/references/shared.md` for path resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); `state.yml` and `progress.md` are never read from the mirror.
+2. Read `.sdlc/state.yml` if it exists.
+   Surface `current_phase`, `github_ref`, and `feature` in the report header so the user can see quickly what the pipeline was last doing.
 3. Scan `.sdlc/features/` for all feature directories (excluding `templates/`).
 4. If `$1` specifies a feature ID (e.g., `FEAT-1`), filter to that feature only.
-5. For each feature, read `progress.md` if it exists. Otherwise scan the directory for artifacts and task files.
+5. For each feature, read `progress.md` if it exists.
+   Otherwise scan the directory for artifacts and task files.
 6. Read all task files in `.sdlc/features/N-<slug>/tasks/` and collect their frontmatter.
 7. Render the status report.
 
 ### Preferred: Use the bundled script
 
-`scripts/sdlc-status.py` renders a self-contained HTML dashboard (one tabbed panel per feature, with pipeline status, task progress, blockers, and session log) directly from the `.sdlc/` directory. Prefer it over hand-building a report, especially when the user asks for HTML.
+`scripts/sdlc-status.py` renders a self-contained HTML dashboard (one tabbed panel per feature, with pipeline status, task progress, blockers, and session log) directly from the `.sdlc/` directory.
+Prefer it over hand-building a report, especially when the user asks for HTML.
 
 ```bash
 # The script carries PEP 723 inline metadata, so uv provisions PyYAML on the fly.
@@ -49,9 +54,12 @@ uv run <skill_dir>/scripts/sdlc-status.py <path-to-.sdlc> -o status-report.html
 # Omit -o (or pass "-") to write the HTML to stdout instead of a file.
 ```
 
-`status-report.html` is a generated artifact that must never be committed. `/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`; if you are writing to a file in a repo that has not run either skill, ensure the entry exists manually.
+`status-report.html` is a generated artifact that must never be committed.
+`/initialize-sdlc-directory` and `/sync-sdlc` add it to the project root `.gitignore`; if you are writing to a file in a repo that has not run either skill, ensure the entry exists manually.
 
-The script reads each feature's `progress.md` frontmatter and sections. Features without a `progress.md` render with limited detail, so for the most detailed dashboard ensure `progress.md` exists. If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
+The script reads each feature's `progress.md` frontmatter and sections.
+Features without a `progress.md` render with limited detail, so for the most detailed dashboard ensure `progress.md` exists.
+If the script cannot run (no uv available) or the user wants a plain-text summary, fall back to the manual steps below.
 
 ### Manual text-based report
 
@@ -92,7 +100,8 @@ If multiple features are found, show a brief summary table first:
 
 ## Progress Tracking Reference
 
-The `progress.md` file in each feature directory is the single source of truth for feature status. It contains:
+The `progress.md` file in each feature directory is the single source of truth for feature status.
+It contains:
 
 - **Frontmatter:** `issue`, `title`, `current_phase`, `re_entry_point`, `last_updated`.
 - **Summary section:** One paragraph status of the feature.

@@ -15,7 +15,8 @@ PDLC wraps SDLC: it decides *whether* and *what* to build, hands the *how* off t
 ## When to Use `/pdlc` vs Individual Skills
 
 - Use **`/pdlc`** (with an optional phase name) when you want the orchestrator to run multiple phases, manage gates and backtracking, and keep run state.
-The PDLC phase skills are **internal sub-skills** bundled under this `pdlc` skill at `skills/pdlc/skills/<name>/SKILL.md`. They are not individually discovered as slash commands, so only `/pdlc` is directly invocable; the orchestrator loads each phase by reading its file (see *Load Each Phase Sub-Skill* below).
+  The PDLC phase skills are **internal sub-skills** bundled under this `pdlc` skill at `skills/pdlc/skills/<name>/SKILL.md`.
+  They are not individually discovered as slash commands, so only `/pdlc` is directly invocable; the orchestrator loads each phase by reading its file (see *Load Each Phase Sub-Skill* below).
 
 ## Load Each Phase Sub-Skill (mandatory)
 
@@ -133,7 +134,9 @@ When `PDLC_DIR` is set, the same tree can also live (or be mirrored) outside the
     └── context/...
 ```
 
-**Initiative directory naming:** directories under `initiatives/` are named `N-<slug>` (issue number verbatim when tied to an issue, otherwise `p1-<slug>`, `p2-<slug>`, ... for pending initiatives). The **initiative ID** `INIT-N` is used in cross-references. Full rules live in `references/shared.md`.
+**Initiative directory naming:** directories under `initiatives/` are named `N-<slug>` (issue number verbatim when tied to an issue, otherwise `p1-<slug>`, `p2-<slug>`, ... for pending initiatives).
+The **initiative ID** `INIT-N` is used in cross-references.
+Full rules live in `references/shared.md`.
 
 ## Entry Points
 
@@ -168,7 +171,8 @@ last_gate: null                 # verdict of the most recent gate (proceed/pivot
 ```
 
 - **On first entry**: create `.pdlc/state.yml`, filling `current_phase` with the entry point and `github_ref` if known.
-- **After each phase completes**: update `current_phase` to the next phase. This is the single rule: `current_phase` always holds what comes next.
+- **After each phase completes**: update `current_phase` to the next phase.
+  This is the single rule: `current_phase` always holds what comes next.
 - **When an initiative directory is created**: fill `initiative`.
 - **After each gate**: set `last_gate` to the verdict.
 - **On loop completion**: set `current_phase` to `complete`.
@@ -176,7 +180,8 @@ last_gate: null                 # verdict of the most recent gate (proceed/pivot
 ### Local-only files (never commit)
 
 `state.yml` and each initiative's `progress.md` are local workflow state.
-They must never be committed. `initialize-pdlc-directory` creates a `.pdlc/.gitignore` that excludes them:
+They must never be committed.
+`initialize-pdlc-directory` creates a `.pdlc/.gitignore` that excludes them:
 
 ```gitignore
 # Local-only workflow state — do not commit
@@ -188,21 +193,38 @@ initiatives/*/progress.md
 
 ## Steps
 
-1. Read `.pdlc/state.yml` if it exists. Use its values as defaults unless the user provides explicit arguments.
-2. Determine the entry point: normalize `$1` to lowercase and match against the supported entry points. If `$1` does not match, do not infer from text; inform the user and ask for a valid entry point. If `continue`, run Automatic Resume.
-3. If the entry point is `status`, invoke the `pdlc-status` skill. Do not advance the loop or modify any artifacts.
-4. If the entry point is `setup`, invoke `initialize-pdlc-directory`. If `sync`, invoke `sync-pdlc`. These are standalone and do not advance the loop.
-5. If the entry point is `decision`, invoke `make-decision` directly. If `kill`, invoke `kill-initiative`. If `audit`, invoke `audit-outcomes`.
-6. Read `.pdlc/context/` (`product-overview.md`, `vision.md`, `goals.md`) for product context before invoking any sub-skill, and apply the style rules found there to every document produced. The shared conventions (context reading and `.pdlc/` path resolution via `PDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
+1. Read `.pdlc/state.yml` if it exists.
+   Use its values as defaults unless the user provides explicit arguments.
+2. Determine the entry point: normalize `$1` to lowercase and match against the supported entry points.
+   If `$1` does not match, do not infer from text; inform the user and ask for a valid entry point.
+   If `continue`, run Automatic Resume.
+3. If the entry point is `status`, invoke the `pdlc-status` skill.
+   Do not advance the loop or modify any artifacts.
+4. If the entry point is `setup`, invoke `initialize-pdlc-directory`.
+   If `sync`, invoke `sync-pdlc`.
+   These are standalone and do not advance the loop.
+5. If the entry point is `decision`, invoke `make-decision` directly.
+   If `kill`, invoke `kill-initiative`.
+   If `audit`, invoke `audit-outcomes`.
+6. Read `.pdlc/context/` (`product-overview.md`, `vision.md`, `goals.md`) for product context before invoking any sub-skill, and apply the style rules found there to every document produced.
+   The shared conventions (context reading and `.pdlc/` path resolution via `PDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 7. Confirm the artifacts available for the current phase (previous phase output under `.pdlc/initiatives/N-<slug>/`, existing files, or context).
-8. **Before executing each sub-skill, read it** at `skills/pdlc/skills/<name>/SKILL.md` (Read tool). This is mandatory. Read first, then perform the sub-skill's steps. Never run a phase's commit/push/PR actions without reading the governing sub-skill first.
-9. After each phase skill completes its artifact, **run the gate**: invoke `make-decision` for the phase just completed. The gate decides `proceed` / `pivot` / `kill`.
+8. **Before executing each sub-skill, read it** at `skills/pdlc/skills/<name>/SKILL.md` (Read tool).
+   This is mandatory.
+   Read first, then perform the sub-skill's steps.
+   Never run a phase's commit/push/PR actions without reading the governing sub-skill first.
+9. After each phase skill completes its artifact, **run the gate**: invoke `make-decision` for the phase just completed.
+   The gate decides `proceed` / `pivot` / `kill`.
    - `proceed` → advance to the next phase.
    - `pivot` → return to the phase named in the decision body and re-run that skill in revision mode.
    - `kill` → invoke `kill-initiative` and stop the loop.
 10. After the gate resolves to `proceed`, update `.pdlc/state.yml` (`current_phase`, `initiative`, `last_gate`) and update the initiative's `progress.md`.
-11. At the SDLC handoff (`define-acceptance`): the acceptance contract is the handoff. Note that SDLC owns the build; PDLC resumes at `launch` once the change is shipped. Do not run SDLC skills from within PDLC; point the user to `/sdlc requirements` with the acceptance contract as input.
-12. At the end of Measure, the gate is `double-down` / `iterate` / `sunset`. `iterate` routes back to Discover with the feedback artifact as input (the loop restarts). `sunset` invokes `sunset-product`.
+11. At the SDLC handoff (`define-acceptance`): the acceptance contract is the handoff.
+    Note that SDLC owns the build; PDLC resumes at `launch` once the change is shipped.
+    Do not run SDLC skills from within PDLC; point the user to `/sdlc requirements` with the acceptance contract as input.
+12. At the end of Measure, the gate is `double-down` / `iterate` / `sunset`.
+    `iterate` routes back to Discover with the feedback artifact as input (the loop restarts).
+    `sunset` invokes `sunset-product`.
 13. When the session ends, write a session boundary marker to `progress.md`.
 
 ### Automatic Resume (entry: `continue`)
@@ -217,7 +239,8 @@ initiatives/*/progress.md
 
 The `progress.md` file in each initiative directory is the single source of truth for initiative status, and it is updated after each phase and gate.
 
-**Session Boundary Markers:** at the start and end of every session, write a brief entry to the Session Log in `progress.md` (date, what was accomplished / planned, where to pick up next). Update `re_entry_point` on session end so the next session resumes cleanly.
+**Session Boundary Markers:** at the start and end of every session, write a brief entry to the Session Log in `progress.md` (date, what was accomplished / planned, where to pick up next).
+Update `re_entry_point` on session end so the next session resumes cleanly.
 
 ## Backtracking and Failure Recovery
 
@@ -245,4 +268,5 @@ Never skip gates for commitments that consume significant engineering capacity, 
 
 ## Commit / Push / PR Gate (mandatory)
 
-Never commit, push, or open a PR without an explicit request from the user, even when a phase would normally include these actions (posting a launch plan, filing a placeholder issue, sending enablement comms). Complete non-destructive work, stop, report, and wait for explicit confirmation.
+Never commit, push, or open a PR without an explicit request from the user, even when a phase would normally include these actions (posting a launch plan, filing a placeholder issue, sending enablement comms).
+Complete non-destructive work, stop, report, and wait for explicit confirmation.

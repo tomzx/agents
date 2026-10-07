@@ -106,10 +106,14 @@ Do not fetch the diff, post a comment, or approve.
 Report to the user: "Skipped PR #{PR_NUMBER} ({REPO}) — author is flagged for manual review only."
 
 The trust level modifies behavior in steps 2, 4, and 8:
-- `trusted`: Standard checks. On borderline cases (e.g., a check whose result is ambiguous), prefer passing.
+- `trusted`: Standard checks.
+  On borderline cases (e.g., a check whose result is ambiguous), prefer passing.
 - `neutral`: Standard behavior (no adjustment).
-- `cautious`: Apply stricter interpretation. Flag marginal cases as failing.
-- `always_reject`: Skip this PR entirely. Do not post a comment or approve. Report to the user that the PR was skipped.
+- `cautious`: Apply stricter interpretation.
+  Flag marginal cases as failing.
+- `always_reject`: Skip this PR entirely.
+  Do not post a comment or approve.
+  Report to the user that the PR was skipped.
 
 ### 3. Find existing review comment
 
@@ -175,7 +179,8 @@ When a check is borderline (e.g., a change is arguably a public interface additi
 - If any required checks are still **pending** or **in progress** (not yet concluded): wait and re-check rather than treating the PR as ready.
   - Wait ~60 seconds, then re-fetch the PR JSON with `gh pr view $2 --repo $1 --json statusCheckRollup --jq '.statusCheckRollup'` and re-evaluate `statusCheckRollup`.
   - Repeat until all required checks have concluded (passing, failing, or skipped), up to a maximum of 10 attempts (~10 minutes).
-  - If checks are still pending after the maximum attempts: do not approve. Post/update the comment with `[ ] Tests pass` noting that checks did not conclude in time, and report to the user that the review should be re-run once CI completes.
+  - If checks are still pending after the maximum attempts: do not approve.
+    Post/update the comment with `[ ] Tests pass` noting that checks did not conclude in time, and report to the user that the review should be re-run once CI completes.
 - Once all required checks have concluded: all required checks must be passing or skipped (not failing).
 
 #### Change is part of the spec (approval gate)
@@ -343,7 +348,8 @@ git -C ~/.quick-pr-review commit -m "Review {REPO}: PR #$2 @ {SHORT_SHA}"
 
 ### 7. Create or update the comment
 
-Run `~/.agents/scripts/should-post-to-github --repo "{REPO}" --author "{PR_AUTHOR}"`. If it exits 1, skip this step (the comment body is already saved locally in step 6).
+Run `~/.agents/scripts/should-post-to-github --repo "{REPO}" --author "{PR_AUTHOR}"`.
+If it exits 1, skip this step (the comment body is already saved locally in step 6).
 
 **If no existing comment:**
 ```bash
@@ -359,7 +365,8 @@ gh api repos/{REPO}/issues/comments/{COMMENT_ID} \
 
 ### 8. Approve or not
 
-Only run the approval when step 7's `should-post-to-github` check exited 0 (posting allowed). If it exited 1, report the approval decision to the user without executing it on GitHub.
+Only run the approval when step 7's `should-post-to-github` check exited 0 (posting allowed).
+If it exited 1, report the approval decision to the user without executing it on GitHub.
 
 **If `MANUAL_APPROVAL_ORG == true`** (owner is `Shopify` or `shop`): **never approve automatically**, regardless of check results.
 Post/update the comment as normal, then leave the approval to the user.

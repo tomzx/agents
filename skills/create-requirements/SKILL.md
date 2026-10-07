@@ -25,13 +25,15 @@ When the feature has a CLI surface, it delegates to `/create-cli-design` so the 
 5. Identify constraints: technology choices, regulatory requirements, compatibility needs.
 6. Write acceptance criteria: testable conditions that confirm each requirement is met.
 7. Flag any open questions where requirements are unclear or missing.
-8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue. Record the related issue number in the frontmatter `issue` field only when an issue exists.
+8. Derive the feature directory name `N-<slug>` following the Feature Directory Naming convention in `skills/sdlc/references/shared.md`: use the issue number as `N` when one is available, otherwise a `p`-prefixed sequence number (`p1`, `p2`, ...) marking the feature as pending a placeholder issue.
+   Record the related issue number in the frontmatter `issue` field only when an issue exists.
 9. Write the output to `.sdlc/features/N-<slug>/requirements.md`, creating the directory if it does not exist.
 10. Detect a CLI surface: when the feature adds or changes CLI commands or options, load the `create-cli-design` skill with the `skill` tool and run it to design the interface from the requirements just drafted, producing `.sdlc/features/N-<slug>/cli-design.md`.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/requirements.md` (copied to `.sdlc/templates/features/requirements.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/requirements.md` (copied to `.sdlc/templates/features/requirements.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 Use MoSCoW priority for functional requirements: **Must** (essential), **Should** (important), **May** (nice-to-have).
 
@@ -54,8 +56,7 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<s
 
 ## Example Usage
 
-**Scenario 1: Feature brief in context**
-User describes "we need users to reset their passwords via email."
+**Scenario 1: Feature brief in context** User describes "we need users to reset their passwords via email."
 Draft FR for the email flow, NFR for token expiry and security, and acceptance criteria for each step.
 
 **Scenario 2: GitHub issue as input**
@@ -64,8 +65,7 @@ Draft FR for the email flow, NFR for token expiry and security, and acceptance c
 ```
 Fetch the issue, extract the described behavior, and produce a requirements document.
 
-**Scenario 3: Incomplete brief**
-User gives a vague description.
+**Scenario 3: Incomplete brief** User gives a vague description.
 List open questions and draft requirements for the parts that are clear.
 
 ## Completion Checklist

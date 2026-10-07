@@ -27,7 +27,8 @@ Assumptions differ from decisions: a decision is a deliberate choice between kno
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/knowledge/assumption.md` (copied to `.sdlc/templates/knowledge/assumption.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/knowledge/assumption.md` (copied to `.sdlc/templates/knowledge/assumption.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -36,22 +37,19 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/ass
 
 ## Example Usage
 
-**Scenario 1: Load assumption**
-Assuming the service will handle at most 1,000 concurrent users based on the current contract.
+**Scenario 1: Load assumption** Assuming the service will handle at most 1,000 concurrent users based on the current contract.
 Basis: product manager's statement in the kick-off meeting.
 Confidence: Medium (verbal, not written).
 Risk if wrong: connection pool and caching strategy are sized for this load; exceeding it causes timeouts.
 Validation: confirm in writing with PM before go-live.
 
-**Scenario 2: Third-party API behavior**
-Assuming a vendor API returns results within 500ms at p99.
+**Scenario 2: Third-party API behavior** Assuming a vendor API returns results within 500ms at p99.
 Basis: vendor's marketing docs; no SLA contract yet.
 Confidence: Low.
 Risk if wrong: timeout budgets in the gateway are set to 600ms; slow responses cascade.
 Validation: run a latency spike against the staging endpoint in Phase 1.
 
-**Scenario 3: User behaviour**
-Assuming users will complete onboarding in a single session.
+**Scenario 3: User behaviour** Assuming users will complete onboarding in a single session.
 Basis: UX research from a similar product two years ago.
 Confidence: Medium.
 Risk if wrong: multi-session onboarding requires persisting partial state, which is not currently designed.

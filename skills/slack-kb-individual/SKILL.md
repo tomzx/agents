@@ -12,9 +12,12 @@ Use when collecting all Slack conversations a specific person participated in du
 
 ## What it does
 
-[`collect_individual_threads.py`](collect_individual_threads.py) searches Slack for messages **from** a given user, deduplicates by thread, then fetches each thread root for reply count and preview. It outputs **JSONL** (one object per thread: `thread_ts`, `channel`, `channelName`, `replies`, `preview`, `permalink`).
+[`collect_individual_threads.py`](collect_individual_threads.py) searches Slack for messages **from** a given user, deduplicates by thread, then fetches each thread root for reply count and preview.
+It outputs **JSONL** (one object per thread: `thread_ts`, `channel`, `channelName`, `replies`, `preview`, `permalink`).
 
-Uses the Slack API directly (`search.messages` + `conversations.replies`) — no CLI dependencies. Thread fetching is concurrent (8 workers by default). Run via `uv run` for automatic dependency management (`requests`, `python-dotenv`).
+Uses the Slack API directly (`search.messages` + `conversations.replies`) — no CLI dependencies.
+Thread fetching is concurrent (8 workers by default).
+Run via `uv run` for automatic dependency management (`requests`, `python-dotenv`).
 
 Credentials: reads `SLACK_TOKEN` and `SLACK_COOKIE` from `.env` (searches up from cwd).
 
@@ -22,7 +25,9 @@ Credentials: reads `SLACK_TOKEN` and `SLACK_COOKIE` from `.env` (searches up fro
 
 ### Full scan
 
-Searches the entire `--after`/`--before` date range newest-first and fetches every discovered thread. Pagination uses `sort=timestamp&sort_dir=desc` with sliding date windows to work around Slack's 100-page cap. Stops automatically at the retention boundary (older messages return empty).
+Searches the entire `--after`/`--before` date range newest-first and fetches every discovered thread.
+Pagination uses `sort=timestamp&sort_dir=desc` with sliding date windows to work around Slack's 100-page cap.
+Stops automatically at the retention boundary (older messages return empty).
 
 ```bash
 uv run collect_individual_threads.py \
@@ -32,7 +37,9 @@ uv run collect_individual_threads.py \
 
 ### Incremental update
 
-Loads the existing output JSONL as a cache, then searches only a recent window (default: last 7 days). Threads found in the window are fetched (or re-fetched if they were already cached — they had recent activity). Cached threads outside the window are kept as-is.
+Loads the existing output JSONL as a cache, then searches only a recent window (default: last 7 days).
+Threads found in the window are fetched (or re-fetched if they were already cached — they had recent activity).
+Cached threads outside the window are kept as-is.
 
 ```bash
 # Daily — searches last 7 days, merges with existing cache

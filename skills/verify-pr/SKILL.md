@@ -7,12 +7,18 @@ argument-hint: "<pr-number> [repository]"
 
 # Verify Pull Request
 
-Answers the **verification** question: "Are we building the product right?" Checks that the implementation **conforms to its specified requirements** (the linked issue's acceptance criteria), by combining:
+Answers the **verification** question: "Are we building the product right?"
+Checks that the implementation **conforms to its specified requirements** (the linked issue's acceptance criteria), by combining:
 
 1. **Static traceability**: every criterion maps to specific code that implements it.
 2. **Runtime proof**: build the PR and execute each criterion, recording the evidence.
 
-It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?"). It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job. CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those. Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording). If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead. That includes approach-level observations gathered at runtime (for example criteria provable only by reaching into internals), which go to `/review-pr`'s Approach & Simplicity section through the report notes.
+It does **not** judge whether the target is the right product, that is `/validate-pr`'s job ("are we building the right product?").
+It does **not** judge code craft (quality, architecture, security, tests), that is `/review-pr`'s job.
+CI handles build verification, linting, type checking, and test suite execution; verify-pr does not report on those.
+Its unique role is criteria-to-code traceability and per-criterion runtime proof (targeted scenario execution and demo recording).
+If a finding is about *how the code is written* rather than *whether the criteria are met*, route it to `/review-pr` instead.
+That includes approach-level observations gathered at runtime (for example criteria provable only by reaching into internals), which go to `/review-pr`'s Approach & Simplicity section through the report notes.
 
 ## Prerequisites
 
@@ -22,8 +28,10 @@ It does **not** judge whether the target is the right product, that is `/validat
 - `gh` CLI authenticated with read access to the target repository
 - `ghx` CLI for cached issue reads and PR comments (authenticates via `GH_TOKEN` or `gh auth token`)
 - `git worktree` available
-- For CLI changes: `asciinema` plus a renderer (`agg` preferred). Provided by [`/record-asciinema`](../record-asciinema/SKILL.md).
-- For web UI changes: Playwright (Node or Python) with Chromium. Provided by [`/record-playwright`](../record-playwright/SKILL.md).
+- For CLI changes: `asciinema` plus a renderer (`agg` preferred).
+  Provided by [`/record-asciinema`](../record-asciinema/SKILL.md).
+- For web UI changes: Playwright (Node or Python) with Chromium.
+  Provided by [`/record-playwright`](../record-playwright/SKILL.md).
 - Read any files present under `.sdlc/context/` and apply any artifact style rules found there
 
 ### Skill attribution (GitHub)
@@ -116,7 +124,8 @@ Extract:
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
 - Head branch name (`headRefName`), base branch name (`baseRefName`)
-- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`.
+  Two commits with the same tree have byte-identical content regardless of their SHAs.
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
@@ -124,16 +133,21 @@ Extract:
 
 #### 1a. Re-review scope (reuse the previous run when possible)
 
-Read the verification state file `$PR_REVIEW_DIR/verify.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports; one finding per acceptance criterion, `status` one of `conforms` / `conforms-static` / `unverified` / `fails`). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+Read the verification state file `$PR_REVIEW_DIR/verify.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports; one finding per acceptance criterion, `status` one of `conforms` / `conforms-static` / `unverified` / `fails`).
+If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings.
+Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
 
-Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues, creating a worktree, or building: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental verification, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full verification. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues, creating a worktree, or building: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental verification, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full verification.
+A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags).
+This skill's incremental rules:
 
 - Trace criteria to code as usual, but at runtime re-run only criteria whose implementation the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) touches, plus every criterion whose `status` is `fails`.
 - Criteria the delta does not touch keep their `status` and evidence; reference the previous report's demonstrations instead of re-recording.
 
 #### 1b. Resolve and fetch linked issue(s)
 
-Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references.
+Use `closingIssuesReferences` as the authoritative source of linked issues.
+If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references.
 
 For each linked issue number, fetch its full body:
 
@@ -152,17 +166,21 @@ Parse every checklist item into a criterion record:
 - Its priority: **Must** (gates conformance) or **Should** (deferrable)
 - The source issue number
 
-**Must** criteria are the conformance gate. **Should** criteria are verified if the PR addresses them but do not block conformance on their own.
+**Must** criteria are the conformance gate.
+**Should** criteria are verified if the PR addresses them but do not block conformance on their own.
 
 If the linked issue does not use the structured format, extract requirements from whatever is present (a `## Requirements` section, numbered lists, prose) and convert each into a **Must** criterion unless clearly deferrable, noting in the report that criteria were inferred.
 
 If multiple issues are linked, merge their criteria, preserving the source issue number on each.
 
-If no linked issue can be resolved, or none yields parseable criteria, post a comment asking the author to link an issue with acceptance criteria (or list them explicitly) and stop. Do not verify PR claims with no issue to check them against.
+If no linked issue can be resolved, or none yields parseable criteria, post a comment asking the author to link an issue with acceptance criteria (or list them explicitly) and stop.
+Do not verify PR claims with no issue to check them against.
 
 #### 2b. Parse claims from the PR description
 
-Extract runtime-validatable claims from the PR description (feature, fix, behavior, CLI, web UI, performance, test). Claims are hints that help choose what to run and what to record; the criteria, not the claims, decide what counts as conforming. Claims that map to no criterion are flagged as out of scope relative to the issue.
+Extract runtime-validatable claims from the PR description (feature, fix, behavior, CLI, web UI, performance, test).
+Claims are hints that help choose what to run and what to record; the criteria, not the claims, decide what counts as conforming.
+Claims that map to no criterion are flagged as out of scope relative to the issue.
 
 #### 2c. Build the coverage map
 
@@ -173,18 +191,21 @@ Cross-reference each acceptance criterion against the PR claims:
 | **Mapped** | At least one PR claim speaks to this criterion |
 | **Unmapped (gap)** | No PR claim addresses this criterion. Still trace and attempt to validate it from the diff and codebase, and flag the gap |
 
-Also track **Unmapped claims**: PR claims that correspond to no acceptance criterion. These are flagged as out of scope relative to the issue (a conformance concern, distinct from code-craft).
+Also track **Unmapped claims**: PR claims that correspond to no acceptance criterion.
+These are flagged as out of scope relative to the issue (a conformance concern, distinct from code-craft).
 
 ### 3. Static traceability: criteria to code
 
-For each acceptance criterion, trace it to the specific code changes that implement it. This is the static half of conformance, done before building.
+For each acceptance criterion, trace it to the specific code changes that implement it.
+This is the static half of conformance, done before building.
 
 - Identify the exact files and functions/classes that implement each criterion
 - Verify the implementation path is reachable (no dead code, no unused entry points)
 - Check that imports and wiring connect the pieces correctly
 - Verify no criterion depends on code that was not included in the PR
 
-A criterion with no code backing it is a **gap**, regardless of whether a PR claim references it. Code that implements no criterion is out of scope and is called out.
+A criterion with no code backing it is a **gap**, regardless of whether a PR claim references it.
+Code that implements no criterion is out of scope and is called out.
 
 Record the static mapping:
 
@@ -195,7 +216,8 @@ Where Static status is **Traced** (code backs the criterion) or **Gap** (no impl
 
 ### 4. Create a git worktree on the PR branch
 
-If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
+If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup.
+The orchestrator manages the worktree lifecycle.
 
 ```bash
 _WORKTREE_OWNER=false
@@ -222,15 +244,21 @@ Detect the project type and install/build:
 ls package.json Cargo.toml pyproject.toml go.mod Makefile 2>/dev/null
 ```
 
-Follow the project's standard install and build process. Check `.sdlc/context/` for project-specific build instructions if available.
+Follow the project's standard install and build process.
+Check `.sdlc/context/` for project-specific build instructions if available.
 
-If the build fails, note it and stop. CI would typically catch this first; do not report build status as a conformance finding.
+If the build fails, note it and stop.
+CI would typically catch this first; do not report build status as a conformance finding.
 
 ### 6. Validate each acceptance criterion at runtime
 
-For every acceptance criterion, prove or disprove through execution that the PR meets it. The criterion's nature (refined by any mapped claim) determines the method. **Must** criteria must all be validated for the PR to conform.
+For every acceptance criterion, prove or disprove through execution that the PR meets it.
+The criterion's nature (refined by any mapped claim) determines the method.
+**Must** criteria must all be validated for the PR to conform.
 
-Validate through the product's public entry points first (CLI command, API call, UI interaction). If a criterion can only be proven by reaching into internals (calling private functions, importing internal modules, asserting on call structure), the criterion may still conform, but the difficulty is itself a finding: the implementation resists verification through its public surface. Record it in the report's notes for `/review-pr` (Approach & Simplicity, design coupling), naming what was reached into and why no public path existed.
+Validate through the product's public entry points first (CLI command, API call, UI interaction).
+If a criterion can only be proven by reaching into internals (calling private functions, importing internal modules, asserting on call structure), the criterion may still conform, but the difficulty is itself a finding: the implementation resists verification through its public surface.
+Record it in the report's notes for `/review-pr` (Approach & Simplicity, design coupling), naming what was reached into and why no public path existed.
 
 #### Behavior criteria
 
@@ -283,11 +311,13 @@ For each criterion, record the runtime result combined with its static status:
 A **Must** criterion may only count as Conforms on an `L3 - Executed` or `L4 - Reproduced` result.
 An `L0 - Asserted`, `L1 - Cited`, or `L2 - Ruled out` result does not carry a pass.
 
-A **Must** criterion that is Not verified or Nonconforming means the PR does not conform to its specification. Say so explicitly in the report.
+A **Must** criterion that is Not verified or Nonconforming means the PR does not conform to its specification.
+Say so explicitly in the report.
 
 ### 7. Record demonstrations
 
-Create a recordings directory, then delegate each demonstration to the matching recording skill. Both skills are self-contained: read their `SKILL.md`, pass the inputs below, and collect the rendered asset paths.
+Create a recordings directory, then delegate each demonstration to the matching recording skill.
+Both skills are self-contained: read their `SKILL.md`, pass the inputs below, and collect the rendered asset paths.
 
 ```bash
 mkdir -p /tmp/verify-pr-$PR_NUMBER/recordings
@@ -306,7 +336,8 @@ Collect the returned GIF/SVG/`.cast` path for each criterion.
 
 #### Web UI criteria -> `/record-playwright`
 
-First ensure the dev server is running inside the worktree (start it in the background, e.g. `npm run dev`). Then for each web UI criterion, read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
+First ensure the dev server is running inside the worktree (start it in the background, e.g. `npm run dev`).
+Then for each web UI criterion, read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with:
 
 - `RECORD_SLUG` = a slug for the criterion (e.g. `login-page`)
 - `RECORD_URL` = the route the criterion refers to (e.g. `http://localhost:3000/login`)
@@ -315,7 +346,8 @@ First ensure the dev server is running inside the worktree (start it in the back
 - `RECORD_SCENARIO` = the interaction steps to perform before capture (if the criterion is about behavior)
 - `RECORD_VIDEO` = set if the criterion is about an interaction/animation
 
-Collect the returned PNG/video paths for each criterion. Kill the dev server before moving on.
+Collect the returned PNG/video paths for each criterion.
+Kill the dev server before moving on.
 
 ### 8. Upload assets and write the conformance report
 
@@ -324,11 +356,14 @@ Upload all rendered assets (GIFs, PNGs, videos, or raw `.cast` fallbacks) via [`
 - Read [`../attach-assets/SKILL.md`](../attach-assets/SKILL.md) and invoke it with `TARGET` = `$PR_NUMBER --pr` and `FILES` = the files in `/tmp/verify-pr-$PR_NUMBER/recordings`.
 - It writes the files under `$PR_NUMBER/` on the orphan branch (default `assets`) and returns raw URLs of the form `https://raw.githubusercontent.com/$REPO/assets/$PR_NUMBER/<filename>`.
 
-Reference the returned raw URLs inline in the report. If the upload fails, include command output as text in the comment instead.
+Reference the returned raw URLs inline in the report.
+If the upload fails, include command output as text in the comment instead.
 
-First update `$PR_REVIEW_DIR/verify.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add one finding per newly traced criterion (`title` = criterion text, `severity` = `must` or `should`, `evidence` = what was run and observed or the asset path), and update the `status` of existing criteria (`conforms` / `conforms-static` / `unverified` / `fails`). Then move the review checkpoint tag to the verified head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+First update `$PR_REVIEW_DIR/verify.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add one finding per newly traced criterion (`title` = criterion text, `severity` = `must` or `should`, `evidence` = what was run and observed or the asset path), and update the `status` of existing criteria (`conforms` / `conforms-static` / `unverified` / `fails`).
+Then move the review checkpoint tag to the verified head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
-Then write the report to a file, overwriting the previous report. A full verification contains the complete template below; an incremental verification stays short: scope (the delta, with diffstat), criteria re-run this pass, criteria whose `status` changed, and the verdict:
+Then write the report to a file, overwriting the previous report.
+A full verification contains the complete template below; an incremental verification stays short: scope (the delta, with diffstat), criteria re-run this pass, criteria whose `status` changed, and the verdict:
 
 ```bash
 BODY="$(cat <<'EOF'
@@ -407,11 +442,14 @@ EOF
 
 ### Post the conformance report as a PR comment
 
-The report is saved to `$PR_REVIEW_DIR/verify-pr.<SHORT_SHA>.md`, with `$PR_REVIEW_DIR/verify-pr.report.md` pointing at the most recent run. Posting it as a PR comment is decided by `should-post-to-github`.
+The report is saved to `$PR_REVIEW_DIR/verify-pr.<SHORT_SHA>.md`, with `$PR_REVIEW_DIR/verify-pr.report.md` pointing at the most recent run.
+Posting it as a PR comment is decided by `should-post-to-github`.
 
-Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.report.md`.
+Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
+If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/verify-pr.report.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the report file as a comment on the PR.
+The file already contains the `<!-- {"step":"verify-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [verify-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
@@ -451,32 +489,43 @@ fi
 ```
 /verify-pr 42 owner/myrepo
 ```
-PR #42 is linked to issue #31 whose Must criteria require a `--verbose` flag and an `export` command. Traces both criteria to code, creates a worktree, builds, runs `tool --verbose` and `tool export`, records both via `/record-asciinema`, uploads GIFs and saves a conformance report. All Must criteria Conform. Posts the report as a PR comment unless `should-post-to-github` excludes the repo or author.
+PR #42 is linked to issue #31 whose Must criteria require a `--verbose` flag and an `export` command.
+Traces both criteria to code, creates a worktree, builds, runs `tool --verbose` and `tool export`, records both via `/record-asciinema`, uploads GIFs and saves a conformance report.
+All Must criteria Conform.
+Posts the report as a PR comment unless `should-post-to-github` excludes the repo or author.
 
 **Scenario 2: Feature PR with web UI changes**
 ```
 /verify-pr 77 owner/myrepo
 ```
-PR #77 is linked to an issue requiring a login page at `/login` with a mobile layout. Traces the criterion to the page component, creates a worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and saves a conformance report with the images embedded. Posts the report as a PR comment unless `should-post-to-github` excludes the repo or author.
+PR #77 is linked to an issue requiring a login page at `/login` with a mobile layout.
+Traces the criterion to the page component, creates a worktree, builds, starts the dev server, captures desktop and mobile screenshots via `/record-playwright`, uploads them and saves a conformance report with the images embedded.
+Posts the report as a PR comment unless `should-post-to-github` excludes the repo or author.
 
 **Scenario 3: Bug fix PR, nonconforming**
 ```
 /verify-pr 88
 ```
-PR #88 is linked to a bug report whose Must criterion is "no null pointer on empty email field". Traces a check into the controller, but reproducing the crash scenario at runtime still throws because the fix is in the wrong layer. Reports the criterion as Nonconforming and the PR as not conforming to spec.
+PR #88 is linked to a bug report whose Must criterion is "no null pointer on empty email field".
+Traces a check into the controller, but reproducing the crash scenario at runtime still throws because the fix is in the wrong layer.
+Reports the criterion as Nonconforming and the PR as not conforming to spec.
 
 **Scenario 4: Out-of-scope PR**
 ```
 /verify-pr 90
 ```
-PR #90 implements a `--quiet` flag the author claims, but no acceptance criterion covers it, and one Must criterion is left with no implementing code. Verification flags the claim as out of scope and the criterion as a Gap, and reports the PR as not conforming.
+PR #90 implements a `--quiet` flag the author claims, but no acceptance criterion covers it, and one Must criterion is left with no implementing code.
+Verification flags the claim as out of scope and the criterion as a Gap, and reports the PR as not conforming.
 
 **Scenario 5: Build fails**
 ```
 /verify-pr 15
 ```
-PR #15 fails to build due to missing dependency. Notes the build failure and stops. CI would typically catch this first.
+PR #15 fails to build due to missing dependency.
+Notes the build failure and stops.
+CI would typically catch this first.
 
 ## Next Step
 
-After conformance is confirmed, use `/review-pr` for the code-craft review (quality, architecture, security, tests, operational concerns). If `/validate-pr` has not yet run, consider running it first to confirm the target is the right product before investing in craft review.
+After conformance is confirmed, use `/review-pr` for the code-craft review (quality, architecture, security, tests, operational concerns).
+If `/validate-pr` has not yet run, consider running it first to confirm the target is the right product before investing in craft review.

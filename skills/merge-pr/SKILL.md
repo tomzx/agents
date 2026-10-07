@@ -53,9 +53,11 @@ Confirm issue closed
    gh pr view $1 --json state,reviews,statusCheckRollup,mergeStateStatus,headRefName,closingIssuesReferences
    ```
 
-2. Check approvals: confirm at least one reviewer has approved and no reviewers have requested changes. If approvals are missing or changes are requested, report the status and stop.
+2. Check approvals: confirm at least one reviewer has approved and no reviewers have requested changes.
+   If approvals are missing or changes are requested, report the status and stop.
 
-3. Check CI: confirm all required status checks are passing. If any are failing or pending, invoke `/handle-pr-ci $1` to diagnose and fix before continuing.
+3. Check CI: confirm all required status checks are passing.
+   If any are failing or pending, invoke `/handle-pr-ci $1` to diagnose and fix before continuing.
 
 4. Present the merge summary to the user (PR title, approvals, checks) and ask for confirmation.
 
@@ -63,9 +65,11 @@ Confirm issue closed
    ```
    gh pr merge $1 --squash --delete-branch
    ```
-   Use `--squash` by default for a clean history. If the project uses merge commits or rebase, adjust accordingly.
+   Use `--squash` by default for a clean history.
+   If the project uses merge commits or rebase, adjust accordingly.
 
-6. Confirm the remote branch was deleted. If not, delete it:
+6. Confirm the remote branch was deleted.
+   If not, delete it:
    ```
    gh api repos/{owner}/{repo}/git/refs/heads/{branch} -X DELETE
    ```
@@ -75,7 +79,8 @@ Confirm issue closed
    git tag -d "prs/$1/review" 2>/dev/null || true
    ```
 
-8. Confirm the linked issue was closed automatically (via `Closes #N` in the PR description). If not, close it manually:
+8. Confirm the linked issue was closed automatically (via `Closes #N` in the PR description).
+   If not, close it manually:
    ```
    gh issue close <issue-number>
    ```
@@ -88,19 +93,24 @@ Confirm issue closed
 ```
 /merge-pr 42
 ```
-PR has 2 approvals, all CI checks green. Present summary, confirm with user, squash-merge, delete branch, delete the `prs/42/review` tag, confirm issue closed.
+PR has 2 approvals, all CI checks green.
+Present summary, confirm with user, squash-merge, delete branch, delete the `prs/42/review` tag, confirm issue closed.
 
 **Scenario 2: Missing approval**
 ```
 /merge-pr 88
 ```
-Only 1 of 2 required reviewers has approved. Report: "Waiting on approval from @reviewer2." Stop without merging.
+Only 1 of 2 required reviewers has approved.
+Report: "Waiting on approval from @reviewer2."
+Stop without merging.
 
 **Scenario 3: Failing CI**
 ```
 /merge-pr 55
 ```
-Tests job is failing. Report: "CI check `test` is failing — resolve before merging." Stop without merging.
+Tests job is failing.
+Report: "CI check `test` is failing — resolve before merging."
+Stop without merging.
 
 ## Useful Commands Reference
 

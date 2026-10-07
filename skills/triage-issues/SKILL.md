@@ -10,7 +10,8 @@ argument-hint: "[repository]"
 Lists all open, unlabeled issues in a GitHub repository and delegates each one to `triage-issue` for classification.
 `triage-issue` owns all per-issue work: setup (permissions, label catalog, issue types, Priority field), classification across all dimensions, area-label creation, label/type/priority application, duplicate detection, and clarification comments.
 
-Use this skill for batch triage of a backlog. For event-driven triage of a single issue (e.g., on issue open), invoke `/triage-issue <number> [repository]` directly without this orchestrator.
+Use this skill for batch triage of a backlog.
+For event-driven triage of a single issue (e.g., on issue open), invoke `/triage-issue <number> [repository]` directly without this orchestrator.
 
 ## Prerequisites
 
@@ -46,13 +47,16 @@ Output combined triage summary
    ```
    ghx issue list [--repo $1] --json | jq '[.[] | select(([.labels // [] | .[] | .name // "" | startswith("area:")] | any | not))] | sort_by(.createdAt) | reverse'
    ```
-   This filters out issues that already have at least one `area:` label, as those are considered triaged. Process issues from newest to oldest so that recent issues get triaged first, reflecting current state and receiving timely maintainer attention.
+   This filters out issues that already have at least one `area:` label, as those are considered triaged.
+   Process issues from newest to oldest so that recent issues get triaged first, reflecting current state and receiving timely maintainer attention.
 2. For each issue returned (processing in creation-date order, newest first), invoke the singular skill:
    ```
    /triage-issue <number> [$1]
    ```
-   `triage-issue` performs the full per-issue workflow against the given issue: repo setup (visibility, permissions, label catalog, issue types, Priority field), classification across all dimensions, area-label creation when needed, label/type/priority application, duplicate detection against the full issue corpus, and clarification comments. Each invocation is self-contained and idempotent.
-3. Collect each invocation's single-issue triage summary row and assemble them into the combined summary table below. If no untriaged issues were found, output an empty summary stating that.
+   `triage-issue` performs the full per-issue workflow against the given issue: repo setup (visibility, permissions, label catalog, issue types, Priority field), classification across all dimensions, area-label creation when needed, label/type/priority application, duplicate detection against the full issue corpus, and clarification comments.
+   Each invocation is self-contained and idempotent.
+3. Collect each invocation's single-issue triage summary row and assemble them into the combined summary table below.
+   If no untriaged issues were found, output an empty summary stating that.
 
 ## Output Format
 
@@ -83,10 +87,13 @@ Lists all open untriaged issues and delegates each to `/triage-issue`, which cla
 ```
 /triage-issue 42 owner/myrepo
 ```
-Triages one specific issue directly. Use this from webhook-triggered flows, GitHub Actions on `issues` events, or other skills that need per-issue triage without scanning the whole backlog.
+Triages one specific issue directly.
+Use this from webhook-triggered flows, GitHub Actions on `issues` events, or other skills that need per-issue triage without scanning the whole backlog.
 
 ## Notes
 
-- The label catalog is rebuilt by each `/triage-issue` invocation. In the previous integrated flow, newly created `area:*` labels were cached for reuse within the same run; that intra-run caching is gone in the delegated model. `gh label list` is cheap and the impact is negligible.
+- The label catalog is rebuilt by each `/triage-issue` invocation.
+  In the previous integrated flow, newly created `area:*` labels were cached for reuse within the same run; that intra-run caching is gone in the delegated model.
+  `gh label list` is cheap and the impact is negligible.
 - Duplicate detection inside `triage-issue` still fetches the full open + closed issue corpus for comparison, so the per-issue cost is the same whether triaging one issue or many.
 - If the orchestrator's `ghx issue list` call returns a very large backlog, consider invoking `/triage-issue` for the most recent N issues first and reporting the remainder as "deferred" rather than processing hundreds of issues in a single run.

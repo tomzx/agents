@@ -57,7 +57,9 @@ Post comment on issue (links to PR)
    ```
    Extract the issue number and repository (`owner/repo`).
 
-2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/N-<slug>/plan.md` (unified), then `.sdlc/features/N-<slug>/plan/index.md` (split), then fall back to `plan.md` in the current directory. Stop and inform the user if no plan file is found. Step 4 commits the entire `.sdlc/features/N-<slug>/` directory, so a split `plan/` directory is captured automatically.
+2. Determine the plan file path: use `$2` if provided, otherwise look for `.sdlc/features/N-<slug>/plan.md` (unified), then `.sdlc/features/N-<slug>/plan/index.md` (split), then fall back to `plan.md` in the current directory.
+   Stop and inform the user if no plan file is found.
+   Step 4 commits the entire `.sdlc/features/N-<slug>/` directory, so a split `plan/` directory is captured automatically.
 
 3. Create and switch to a plan branch:
    ```

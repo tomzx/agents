@@ -10,7 +10,9 @@ Ensures the entire repository is consistent by running skills in dependency orde
 Detects and optionally fixes drift between code, SDLC artifacts, tests, documentation, types, and observability.
 
 The core problem this skill solves: changes to one layer (code, SDLC, docs, tests) often go unpropagated to dependent layers.
-Code changes without updating SDLC. SDLC changes without updating documentation. New code without tests or types.
+Code changes without updating SDLC.
+SDLC changes without updating documentation.
+New code without tests or types.
 This skill runs every check in the right order so nothing is missed.
 
 ## Prerequisites
@@ -78,7 +80,8 @@ Phase 6: Report ──────── Aggregate findings, optionally create i
 
 **Why this order:**
 
-1. **Foundation before everything.** `.sdlc/context/` provides architectural and convention context that other skills read. Without it, audits operate on stale understanding.
+1. **Foundation before everything.** `.sdlc/context/` provides architectural and convention context that other skills read.
+   Without it, audits operate on stale understanding.
 2. **Diagnose before harden.** Churn data from Phase 1 feeds risk scoring in Phase 2 (coverage gaps ranked by churn x complexity).
 3. **Harden before clean.** You need to know which files are complex and untested before removing code from them.
 4. **Clean before document.** No point documenting code that will be removed as dead or consolidated as duplicated.
@@ -87,7 +90,8 @@ Phase 6: Report ──────── Aggregate findings, optionally create i
 
 ## Scopes
 
-The `$1` argument controls which phases run. Defaults to `all` if not specified.
+The `$1` argument controls which phases run.
+Defaults to `all` if not specified.
 
 | Scope | Phases Run |
 |---|---|
@@ -104,7 +108,8 @@ The `$1` argument controls which phases run. Defaults to `all` if not specified.
 | Comma-separated | Specific phases, e.g. `foundation,clean,document` |
 
 Flags:
-- `--fix` — After reporting, apply fixes where a skill has a fix action (update SDLC, remove dead code, add types). Without this flag, the skill is read-only (except Phase 0 which always writes to `.sdlc/`).
+- `--fix` — After reporting, apply fixes where a skill has a fix action (update SDLC, remove dead code, add types).
+  Without this flag, the skill is read-only (except Phase 0 which always writes to `.sdlc/`).
 - `--create-issues` — Create GitHub issues for critical and high findings after the report.
 
 ## Steps
@@ -175,7 +180,8 @@ First, check if a documentation site infrastructure exists:
 ls mkdocs.yml 2>/dev/null
 ```
 
-If `mkdocs.yml` does not exist, run `/setup-docs-site` to scaffold MkDocs with Material theme and the GHA Pages workflow. This is a one-time bootstrap that creates the docs infrastructure so `find-documentation-gaps` has a target to check against.
+If `mkdocs.yml` does not exist, run `/setup-docs-site` to scaffold MkDocs with Material theme and the GHA Pages workflow.
+This is a one-time bootstrap that creates the docs infrastructure so `find-documentation-gaps` has a target to check against.
 
 Then run `/find-documentation-gaps`, collecting findings:
 
@@ -222,16 +228,21 @@ If `--fix` was specified, apply fix actions for findings that have automated fix
 | Missing types | Add type annotations to flagged functions |
 | Documentation gaps | Add docstrings to flagged public APIs |
 
-Do NOT auto-fix security vulnerabilities, dependency issues, or complexity hotspots. These require manual review.
+Do NOT auto-fix security vulnerabilities, dependency issues, or complexity hotspots.
+These require manual review.
 
 ### 9. Consistency Check
 
 After all phases complete, perform a cross-layer consistency check:
 
-1. **SDLC vs Code**: For each feature in `.sdlc/features/`, check if `requirements.md` describes behavior the code no longer implements, or if the code implements behavior not captured in requirements. Report drift.
-2. **Code vs Tests**: For each module with changed code, check if corresponding test files exist. Report gaps.
-3. **Code vs Documentation**: For each public API in the code, check if documentation exists. Report gaps.
-4. **SDLC vs Documentation**: For each feature with `specification.md`, check if documentation files reference or explain the feature. Report gaps.
+1. **SDLC vs Code**: For each feature in `.sdlc/features/`, check if `requirements.md` describes behavior the code no longer implements, or if the code implements behavior not captured in requirements.
+   Report drift.
+2. **Code vs Tests**: For each module with changed code, check if corresponding test files exist.
+   Report gaps.
+3. **Code vs Documentation**: For each public API in the code, check if documentation exists.
+   Report gaps.
+4. **SDLC vs Documentation**: For each feature with `specification.md`, check if documentation files reference or explain the feature.
+   Report gaps.
 
 This cross-layer check is the key value of this skill over running individual skills separately.
 
@@ -360,19 +371,28 @@ status: complete
 ```
 /sync-repository
 ```
-Runs all phases. Finds that `.sdlc/context/architecture.md` is stale after a recent refactor, 2 new features are untracked in SDLC, 3 functions lack type annotations, and 1 public API is undocumented. Reports all findings. No changes made (report-only mode).
+Runs all phases.
+Finds that `.sdlc/context/architecture.md` is stale after a recent refactor, 2 new features are untracked in SDLC, 3 functions lack type annotations, and 1 public API is undocumented.
+Reports all findings.
+No changes made (report-only mode).
 
 **Scenario 2: After a feature implementation session**
 ```
 /sync-repository all --fix
 ```
-Runs all phases and applies safe fixes. Phase 0 updates SDLC to track the new feature. Phase 3 removes 2 dead exports from the old implementation. Phase 4 adds docstrings to 3 new public functions. Reports remaining findings that need manual review.
+Runs all phases and applies safe fixes.
+Phase 0 updates SDLC to track the new feature.
+Phase 3 removes 2 dead exports from the old implementation.
+Phase 4 adds docstrings to 3 new public functions.
+Reports remaining findings that need manual review.
 
 **Scenario 3: Quick check after dependency update**
 ```
 /sync-repository diagnose
 ```
-Runs only the diagnose phase. Confirms the updated dependency has no new CVEs. Reports 1 medium-severity churn hotspot in the dependency config file.
+Runs only the diagnose phase.
+Confirms the updated dependency has no new CVEs.
+Reports 1 medium-severity churn hotspot in the dependency config file.
 
 **Scenario 4: Pre-release consistency check**
 ```
@@ -384,7 +404,9 @@ Runs all phases, produces the full report, and creates GitHub issues for 2 criti
 ```
 /sync-repository foundation,document
 ```
-Runs SDLC sync first, then checks documentation gaps. Finds that 2 new features added in the last sprint have no documentation. Reports the gaps without creating issues.
+Runs SDLC sync first, then checks documentation gaps.
+Finds that 2 new features added in the last sprint have no documentation.
+Reports the gaps without creating issues.
 
 ## Relationship to Other Skills
 

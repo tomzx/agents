@@ -25,11 +25,13 @@ Captures the context, the decision, alternatives considered, trade-offs, and exp
 6. Describe the consequences: what changes as a result, what follow-up is expected.
 7. Save the document to `.sdlc/knowledge/decisions/` (or the project's existing ADR directory if one exists) using the filename pattern `N-<slug>.md` where `N` is the next available number (counting existing files in that directory).
 
-If this decision replaces an earlier one, run `/supersede-decision <old> <new>` afterwards to mark the prior ADR `Superseded by [N]` and record the reverse link. Do not hand-edit the older decision's status.
+If this decision replaces an earlier one, run `/supersede-decision <old> <new>` afterwards to mark the prior ADR `Superseded by [N]` and record the reverse link.
+Do not hand-edit the older decision's status.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/knowledge/decision.md` (copied to `.sdlc/templates/knowledge/decision.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/knowledge/decision.md` (copied to `.sdlc/templates/knowledge/decision.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -38,22 +40,21 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/dec
 
 ## Example Usage
 
-**Scenario 1: Library choice**
-Deciding between two HTTP client libraries during implementation.
+**Scenario 1: Library choice** Deciding between two HTTP client libraries during implementation.
 Decision title: "Use httpx instead of requests for async support."
 Context: the service needs to make concurrent outbound calls; `requests` blocks.
-Option A (httpx): supports async/await natively, actively maintained. Con: adds a new dependency.
+Option A (httpx): supports async/await natively, actively maintained.
+Con: adds a new dependency.
 Option B (requests + threads): familiar but increases thread overhead.
-Decision: use httpx. Consequence: all HTTP calls must use async context.
+Decision: use httpx.
+Consequence: all HTTP calls must use async context.
 
-**Scenario 2: Data modeling trade-off**
-Deciding whether to store computed values or recalculate on read.
+**Scenario 2: Data modeling trade-off** Deciding whether to store computed values or recalculate on read.
 Decision title: "Persist derived totals in the orders table."
 Context: query load is high, recalculation is expensive.
 Trade-off: gained query speed, sacrificed single source of truth (must keep totals in sync on write).
 
-**Scenario 3: Deferring complexity**
-Choosing a simple approach now and noting what was deferred.
+**Scenario 3: Deferring complexity** Choosing a simple approach now and noting what was deferred.
 Decision title: "Use a flat file for config instead of a database."
 Consequence: revisit if config grows beyond 50 keys or requires per-user values.
 

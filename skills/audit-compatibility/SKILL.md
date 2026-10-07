@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Compatibility Audit (ISO/IEC 25010)
 
-Audits the codebase for **compatibility**: can the software co-exist with other software and interoperate with it through standards? It finds the things that make two systems conflict over shared resources or fail to communicate cleanly.
+Audits the codebase for **compatibility**: can the software co-exist with other software and interoperate with it through standards?
+It finds the things that make two systems conflict over shared resources or fail to communicate cleanly.
 
 This is the **Compatibility** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
 
@@ -37,7 +38,8 @@ rg -n "localhost|127\.0\.0\.1|0\.0\.0\.0|:3000|:8080|:5432|:6379|:5672|/tmp/|/va
   | rg -v "test|spec|example|docs|README"
 ```
 
-Flag hardcoded values that should be configurable (env vars, config). Two instances on the same host cannot both bind a hardcoded port or write to a hardcoded path.
+Flag hardcoded values that should be configurable (env vars, config).
+Two instances on the same host cannot both bind a hardcoded port or write to a hardcoded path.
 
 Fixed resource names (DB names, queue names, cache keys without a prefix/namespacing):
 ```
@@ -46,7 +48,8 @@ rg -n "CREATE DATABASE|database=|DB_NAME|queue|exchange|routing_key" -g '*.{py,t
 
 ### 2. Co-existence: dependency conflicts
 
-Over-pinned exact versions and conflicting transitive ranges. Exact pins block co-installation with software needing a different version; unbounded ranges can pull a breaking major.
+Over-pinned exact versions and conflicting transitive ranges.
+Exact pins block co-installation with software needing a different version; unbounded ranges can pull a breaking major.
 
 ```
 rg -n "==[0-9]|\"[a-z@/-]+\": *\"[0-9]" pyproject.toml requirements*.txt package.json 2>/dev/null
@@ -67,7 +70,8 @@ rg -n "^[_a-zA-Z]+ *:? *= *\[\]|^[_a-zA-Z]+ *:? *= *\{\}|^_cache|^_state|^_regis
 
 ### 4. Interoperability: API versioning
 
-Endpoints without a version prefix (`/v1/`, version header, or content negotiation). Unversioned APIs cannot evolve compatibly:
+Endpoints without a version prefix (`/v1/`, version header, or content negotiation).
+Unversioned APIs cannot evolve compatibly:
 ```
 rg -n "@(app|router)\.(get|post|put|delete|patch|route)\(['\"]" -g '*.py' . | rg -v "/v[0-9]"
 ```
@@ -100,11 +104,16 @@ rg -n "status_code\s*=\s*(200|400|500)|return.*200|\.send\(200\)|res\.(status\()
 
 ### 9. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 10. Report
 
-Classify by severity and print. Do not modify files.
+Classify by severity and print.
+Do not modify files.
 
 ## Severity
 

@@ -176,7 +176,8 @@ STUDYING --------+-------- WORKING
 
 ## Key Principles
 
-1. **Keep them separate**: Each type has different demands. Don't mix them.
+1. **Keep them separate**: Each type has different demands.
+   Don't mix them.
 2. **All four are needed**: A complete documentation system includes all types.
 3. **Cross-link appropriately**: Link between types but maintain boundaries.
 4. **Structure explicitly**: Make it obvious which type each document is.
@@ -184,17 +185,17 @@ STUDYING --------+-------- WORKING
 
 ## Example Usage
 
-**Scenario 1: New library - "how do I get started?"**
-User wants to learn the library from scratch. Write a **Tutorial** that walks through building a small working example, ending with a visible result.
+**Scenario 1: New library - "how do I get started?"** User wants to learn the library from scratch.
+Write a **Tutorial** that walks through building a small working example, ending with a visible result.
 
-**Scenario 2: Specific task - "how do I switch databases?"**
-User knows the system and wants to accomplish a specific goal. Write a **How-to Guide**: "How to Switch from SQLite to PostgreSQL" with numbered steps and a verification step.
+**Scenario 2: Specific task - "how do I switch databases?"** User knows the system and wants to accomplish a specific goal.
+Write a **How-to Guide**: "How to Switch from SQLite to PostgreSQL" with numbered steps and a verification step.
 
-**Scenario 3: API documentation**
-User is actively writing code and needs parameter details. Write **Reference** documentation mirroring the code structure, covering all parameters, return types, and exceptions.
+**Scenario 3: API documentation** User is actively writing code and needs parameter details.
+Write **Reference** documentation mirroring the code structure, covering all parameters, return types, and exceptions.
 
-**Scenario 4: Design question - "why does this use event sourcing?"**
-User wants to understand architectural decisions. Write an **Explanation** covering background, trade-offs, and alternatives considered.
+**Scenario 4: Design question - "why does this use event sourcing?"** User wants to understand architectural decisions.
+Write an **Explanation** covering background, trade-offs, and alternatives considered.
 
-**Scenario 5: Reviewing existing docs**
-User provides a document to review. Identify which type it is, then flag violations (e.g., a how-to that explains too much theory, or a tutorial that offers choices).
+**Scenario 5: Reviewing existing docs** User provides a document to review.
+Identify which type it is, then flag violations (e.g., a how-to that explains too much theory, or a tutorial that offers choices).

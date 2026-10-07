@@ -7,9 +7,11 @@ argument-hint: "<issue-or-pr-url-or-number> <file> [<file>...] [--pr] [--to-body
 
 # Attach Assets
 
-Copies one or more local files onto a dedicated **orphan branch** in the repository via a throwaway git worktree, then embeds them in a GitHub issue or PR as a comment (default) or appended to the description body. The files never land on the default branch and never become inline `user-attachments`, which suits sensitive screenshots, logs, and internal diagrams.
+Copies one or more local files onto a dedicated **orphan branch** in the repository via a throwaway git worktree, then embeds them in a GitHub issue or PR as a comment (default) or appended to the description body.
+The files never land on the default branch and never become inline `user-attachments`, which suits sensitive screenshots, logs, and internal diagrams.
 
-Because the branch is orphan (no shared history with `main`) and the files are placed through a temporary worktree, the user's working branch and tree are left untouched. The assets are still in git history on that branch, so they are visible to everyone with read access to the repo and persist until the branch is deleted and history rewritten; do not use this for material that must never enter the repo at all (use signed expiring object-store URLs for that).
+Because the branch is orphan (no shared history with `main`) and the files are placed through a temporary worktree, the user's working branch and tree are left untouched.
+The assets are still in git history on that branch, so they are visible to everyone with read access to the repo and persist until the branch is deleted and history rewritten; do not use this for material that must never enter the repo at all (use signed expiring object-store URLs for that).
 
 ## Prerequisites
 
@@ -17,7 +19,8 @@ Because the branch is orphan (no shared history with `main`) and the files are p
 - `git` with push access to the repository.
 - `gh` CLI authenticated with write access, for posting the comment or patching the description body.
 - Files must be under GitHub's per-file size limit (roughly 100 MB), since they are committed through ordinary git.
-- A target issue or PR. Provide a full GitHub URL for unambiguous parsing, or a bare number with `--pr` / `--issue` (default) using the current repository.
+- A target issue or PR.
+  Provide a full GitHub URL for unambiguous parsing, or a bare number with `--pr` / `--issue` (default) using the current repository.
 - For private repos, the rendered image is visible to collaborators when viewed in the issue or PR, but the raw URL itself requires a token for a direct fetch.
 
 ## Skill attribution (GitHub)
@@ -26,7 +29,8 @@ Before posting the comment or patching the body, read [`github-post-attribution/
 
 ## Path scheme
 
-Each upload is written to the orphan branch under a directory named after the issue or PR number. GitHub issues and PRs share one number sequence, so the number alone is unambiguous:
+Each upload is written to the orphan branch under a directory named after the issue or PR number.
+GitHub issues and PRs share one number sequence, so the number alone is unambiguous:
 
 ```
 <number>/<filename>
@@ -116,7 +120,8 @@ else
 fi
 ```
 
-The worktree isolates all work from the user's current branch. On an existing asset branch the asset tree is checked out so new files sit beside prior uploads; on a new branch an empty orphan is created (no shared history with `main`).
+The worktree isolates all work from the user's current branch.
+On an existing asset branch the asset tree is checked out so new files sit beside prior uploads; on a new branch an empty orphan is created (no shared history with `main`).
 
 ### 4. Place the files, commit, and push
 
@@ -129,7 +134,8 @@ git -C "$STAGE" push --quiet origin "HEAD:refs/heads/$ASSET_BRANCH"
 git worktree remove --force "$STAGE"
 ```
 
-`HEAD:refs/heads/$ASSET_BRANCH` creates the branch on first push and fast-forwards it afterwards. If the remote advanced since the fetch, the push is rejected (non-fast-forward); refetch and rerun.
+`HEAD:refs/heads/$ASSET_BRANCH` creates the branch on first push and fast-forwards it afterwards.
+If the remote advanced since the fetch, the push is rejected (non-fast-forward); refetch and rerun.
 
 If a file's path already exists on the branch (same name, same number), git records it as a modification and overwrites the prior blob; rename the file to keep the previous version.
 

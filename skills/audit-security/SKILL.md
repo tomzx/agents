@@ -9,7 +9,9 @@ TODAY=!`date +%Y-%m-%d`
 
 # Security Audit
 
-Scans your own code for vulnerabilities — distinct from `/audit-dependencies` which covers external packages. Covers hardcoded secrets, injection patterns, missing authentication and authorization checks, insecure defaults, and other OWASP-class issues. Produces a prioritized remediation plan with severity ratings.
+Scans your own code for vulnerabilities — distinct from `/audit-dependencies` which covers external packages.
+Covers hardcoded secrets, injection patterns, missing authentication and authorization checks, insecure defaults, and other OWASP-class issues.
+Produces a prioritized remediation plan with severity ratings.
 
 ## Prerequisites
 
@@ -177,7 +179,11 @@ Rank by severity using CVSS-inspired categories: Critical > High > Medium > Low.
 
 ### 10. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 11. Print the Report
 
@@ -230,13 +236,15 @@ Each finding names its evidence level in the form `L<n> - <Name>` plus a pointer
 ```
 /audit-security
 ```
-Finds 2 hardcoded API keys in a config file committed two years ago, 1 SQL injection in a legacy query, and permissive CORS on a staging endpoint. Recommends rotating keys immediately and parameterizing the query.
+Finds 2 hardcoded API keys in a config file committed two years ago, 1 SQL injection in a legacy query, and permissive CORS on a staging endpoint.
+Recommends rotating keys immediately and parameterizing the query.
 
 **Scenario 2: Pre-release gate**
 ```
 /audit-security src/api
 ```
-Scans only the API layer before a public launch. Finds 3 endpoints missing authorization checks.
+Scans only the API layer before a public launch.
+Finds 3 endpoints missing authorization checks.
 
 ## Useful Commands Reference
 

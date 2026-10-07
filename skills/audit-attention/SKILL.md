@@ -5,10 +5,12 @@ description: Audit how your time splits between compounding and depreciating act
 
 # Audit Attention
 
-Classifies the activities on your plate as compounding or depreciating using the two-year test, so you can delegate depreciating work without hesitation and protect compounding work firmly. The number that matters is not how much AI you use, nor how much you keep in human hands; it is how much of your time goes to compounding work.
+Classifies the activities on your plate as compounding or depreciating using the two-year test, so you can delegate depreciating work without hesitation and protect compounding work firmly.
+The number that matters is not how much AI you use, nor how much you keep in human hands; it is how much of your time goes to compounding work.
 ## Prerequisites
 
-- A list of the activities that filled the period (a day, a week, or a longer stretch). Source this from any of:
+- A list of the activities that filled the period (a day, a week, or a longer stretch).
+  Source this from any of:
   - daily notes, calendars, git and Slack activity,
   - the weekly review/summary artifacts under `{NOTES_DIR}/{YEAR}/weekly/{WEEK}/`,
   - or the user's own recall when prompted.
@@ -28,7 +30,8 @@ For each activity, ask: *If I let the model do this for the next two years, will
 
 ## Steps
 
-1. Gather the activity list for the period (see Prerequisites). If no list is provided, ask the user to list the significant activities of the period before proceeding.
+1. Gather the activity list for the period (see Prerequisites).
+   If no list is provided, ask the user to list the significant activities of the period before proceeding.
 2. Apply the two-year test to each significant activity and classify it compounding or depreciating.
 3. Estimate the fraction of the period that went to compounding work.
 4. Note boundary moves since the last audit: activities that shifted category, and which direction.
@@ -65,11 +68,15 @@ For each activity, ask: *If I let the model do this for the next two years, will
 
 ## Watch the Boundary
 
-The line between compounding and depreciating is not fixed; a thing that compounded last year (writing SQL by hand, reading raw logs) can become depreciating as models improve, and occasionally the reverse. Re-run the audit on a regular cadence (weekly via end-week, or at least every few weeks) rather than treating the sort as final. The meta-skill of telling the two apart is itself compounding, which is the strongest case for spending attention on it.
+The line between compounding and depreciating is not fixed; a thing that compounded last year (writing SQL by hand, reading raw logs) can become depreciating as models improve, and occasionally the reverse.
+Re-run the audit on a regular cadence (weekly via end-week, or at least every few weeks) rather than treating the sort as final.
+The meta-skill of telling the two apart is itself compounding, which is the strongest case for spending attention on it.
 
 ## Do Not Optimize the Delegation Ratio
 
-An engineer who delegates ninety percent of their work and spends the freed time going deeper on the remaining ten percent is doing it right. The high delegation ratio is a symptom of correctly identifying the compounding layer, not a target. Flag for the user any period where the delegation ratio is being treated as a score in either direction.
+An engineer who delegates ninety percent of their work and spends the freed time going deeper on the remaining ten percent is doing it right.
+The high delegation ratio is a symptom of correctly identifying the compounding layer, not a target.
+Flag for the user any period where the delegation ratio is being treated as a score in either direction.
 
 ## Example Usage
 
@@ -77,19 +84,24 @@ An engineer who delegates ninety percent of their work and spends the freed time
 ```
 /audit-attention
 ```
-Run as part of end-week. Classifies the week's activities, finds 40% on compounding work, flags two depreciating activities (manual test scaffolding, status-summarizing) to delegate next week, and one compounding activity (architecture decision) that got crowded out and needs a protected block.
+Run as part of end-week.
+Classifies the week's activities, finds 40% on compounding work, flags two depreciating activities (manual test scaffolding, status-summarizing) to delegate next week, and one compounding activity (architecture decision) that got crowded out and needs a protected block.
 
 **Scenario 2: Mid-week drift check**
 ```
 /audit-attention
 ```
-User feels scattered. Audit of the last three days shows most time on reactive, depreciating tasks. Output recommends two specific compounding activities to protect for the rest of the week.
+User feels scattered.
+Audit of the last three days shows most time on reactive, depreciating tasks.
+Output recommends two specific compounding activities to protect for the rest of the week.
 
 **Scenario 3: Quarterly re-sort**
 ```
 /audit-attention
 ```
-Full re-sort of recurring activities. Notes that "reviewing generated PRs" has shifted from compounding toward depreciating as review tooling improved, while "designing evals" has grown more compounding. Updates the keep/delegate plan accordingly.
+Full re-sort of recurring activities.
+Notes that "reviewing generated PRs" has shifted from compounding toward depreciating as review tooling improved, while "designing evals" has grown more compounding.
+Updates the keep/delegate plan accordingly.
 
 ## Next Step
 

@@ -25,7 +25,8 @@ Manifest entries are absolute paths in one of two forms:
 - `/some/path`: index that specific directory as a single unit.
 - `/some/path/*`: index each directory directly under `/some/path` separately, and index any directory that appears there later.
 
-A path must exist when it is added. A `/*` path itself must also exist; only its children are expanded.
+A path must exist when it is added.
+A `/*` path itself must also exist; only its children are expanded.
 
 ## Steps
 
@@ -42,11 +43,16 @@ Look for `AGENTS.md`, `agent-machine.yaml`, and `indexes/` in the current direct
 Collect the list of directories containing code or documents an agent may need to search.
 
 1. Explain the two path forms from Path Semantics with one example of each.
-2. Ask for paths in rounds. Each round accepts one or more paths plus an optional one-line description per path (for example, "blog content repo" or "meeting notes"). Confirm each round before moving on.
+2. Ask for paths in rounds.
+   Each round accepts one or more paths plus an optional one-line description per path (for example, "blog content repo" or "meeting notes").
+   Confirm each round before moving on.
 3. If arguments were provided, list them as already confirmed and ask only for additions.
-4. Offer to suggest candidates only if the user asks; suggest by listing immediate subdirectories of common roots (`~/src`, `~/Documents`, `~/notes`) and let the user pick. Never add a suggested path without confirmation.
-5. Verify every path exists (`ls`). Drop and report any that do not, unless the user corrects the path.
-6. Stop when the user says they are done. An empty list is a valid outcome only if arguments were provided; otherwise ask once more before aborting.
+4. Offer to suggest candidates only if the user asks; suggest by listing immediate subdirectories of common roots (`~/src`, `~/Documents`, `~/notes`) and let the user pick.
+   Never add a suggested path without confirmation.
+5. Verify every path exists (`ls`).
+   Drop and report any that do not, unless the user corrects the path.
+6. Stop when the user says they are done.
+   An empty list is a valid outcome only if arguments were provided; otherwise ask once more before aborting.
 
 ### 3. Write the manifest
 
@@ -66,7 +72,8 @@ Add a `# ` comment line above each entry holding the user's one-line description
 
 ### 4. Build the indexes
 
-Create `indexes/` if missing. For every manifest entry, expand `/*` entries into concrete child directories.
+Create `indexes/` if missing.
+For every manifest entry, expand `/*` entries into concrete child directories.
 
 Index each directory by running `skills/index-directory/SKILL.md`, passing the directory as `$1` and `indexes/<name>.md` as `$2`.
 When the user gave a one-line description during the interview, include it in the index's "What it is" line.
@@ -156,4 +163,5 @@ Detects the existing setup, confirms `~/src/new-project` as a new single path, a
 ```
 /setup-agent-machine
 ```
-Finds three indexes older than 30 days and one directory the user says changed. Refreshes those four indexes and regenerates the `AGENTS.md` section, reporting 15 still-current indexes.
+Finds three indexes older than 30 days and one directory the user says changed.
+Refreshes those four indexes and regenerates the `AGENTS.md` section, reporting 15 still-current indexes.

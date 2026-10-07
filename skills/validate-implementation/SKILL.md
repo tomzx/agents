@@ -7,11 +7,16 @@ argument-hint: "[repository] [issue-number]"
 
 # Validate Implementation
 
-Captures visual proof that the implemented feature works, on the current working branch, **before** a pull request is opened. Presents the captured asset to the user for visual confirmation so problems are caught before review begins.
+Captures visual proof that the implemented feature works, on the current working branch, **before** a pull request is opened.
+Presents the captured asset to the user for visual confirmation so problems are caught before review begins.
 
-This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../create-pr/SKILL.md), which only consumes the proof: `create-pr` detects the proof this skill writes and embeds it, but no longer captures recordings itself. Recording happens here, at human-review time, not inside PR creation.
+This is the pre-PR producer of visual proof.
+It pairs with [`create-pr`](../create-pr/SKILL.md), which only consumes the proof: `create-pr` detects the proof this skill writes and embeds it, but no longer captures recordings itself.
+Recording happens here, at human-review time, not inside PR creation.
 
-`/verify-pr` is a different, later step: it verifies each acceptance criterion of an **already-open** PR by building and running it. (`/validate-pr`, also later, judges whether the PR targets the right product.) This skill validates the **implementation** on the branch with a single representative asset, before the PR exists.
+`/verify-pr` is a different, later step: it verifies each acceptance criterion of an **already-open** PR by building and running it.
+(`/validate-pr`, also later, judges whether the PR targets the right product.)
+This skill validates the **implementation** on the branch with a single representative asset, before the PR exists.
 
 ## Prerequisites
 
@@ -19,7 +24,8 @@ This is the pre-PR producer of visual proof. It pairs with [`create-pr`](../crea
 - If no argument is provided, use `$REPO` and link `$ISSUE_NUMBER`.
 - Implementation is complete on the current branch and tests pass (run `/create-implementation`, `/refactor-implementation`, and `/review-implementation` first).
 - The branch has commits ahead of the base branch.
-- For visual proof (best-effort): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)). If unavailable, the step is skipped with a clear note (the failure is never hidden, because the whole point of this skill is to produce proof).
+- For visual proof (best-effort): `asciinema` + renderer for CLI changes (via [`/record-asciinema`](../record-asciinema/SKILL.md)), or Playwright for web UI changes (via [`/record-playwright`](../record-playwright/SKILL.md)).
+  If unavailable, the step is skipped with a clear note (the failure is never hidden, because the whole point of this skill is to produce proof).
 
 ## Workflow
 
@@ -107,15 +113,21 @@ Then capture the matching **after** recording on the now-fixed code using the ex
 - `surface: cli` → read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with `RECORD_SLUG` = `after-fix`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_COMMAND` = the manifest's command.
 - `surface: web` → read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `after-fix`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the manifest's url, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the manifest's server_cmd.
 
-The before asset is the existing `$PROOF_DIR/before-bug.*`; the after asset is the freshly captured `$PROOF_DIR/after-fix.*`. Record both paths. If the after capture fails, keep the before asset alone so the bug is still visible, and record `mode: bugfix-before-only`.
+The before asset is the existing `$PROOF_DIR/before-bug.*`; the after asset is the freshly captured `$PROOF_DIR/after-fix.*`.
+Record both paths.
+If the after capture fails, keep the before asset alone so the bug is still visible, and record `mode: bugfix-before-only`.
 
 #### Default (single representative asset)
 
 With no manifest present, capture one representative asset for the classified surface:
 
-- **CLI** → identify the CLI entry point from the codebase and pick one representative command that exercises the change. Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_COMMAND` = the representative command.
-- **Web UI** → identify the dev server command (e.g. `npm run dev`) and the changed route. Read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the changed route, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the dev server command.
-- **none** → skip capture. Report that the change has no CLI or web surface to record and stop. This is not an error; it tells `create-pr` to omit the Visual proof section.
+- **CLI** → identify the CLI entry point from the codebase and pick one representative command that exercises the change.
+  Read [`../record-asciinema/SKILL.md`](../record-asciinema/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_COMMAND` = the representative command.
+- **Web UI** → identify the dev server command (e.g. `npm run dev`) and the changed route.
+  Read [`../record-playwright/SKILL.md`](../record-playwright/SKILL.md) and invoke it with `RECORD_SLUG` = `pr-demo`, `RECORD_DIR` = `$PROOF_DIR`, `RECORD_URL` = the changed route, `RECORD_VIEWPORTS` = `1280x720`, `RECORD_SERVER_CMD` = the dev server command.
+- **none** → skip capture.
+  Report that the change has no CLI or web surface to record and stop.
+  This is not an error; it tells `create-pr` to omit the Visual proof section.
 
 This is a representative proof, not a demonstration of every claim (that is `/verify-pr`'s job).
 
@@ -134,7 +146,8 @@ cat > "$PROOF_DIR/captured-proof.json" <<EOF
 EOF
 ```
 
-`assets` lists the exact filenames present in `$PROOF_DIR` that should be embedded. `create-pr` trusts this list.
+`assets` lists the exact filenames present in `$PROOF_DIR` that should be embedded.
+`create-pr` trusts this list.
 
 ### 4. Present the proof and get confirmation
 
@@ -144,19 +157,25 @@ Report to the user, for each captured asset:
 - The surface and mode (single, bugfix-pair, etc.)
 - For a pair: which is before and which is after
 
-Then **pause and ask the user to open the asset and confirm the feature behaves correctly**. Do not assume success from a non-empty file. Specifically:
+Then **pause and ask the user to open the asset and confirm the feature behaves correctly**.
+Do not assume success from a non-empty file.
+Specifically:
 
 - For a GIF/SVG: give the path and ask the user to open it.
 - For a PNG: give the path (and viewport) and ask the user to view it.
 - For a bug-fix pair: ask the user to compare before vs after and confirm the defect is gone and nothing regressed.
 
-Under automation (no interactive user; `$OUTCOME_YAML` set or a non-interactive flag), skip the pause and proceed: capture + write manifest, then emit the verdict. Interactive use must wait for an explicit human "looks good" before signaling readiness for `create-pr`.
+Under automation (no interactive user; `$OUTCOME_YAML` set or a non-interactive flag), skip the pause and proceed: capture + write manifest, then emit the verdict.
+Interactive use must wait for an explicit human "looks good" before signaling readiness for `create-pr`.
 
-If the user says the feature is wrong, incomplete, or regressed: do **not** proceed toward `create-pr`. Report what they observed and suggest revisiting `create-implementation`. Leave `captured-proof.json` in place only if the asset is still an accurate record; otherwise delete it so a later re-run captures it again.
+If the user says the feature is wrong, incomplete, or regressed: do **not** proceed toward `create-pr`.
+Report what they observed and suggest revisiting `create-implementation`.
+Leave `captured-proof.json` in place only if the asset is still an accurate record; otherwise delete it so a later re-run captures it again.
 
 ## Re-runs
 
-Re-running `/validate-implementation` captures the assets again (the recording skills overwrite), then rewrites `captured-proof.json`. To force a fresh capture, delete `$PROOF_DIR/captured-proof.json` first.
+Re-running `/validate-implementation` captures the assets again (the recording skills overwrite), then rewrites `captured-proof.json`.
+To force a fresh capture, delete `$PROOF_DIR/captured-proof.json` first.
 
 ## Failure Modes
 
@@ -186,34 +205,45 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /validate-implementation owner/myrepo 42
 ```
-Diff touches `cmd/export.go`. Records `mytool export --format csv` via `/record-asciinema` into `/tmp/<owner>/<repo>/42/pr-demo.gif`, writes `captured-proof.json`, and asks the user to open the GIF and confirm. On "looks good", signals readiness for `/create-pr`.
+Diff touches `cmd/export.go`.
+Records `mytool export --format csv` via `/record-asciinema` into `/tmp/<owner>/<repo>/42/pr-demo.gif`, writes `captured-proof.json`, and asks the user to open the GIF and confirm.
+On "looks good", signals readiness for `/create-pr`.
 
 **Scenario 2: Web UI feature**
 ```
 /validate-implementation owner/myrepo 130
 ```
-Diff touches `src/pages/dashboard.tsx`. Starts `npm run dev`, captures a desktop screenshot of `/dashboard` via `/record-playwright`, writes the manifest, presents the PNG path. The user confirms the layout, then runs `/create-pr`, which embeds the screenshot without re-capturing.
+Diff touches `src/pages/dashboard.tsx`.
+Starts `npm run dev`, captures a desktop screenshot of `/dashboard` via `/record-playwright`, writes the manifest, presents the PNG path.
+The user confirms the layout, then runs `/create-pr`, which embeds the screenshot without re-capturing.
 
 **Scenario 3: Bug fix with paired before/after**
 ```
 /validate-implementation owner/myrepo 42
 ```
-`/tmp/<owner>/<repo>/42/proof-manifest.txt` exists (written by `/reproduce-issue`), recording `surface: cli`. Replays that same command on the fixed code via `/record-asciinema` into `after-fix.gif`, writes `captured-proof.json` with `mode: bugfix-pair` and both filenames, and asks the user to compare before vs after.
+`/tmp/<owner>/<repo>/42/proof-manifest.txt` exists (written by `/reproduce-issue`), recording `surface: cli`.
+Replays that same command on the fixed code via `/record-asciinema` into `after-fix.gif`, writes `captured-proof.json` with `mode: bugfix-pair` and both filenames, and asks the user to compare before vs after.
 
 **Scenario 4: Non-visual change**
 ```
 /validate-implementation owner/myrepo 7
 ```
-Diff is internal refactoring with no CLI or web surface. Reports `surface: none`, writes no manifest, tells the user there is nothing to record. `/create-pr` will omit the Visual proof section.
+Diff is internal refactoring with no CLI or web surface.
+Reports `surface: none`, writes no manifest, tells the user there is nothing to record.
+`/create-pr` will omit the Visual proof section.
 
 **Scenario 5: User catches a regression**
 ```
 /validate-implementation owner/myrepo 42
 ```
-GIF is captured, but on review the user notices the export omits the header row. The skill does **not** proceed to `create-pr`; it reports the observation and routes back to `create-implementation`. Deletes the stale `captured-proof.json` so the next run captures it again.
+GIF is captured, but on review the user notices the export omits the header row.
+The skill does **not** proceed to `create-pr`; it reports the observation and routes back to `create-implementation`.
+Deletes the stale `captured-proof.json` so the next run captures it again.
 
 ## Next Step
 
-Once the user confirms the proof, run `/create-pr`. `create-pr` detects `$PROOF_DIR/captured-proof.json`, uploads the listed assets to the branch, and embeds them in a Visual proof section. It does not capture anything itself.
+Once the user confirms the proof, run `/create-pr`.
+`create-pr` detects `$PROOF_DIR/captured-proof.json`, uploads the listed assets to the branch, and embeds them in a Visual proof section.
+It does not capture anything itself.
 
 After the PR is open, run `/validate-pr` to confirm the PR builds the right product, then `/verify-pr` for claim-by-claim conformance proof with per-criterion recordings.

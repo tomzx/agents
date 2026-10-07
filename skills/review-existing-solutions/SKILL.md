@@ -19,8 +19,12 @@ Audits an existing solutions survey and reports findings across five categories:
 1. Read the survey from `.sdlc/features/N-<slug>/existing-solutions.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the requirements document if available.
 3. Identify issues in each of the five categories below.
-4. Report findings. Omit any category that has no findings.
-5. Write the findings to `.sdlc/features/N-<slug>/review-existing-solutions.md` with frontmatter `artifact: existing-solutions`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally. For a chosen adopt-or-build direction with lasting consequences, invoke `/create-decision`.
+4. Report findings.
+   Omit any category that has no findings.
+5. Write the findings to `.sdlc/features/N-<slug>/review-existing-solutions.md` with frontmatter `artifact: existing-solutions`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk, also invoke `/create-assumption` to record it formally.
+   For a chosen adopt-or-build direction with lasting consequences, invoke `/create-decision`.
 
 ## Review Checklist
 
@@ -88,16 +92,13 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing an obvious option**
-The survey for a JSON schema validator omits the de facto standard library.
+**Scenario 1: Missing an obvious option** The survey for a JSON schema validator omits the de facto standard library.
 Report under Coverage.
 
-**Scenario 2: License overlooked**
-The recommendation is to adopt a GPL library into a proprietary product without flagging the license conflict.
+**Scenario 2: License overlooked** The recommendation is to adopt a GPL library into a proprietary product without flagging the license conflict.
 Report under Due Diligence.
 
-**Scenario 3: Recommendation contradicts evaluation**
-Every candidate is rated a poor fit, yet the recommendation is to adopt one anyway with no rationale.
+**Scenario 3: Recommendation contradicts evaluation** Every candidate is rated a poor fit, yet the recommendation is to adopt one anyway with no rationale.
 Report under Recommendation Soundness.
 
 ## Next Step

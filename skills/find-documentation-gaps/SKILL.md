@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Documentation Gaps
 
-Identifies public-facing code — functions, classes, modules, CLI commands, REST endpoints, and config options — that is missing documentation or has stale documentation. Ranks gaps by how visible and heavily-used the surface area is, so the most useful docs get written first.
+Identifies public-facing code — functions, classes, modules, CLI commands, REST endpoints, and config options — that is missing documentation or has stale documentation.
+Ranks gaps by how visible and heavily-used the surface area is, so the most useful docs get written first.
 
 ## Prerequisites
 
@@ -247,19 +248,23 @@ def foo(bar: str, baz: int = 0) -> dict:
 ```
 /find-documentation-gaps src/api
 ```
-Finds 14 undocumented FastAPI endpoints and 3 config keys missing from README. Generates draft docstrings for the 5 highest-traffic routes based on their implementation.
+Finds 14 undocumented FastAPI endpoints and 3 config keys missing from README.
+Generates draft docstrings for the 5 highest-traffic routes based on their implementation.
 
 **Scenario 2: Full project scan**
 ```
 /find-documentation-gaps
 ```
-Docstring coverage is 34%. Identifies the public-facing `Client` class and its 8 methods as the top priority since it is the primary entry point for library consumers. Generates draft docstrings for all 8 methods.
+Docstring coverage is 34%.
+Identifies the public-facing `Client` class and its 8 methods as the top priority since it is the primary entry point for library consumers.
+Generates draft docstrings for all 8 methods.
 
 **Scenario 3: Pre-release documentation gate**
 ```
 /find-documentation-gaps
 ```
-All API endpoints are documented but 4 new CLI flags added last sprint have no help text. Generates the missing `help=` strings for each flag.
+All API endpoints are documented but 4 new CLI flags added last sprint have no help text.
+Generates the missing `help=` strings for each flag.
 
 ## Useful Commands Reference
 

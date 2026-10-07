@@ -7,11 +7,16 @@ argument-hint: "<pr-number> [repository]"
 
 # Validate Pull Request
 
-Answers the **validation** question: "Are we building the right product?" Given the linked issue, recover the underlying customer need (the problem being solved, the "why"), then judge whether the acceptance criteria and the implemented behavior actually serve that need.
+Answers the **validation** question: "Are we building the right product?"
+Given the linked issue, recover the underlying customer need (the problem being solved, the "why"), then judge whether the acceptance criteria and the implemented behavior actually serve that need.
 
-This is the only review step that can catch a PR which implements its specification correctly but targets the wrong problem. It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?"). It does **not** judge code craft, and it does not judge whether the implemented approach is the simplest and most changeable, that is `/review-pr`'s job. It judges mechanism soundness one level up, at the spec (criteria soundness below), and hands code-level approach observations to `/review-pr` through the report notes.
+This is the only review step that can catch a PR which implements its specification correctly but targets the wrong problem.
+It does **not** build, run, or check conformance to the criteria, that is `/verify-pr`'s job ("are we building the product right?").
+It does **not** judge code craft, and it does not judge whether the implemented approach is the simplest and most changeable, that is `/review-pr`'s job.
+It judges mechanism soundness one level up, at the spec (criteria soundness below), and hands code-level approach observations to `/review-pr` through the report notes.
 
-This step is cheap and does not require a build, by design: it runs first as an early gate. If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
+This step is cheap and does not require a build, by design: it runs first as an early gate.
+If the target is wrong, there is no point spending a build to verify conformance to a wrong spec.
 
 ## Prerequisites
 
@@ -20,8 +25,12 @@ This step is cheap and does not require a build, by design: it runs first as an 
 - `gh` CLI authenticated with read access to the target repository
 - `ghx` CLI for cached issue reads and posting the report comment
 - `git worktree` available
-- Read any files present under `.sdlc/context/` and apply any artifact style rules found there. The most relevant: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms). These show the intended outcomes the PR should serve.
-- When a linked issue number is known, look for the matching feature directory under `.sdlc/features/`: the directory named `N-<slug>` where `N` is the issue number, or a directory whose `requirements.md` frontmatter `issue` field references it (resolve the read per the SDLC_DIR artifact-location rules in `skills/sdlc/references/shared.md`). When found, read its `requirements.md`; it is the reviewed statement of the need and criteria and augments, never replaces, the issue. Its absence is not a failure; proceed on the issue alone.
+- Read any files present under `.sdlc/context/` and apply any artifact style rules found there.
+  The most relevant: `project-overview.md` (goals, scope, stakeholders), `goals.md` (objectives and key results), and `vocabulary.md` (domain terms).
+  These show the intended outcomes the PR should serve.
+- When a linked issue number is known, look for the matching feature directory under `.sdlc/features/`: the directory named `N-<slug>` where `N` is the issue number, or a directory whose `requirements.md` frontmatter `issue` field references it (resolve the read per the SDLC_DIR artifact-location rules in `skills/sdlc/references/shared.md`).
+  When found, read its `requirements.md`; it is the reviewed statement of the need and criteria and augments, never replaces, the issue.
+  Its absence is not a failure; proceed on the issue alone.
 
 ### Skill attribution (GitHub)
 
@@ -94,7 +103,8 @@ Extract:
 - `PR_AUTHOR`: the `author.login` (GitHub username of the PR author)
 - `HEAD_REPO`: the `headRepository.nameWithOwner` (the base repository for same-repo PRs, the author's fork for cross-repository PRs)
 - `HEAD_BRANCH`: the `headRefName` (PR branch name)
-- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`. Two commits with the same tree have byte-identical content regardless of their SHAs.
+- `HEAD_TREE`: content snapshot of the head commit, history-independent: `git fetch "https://github.com/$HEAD_REPO.git" "$HEAD_BRANCH" >/dev/null 2>&1 || true; git rev-parse "$HEAD_COMMIT^{tree}"`.
+  Two commits with the same tree have byte-identical content regardless of their SHAs.
 - List of changed files and diff stats
 - Linked closing issues from `closingIssuesReferences` (each has `number` and `url`)
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
@@ -102,9 +112,13 @@ Extract:
 
 #### 1a. Re-review scope (reuse the previous run when possible)
 
-Read the validation state file `$PR_REVIEW_DIR/validate.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports). If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings. Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
+Read the validation state file `$PR_REVIEW_DIR/validate.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports).
+If it does not exist, create it with empty `last_reviewed_sha` and `last_reviewed_tree` and no findings.
+Let `$LAST_SHA` and `$LAST_TREE` be the `last_reviewed_sha` and `last_reviewed_tree` values read from the state file.
 
-Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues or creating a worktree: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental validation, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full validation. A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags). This skill's incremental rules:
+Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-review scope), before fetching issues or creating a worktree: same head stops and returns the state, a pure rebase bumps `last_reviewed_sha` and moves the checkpoint tag, an ancestor delta or contained tree-diff runs an incremental validation, and a rewritten history with a full-tree change (or an unknown `last_reviewed_tree`) runs the full validation.
+A `CLOSED` or `MERGED` PR deletes the checkpoint tag and stops (shared.md, Review checkpoint tags).
+This skill's incremental rules:
 
 - Recover the need and criteria as usual, but assess only how the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) affects need-fit, criteria soundness, and scope.
 - Re-confirm every `open` finding in the state file against that delta, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
@@ -112,7 +126,8 @@ Determine the scope per `sdlc/references/shared.md` (PR Review Reports, Re-revie
 
 #### 1b. Resolve and fetch linked issue(s)
 
-Use `closingIssuesReferences` as the authoritative source of linked issues. If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references (in that order of priority).
+Use `closingIssuesReferences` as the authoritative source of linked issues.
+If empty, fall back to scanning the PR body for `Fixes #N`, `Closes #N`, `Resolves #N`, or bare `#N` references (in that order of priority).
 
 For each linked issue number, fetch its full body:
 
@@ -122,7 +137,8 @@ ghx issue view $ISSUE_NUMBER --repo $REPO --json
 
 ### 1c. Create a git worktree on the PR branch
 
-If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup. The orchestrator manages the worktree lifecycle.
+If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup.
+The orchestrator manages the worktree lifecycle.
 
 ```bash
 _WORKTREE_OWNER=false
@@ -141,19 +157,25 @@ If worktree creation fails, stop.
 
 ### 2. Recover the customer need
 
-This step separates validation from verification. The acceptance criteria state *what* the solution must do; the need states *why* it must do it, the problem the customer actually has. Recover the need from the issue, not the criteria.
+This step separates validation from verification.
+The acceptance criteria state *what* the solution must do; the need states *why* it must do it, the problem the customer actually has.
+Recover the need from the issue, not the criteria.
 
 From each linked issue body, extract:
 
-- **The problem**: the difficulty or situation the customer faces, in the customer's terms (look at the issue title, the opening motivation, "As a ... I want ... so that ..." user stories, reproduction steps for bugs).
-- **The stakeholder / user**: whose problem this is. A PR that solves the right problem for the wrong user is a validation miss.
+- **The problem**: the difficulty or situation the customer faces, in the customer's terms (look at the issue title, the opening motivation, "As a ...
+  I want ... so that ..." user stories, reproduction steps for bugs).
+- **The stakeholder / user**: whose problem this is.
+  A PR that solves the right problem for the wrong user is a validation miss.
 - **The desired outcome**: what changes for the customer once this is solved, the goal, not the mechanism.
-- **The proposed solution (the spec)**: the acceptance criteria and any described approach. This is the *how*, and it may or may not be the right way to meet the need.
+- **The proposed solution (the spec)**: the acceptance criteria and any described approach.
+  This is the *how*, and it may or may not be the right way to meet the need.
 
 Augment the need from project context when available:
 - `.sdlc/context/project-overview.md` and `goals.md` for intended outcomes and objectives the PR should advance.
 - `.sdlc/context/vocabulary.md` to read the problem in the right domain language.
-- `.sdlc/features/N-<slug>/requirements.md` for the matching feature (located per the Prerequisites): it may state the need, stakeholders, and desired outcome more precisely than the issue, and its acceptance criteria may have evolved past the issue's through requirements review. Where the feature requirements and the issue disagree, record the divergence as a criteria-soundness finding (Step 4b).
+- `.sdlc/features/N-<slug>/requirements.md` for the matching feature (located per the Prerequisites): it may state the need, stakeholders, and desired outcome more precisely than the issue, and its acceptance criteria may have evolved past the issue's through requirements review.
+  Where the feature requirements and the issue disagree, record the divergence as a criteria-soundness finding (Step 4b).
 
 If the issue is a bug report, the need is the underlying problem that produces the bug, and a key validation question is whether the bug is a symptom of a deeper cause.
 
@@ -169,7 +191,8 @@ Relate three layers and look for gaps between them:
 | **Criteria** | Parsed from the issue's acceptance criteria (`## Must` / `## Should` checklists, or inferred requirements), unified with the matching feature's `.sdlc/features/N-<slug>/requirements.md` acceptance criteria when the feature directory exists |
 | **Implemented behavior** | Inferred from the diff and code read in the worktree (what the PR actually changes in the product) |
 
-For each need, record which criteria and which implemented behaviors serve it. For each criterion and each implemented behavior, record which need (if any) it serves.
+For each need, record which criteria and which implemented behaviors serve it.
+For each criterion and each implemented behavior, record which need (if any) it serves.
 
 Three categories of gap matter:
 
@@ -181,19 +204,26 @@ Three categories of gap matter:
 
 #### 4a. Need fit (the core validation question)
 
-Does the implemented behavior, as inferred from the diff, actually solve the customer's problem and produce the desired outcome? This is judged against the **need**, not the criteria. A PR can satisfy every criterion and still miss the need.
+Does the implemented behavior, as inferred from the diff, actually solve the customer's problem and produce the desired outcome?
+This is judged against the **need**, not the criteria.
+A PR can satisfy every criterion and still miss the need.
 
-For bug fixes specifically, determine whether the change addresses the **root cause** of the reported problem or only suppresses the **symptom**. Fixes that hide a symptom are validation failures even when the reported error disappears.
+For bug fixes specifically, determine whether the change addresses the **root cause** of the reported problem or only suppresses the **symptom**.
+Fixes that hide a symptom are validation failures even when the reported error disappears.
 
 #### 4b. Criteria soundness
 
 Do the acceptance criteria actually serve the recovered need?
 
-- Are there needs with no covering criterion? The criteria under-specify the problem.
-- Are there criteria that serve no need? They over-constrain the solution or bring in assumptions that belong to a different problem.
-- When the matching feature directory exists, do the issue's criteria and the feature's `requirements.md` criteria agree? Divergence between the two sources of the spec (one of them is usually stale) is a criteria-soundness finding; the reviewed feature requirements are the stronger evidence of intent.
+- Are there needs with no covering criterion?
+  The criteria under-specify the problem.
+- Are there criteria that serve no need?
+  They over-constrain the solution or bring in assumptions that belong to a different problem.
+- When the matching feature directory exists, do the issue's criteria and the feature's `requirements.md` criteria agree?
+  Divergence between the two sources of the spec (one of them is usually stale) is a criteria-soundness finding; the reviewed feature requirements are the stronger evidence of intent.
 - Do the criteria over-prescribe the *how* when the need is about the *what*, locking the implementation into a mechanism that may not be the right way to meet the need?
-- Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that blocks the next change (an unversioned data format, a closed enum, a singleton)? Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
+- Do the criteria under-constrain changeability, so a criterion can be satisfied by an approach that blocks the next change (an unversioned data format, a closed enum, a singleton)?
+  Sound criteria either leave room for the simplest and most changeable implementation or rule approaches out with a stated reason.
 
 Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); flagging unsound criteria here is a validation contribution.
 
@@ -216,9 +246,13 @@ A **Wrong thing** verdict is the most valuable output of this skill: it means th
 
 ### 6. Update the validation state and post the validation report
 
-First update `$PR_REVIEW_DIR/validate.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add newly identified findings, and apply the `status` flips decided during the run (`open` / `addressed` / `stale` / `wontfix`). `title` is a finding's identity: update an existing entry instead of adding a duplicate. `first_seen_sha` is informational provenance. Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
+First update `$PR_REVIEW_DIR/validate.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add newly identified findings, and apply the `status` flips decided during the run (`open` / `addressed` / `stale` / `wontfix`).
+`title` is a finding's identity: update an existing entry instead of adding a duplicate.
+`first_seen_sha` is informational provenance.
+Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
-Then write the report to a file, overwriting the previous report. A full validation contains the complete template below; an incremental validation stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict:
+Then write the report to a file, overwriting the previous report.
+A full validation contains the complete template below; an incremental validation stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict:
 
 ```bash
 BODY="$(cat <<'EOF'
@@ -284,11 +318,14 @@ EOF
 
 ### Post the validation report as a PR comment
 
-The report is saved to `$PR_REVIEW_DIR/validate-pr.<SHORT_SHA>.md`, with `$PR_REVIEW_DIR/validate-pr.report.md` pointing at the most recent run. Posting it as a PR comment is decided by `should-post-to-github`.
+The report is saved to `$PR_REVIEW_DIR/validate-pr.<SHORT_SHA>.md`, with `$PR_REVIEW_DIR/validate-pr.report.md` pointing at the most recent run.
+Posting it as a PR comment is decided by `should-post-to-github`.
 
-Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`. If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.report.md`.
+Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
+If it exits 1, skip posting; the report is already saved to `$PR_REVIEW_DIR/validate-pr.report.md`.
 
-If it exits 0, post the report file as a comment on the PR. The file already contains the `<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
+If it exits 0, post the report file as a comment on the PR.
+The file already contains the `<!-- {"step":"validate-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
 FOOTER="Posted with [validate-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
@@ -321,32 +358,46 @@ fi
 ```
 /validate-pr 42 owner/myrepo
 ```
-Issue #31 asks for faster report generation because users wait minutes for exports. The criteria specify a streaming export path and the diff implements it. The need (responsive exports) is served by both criteria and implementation. Verdict: Right thing.
+Issue #31 asks for faster report generation because users wait minutes for exports.
+The criteria specify a streaming export path and the diff implements it.
+The need (responsive exports) is served by both criteria and implementation.
+Verdict: Right thing.
 
 **Scenario 2: Wrong thing, symptom not cause**
 ```
 /validate-pr 88
 ```
-Issue #80 reports crashes on empty email input. The diff wraps the field access in a null check at the call site, satisfying the criterion "no crash on empty email". But the recovered need is robust input handling, and the root cause (unvalidated input entering the domain layer) is unaddressed, the same class of crash will recur elsewhere. Verdict: Wrong thing (treats symptom, not cause).
+Issue #80 reports crashes on empty email input.
+The diff wraps the field access in a null check at the call site, satisfying the criterion "no crash on empty email".
+But the recovered need is robust input handling, and the root cause (unvalidated input entering the domain layer) is unaddressed, the same class of crash will recur elsewhere.
+Verdict: Wrong thing (treats symptom, not cause).
 
 **Scenario 3: Partially right, scope drift**
 ```
 /validate-pr 77
 ```
-Issue #50 needs a login page. The PR adds the login page (serves the need) but also ships a settings redesign no need or criterion mentions. Verdict: Partially right, with an orphan-work finding recommending the settings work be separated into its own change.
+Issue #50 needs a login page.
+The PR adds the login page (serves the need) but also ships a settings redesign no need or criterion mentions.
+Verdict: Partially right, with an orphan-work finding recommending the settings work be separated into its own change.
 
 **Scenario 4: Wrong thing, spec solves the wrong problem**
 ```
 /validate-pr 90
 ```
-Issue #60's need is "stop users from accidentally deleting projects". The criteria and the diff implement an undo timer on deletion. Validation judges that an undo timer does serve the need, but a prior criterion locks the implementation into a specific mechanism that conflicts with the team's soft-delete architecture, the spec over-prescribes the how. Verdict: Partially right with a criteria-soundness finding.
+Issue #60's need is "stop users from accidentally deleting projects".
+The criteria and the diff implement an undo timer on deletion.
+Validation judges that an undo timer does serve the need, but a prior criterion locks the implementation into a specific mechanism that conflicts with the team's soft-delete architecture, the spec over-prescribes the how.
+Verdict: Partially right with a criteria-soundness finding.
 
 **Scenario 5: Inconclusive**
 ```
 /validate-pr 15
 ```
-The linked issue is a one-line "refactor the auth module" with no stated problem or outcome. No customer need can be recovered. Verdict: Inconclusive, with a comment asking the author to state the problem the refactor solves.
+The linked issue is a one-line "refactor the auth module" with no stated problem or outcome.
+No customer need can be recovered.
+Verdict: Inconclusive, with a comment asking the author to state the problem the refactor solves.
 
 ## Next Step
 
-If the verdict is Right thing (or Partially right with non-blocking findings), proceed to `/verify-pr` to confirm the implementation conforms to the acceptance criteria (static traceability plus runtime proof), then `/review-pr` for code-craft review. If the verdict is Wrong thing, stop and correct the target before further review.
+If the verdict is Right thing (or Partially right with non-blocking findings), proceed to `/verify-pr` to confirm the implementation conforms to the acceptance criteria (static traceability plus runtime proof), then `/review-pr` for code-craft review.
+If the verdict is Wrong thing, stop and correct the target before further review.

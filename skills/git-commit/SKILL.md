@@ -43,24 +43,20 @@ Generates a Conventional Commits-formatted commit message from all changes in th
 
 ## Example Usage
 
-**Scenario 1: New feature**
-Changes add a user authentication endpoint.
+**Scenario 1: New feature** Changes add a user authentication endpoint.
 Commit: `feat(auth): add JWT login endpoint`
 
-**Scenario 2: Bug fix with explanation**
-Changes fix a null pointer in the order processor.
+**Scenario 2: Bug fix with explanation** Changes fix a null pointer in the order processor.
 ```
 fix(orders): prevent null pointer when cart is empty
 
 Cart can be null for guest users before session is initialized.
 ```
 
-**Scenario 3: Documentation update**
-Changes update README with new setup instructions.
+**Scenario 3: Documentation update** Changes update README with new setup instructions.
 Commit: `docs: update setup instructions for uv`
 
-**Scenario 4: Refactor across multiple files**
-Changes restructure the database layer without changing behavior.
+**Scenario 4: Refactor across multiple files** Changes restructure the database layer without changing behavior.
 Commit: `refactor(db): extract connection pool into separate module`
 
 ## Useful Commands Reference

@@ -18,9 +18,14 @@ Audits a task decomposition and reports findings across five categories: granula
 
 1. Read all `.md` files in `.sdlc/features/N-<slug>/tasks/`.
 2. Evaluate each task against the checklist below.
-3. Report findings by category. Omit categories with no findings.
-4. Write the findings to `.sdlc/features/N-<slug>/review-tasks.md` with frontmatter `artifact: tasks`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally. When the verdict is `approved`, set each task file's frontmatter `status` to `pending` (the task-lifecycle "ready to start" state, which `create-implementation` relies on).
-5. Populate the Task Progress table in `.sdlc/features/N-<slug>/progress.md` with all tasks, their sizes, and `pending` status. Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
+3. Report findings by category.
+   Omit categories with no findings.
+4. Write the findings to `.sdlc/features/N-<slug>/review-tasks.md` with frontmatter `artifact: tasks`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+   When the verdict is `approved`, set each task file's frontmatter `status` to `pending` (the task-lifecycle "ready to start" state, which `create-implementation` relies on).
+5. Populate the Task Progress table in `.sdlc/features/N-<slug>/progress.md` with all tasks, their sizes, and `pending` status.
+   Set `re_entry_point: "tests"` and `current_phase: "tasks-complete"` in the frontmatter.
 
 ## Review Checklist
 
@@ -88,16 +93,13 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing test tasks**
-Every feature task has a corresponding code task, but no testing tasks appear anywhere in the decomposition.
+**Scenario 1: Missing test tasks** Every feature task has a corresponding code task, but no testing tasks appear anywhere in the decomposition.
 Report under Completeness.
 
-**Scenario 2: Dependency cycle**
-T-05 depends on T-08, and T-08 depends on T-05.
+**Scenario 2: Dependency cycle** T-05 depends on T-08, and T-08 depends on T-05.
 Report under Dependencies.
 
-**Scenario 3: XL task left unbroken**
-T-03 "Implement the payment module" is marked `[L]` but its description spans 6 distinct features.
+**Scenario 3: XL task left unbroken** T-03 "Implement the payment module" is marked `[L]` but its description spans 6 distinct features.
 Report under Granularity.
 
 ## Next Step

@@ -21,7 +21,8 @@ Audits an assumption validation report and reports findings across five categori
 2. Read the assumption records in `.sdlc/knowledge/assumptions/` to cross-check that statuses were updated consistently with the report's claims.
 3. Read the design artifacts (`specification.md`, `plan.md`, `tasks/`) to verify that invalidated assumptions were followed by artifact revisions where needed.
 4. Evaluate the report against the checklist below.
-5. Report findings by category. Omit categories with no findings.
+5. Report findings by category.
+   Omit categories with no findings.
 6. Write the findings to `.sdlc/features/N-<slug>/review-assumption-validation.md` with frontmatter `artifact: assumption-validation`, `verdict` (`approved` / `changes-requested` / `rejected`), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
 
 ## Review Checklist
@@ -94,17 +95,17 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing assumption**
-The report validates three assumptions but the feasibility document mentions a fourth (third-party API rate limits) that was never formally recorded or tested. Flag under Completeness: promote via `/create-assumption` and design an experiment.
+**Scenario 1: Missing assumption** The report validates three assumptions but the feasibility document mentions a fourth (third-party API rate limits) that was never formally recorded or tested.
+Flag under Completeness: promote via `/create-assumption` and design an experiment.
 
-**Scenario 2: Experiment tested the wrong thing**
-An assumption says "the ORM handles polymorphic joins" but the experiment tested a simple join, not a polymorphic one. Flag under Experiment Quality: the experiment does not test the stated assumption.
+**Scenario 2: Experiment tested the wrong thing** An assumption says "the ORM handles polymorphic joins" but the experiment tested a simple join, not a polymorphic one.
+Flag under Experiment Quality: the experiment does not test the stated assumption.
 
-**Scenario 3: Invalidated assumption without backtracking**
-An assumption was Invalidated (the auth middleware does not support custom claims) but the specification was not revised to include extending the middleware. Flag under Impact Assessment: revise the specification to account for the finding.
+**Scenario 3: Invalidated assumption without backtracking** An assumption was Invalidated (the auth middleware does not support custom claims) but the specification was not revised to include extending the middleware.
+Flag under Impact Assessment: revise the specification to account for the finding.
 
-**Scenario 4: Proceeding with invalidated High-risk assumption**
-A High-risk assumption was Invalidated but the report says "proceed anyway." Flag under Verdict Soundness: either backtrack to revise the affected artifacts or explicitly accept the risk with a decision record.
+**Scenario 4: Proceeding with invalidated High-risk assumption** A High-risk assumption was Invalidated but the report says "proceed anyway."
+Flag under Verdict Soundness: either backtrack to revise the affected artifacts or explicitly accept the risk with a decision record.
 
 ## Next Step
 

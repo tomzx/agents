@@ -6,7 +6,8 @@ allowed-tools: Bash(gh:*, ghx:*, uv:*, ~/.agents/scripts/should-post-to-github:*
 
 # Send PR Review Comments
 
-Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository. `should-post-to-github` decides whether the comments are actually sent to GitHub (based on `~/.sdlc/config.yaml`); when posting is disabled, the skill composes the comments and shows them for review instead.
+Posts individual PR review comments to GitHub by file and line number using the `pr-comment.py` script from the personal-automation repository.
+`should-post-to-github` decides whether the comments are actually sent to GitHub (based on `~/.sdlc/config.yaml`); when posting is disabled, the skill composes the comments and shows them for review instead.
 
 ## Prerequisites
 
@@ -30,7 +31,8 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
    cd $HOME/repos/git/personal-automation
    ```
 2. Compose each review comment, applying [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md) for concision (including the **Skill attribution** footer).
-3. Decide whether to post: get the PR author with `ghx pr view <pr-number> --repo <owner>/<repo> --json | jq -r .author.login`, then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`. If it exits 1, present the comments to the user and stop without posting.
+3. Decide whether to post: get the PR author with `ghx pr view <pr-number> --repo <owner>/<repo> --json | jq -r .author.login`, then run `~/.agents/scripts/should-post-to-github --repo "<owner>/<repo>" --author "<PR_AUTHOR>"`.
+   If it exits 1, present the comments to the user and stop without posting.
 4. If it exits 0, post a review comment (`--comment` includes main text plus **Skill attribution** footer):
    ```
    uv run $HOME/repos/git/personal-automation/others/pr-comment.py <owner>/<repo> <pr-number> \
@@ -51,8 +53,8 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 ```
 Posts the comment to PR #123 on `src/main.py` line 42, unless `should-post-to-github` excludes the repo or author (in which case the comment is composed and shown without posting).
 
-**Scenario 2: Multiple comments on different files**
-Run the command once per comment location, varying `--file` and `--line` for each. Each is posted unless `should-post-to-github` disables posting.
+**Scenario 2: Multiple comments on different files** Run the command once per comment location, varying `--file` and `--line` for each.
+Each is posted unless `should-post-to-github` disables posting.
 
 **Scenario 3: Comment on a migration file**
 ```

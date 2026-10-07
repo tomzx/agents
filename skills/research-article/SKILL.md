@@ -35,9 +35,9 @@ The output is a research brief that becomes the input to `/create-article`, so t
    - Repositories: stars, forks, and recent activity, and flag a small or obscure repo even when it states a useful number.
    - Vendor content: a company with a product in the category is self-interested; keep it, but label it and never present it as independent.
    - Blogs: a named author and no sales pitch; a services-company SEO post with no author is Weak.
-   Record an authority signal and a credibility rating (Strong, Moderate, or Weak, with a qualifier such as "Strong (small n)") for every source you keep.
-   Keep the strongest 8-15 to deep-read.
-   Drop outdated or low-quality sources, but record why so the exclusion is deliberate.
+     Record an authority signal and a credibility rating (Strong, Moderate, or Weak, with a qualifier such as "Strong (small n)") for every source you keep.
+     Keep the strongest 8-15 to deep-read.
+     Drop outdated or low-quality sources, but record why so the exclusion is deliberate.
 5. Deep-read the top sources.
    Fetch and read each one.
    Extract: the problem it addresses, its approach, its key results and numbers, and how it compares to prior work.
@@ -166,18 +166,15 @@ List any source cited in the body but not promoted here, and any claim with no l
 
 ## Example Usage
 
-**Scenario 1: Fast-moving research field**
-Topic: "test-time compute in LLMs", scope: "last 18 months, accuracy on math reasoning".
+**Scenario 1: Fast-moving research field** Topic: "test-time compute in LLMs", scope: "last 18 months, accuracy on math reasoning".
 Search arXiv and Papers With Code, find the dominant scaling approach and the top benchmark scores, note the open question of cost at inference.
 Recommend an article framing test-time compute as the new scaling axis.
 
-**Scenario 2: Established engineering topic**
-Topic: "vector databases", scope: "what to choose in 2025, latency and recall trade-offs".
+**Scenario 2: Established engineering topic** Topic: "vector databases", scope: "what to choose in 2025, latency and recall trade-offs".
 Search engineering blogs and docs, compare the main products and libraries on benchmarks, note the consensus on approximate nearest neighbor and the disagreement on indexing strategy.
 Recommend a practical selection-guide article.
 
-**Scenario 3: Conceptual explainer**
-Topic: "CRDTs for collaborative editing", scope: "how they work and where they struggle".
+**Scenario 3: Conceptual explainer** Topic: "CRDTs for collaborative editing", scope: "how they work and where they struggle".
 Start from the seminal papers and a key survey, map the main algorithms, surface the gap around complexity and memory overhead.
 Recommend an article that explains CRDTs and covers their limitations.
 

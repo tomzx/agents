@@ -9,21 +9,26 @@ argument-hint: "[<slug>] [-- <command...>]"
 
 Record a terminal demonstration with `asciinema`, render the `.cast` to a GIF (or SVG fallback) so it can be embedded inline in a GitHub PR or comment, and return the path to the rendered asset.
 
-This is the recording primitive for CLI changes. For web UI changes, use `/record-playwright`.
+This is the recording primitive for CLI changes.
+For web UI changes, use `/record-playwright`.
 
 ## Recording principle: show commands
 
-Always display the commands being run in the recording so viewers can see what was executed and reproduce it. Hide commands only when it is appropriate for the purpose of the demo (e.g. focusing purely on output, or a polished marketing-style demo where the command is irrelevant). When in doubt, show the command.
+Always display the commands being run in the recording so viewers can see what was executed and reproduce it.
+Hide commands only when it is appropriate for the purpose of the demo (e.g. focusing purely on output, or a polished marketing-style demo where the command is irrelevant).
+When in doubt, show the command.
 
 ## Prerequisites
 
 - `asciinema` installed
-- One of `agg`, `asciicast2gif`, or `svg-term-cli` installed (for rendering). `agg` is preferred (fastest, best quality).
+- One of `agg`, `asciicast2gif`, or `svg-term-cli` installed (for rendering).
+  `agg` is preferred (fastest, best quality).
 - If none are installed, the skill still returns the raw `.cast` with playback instructions.
 
 ## Inputs
 
-The skill is driven by the following inputs. Set them from context, or accept them from the command line.
+The skill is driven by the following inputs.
+Set them from context, or accept them from the command line.
 
 | Input | Meaning | Default |
 |-------|---------|---------|
@@ -32,7 +37,8 @@ The skill is driven by the following inputs. Set them from context, or accept th
 | `$RECORD_DIR` | Output directory for `.cast` / `.gif` | `/tmp/record-asciinema` |
 | `$RECORD_COMMAND` (`$2..`) | A single command to record non-interactively (single-shot demos) | *(none; interactive mode)* |
 
-If `$RECORD_COMMAND` is provided, the demo runs that one command and exits. If not, the skill drops into an interactive asciinema shell where the agent types the relevant commands and exits.
+If `$RECORD_COMMAND` is provided, the demo runs that one command and exits.
+If not, the skill drops into an interactive asciinema shell where the agent types the relevant commands and exits.
 
 ## Workflow
 
@@ -74,11 +80,13 @@ If `$2` onward forms a command (i.e. the caller passed `-- <command...>` or a ba
 command -v asciinema >/dev/null 2>&1 || { echo "asciinema not installed"; exit 0; }
 ```
 
-If absent, stop and signal the caller to fall back to capturing stdout/stderr as text. Do not error out.
+If absent, stop and signal the caller to fall back to capturing stdout/stderr as text.
+Do not error out.
 
 ### 3. Record the demonstration
 
-For a single-shot command, echo the command first so it appears in the recording (see the recording principle above). Omit the echo only when hiding the command is appropriate for the demo:
+For a single-shot command, echo the command first so it appears in the recording (see the recording principle above).
+Omit the echo only when hiding the command is appropriate for the demo:
 
 ```bash
 asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
@@ -87,7 +95,8 @@ asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
   --title="$RECORD_TITLE"
 ```
 
-For a multi-step interactive demo, commands are visible by default since they are typed into the shell. Keep them visible unless hiding is appropriate for the demo:
+For a multi-step interactive demo, commands are visible by default since they are typed into the shell.
+Keep them visible unless hiding is appropriate for the demo:
 
 ```bash
 asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
@@ -103,11 +112,13 @@ asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
 asciinema cat "$RECORD_DIR/${RECORD_SLUG}.cast"
 ```
 
-Confirm the captured output demonstrates the claim. If it is empty or wrong, re-record with `--overwrite`.
+Confirm the captured output demonstrates the claim.
+If it is empty or wrong, re-record with `--overwrite`.
 
 ### 5. Render to an embeddable asset
 
-Try renderers in quality order. Stop at the first that succeeds.
+Try renderers in quality order.
+Stop at the first that succeeds.
 
 ```bash
 CAST="$RECORD_DIR/${RECORD_SLUG}.cast"
@@ -158,4 +169,5 @@ Opens an asciinema shell; the agent runs `my-tool export --format csv` then `cat
 ```
 /record-asciinema help-text -- my-tool --help
 ```
-`agg`/`asciicast2gif`/`svg-term` all absent. Returns `help-text.cast`; the caller uploads the raw cast and links `https://asciinema.org` playback.
+`agg`/`asciicast2gif`/`svg-term` all absent.
+Returns `help-text.cast`; the caller uploads the raw cast and links `https://asciinema.org` playback.

@@ -8,8 +8,7 @@ argument-hint: "<issue-number> [repository]"
 # Check Issue Status
 
 Determines whether a GitHub issue is already addressed in the codebase.
-Reads the issue, extracts the behavior it requests in whatever format it is written,
-and inspects the code to verify whether that behavior is already present.
+Reads the issue, extracts the behavior it requests in whatever format it is written, and inspects the code to verify whether that behavior is already present.
 Use before starting work, or to find stale issues that can be closed.
 
 This skill inspects code, not GitHub metadata.
@@ -54,17 +53,23 @@ Decide which of these the issue is:
 - **Bug report**: states that existing behavior is wrong and should be different.
 - **Other** (question, task, refactor): treat the desired end state as the behavior to verify.
 
-Record the classification. It only changes how evidence is framed, not the procedure.
+Record the classification.
+It only changes how evidence is framed, not the procedure.
 
 ### 3. Extract behavioral claims
 
-Issues arrive in many formats: formal acceptance criteria, prose, screenshots, error logs, checklists, or a single sentence. Do not assume a structure. Read the whole body and reduce it to 1 to N discrete **behavioral claims**, each a single testable assertion about what the code should do.
+Issues arrive in many formats: formal acceptance criteria, prose, screenshots, error logs, checklists, or a single sentence.
+Do not assume a structure.
+Read the whole body and reduce it to 1 to N discrete **behavioral claims**, each a single testable assertion about what the code should do.
 
-For a bug, each claim is usually "X should happen, but Y happens instead". The desired half ("X should happen") is the claim to verify against the code.
+For a bug, each claim is usually "X should happen, but Y happens instead".
+The desired half ("X should happen") is the claim to verify against the code.
 For a feature, each claim is one capability the code should provide.
 For other types, each claim is one concrete aspect of the desired end state.
 
-If the body is too vague to extract any claim (for example, a one-liner with no detail), say so and apply the author rule: if the author is the current user, gather detail from context and help refine the issue; otherwise post a comment asking for details. Then stop. Do not guess claims from a vague report.
+If the body is too vague to extract any claim (for example, a one-liner with no detail), say so and apply the author rule: if the author is the current user, gather detail from context and help refine the issue; otherwise post a comment asking for details.
+Then stop.
+Do not guess claims from a vague report.
 
 ### 4. Locate the relevant code
 
@@ -82,26 +87,34 @@ rg -n --type py "def login_with_sso" .
 rg -n "AUTH_TOKEN_EXPIRED" .
 ```
 
-Read each match with `Read`. Record `file:line` for every relevant location.
+Read each match with `Read`.
+Record `file:line` for every relevant location.
 
-If no code touches the area at all, the behavior is almost certainly not implemented. Note what was searched and move to the next claim.
+If no code touches the area at all, the behavior is almost certainly not implemented.
+Note what was searched and move to the next claim.
 
 ### 5. Verify each claim against the code
 
 For every claim, decide a status using only what the code shows:
 
-- **Met**: the code already does what the claim asks. Capture the proof (`file:line`, a function body, a route, a config value, or a test that asserts it).
-- **Partially met**: some of the claim is satisfied but a required part is missing. Capture both the present part and the gap.
-- **Not met**: nothing in the code provides this behavior. Capture what was searched and why it is absent.
+- **Met**: the code already does what the claim asks.
+  Capture the proof (`file:line`, a function body, a route, a config value, or a test that asserts it).
+- **Partially met**: some of the claim is satisfied but a required part is missing.
+  Capture both the present part and the gap.
+- **Not met**: nothing in the code provides this behavior.
+  Capture what was searched and why it is absent.
 
-Prefer static evidence first. Run a targeted check only when a claim is about runtime behavior and static reading is ambiguous:
+Prefer static evidence first.
+Run a targeted check only when a claim is about runtime behavior and static reading is ambiguous:
 
 ```bash
 # run a single existing test that covers the behavior
 pytest -q path/to/test_sso.py::test_login_sso
 ```
 
-Never run broad test suites or anything destructive. One targeted test or one-off check is enough. If a targeted check still cannot decide, mark the claim Partially met and defer runtime proof to `reproduce-issue`.
+Never run broad test suites or anything destructive.
+One targeted test or one-off check is enough.
+If a targeted check still cannot decide, mark the claim Partially met and defer runtime proof to `reproduce-issue`.
 
 ### 6. Determine the overall verdict
 
@@ -117,7 +130,8 @@ For a bug, `implemented` means the bug is already fixed (the code already does t
 
 ### 7. Check for a prior status comment
 
-This skill must not spam an issue with repeated "already addressed" comments. Before posting, capture the code commit being analyzed and look for a prior status comment from this skill:
+This skill must not spam an issue with repeated "already addressed" comments.
+Before posting, capture the code commit being analyzed and look for a prior status comment from this skill:
 
 ```bash
 CODE_SHA=$(git rev-parse --short HEAD)
@@ -126,11 +140,15 @@ gh api repos/$REPO/issues/$ISSUE_NUMBER/comments \
   --jq '[.[] | select(.body | test("<!-- check-issue-status:"))] | last | {id: .id, body: .body}'
 ```
 
-A posted comment carries a hidden marker of the form `<!-- check-issue-status:<verdict>:<code-sha> -->`. From the prior comment (if any), extract `PRIOR_VERDICT`, `PRIOR_CODE_SHA`, and the comment `id`.
+A posted comment carries a hidden marker of the form `<!-- check-issue-status:<verdict>:<code-sha> -->`.
+From the prior comment (if any), extract `PRIOR_VERDICT`, `PRIOR_CODE_SHA`, and the comment `id`.
 
 - No prior marker: proceed to step 8 and post normally when the verdict is `implemented`.
-- Prior marker with `PRIOR_VERDICT = implemented` and `PRIOR_CODE_SHA = CODE_SHA`: the finding is unchanged. Skip posting and report "already flagged as implemented (code unchanged since)".
-- Prior marker with `PRIOR_VERDICT = implemented` and a different `PRIOR_CODE_SHA`: the finding still stands or has changed. If the new verdict is still `implemented`, edit the existing comment in place (using its `id`) to refresh the evidence and marker rather than posting a new one. If the new verdict is `not-implemented` (the fix was reverted), edit the prior comment to note it is no longer current.
+- Prior marker with `PRIOR_VERDICT = implemented` and `PRIOR_CODE_SHA = CODE_SHA`: the finding is unchanged.
+  Skip posting and report "already flagged as implemented (code unchanged since)".
+- Prior marker with `PRIOR_VERDICT = implemented` and a different `PRIOR_CODE_SHA`: the finding still stands or has changed.
+  If the new verdict is still `implemented`, edit the existing comment in place (using its `id`) to refresh the evidence and marker rather than posting a new one.
+  If the new verdict is `not-implemented` (the fix was reverted), edit the prior comment to note it is no longer current.
 - Prior marker with a non-implemented verdict: ignore it; non-implemented verdicts do not normally post.
 
 Edit a prior comment in place via:
@@ -165,7 +183,8 @@ Then act by verdict:
 | `partial` | Report what exists and what is missing so the user can narrow the issue or proceed. Do not post unless asked. |
 | `not-implemented` | Report clear to work on. Do not post a comment. |
 
-When posting, link the strongest piece of evidence. Resolve `CODE_SHA`, `SKILL_FILE_URL`, and `SKILL_SHORT_SHA` to their actual values before constructing the command (they are literal inside the quoted heredoc):
+When posting, link the strongest piece of evidence.
+Resolve `CODE_SHA`, `SKILL_FILE_URL`, and `SKILL_SHORT_SHA` to their actual values before constructing the command (they are literal inside the quoted heredoc):
 
 ```bash
 ghx issue comment $ISSUE_NUMBER --repo $REPO --body "$(cat <<'EOF'
@@ -210,31 +229,45 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /check-issue-status 42 owner/myrepo
 ```
-Issue #42 asks for CSV export of audit logs. The claim "export audit logs as CSV" is confirmed at `src/export/csv.go:88`. Verdict `implemented`. Suggests closing the issue with evidence.
+Issue #42 asks for CSV export of audit logs.
+The claim "export audit logs as CSV" is confirmed at `src/export/csv.go:88`.
+Verdict `implemented`.
+Suggests closing the issue with evidence.
 
 **Scenario 2: Bug already fixed**
 ```
 /check-issue-status 15 owner/myrepo
 ```
-Issue #15 reports a null pointer on SSO login. The desired behavior (handle a missing token) is present at `auth/sso.py:31`. Verdict `implemented` (bug already fixed). Suggests closing as stale.
+Issue #15 reports a null pointer on SSO login.
+The desired behavior (handle a missing token) is present at `auth/sso.py:31`.
+Verdict `implemented` (bug already fixed).
+Suggests closing as stale.
 
 **Scenario 3: Partially implemented**
 ```
 /check-issue-status 30 owner/myrepo
 ```
-Issue #30 asks for rate limiting with two claims (per-user and per-IP). Per-user exists at `middleware/ratelimit.py:20`; per-IP is absent. Verdict `partial`. Reports the gap without posting.
+Issue #30 asks for rate limiting with two claims (per-user and per-IP).
+Per-user exists at `middleware/ratelimit.py:20`; per-IP is absent.
+Verdict `partial`.
+Reports the gap without posting.
 
 **Scenario 4: Not implemented**
 ```
 /check-issue-status 7 owner/myrepo
 ```
-Issue #7 asks for dark mode. No theme or color-scheme code exists. Verdict `not-implemented`. Reports clear to work on.
+Issue #7 asks for dark mode.
+No theme or color-scheme code exists.
+Verdict `not-implemented`.
+Reports clear to work on.
 
 **Scenario 5: Too vague**
 ```
 /check-issue-status 9 owner/myrepo
 ```
-Issue #9 is a one-line report with no detail. No claim can be extracted. The author is someone else, so a comment asks for details and the skill stops.
+Issue #9 is a one-line report with no detail.
+No claim can be extracted.
+The author is someone else, so a comment asks for details and the skill stops.
 
 ## Next Step
 

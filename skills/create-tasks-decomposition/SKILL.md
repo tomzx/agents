@@ -29,7 +29,8 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 
 ## Steps
 
-1. Resolve and read the plan: `.sdlc/features/N-<slug>/plan.md` (unified), otherwise `.sdlc/features/N-<slug>/plan/index.md` together with every `plan/<concern>.md` it lists (split), otherwise the specification or a file path (`$1`). For a split plan, decompose tasks across all concern files as one combined backlog (the `tasks/` directory stays flat per feature, not per concern).
+1. Resolve and read the plan: `.sdlc/features/N-<slug>/plan.md` (unified), otherwise `.sdlc/features/N-<slug>/plan/index.md` together with every `plan/<concern>.md` it lists (split), otherwise the specification or a file path (`$1`).
+   For a split plan, decompose tasks across all concern files as one combined backlog (the `tasks/` directory stays flat per feature, not per concern).
 2. Identify all units of work, targeting tasks completable in 0.5–2 days each.
 3. For each task, define: description, acceptance criteria, effort size, and dependencies on other tasks.
 4. Order tasks and assign sequence numbers starting at `1` within this feature.
@@ -39,7 +40,8 @@ Tasks estimated XL must be decomposed into smaller tasks before being considered
 
 ## Output Format (one file per task)
 
-Use the template at `skills/sdlc/templates/features/task.md` (copied to `.sdlc/templates/features/task.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write one file per task to `.sdlc/features/N-<slug>/tasks/<id>-<slug>.md`.
+Use the template at `skills/sdlc/templates/features/task.md` (copied to `.sdlc/templates/features/task.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write one file per task to `.sdlc/features/N-<slug>/tasks/<id>-<slug>.md`.
 
 ### Task Status Lifecycle
 
@@ -68,7 +70,8 @@ When setting a task to `done`, also set `completed_date` to the current date (IS
 When setting a task to `blocked`, also set `blocker` to a brief description of what is blocking (e.g. `"Waiting on API access from infra team"`).
 When a blocked task resumes, set status back to `in-progress` and clear `blocker` to `null`.
 
-After writing all task files, output a summary to the conversation. It has two parts: a task table and a dependency graph.
+After writing all task files, output a summary to the conversation.
+It has two parts: a task table and a dependency graph.
 
 **1. Task table**, in this format:
 
@@ -85,7 +88,8 @@ After writing all task files, output a summary to the conversation. It has two p
 **Total:** N tasks — X person-days estimated
 ```
 
-**2. Dependency graph.** Render the full task dependency graph as a Mermaid `flowchart TD` (top-down), highlighting the critical path. Emit it as a fenced `mermaid` block immediately after the table.
+**2. Dependency graph.** Render the full task dependency graph as a Mermaid `flowchart TD` (top-down), highlighting the critical path.
+Emit it as a fenced `mermaid` block immediately after the table.
 
 - Each task is one node labeled `"ID Title [Size]"`.
 - Draw one edge per declared dependency (`depends_on`), directed from dependency to dependent.
@@ -121,7 +125,8 @@ flowchart TD
 Computing the critical path:
 
 - Convert each task `size` to person-days: XS=0.25, S=0.5, M=1, L=2.
-- The critical path is the dependency chain with the greatest total effort. On ties, pick the chain ending at the latest task.
+- The critical path is the dependency chain with the greatest total effort.
+  On ties, pick the chain ending at the latest task.
 - `linkStyle` indices follow edge-declaration order, starting at 0; list only critical-path edges.
 - Keep node labels short (titles may be abbreviated) so the graph stays readable.
 - If the graph is a single linear chain, the diagram may be omitted in favor of the `**Critical path:**` line in the table.
@@ -133,13 +138,11 @@ In the same emission, list every task file you produced under `artifacts:` (each
 
 ## Example Usage
 
-**Scenario 1: API feature**
-Plan has three phases.
+**Scenario 1: API feature** Plan has three phases.
 Tasks: 1 DB migration `[S]`, 2 model layer `[S]` (depends 1), 3 endpoint A `[M]` (depends 2), 4 endpoint B `[M]` (depends 2), 5 validation `[S]` (depends 3, 4), 6 tests `[M]` (depends 5), 7 docs `[XS]` (depends 6).
 Critical path: 1 → 2 → 3 → 5 → 6 → 7 (its Mermaid graph is the example in Output Format above).
 
-**Scenario 2: Oversized task**
-A task described as "implement the entire payment module" is XL.
+**Scenario 2: Oversized task** A task described as "implement the entire payment module" is XL.
 Break into: 1 payment intent `[M]`, 2 webhook handler `[M]`, 3 refund endpoint `[S]`, 4 idempotency `[S]`, 5 integration tests `[M]`.
 
 ## Completion Checklist

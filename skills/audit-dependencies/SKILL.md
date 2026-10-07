@@ -8,7 +8,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Dependency Audit
 
-Audits all direct and transitive dependencies for four risk categories: security vulnerabilities, outdated versions, unmaintained packages, and license incompatibilities. Produces a prioritized action plan that maps directly to the SDLC fast path for dependency updates.
+Audits all direct and transitive dependencies for four risk categories: security vulnerabilities, outdated versions, unmaintained packages, and license incompatibilities.
+Produces a prioritized action plan that maps directly to the SDLC fast path for dependency updates.
 
 ## Prerequisites
 
@@ -75,7 +76,9 @@ cargo audit
 
 ### 3. Check for Outdated Packages
 
-**Forward compatibility check — version range strategy:** review how each dependency is constrained. Ranges with no upper bound can pull a breaking major version on resolve; over-pinning to an exact patch blocks security upgrades and future upgrades. Flag ranges that are unsafe for forward compatibility and recommend upper bounds or caret/tilde constraints that allow additive upgrades.
+**Forward compatibility check — version range strategy:** review how each dependency is constrained.
+Ranges with no upper bound can pull a breaking major version on resolve; over-pinning to an exact patch blocks security upgrades and future upgrades.
+Flag ranges that are unsafe for forward compatibility and recommend upper bounds or caret/tilde constraints that allow additive upgrades.
 
 **Python (uv):**
 ```

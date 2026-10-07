@@ -56,7 +56,8 @@ Upward-only propagation questions everything and updates nothing.
 
 ## Scope
 
-The `$1` argument selects which features to propagate. Defaults to `all`.
+The `$1` argument selects which features to propagate.
+Defaults to `all`.
 
 | Argument | Features Checked |
 |---|---|
@@ -65,8 +66,10 @@ The `$1` argument selects which features to propagate. Defaults to `all`.
 
 Flags:
 
-- `--entry <artifact>`: the node the change entered at (`code` by default, detected from the diff when possible). The downward walk starts at the entry; the upward walk starts at its dependencies.
-- `--fix`: apply the safe actions: downward rewrites that follow mechanically from the change, and upward review regressions. Without this flag the pass is read-only (proposed updates and findings only).
+- `--entry <artifact>`: the node the change entered at (`code` by default, detected from the diff when possible).
+  The downward walk starts at the entry; the upward walk starts at its dependencies.
+- `--fix`: apply the safe actions: downward rewrites that follow mechanically from the change, and upward review regressions.
+  Without this flag the pass is read-only (proposed updates and findings only).
 - `--create-issues`: after reporting, create GitHub issues for high-severity orphan-upstream findings.
 
 ## Steps
@@ -158,29 +161,39 @@ The pair checks, in execution order:
 
 #### Edge: Code ↔ Tests
 
-- Every realized behavior in code has at least one test covering it (reverse link). Missing coverage is a finding.
-- Every test in `tests.md` (`TC-N`) and in the test files traces to behavior the code still exhibits (forward link). A test for removed behavior is a dangling test finding.
+- Every realized behavior in code has at least one test covering it (reverse link).
+  Missing coverage is a finding.
+- Every test in `tests.md` (`TC-N`) and in the test files traces to behavior the code still exhibits (forward link).
+  A test for removed behavior is a dangling test finding.
 
 #### Edge: Tests ↔ Tasks
 
-- Every test case maps to at least one task in `tasks/` (forward link). Orphan tests are findings.
-- Every task has at least one test covering its acceptance checklist (reverse link). Untested tasks are findings.
+- Every test case maps to at least one task in `tasks/` (forward link).
+  Orphan tests are findings.
+- Every task has at least one test covering its acceptance checklist (reverse link).
+  Untested tasks are findings.
 
 #### Edge: Tasks ↔ Plan
 
-- Every task references its parent plan phase (forward link). Tasks without a plan home are findings.
-- Every phase in `plan.md` has tasks realizing it (reverse link). Empty plan phases are findings.
+- Every task references its parent plan phase (forward link).
+  Tasks without a plan home are findings.
+- Every phase in `plan.md` has tasks realizing it (reverse link).
+  Empty plan phases are findings.
 
 #### Edge: Telemetry / Observability ↔ Specification
 
-- Every event in `telemetry.md` maps to a spec behavior (forward link) and is emitted by code (ground-truth check). Unemitted events are findings.
+- Every event in `telemetry.md` maps to a spec behavior (forward link) and is emitted by code (ground-truth check).
+  Unemitted events are findings.
 - Every metric, log, trace, and alert in `observability.md` maps to a spec behavior and is produced by code.
 
 #### Edge: Lifecycle ↔ Specification
 
-- Every state and transition in `lifecycle.md` maps to a spec data model field or API contract (forward link). Lifecycle states with no spec backing are findings.
-- Every spec data model that implies a state machine has corresponding states and transitions documented in `lifecycle.md` (reverse link). Undocumented lifecycles are findings.
-- Every transition in `lifecycle.md` traces to code that implements it (ground-truth check). Transitions with no code are orphan upstream findings.
+- Every state and transition in `lifecycle.md` maps to a spec data model field or API contract (forward link).
+  Lifecycle states with no spec backing are findings.
+- Every spec data model that implies a state machine has corresponding states and transitions documented in `lifecycle.md` (reverse link).
+  Undocumented lifecycles are findings.
+- Every transition in `lifecycle.md` traces to code that implements it (ground-truth check).
+  Transitions with no code are orphan upstream findings.
 - Every state transition the code implements that is not in `lifecycle.md` is an orphan downstream finding.
 
 #### Edge: Plan ↔ Specification
@@ -190,8 +203,10 @@ The pair checks, in execution order:
 
 #### Edge: Specification ↔ Requirements
 
-- Every spec element (data model field, API contract, sequence step) satisfies an `FR-N` or `NFR-N` (forward link). Spec with no requirement home is scope creep.
-- Every `FR-N` and `NFR-N` is realized in the spec (reverse link). Unrealized requirements are findings.
+- Every spec element (data model field, API contract, sequence step) satisfies an `FR-N` or `NFR-N` (forward link).
+  Spec with no requirement home is scope creep.
+- Every `FR-N` and `NFR-N` is realized in the spec (reverse link).
+  Unrealized requirements are findings.
 
 #### Edge: Requirements ↔ Needs-assessment
 
@@ -267,8 +282,11 @@ Downward:
 
 Upward:
 
-1. For each confirmed drift, if the stale artifact's `review-<artifact>.md` has `verdict: approved`, regress it: set `verdict: changes-requested` and append a `## Propagation drift: <date>` section naming the edge, the IDs involved, the discrepancy, and the class. The forward pipeline then resyncs the artifact via revision mode and the matching `review-*` skill restores `approved` once the drift is resolved.
-2. Never rewrite upstream artifact prose. Never delete a requirement, spec section, or test. These are human decisions.
+1. For each confirmed drift, if the stale artifact's `review-<artifact>.md` has `verdict: approved`, regress it: set `verdict: changes-requested` and append a `## Propagation drift: <date>` section naming the edge, the IDs involved, the discrepancy, and the class.
+   The forward pipeline then resyncs the artifact via revision mode and the matching `review-*` skill restores `approved` once the drift is resolved.
+2. Never rewrite upstream artifact prose.
+   Never delete a requirement, spec section, or test.
+   These are human decisions.
 
 If `--create-issues` is set, after fixes, ask the user which orphan-upstream findings should become GitHub issues, then create them with a short body linking the feature directory and the drift class.
 
@@ -370,25 +388,31 @@ status: complete
 ```
 /propagate-changes FEAT-7 --entry code --fix
 ```
-Downward: rewrites the docs section describing the renamed endpoint, updates the two stale test expectations, and refreshes the PR title and description. Upward: finds `specification.md` still describes the old endpoint name, which is ambiguous (rename the spec, or revert the code), so it regresses `review-specification.md` to `changes-requested` and the next `/sdlc continue` resyncs the spec.
+Downward: rewrites the docs section describing the renamed endpoint, updates the two stale test expectations, and refreshes the PR title and description.
+Upward: finds `specification.md` still describes the old endpoint name, which is ambiguous (rename the spec, or revert the code), so it regresses `review-specification.md` to `changes-requested` and the next `/sdlc continue` resyncs the spec.
 
 **Scenario 2: A requirements change**
 ```
 /propagate-changes FEAT-3 --entry requirements --fix
 ```
-Downward: the new `FR-6` flows into the spec, the plan gains a phase, tasks gain a task, and tests gain a `TC-9`. Upward: the issue body never mentioned this need, so the walk flags the gap as a question for the issue author.
+Downward: the new `FR-6` flows into the spec, the plan gains a phase, tasks gain a task, and tests gain a `TC-9`.
+Upward: the issue body never mentioned this need, so the walk flags the gap as a question for the issue author.
 
 **Scenario 3: Full pass as a release gate**
 ```
 /propagate-changes all
 ```
-Walks every feature with no entry bias: every pair is checked in both directions. FEAT-2 has a `TC-4` for removed behavior (dangling test), and FEAT-4 has an `FR-3` never implemented (orphan upstream). Reports both, no changes made.
+Walks every feature with no entry bias: every pair is checked in both directions.
+FEAT-2 has a `TC-4` for removed behavior (dangling test), and FEAT-4 has an `FR-3` never implemented (orphan upstream).
+Reports both, no changes made.
 
 **Scenario 4: Inheriting a project**
 ```
 /propagate-changes all --create-issues
 ```
-Establishes a trust baseline on an inherited `.sdlc/`. Surfaces 14 broken ID references, 3 orphan upstream requirements, and 2 review-approval inversions. Creates issues for the orphan upstream findings.
+Establishes a trust baseline on an inherited `.sdlc/`.
+Surfaces 14 broken ID references, 3 orphan upstream requirements, and 2 review-approval inversions.
+Creates issues for the orphan upstream findings.
 
 ## Relationship to Other Skills
 

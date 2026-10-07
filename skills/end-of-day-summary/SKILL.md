@@ -3,14 +3,7 @@ name: end-of-day-summary
 description: Summarize GitHub activity, Slack activity, and overall activity for the day, then generate a standup for the next day.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YESTERDAY=!`date -d "yesterday" +%Y-%m-%d`
-TOMORROW=!`date -d "tomorrow" +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-DAY=!`date +%d`
-NEXT_WORKDAY=!`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "tomorrow")" +%Y-%m-%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YESTERDAY=!`date -d "yesterday" +%Y-%m-%d` TOMORROW=!`date -d "tomorrow" +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` DAY=!`date +%d` NEXT_WORKDAY=!`date -d "$([ $(date +%u) -ge 5 ] && echo "next Monday" || echo "tomorrow")" +%Y-%m-%d`
 
 # Generate End-of-Day Summary
 
@@ -47,7 +40,8 @@ Write output to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.github.md`.
 
 ### 2. Summarize Slack Activity
 
-Collect Slack threads for {TODAY} using `collect_individual_threads.py`. Slack's `after:`/`before:` search operators are exclusive, so use the day before and the day after {TODAY} as bounds:
+Collect Slack threads for {TODAY} using `collect_individual_threads.py`.
+Slack's `after:`/`before:` search operators are exclusive, so use the day before and the day after {TODAY} as bounds:
 
 ```bash
 SLACK_USER=`~/.agents/scripts/get-env SLACK_USER`
@@ -78,7 +72,8 @@ Use Slack activity to identify collaborators to thank.
 
 ### 3. Summarize Overall Activity
 
-Combine GitHub and Slack data. Write to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md`:
+Combine GitHub and Slack data.
+Write to `{BASE_DIR}/{YEAR}/{MONTH}/{DAY}.overall.md`:
 
 ```markdown
 # Accomplishments
@@ -118,14 +113,14 @@ Do not include PR review as a line in the standup.
 
 ## Example Usage
 
-**Scenario 1: Regular weekday**
-Run at end of Thursday. Generates 5 files; standup targets Friday's date.
+**Scenario 1: Regular weekday** Run at end of Thursday.
+Generates 5 files; standup targets Friday's date.
 
-**Scenario 2: End of Friday**
-`NEXT_WORKDAY` resolves to the following Monday. Standup file is created for Monday.
+**Scenario 2: End of Friday** `NEXT_WORKDAY` resolves to the following Monday.
+Standup file is created for Monday.
 
-**Scenario 3: Light activity day**
-Few GitHub events and minimal Slack. Summaries are brief; the Overall section may have mostly empty sections except Accomplishments.
+**Scenario 3: Light activity day** Few GitHub events and minimal Slack.
+Summaries are brief; the Overall section may have mostly empty sections except Accomplishments.
 
 ## Useful Commands Reference
 

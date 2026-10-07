@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Find Code Duplication
 
-Detects copy-pasted blocks and near-duplicate logic across the codebase and produces a prioritized extraction plan. Duplicated code increases the cost of every future change and is a common source of bugs where a fix is applied in one copy but not others.
+Detects copy-pasted blocks and near-duplicate logic across the codebase and produces a prioritized extraction plan.
+Duplicated code increases the cost of every future change and is a common source of bugs where a fix is applied in one copy but not others.
 
 ## Prerequisites
 
@@ -191,7 +192,9 @@ These duplicates have diverged — a bug fix or feature likely exists in one but
 ```
 /find-code-duplication
 ```
-Finds 8% duplication ratio. Top pair: a 60-line pagination helper copy-pasted into 4 different API handlers, already diverged (one has a bug fix the others lack). Recommends extracting to `src/utils/pagination.py`.
+Finds 8% duplication ratio.
+Top pair: a 60-line pagination helper copy-pasted into 4 different API handlers, already diverged (one has a bug fix the others lack).
+Recommends extracting to `src/utils/pagination.py`.
 
 **Scenario 2: Pre-refactor check**
 ```

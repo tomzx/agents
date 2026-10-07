@@ -15,11 +15,13 @@ Generates a structured PR description from the current branch's diff against its
 - An open PR must exist for the current branch (the diff target is the PR's base branch)
 - Current branch must have commits relative to its parent
 
-> **Note:** This skill diffs against the PR base branch reported by `gh`. For a workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
+> **Note:** This skill diffs against the PR base branch reported by `gh`.
+> For a workflow that diffs against the git merge base and creates the PR directly, use `/create-pr` instead.
 
 ### Skill attribution (GitHub)
 
-Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `create-pr-description` to the end of the description body. This footer stays with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
+Before returning the PR description, read [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) and append the **Generated with** footer for `SKILL_DIR` = `create-pr-description` to the end of the description body.
+This footer stays with the description when the user posts it to GitHub via `gh pr create` or `gh pr edit`.
 
 ### Communication guidelines (outbound text)
 
@@ -62,7 +64,8 @@ Generate PR description markdown
    ```
 3. Resolve agents attribution per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md): compute `SKILL_COMMIT`, `SKILL_SHORT_SHA`, `SKILL_FILE_URL`, and `{BASE}` for `SKILL_DIR` = `create-pr-description`.
 4. Generate the PR description following the output format below, substituting the resolved `SKILL_FILE_URL` and `SKILL_SHORT_SHA` into the footer.
-5. Return the result inside a markdown code block with each sentence on its own line. Do not line wrap the description; each paragraph/bullet should be a single long line.
+5. Return the result inside a markdown code block with each sentence on its own line.
+   Do not line wrap the description; each paragraph/bullet should be a single long line.
 
 ## Output Format
 
@@ -111,7 +114,8 @@ Fetches issue #42 from `owner/myrepo`, maps its acceptance criteria to the chang
 ```
 /create-pr-description owner/api-service 100
 ```
-Issue has 5 acceptance criteria; this PR covers 3. "Acceptance criteria covered" lists only the 3 addressed and notes the remaining 2 are out of scope.
+Issue has 5 acceptance criteria; this PR covers 3.
+"Acceptance criteria covered" lists only the 3 addressed and notes the remaining 2 are out of scope.
 
 ## Useful Commands Reference
 

@@ -71,17 +71,20 @@ Suggestions should be:
 
 ## Example Usage
 
-**Scenario 1: Frustrated follow-up**
-Draft: "You still haven't sent me the report. I've asked three times now and I'm getting tired of chasing you."
-Recipient: colleague
-Improved: "I haven't received the report yet. Could you send it by end of day Wednesday? If something is blocking you, let me know and I can help unblock it."
+**Scenario 1: Frustrated follow-up** Draft: "You still haven't sent me the report.
+I've asked three times now and I'm getting tired of chasing you."
+Recipient: colleague Improved: "I haven't received the report yet.
+Could you send it by end of day Wednesday?
+If something is blocking you, let me know and I can help unblock it."
 
-**Scenario 2: Declining a request**
-Draft: "I don't have time for this. You should have asked me earlier."
-Recipient: teammate
-Improved: "I won't be able to take this on this week due to my current commitments. For future requests, reaching out by Monday would give me the best chance to fit it in."
+**Scenario 2: Declining a request** Draft: "I don't have time for this.
+You should have asked me earlier."
+Recipient: teammate Improved: "I won't be able to take this on this week due to my current commitments.
+For future requests, reaching out by Monday would give me the best chance to fit it in."
 
-**Scenario 3: Feedback on work**
-Draft: "This design is confusing and doesn't make sense. I can't believe we're considering this."
-Recipient: design team
-Improved: "I have some concerns about the design's clarity. Specifically, the navigation flow between steps 2 and 3 feels unclear. Could we explore adding a progress indicator or transitional labels? I'd be happy to walk through a specific example in our next review."
+**Scenario 3: Feedback on work** Draft: "This design is confusing and doesn't make sense.
+I can't believe we're considering this."
+Recipient: design team Improved: "I have some concerns about the design's clarity.
+Specifically, the navigation flow between steps 2 and 3 feels unclear.
+Could we explore adding a progress indicator or transitional labels?
+I'd be happy to walk through a specific example in our next review."

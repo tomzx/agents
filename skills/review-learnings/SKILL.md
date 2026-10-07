@@ -17,7 +17,8 @@ Audits a learnings document and reports findings across four categories: actiona
 
 1. Read the learnings document from `.sdlc/knowledge/learnings/N-<slug>.md` if present, otherwise from context or as a file path.
 2. Evaluate it against the checklist below.
-3. Report findings by category. Omit categories with no findings.
+3. Report findings by category.
+   Omit categories with no findings.
 4. After all findings are resolved: set the learnings document's frontmatter `status` to `complete`.
 
 ## Review Checklist
@@ -77,14 +78,14 @@ In the same emission, list the record under `artifacts:` when the review changed
 
 ## Example Usage
 
-**Scenario 1: Vague improvement**
-Process improvement says "communicate better." No owner, no action, no date.
+**Scenario 1: Vague improvement** Process improvement says "communicate better."
+No owner, no action, no date.
 Report under Actionability.
 
-**Scenario 2: Surface-level root cause**
-"What didn't go well: we were late." No analysis of why.
+**Scenario 2: Surface-level root cause** "What didn't go well: we were late."
+No analysis of why.
 Report under Specificity.
 
-**Scenario 3: Only negatives**
-Document lists 6 issues and 0 positives. Even challenging projects have practices worth repeating.
+**Scenario 3: Only negatives** Document lists 6 issues and 0 positives.
+Even challenging projects have practices worth repeating.
 Report under Balance.

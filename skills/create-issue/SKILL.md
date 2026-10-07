@@ -29,25 +29,34 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 
 ## Formatting
 
-- Do not use curly or typographic quotation marks in any text you write for the issue (title, body, sections, lists, or examples). Use straight ASCII double quotes (`"`) and straight apostrophes (`'`) only.
-- Write one sentence per line throughout the issue body. Lists and checklist items follow their own format, but any prose paragraph should have each sentence on its own line.
+- Do not use curly or typographic quotation marks in any text you write for the issue (title, body, sections, lists, or examples).
+  Use straight ASCII double quotes (`"`) and straight apostrophes (`'`) only.
+- Write one sentence per line throughout the issue body.
+  Lists and checklist items follow their own format, but any prose paragraph should have each sentence on its own line.
 
 ## Acceptance Criteria
 
 - Split into **Must** (the exit gate, the minimum bar for "done") and **Should** (deferrable without blocking the issue).
-- Aim for the smallest set that proves the issue is resolved. If **Must** grows beyond roughly 5 items, the issue is probably too broad and should be split rather than padded with more criteria.
+- Aim for the smallest set that proves the issue is resolved.
+  If **Must** grows beyond roughly 5 items, the issue is probably too broad and should be split rather than padded with more criteria.
 - Each criterion must be testable (a concrete test can be written for it) and specific about *what*, not *how*.
-- Put the happy path in **Must**. Move edge cases, error handling, and polish to **Should** unless they are part of the core definition of done.
-- Omit the **Should** subsection entirely when there are no deferrable items. Do not invent nice-to-haves just to fill it.
+- Put the happy path in **Must**.
+  Move edge cases, error handling, and polish to **Should** unless they are part of the core definition of done.
+- Omit the **Should** subsection entirely when there are no deferrable items.
+  Do not invent nice-to-haves just to fill it.
 
 ## Time Budget
 
 - Give a **total** plus a short **breakdown** so the estimate can be defended and challenged rather than asserted.
-- Weight the estimate toward **planning and evaluation**, not implementation. With AI-assisted development, writing the code is nearly free and instant; the main cost is understanding the problem, designing the solution, evaluating alternatives, and validating the result. Treat implementation sub-estimates as negligible unless the work is genuinely large (e.g. multi-day migrations, hardware-bound work, or mass repetitive changes).
+- Weight the estimate toward **planning and evaluation**, not implementation.
+  With AI-assisted development, writing the code is nearly free and instant; the main cost is understanding the problem, designing the solution, evaluating alternatives, and validating the result.
+  Treat implementation sub-estimates as negligible unless the work is genuinely large (e.g. multi-day migrations, hardware-bound work, or mass repetitive changes).
 - The breakdown should put first the activities that actually limit delivery: research, design, feasibility evaluation, review, and validation/testing.
 - Each breakdown line pairs a work area with a sub-estimate and a one-line cost driver (e.g. "unfamiliar codepath", "needs a design decision", "requires cross-team input").
-- List the **assumptions** the estimate depends on (what is already in place, what is out of scope). When an assumption breaks, revisit the estimate.
-- Keep it rough: half-day precision is fine. Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
+- List the **assumptions** the estimate depends on (what is already in place, what is out of scope).
+  When an assumption breaks, revisit the estimate.
+- Keep it rough: half-day precision is fine.
+  Do not over-engineer the breakdown for small issues (a single line is acceptable when the work is genuinely one lump).
 
 ## Summary
 
@@ -58,30 +67,46 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ## Issue Body Scope
 
 - Keep the issue body focused on summary (when applicable), background, acceptance criteria, and time budget.
-- If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not push it into the issue body. Instead, post it as a follow-up comment after the issue is created.
+- If you have detailed code analysis (e.g. files examined, codepaths traced, root-cause reasoning, relevant snippets), do not push it into the issue body.
+  Instead, post it as a follow-up comment after the issue is created.
 - The issue body should give implementers enough context to start work; the follow-up comment provides the deeper analysis for those who want it.
 
 ## Steps
 
-1. **Search for duplicates** first, before any codebase investigation, by running the [`search-existing-issues`](../search-existing-issues/SKILL.md) skill with the user's report text and the target repository. That skill extracts keywords, runs several searches, ranks candidates, and reads the top matches. If it reports a strong or possible match, stop and inform the user with the existing issue URL (for a strong open match, suggest adding details to it instead). Do not create a new issue unless the user confirms it is not a duplicate. Only once the search comes back empty (or the user confirms the report is not a duplicate anyway) do the later steps and any code investigation begin.
+1. **Search for duplicates** first, before any codebase investigation, by running the [`search-existing-issues`](../search-existing-issues/SKILL.md) skill with the user's report text and the target repository.
+   That skill extracts keywords, runs several searches, ranks candidates, and reads the top matches.
+   If it reports a strong or possible match, stop and inform the user with the existing issue URL (for a strong open match, suggest adding details to it instead).
+   Do not create a new issue unless the user confirms it is not a duplicate.
+   Only once the search comes back empty (or the user confirms the report is not a duplicate anyway) do the later steps and any code investigation begin.
 2. If the issue is a bug report, ask the user: "Which version are you on?" and wait for their answer before proceeding.
-3. If the issue is a feature request, determine the current version on the default branch (main/master) so the issue records what commit the request was filed against. Use `gh api repos/{owner}/{repo} --jq '.default_branch'` to find the default branch, then get the short SHA via `gh api repos/{owner}/{repo}/commits/<default_branch> --jq '.sha[0:7]'`.
-4. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`. A public repository is treated as open source; omit the **Time budget** section. A private repository includes it.
-5. **Determine the issue type**. Query the repository for available issue types:
+3. If the issue is a feature request, determine the current version on the default branch (main/master) so the issue records what commit the request was filed against.
+   Use `gh api repos/{owner}/{repo} --jq '.default_branch'` to find the default branch, then get the short SHA via `gh api repos/{owner}/{repo}/commits/<default_branch> --jq '.sha[0:7]'`.
+4. Determine if the repository is public or private using `gh repo view [--repo $1] --json isPrivate --jq '.isPrivate'`.
+   A public repository is treated as open source; omit the **Time budget** section.
+   A private repository includes it.
+5. **Determine the issue type**.
+   Query the repository for available issue types:
     ```
     gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { issueTypes(first:20) { nodes { name id } } } }'
     ```
-    Map the issue content to a type:
+   Map the issue content to a type:
     - Bug reports → `Bug`
     - Feature requests → `Feature`
-    - Everything else → `Task`
-    If the query returns `null` or an empty list, the repository does not support issue types; skip type assignment.
-6. **Choose labels and verify they exist**. Determine the desired labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead. Then query the repository for existing labels:
+    - Everything else → `Task` If the query returns `null` or an empty list, the repository does not support issue types; skip type assignment.
+6. **Choose labels and verify they exist**.
+   Determine the desired labels: defaults `not-urgent` and `not-important`, or whatever the user asked for instead.
+   Then query the repository for existing labels:
     ```
     gh label list [--repo $1] --json name --jq '.[].name'
     ```
-    Filter the desired labels to only those that exist in the repository. If none of the desired labels exist, create the issue without labels and note which labels were skipped. Do not attempt to create labels.
-7. Create the issue with the structured body. For bug reports, include a **Version** section with the version the user provided. For feature requests, include a **Version** section with the current default-branch version determined in step 3. Omit `--repo` if no repository was provided (gh will infer it from the cwd). Only include `--label` flags for labels confirmed to exist in step 6:
+   Filter the desired labels to only those that exist in the repository.
+   If none of the desired labels exist, create the issue without labels and note which labels were skipped.
+   Do not attempt to create labels.
+7. Create the issue with the structured body.
+   For bug reports, include a **Version** section with the version the user provided.
+   For feature requests, include a **Version** section with the current default-branch version determined in step 3.
+   Omit `--repo` if no repository was provided (gh will infer it from the cwd).
+   Only include `--label` flags for labels confirmed to exist in step 6:
     ```
     gh issue create [--repo $1] --title "<title>" --body "$(cat <<'EOF'
     # Summary
@@ -125,14 +150,19 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
     EOF
     )" --label "<label1>" --label "<label2>"
     ```
-    Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command. Omit all `--label` flags if no desired labels exist in the repository.
-8. **Post detailed code analysis as a follow-up comment** (if applicable). If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body. Use `ghx issue comment <number> [--repo $1] --body "..."`. Include the same attribution footer as the issue body.
-9. **Assign the issue type** (if the repository supports issue types from step 5). After the issue is created, get its `node_id` and set the type:
+   Resolve `SKILL_FILE_URL` and the short SHA per [`github-post-attribution/SKILL.md`](../github-post-attribution/SKILL.md) before running the command.
+   Omit all `--label` flags if no desired labels exist in the repository.
+8. **Post detailed code analysis as a follow-up comment** (if applicable).
+   If the issue creation was informed by code analysis (files examined, codepaths traced, root-cause reasoning, relevant snippets), post that analysis as a comment on the newly created issue rather than including it in the body.
+   Use `ghx issue comment <number> [--repo $1] --body "..."`.
+   Include the same attribution footer as the issue body.
+9. **Assign the issue type** (if the repository supports issue types from step 5).
+   After the issue is created, get its `node_id` and set the type:
     ```
     NODE_ID=$(gh api repos/<owner>/<repo>/issues/<number> --jq '.node_id')
     gh api graphql -f query='mutation($id:ID!, $typeId:ID!) { updateIssue(input:{id:$id, issueTypeId:$typeId}) { issue { url issueType { name } } } }' -f id="$NODE_ID" -f typeId="<issue_type_node_id>"
     ```
-    Use the `id` of the matching issue type from step 5 (e.g., the Bug type's node ID for bug reports).
+   Use the `id` of the matching issue type from step 5 (e.g., the Bug type's node ID for bug reports).
 
 ## Example Usage
 
@@ -140,19 +170,23 @@ When this skill is invoked as part of an `sdlc` pipeline run, also include the *
 ```
 /create-issue owner/myrepo
 ```
-Creates an issue titled "Fix null pointer in user login" with background explaining the crash, Must-have acceptance criteria (the fix plus a regression test), and a justified time budget with a breakdown (if private). Labels: `not-urgent`, `not-important`.
+Creates an issue titled "Fix null pointer in user login" with background explaining the crash, Must-have acceptance criteria (the fix plus a regression test), and a justified time budget with a breakdown (if private).
+Labels: `not-urgent`, `not-important`.
 
 **Scenario 2: Feature request with custom labels**
 ```
 /create-issue owner/myrepo
 ```
-User specifies "this is urgent and important." Apply `urgent` and `important` labels instead of the defaults.
+User specifies "this is urgent and important."
+Apply `urgent` and `important` labels instead of the defaults.
 
 **Scenario 3: Acceptance criteria provided upfront**
 ```
 /create-issue owner/api-service
 ```
-User provides a list of requirements. Convert each into a checklist item, then split them into **Must** (gates "done") and **Should** (deferrable). If most items land in Must, flag to the user that the issue may be too broad and should be split.
+User provides a list of requirements.
+Convert each into a checklist item, then split them into **Must** (gates "done") and **Should** (deferrable).
+If most items land in Must, flag to the user that the issue may be too broad and should be split.
 
 ## Completion Checklist
 

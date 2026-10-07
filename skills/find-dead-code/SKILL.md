@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Dead Code Scan
 
-Identifies code that is defined but never used — functions, classes, variables, exports, feature flags, and config keys — and produces a prioritized list of safe removals. Dead code increases cognitive load, slows onboarding, and enlarges the codebase that future changes must account for.
+Identifies code that is defined but never used — functions, classes, variables, exports, feature flags, and config keys — and produces a prioritized list of safe removals.
+Dead code increases cognitive load, slows onboarding, and enlarges the codebase that future changes must account for.
 
 ## Prerequisites
 
@@ -180,7 +181,8 @@ For the top 20 findings, read the defining file and the call sites to confirm th
 ```
 /find-dead-code
 ```
-Finds 12 unused Python functions, 3 always-true feature flags, and 7 orphaned config keys. Recommends removing the flags first as they also simplify surrounding logic.
+Finds 12 unused Python functions, 3 always-true feature flags, and 7 orphaned config keys.
+Recommends removing the flags first as they also simplify surrounding logic.
 
 **Scenario 2: Targeted scan before a refactor**
 ```

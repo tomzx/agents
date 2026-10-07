@@ -29,7 +29,8 @@ Produces a structured document covering what went well, what didn't, process imp
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/knowledge/learning.md` (copied to `.sdlc/templates/knowledge/learning.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/knowledge/learning.md` (copied to `.sdlc/templates/knowledge/learning.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
 ## Outcome
 
@@ -38,12 +39,10 @@ In the same emission, list the artifact under `artifacts:` (`.sdlc/knowledge/lea
 
 ## Example Usage
 
-**Scenario 1: Feature retrospective**
-A payment feature took 3 weeks instead of 2.
+**Scenario 1: Feature retrospective** A payment feature took 3 weeks instead of 2.
 Learnings: the third-party API was underdocumented (add a spike phase to future plans involving new integrations), automated integration tests caught 4 regressions early (keep and expand), the spec was changed mid-implementation (add a spec-freeze milestone to the plan template).
 
-**Scenario 2: Sprint retrospective**
-End-of-sprint review with the team.
+**Scenario 2: Sprint retrospective** End-of-sprint review with the team.
 What went well: daily standups kept everyone aligned.
 What didn't: unclear task definitions led to rework.
 Action item: run `/create-tasks-decomposition` before each sprint starts.

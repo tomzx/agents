@@ -5,7 +5,8 @@ description: Write, update, or revise a high-quality article given a target audi
 
 # Write Article
 
-Produces a high-quality article from a target audience definition and a set of relevant sources. Adapts tone, depth, and structure to fit the audience.
+Produces a high-quality article from a target audience definition and a set of relevant sources.
+Adapts tone, depth, and structure to fit the audience.
 
 ## Prerequisites
 
@@ -13,13 +14,18 @@ Produces a high-quality article from a target audience definition and a set of r
 - **Relevant sources**: URLs, file paths, or inline content to draw from (research papers, blog posts, docs, notes, etc.)
 - **Topic** (optional): If not inferable from sources, state the article topic explicitly
 
-If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill. If you decide not to run it, say so and give your reasoning before proceeding, so the user can course-correct.
+If sources are not yet gathered, run `/research-article` first to discover the state of the art and produce a research brief whose key sources feed this skill.
+If you decide not to run it, say so and give your reasoning before proceeding, so the user can course-correct.
 
-This applies to **every** article, including opinion and perspective pieces. An opinion piece is not exempt from research: before taking a position, gather the sources that inform it (the strongest arguments for and against, relevant data, prior writing on the topic) and cite them. Research is the difference between a supportable position and an unsupported hot take, and it is what the reader uses to judge the argument. If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is based on instead.
+This applies to **every** article, including opinion and perspective pieces.
+An opinion piece is not exempt from research: before taking a position, gather the sources that inform it (the strongest arguments for and against, relevant data, prior writing on the topic) and cite them.
+Research is the difference between a supportable position and an unsupported hot take, and it is what the reader uses to judge the argument.
+If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is based on instead.
 
 ## Steps
 
-1. Read all provided sources thoroughly. If none were provided, including for an opinion piece, research the topic first (see Prerequisites) rather than writing from prior belief alone.
+1. Read all provided sources thoroughly.
+   If none were provided, including for an opinion piece, research the topic first (see Prerequisites) rather than writing from prior belief alone.
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
 4. Draft the article using the structure below, following the formatting rules.
@@ -27,43 +33,35 @@ This applies to **every** article, including opinion and perspective pieces. An 
 6. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
 7. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
 8. Revise for clarity, flow, and conciseness.
-9. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article). The list may contain zero entries: if no session ID is available, omit the field entirely.
+9. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article).
+   The list may contain zero entries: if no session ID is available, omit the field entirely.
 
 ## Formatting Rules
 
-- **Shared writing rules**: Apply [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence. It owns the catalog of machine-writing patterns to remove.
+- **Shared writing rules**: Apply [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence.
+  It owns the catalog of machine-writing patterns to remove.
 - **One sentence per line**: Each sentence occupies its own line in the markdown source.
   This produces cleaner git diffs since changes to one sentence don't affect adjacent lines.
-  Paragraphs are separated by a blank line, with sentences within a paragraph on consecutive lines
-  (not separated by blank lines).
-- **Link all sources**: Every source referenced in the article body must include a verified hyperlink,
-  not just a textual citation (e.g., `[Author, "Title"](https://...)` not just `Author, "Title"`).
-- **Verify links**: After drafting, curl every hyperlink and replace any that return 4xx or connection
-  errors before finalizing the article.
-- **Bold important statements**: Highlight the most important statements, key claims, and takeaways
-  in **bold** so readers scanning the article still capture the core message. Be selective: bold
-  sentences or phrases that carry the argument, not routine sentences. Avoid bolding more than one
-  statement per paragraph on average.
-- **Plain language**: Write so the reader grasps the meaning on the first pass. Prefer common,
-  everyday words over less frequent synonyms (for example, "use" over "utilize", "help" over
-  "facilitate", "show" over "elucidate"), short sentences over long ones, and active voice over
-  passive. Write literally: no metaphors, similes, idioms, or other figurative language, since the
-  reader must decode the comparison before reaching the meaning. Keep technical terms where they
-  are the precise and expected choice; the goal is to avoid uncommon or showy words, not to lose
-  precision. Calibrate this to the audience: write simpler for general readers, and allow more
-  domain terms for expert readers.
-- **No prose, state things directly**: Write straight to the point. Every sentence must convey
-  information. Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode
-  before reaching the meaning, and avoid filler that adds rhythm but no content. For example, write
-  "Four governance problems present themselves when multiple agents work for you" rather than
-  "Four governance problems become top priorities when multiple agents work for you". If a phrase
-  paints a picture instead of saying the thing, replace it with the plain statement.
-- **Name the referent**: Avoid bare referential words like "this", "that", "these", and "those" when
-  the referent could be ambiguous, since they force the reader to backtrack and resolve what is meant.
-  Prefer naming the thing directly. For example, write "the parser fails on nested generics" rather
-  than "this fails on nested generics", or "that approach trades latency for throughput" rather than
-  "that trades latency for throughput". Referential words are acceptable when the referent is
-  unambiguous and immediately adjacent, or when repeating the noun would be clunky.
+  Paragraphs are separated by a blank line, with sentences within a paragraph on consecutive lines (not separated by blank lines).
+- **Link all sources**: Every source referenced in the article body must include a verified hyperlink, not just a textual citation (e.g., `[Author, "Title"](https://...)` not just `Author, "Title"`).
+- **Verify links**: After drafting, curl every hyperlink and replace any that return 4xx or connection errors before finalizing the article.
+- **Bold important statements**: Highlight the most important statements, key claims, and takeaways in **bold** so readers scanning the article still capture the core message.
+  Be selective: bold sentences or phrases that carry the argument, not routine sentences.
+  Avoid bolding more than one statement per paragraph on average.
+- **Plain language**: Write so the reader grasps the meaning on the first pass.
+  Prefer common, everyday words over less frequent synonyms (for example, "use" over "utilize", "help" over "facilitate", "show" over "elucidate"), short sentences over long ones, and active voice over passive.
+  Write literally: no metaphors, similes, idioms, or other figurative language, since the reader must decode the comparison before reaching the meaning.
+  Keep technical terms where they are the precise and expected choice; the goal is to avoid uncommon or showy words, not to lose precision.
+  Calibrate this to the audience: write simpler for general readers, and allow more domain terms for expert readers.
+- **No prose, state things directly**: Write straight to the point.
+  Every sentence must convey information.
+  Avoid metaphorical, idiomatic, or ornamental phrasing that the reader must decode before reaching the meaning, and avoid filler that adds rhythm but no content.
+  For example, write "Four governance problems present themselves when multiple agents work for you" rather than "Four governance problems become top priorities when multiple agents work for you".
+  If a phrase paints a picture instead of saying the thing, replace it with the plain statement.
+- **Name the referent**: Avoid bare referential words like "this", "that", "these", and "those" when the referent could be ambiguous, since they force the reader to backtrack and resolve what is meant.
+  Prefer naming the thing directly.
+  For example, write "the parser fails on nested generics" rather than "this fails on nested generics", or "that approach trades latency for throughput" rather than "that trades latency for throughput".
+  Referential words are acceptable when the referent is unambiguous and immediately adjacent, or when repeating the noun would be clunky.
 
 ## Visualizations
 
@@ -150,17 +148,21 @@ agent_sessions:
 - [Title of related article](relative/path/to/article.md) - [one-line note on the connection]
 ```
 
-Adjust section count and naming to fit the content. Not every article needs all four sections.
+Adjust section count and naming to fit the content.
+Not every article needs all four sections.
 
 ## Finding Related Articles
 
-The "See also" section links readers to other articles in the same repository that provide useful context, background, or contrasting perspective. A good "See also" section saves the reader a search and surfaces adjacent reading.
+The "See also" section links readers to other articles in the same repository that provide useful context, background, or contrasting perspective.
+A good "See also" section saves the reader a search and surfaces adjacent reading.
 
 **Discovery steps:**
 1. Determine the output location of the new article (ask the user if not specified).
-2. Search the repository for other article files near that location. Common patterns: `*.md` under `articles/`, `posts/`, `blog/`, `docs/`, or a content directory indicated by the user.
+2. Search the repository for other article files near that location.
+   Common patterns: `*.md` under `articles/`, `posts/`, `blog/`, `docs/`, or a content directory indicated by the user.
 3. Match candidates by topic overlap: shared keywords, referenced technologies, same problem domain, or citations to the same primary sources.
-4. Link the high-relevance articles you found, as many as are genuinely relevant. Quality over quantity: omit loosely related ones.
+4. Link the high-relevance articles you found, as many as are genuinely relevant.
+   Quality over quantity: omit loosely related ones.
 5. Use repository-relative paths (e.g. `../foo/bar.md` or `articles/xyz.md`) so links work in any clone or rendered preview of the repo.
 
 If no related articles exist in the repository, omit the "See also" section entirely rather than padding it.
@@ -191,7 +193,8 @@ If no related articles exist in the repository, omit the "See also" section enti
 
 ## Output Format
 
-Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes` and the `agent_sessions` list. After the article, include a brief sources section:
+Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes` and the `agent_sessions` list.
+After the article, include a brief sources section:
 
 ```markdown
 ---
@@ -210,23 +213,22 @@ agent_sessions:
 - [Source Title](https://...) - [one-line note on what it contributed]
 ```
 
-`agent_sessions` lists the identifiers of every LLM/agent session that contributed to the article, with zero to many entries. Omit the field entirely when the list would be empty.
+`agent_sessions` lists the identifiers of every LLM/agent session that contributed to the article, with zero to many entries.
+Omit the field entirely when the list would be empty.
 
 ## Example Usage
 
-**Scenario 1: Technical deep-dive**
-Target audience: "experienced Go developers", sources: Go memory model spec + blog post on goroutine scheduling.
+**Scenario 1: Technical deep-dive** Target audience: "experienced Go developers", sources: Go memory model spec + blog post on goroutine scheduling.
 Produce a peer-level article explaining a non-obvious behavior, with code examples, assuming the reader knows Go basics.
 
-**Scenario 2: Explainer for non-technical readers**
-Target audience: "product managers at a SaaS company", sources: two research papers on LLM hallucination.
+**Scenario 2: Explainer for non-technical readers** Target audience: "product managers at a SaaS company", sources: two research papers on LLM hallucination.
 Produce a business-oriented piece explaining what hallucination is, why it matters for product decisions, and how to mitigate it, without implementation details.
 
-**Scenario 3: Opinion/perspective piece**
-Target audience: "software architects", sources: three blog posts arguing for and against microservices.
+**Scenario 3: Opinion/perspective piece** Target audience: "software architects", sources: three blog posts arguing for and against microservices.
 Research the topic first, then synthesize the arguments, take a supportable position, and advise on when to use vs. avoid microservices.
 The position must be based on and cite the sources, not asserted from prior belief.
 
 ## Next Step
 
-A review subagent is dispatched automatically to run `/review-article` to audit the article for accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style. The review subagent reads the review-article skill at `skills/review-article/SKILL.md` and the article just written, then reports its findings and verdict.
+A review subagent is dispatched automatically to run `/review-article` to audit the article for accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style.
+The review subagent reads the review-article skill at `skills/review-article/SKILL.md` and the article just written, then reports its findings and verdict.

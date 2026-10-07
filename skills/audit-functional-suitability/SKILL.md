@@ -9,9 +9,11 @@ TODAY=!`date +%Y-%m-%d`
 
 # Functional Suitability Audit (ISO/IEC 25010)
 
-Audits the codebase for **functional suitability**: does the software provide the functions needed to meet stated requirements, completely and correctly? It is the bottom-up check that what was supposed to be built is actually built and working.
+Audits the codebase for **functional suitability**: does the software provide the functions needed to meet stated requirements, completely and correctly?
+It is the bottom-up check that what was supposed to be built is actually built and working.
 
-This is the **Functional suitability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `check-issue-status` (which checks whether a *single issue* is addressed), this audit scans the whole implementation against its requirements corpus and the code's own incompleteness markers (stubs, TODOs, disabled tests).
+This is the **Functional suitability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
+Distinct from `check-issue-status` (which checks whether a *single issue* is addressed), this audit scans the whole implementation against its requirements corpus and the code's own incompleteness markers (stubs, TODOs, disabled tests).
 
 ## Prerequisites
 
@@ -32,7 +34,8 @@ This is the **Functional suitability** characteristic of the [ISO/IEC 25010](htt
 
 ### 1. Inventory requirements (if .sdlc exists)
 
-For each `.sdlc/features/*/requirements.md`, extract functional requirements (`FR-N`) and their acceptance criteria. Record each as a completeness target.
+For each `.sdlc/features/*/requirements.md`, extract functional requirements (`FR-N`) and their acceptance criteria.
+Record each as a completeness target.
 
 ```
 find .sdlc/features -name requirements.md 2>/dev/null
@@ -54,7 +57,8 @@ Each marker is a completeness finding (the code states it is not done).
 
 ### 3. Check requirements coverage
 
-For each functional requirement, search the code for evidence of implementation (keywords from the requirement). Requirements with no evidence are completeness gaps.
+For each functional requirement, search the code for evidence of implementation (keywords from the requirement).
+Requirements with no evidence are completeness gaps.
 
 ```
 rg -n "<requirement keyword>" -g '*.py' .
@@ -81,15 +85,22 @@ rg -n "<requirement keyword>" -g '*.py' .
 
 ### 5. Appropriateness spot-check
 
-For a sample of requirements where code exists, compare behavior to the acceptance criteria. Flag clear divergences (e.g., requirement says "soft delete" but code hard-deletes). This is judgment-based; keep it to a sample and flag for human review.
+For a sample of requirements where code exists, compare behavior to the acceptance criteria.
+Flag clear divergences (e.g., requirement says "soft delete" but code hard-deletes).
+This is judgment-based; keep it to a sample and flag for human review.
 
 ### 6. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 7. Report
 
-Classify each finding by severity (below), then print the report in the Output Format. Do not modify any files.
+Classify each finding by severity (below), then print the report in the Output Format.
+Do not modify any files.
 
 ## Severity
 
@@ -151,7 +162,8 @@ Checks requirements coverage only for one feature directory.
 ```
 /audit-functional-suitability
 ```
-Falls back to code-honesty markers and bug issues. Recommends running `/sync-sdlc` to establish a requirements corpus.
+Falls back to code-honesty markers and bug issues.
+Recommends running `/sync-sdlc` to establish a requirements corpus.
 
 ## Relationship to Other Skills
 

@@ -99,8 +99,10 @@ Record its `{owner}/{repository}` as `CWD_REPO`.
   git clone --depth 50 "https://github.com/$TARGET_REPO.git" "$REPO_DIR"
   ```
 
-  Set `WORK_DIR` to `$REPO_DIR`. All subsequent `Glob`, `Grep`, and `Read` operations run inside `$WORK_DIR`.
-- If they differ and `--clone` is not set, warn the user and stop. Do not inspect code from the wrong repo.
+  Set `WORK_DIR` to `$REPO_DIR`.
+  All subsequent `Glob`, `Grep`, and `Read` operations run inside `$WORK_DIR`.
+- If they differ and `--clone` is not set, warn the user and stop.
+  Do not inspect code from the wrong repo.
 
 ### 2. Gather issues
 
@@ -144,8 +146,11 @@ Fallback (when the timeline is empty): search PRs that mention the issue number:
 ghx pr list --repo $REPO --search "$NUMBER is:pr" --state all --limit 20
 ```
 
-Deduplicate by PR number. For each linked PR, record number, title, state, merged flag, and URL.
-A merged PR is the strongest trace signal. An open PR means the work may be in progress. A closed-unmerged PR means the attempt was abandoned.
+Deduplicate by PR number.
+For each linked PR, record number, title, state, merged flag, and URL.
+A merged PR is the strongest trace signal.
+An open PR means the work may be in progress.
+A closed-unmerged PR means the attempt was abandoned.
 
 ### 4. Trace each PR to code
 
@@ -161,7 +166,9 @@ From this, build a per-PR record of:
 - The list of commits (SHAs and messages), useful when the work was not squashed.
 - The changed files with additions and deletions.
 
-Then resolve the **symbols** the PR touched, not just file paths. For each changed file in a supported language, map the diff hunks to functions, classes, methods, routes, or endpoints. Prefer `git log`/`git show` inside `WORK_DIR` to see the actual diff for a merged PR:
+Then resolve the **symbols** the PR touched, not just file paths.
+For each changed file in a supported language, map the diff hunks to functions, classes, methods, routes, or endpoints.
+Prefer `git log`/`git show` inside `WORK_DIR` to see the actual diff for a merged PR:
 
 ```bash
 git -C "$WORK_DIR" log --oneline -- <path>
@@ -182,18 +189,17 @@ ghx issue view $NUMBER --repo $REPO --json
 Distill the issue into 1 to N discrete **intents**, each a single testable assertion about what the code should do.
 Use two extraction modes, in priority order (this merges the structured-criteria parsing of `validate-pr`/`verify-pr` with the format-agnostic claim extraction of `check-issue-status`):
 
-**Mode A, structured acceptance criteria (preferred).**
-Look for the format produced by `/create-issue`: an `# Acceptance Criteria` heading with `## Must` and (optionally) `## Should` subsections of `- [ ]` checklist items.
+**Mode A, structured acceptance criteria (preferred).** Look for the format produced by `/create-issue`: an `# Acceptance Criteria` heading with `## Must` and (optionally) `## Should` subsections of `- [ ]` checklist items.
 Parse each item into an intent record: the verbatim criterion text, its priority (Must / Should), and the source issue number.
 Record `extraction: structured`.
 
-**Mode B, format-agnostic (fallback).**
-If the issue has no structured criteria, read the whole body (prose, error logs, checklists, screenshots' alt text, a single sentence) and distill discrete behavioral claims.
+**Mode B, format-agnostic (fallback).** If the issue has no structured criteria, read the whole body (prose, error logs, checklists, screenshots' alt text, a single sentence) and distill discrete behavioral claims.
 For a bug, each intent is the desired behavior ("X should happen"), not the symptom.
 For a feature, each intent is one capability the code should provide.
 Record `extraction: inferred`, and note that the criteria were inferred rather than structured.
 
-If the body is too vague to extract any intent, record the issue as `unparseable`, carry a single intent of "(issue too vague to extract intents)", and move on. Do not guess.
+If the body is too vague to extract any intent, record the issue as `unparseable`, carry a single intent of "(issue too vague to extract intents)", and move on.
+Do not guess.
 
 ### 6. Verify each intent against the current code
 
@@ -221,7 +227,8 @@ Assign a status to each intent using only what the current code shows:
 | **Partially met** | Some of the intent is satisfied but a required part is missing. Capture both the present part and the gap. |
 | **Not met** | Nothing in the current code provides this behavior. Capture what was searched and why it is absent. |
 
-When a linked merged PR implemented the intent but the code is now absent, this is an important finding: the intent **regressed**. Note the PR that introduced it and search the history for a likely removal (a later PR or commit that deleted it):
+When a linked merged PR implemented the intent but the code is now absent, this is an important finding: the intent **regressed**.
+Note the PR that introduced it and search the history for a likely removal (a later PR or commit that deleted it):
 
 ```bash
 git -C "$WORK_DIR" log --oneline -S "<distinctive symbol or string>" -- <path>
@@ -229,7 +236,8 @@ git -C "$WORK_DIR" log --oneline -S "<distinctive symbol or string>" -- <path>
 
 Record the likely removal (commit SHA and message) as evidence.
 
-Prefer static evidence. Run a single targeted test only when an intent is about runtime behavior and static reading is ambiguous:
+Prefer static evidence.
+Run a single targeted test only when an intent is about runtime behavior and static reading is ambiguous:
 
 ```bash
 pytest -q "$WORK_DIR/path/to/test_export.py::test_csv_export"
@@ -247,7 +255,8 @@ Combine the per-intent statuses into one verdict per issue (the rule from `check
 | Mix of Met and Partially met, none Not met | `partial` |
 | Any Not met | `not-addressed` |
 
-If the issue has no linked PR and is open, the verdict is usually `not-addressed` (no work trace). If it has no linked PR but is closed, flag it as a `closed-without-trace` anomaly worth investigating.
+If the issue has no linked PR and is open, the verdict is usually `not-addressed` (no work trace).
+If it has no linked PR but is closed, flag it as a `closed-without-trace` anomaly worth investigating.
 
 ### 8. Classify orphans
 
@@ -262,7 +271,8 @@ Apply the orphan classes from `propagate-changes`, adapted to the GitHub-native 
 
 ### 9. Build the matrix and write the report
 
-The master table is the core deliverable. One row per intent, grouped by issue:
+The master table is the core deliverable.
+One row per intent, grouped by issue:
 
 ```markdown
 ## Traceability Matrix
@@ -278,7 +288,8 @@ The master table is the core deliverable. One row per intent, grouped by issue:
 
 Then add the per-issue detail sections (full intent list with extraction mode, PR list with state and merge SHA, code locations, and notes), the orphan-classification summary table, and the recommended actions.
 
-Write the full report to `--out` (default `traceability-report.md` in the working directory). Present the matrix and the summary to the user.
+Write the full report to `--out` (default `traceability-report.md` in the working directory).
+Present the matrix and the summary to the user.
 
 The report frontmatter:
 
@@ -307,7 +318,9 @@ Surface the actionable findings:
 | Orphan code (merged PR with no issue) | Confirm scope; document or open a retroactive issue |
 | Closed-without-trace issue | Investigate whether it was resolved out of band |
 
-Do not post anything to GitHub. This skill is read-only with respect to GitHub. If the user wants to act, point them to `check-issue-status` (to post a close suggestion), `create-issue`, or the `sdlc` orchestrator.
+Do not post anything to GitHub.
+This skill is read-only with respect to GitHub.
+If the user wants to act, point them to `check-issue-status` (to post a close suggestion), `create-issue`, or the `sdlc` orchestrator.
 
 ## Failure Modes
 
@@ -333,7 +346,8 @@ Gathers all issues (open and closed), traces each to its PRs and code, verifies 
 ```
 /trace-issues
 ```
-Target resolves to the current directory's `origin`. Same flow.
+Target resolves to the current directory's `origin`.
+Same flow.
 
 **Scenario 3: Any repo, no local checkout**
 ```
@@ -351,13 +365,15 @@ Skips the search and builds the full trace for issue #42 only: its PRs, its acce
 ```
 /trace-issues owner/myrepo --label bug --state closed --limit 100
 ```
-Traces the last 100 closed bugs to confirm each fix still lives in the code. Surfaces regressed intents where a fix was later removed.
+Traces the last 100 closed bugs to confirm each fix still lives in the code.
+Surfaces regressed intents where a fix was later removed.
 
 **Scenario 6: Catch a regression**
 ```
 /trace-issues owner/myrepo
 ```
-Issue #42's Must criterion "stream rows > 1M" was implemented by merged PR #51, but the matrix shows Not met because a later refactor (#67) deleted the streaming path. The report records the removal commit and recommends re-opening #42.
+Issue #42's Must criterion "stream rows > 1M" was implemented by merged PR #51, but the matrix shows Not met because a later refactor (#67) deleted the streaming path.
+The report records the removal commit and recommends re-opening #42.
 
 ## Relationship to Other Skills
 

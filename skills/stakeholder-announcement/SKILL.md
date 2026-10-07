@@ -6,7 +6,8 @@ argument-hint: "[--yes] [--context <summary-file>] <topic>"
 
 # Stakeholder Announcement
 
-Drafts a structured progress announcement from recent work context (overall summary, GitHub activity, or explicit description) and posts it to the appropriate stakeholder Slack channels. Delegates posting to **post-slack-message**.
+Drafts a structured progress announcement from recent work context (overall summary, GitHub activity, or explicit description) and posts it to the appropriate stakeholder Slack channels.
+Delegates posting to **post-slack-message**.
 
 ## Prerequisites
 
@@ -17,14 +18,18 @@ Drafts a structured progress announcement from recent work context (overall summ
 
 ## Inputs
 
-- **topic:** the subject of the announcement (e.g., "batch inference GSA creation", "B300 cluster preparation", "WIF setup complete"). If omitted, inferred from the context file.
-- **context:** path to a summary file to draw from. Defaults to today's overall summary if it exists.
-- **channels:** target Slack channels. If not specified, inferred from the topic and stakeholder map (see below).
+- **topic:** the subject of the announcement (e.g., "batch inference GSA creation", "B300 cluster preparation", "WIF setup complete").
+  If omitted, inferred from the context file.
+- **context:** path to a summary file to draw from.
+  Defaults to today's overall summary if it exists.
+- **channels:** target Slack channels.
+  If not specified, inferred from the topic and stakeholder map (see below).
 - **mode:** `--yes` for immediate send; otherwise review mode (user confirms before posting).
 
 ## Stakeholder Channel Map
 
-Default channel mapping by topic area. The user can override at any step.
+Default channel mapping by topic area.
+The user can override at any step.
 
 | Topic area | Default channel(s) |
 |---|---|
@@ -39,7 +44,8 @@ Default channel mapping by topic area. The user can override at any step.
 
 ### 1. Gather context
 
-Read the context file (overall summary, GitHub activity, or user-provided description). Extract:
+Read the context file (overall summary, GitHub activity, or user-provided description).
+Extract:
 - What was done (accomplishments, merged PRs, created resources)
 - What stakeholders need to do (actions requested from them, e.g., "create terraform to give GSA access")
 - Relevant links (PR URLs, documentation links, issue links)
@@ -47,7 +53,8 @@ Read the context file (overall summary, GitHub activity, or user-provided descri
 
 ### 2. Identify target channels
 
-Determine which stakeholder channels should receive the announcement based on the topic and the stakeholder channel map. Confirm with the user if unsure.
+Determine which stakeholder channels should receive the announcement based on the topic and the stakeholder channel map.
+Confirm with the user if unsure.
 
 ### 3. Compose the announcement
 
@@ -72,11 +79,16 @@ Structure the message using Slack mrkdwn:
 Note: <any caveats, e.g., "GSAs are likely temporary as we iterate">
 ```
 
-Adapt the structure to the topic. Omit empty sections. Keep it concise. Mention specific people (`<@USERID>`) when an action is directed at them.
+Adapt the structure to the topic.
+Omit empty sections.
+Keep it concise.
+Mention specific people (`<@USERID>`) when an action is directed at them.
 
 ### 4. Post via post-slack-message
 
-Delegate posting to the **post-slack-message** skill. In review mode (default), write the message to a temp file and ask the user to confirm before sending to each channel. In immediate mode (`--yes`), post directly.
+Delegate posting to the **post-slack-message** skill.
+In review mode (default), write the message to a temp file and ask the user to confirm before sending to each channel.
+In immediate mode (`--yes`), post directly.
 
 If posting to multiple channels, post the same message to each (or tailored variants if the audience differs).
 

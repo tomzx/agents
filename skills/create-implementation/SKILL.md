@@ -60,9 +60,12 @@ All acceptance criteria met?
 4. Set up a feature branch (see Branching Strategy below).
 5. Explore the codebase to understand existing patterns, naming conventions, and architecture.
 6. Identify which files need to be created or modified.
-7. For every existing part of the code you are about to modify, check its current test coverage. If it is not well covered, first write characterization tests that pin down the existing behavior. This keeps you from unintentionally changing behavior with your modifications.
+7. For every existing part of the code you are about to modify, check its current test coverage.
+   If it is not well covered, first write characterization tests that pin down the existing behavior.
+   This keeps you from unintentionally changing behavior with your modifications.
 8. Commit the characterization tests separately from the implementation changes, so there is a before/after trace of how the tests evolved.
-9. Implement the changes in small increments, verifying each step with tests. Update the characterization tests as the behavior intentionally changes.
+9. Implement the changes in small increments, verifying each step with tests.
+   Update the characterization tests as the behavior intentionally changes.
 10. If a lifecycle document exists, implement state machines, transition guards, invariants, and retention policies as part of each relevant code change.
 11. If a telemetry plan exists, implement analytics events and telemetry as part of each relevant code change.
 12. If an observability plan exists, implement logging, metrics, tracing, and health checks as part of each relevant code change.
@@ -86,7 +89,8 @@ The implementation must happen on a dedicated branch, never directly on `main`.
    ```
    git checkout -b feat/42-add-order-endpoint
    ```
-   If a plan branch already exists (e.g., `plan/42` from `publish-plan`), create the feature branch from `main`, not from the plan branch. The plan PR is for review only and will be closed separately.
+   If a plan branch already exists (e.g., `plan/42` from `publish-plan`), create the feature branch from `main`, not from the plan branch.
+   The plan PR is for review only and will be closed separately.
 
 ### Commit discipline
 
@@ -110,14 +114,17 @@ git rebase origin/main
 
 ## Test Coverage of Changes
 
-Before marking the task done, review the full diff (`git diff main`) and verify the important parts of the change are covered by tests. The important parts are:
+Before marking the task done, review the full diff (`git diff main`) and verify the important parts of the change are covered by tests.
+The important parts are:
 
 - New public functions, methods, classes, and API endpoints.
 - Changed logic: branches added, modified, or removed; changed conditions and error paths.
 - Bug fixes: a regression test that fails without the fix and passes with it.
 - Lifecycle rules, invariants, and transition guards (per the lifecycle document, if present).
 
-Not every line needs a test. Skip boilerplate, trivial accessors, and code the framework or type system already guarantees. If an important part is impractical to test directly (e.g. requires external services), cover it with the closest practical test or note the gap in the task or PR description.
+Not every line needs a test.
+Skip boilerplate, trivial accessors, and code the framework or type system already guarantees.
+If an important part is impractical to test directly (e.g. requires external services), cover it with the closest practical test or note the gap in the task or PR description.
 
 ## Implementation Guidelines
 
@@ -167,16 +174,15 @@ When a blocker is resolved:
 
 ## Outcome
 
-If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the implementation `impl/` PR is opened. If no PR was opened (e.g. blocked), omit the file.
+If `$OUTCOME_YAML` is set, emit `verdict: approved` there per `skills/sdlc/references/shared.md` once the implementation `impl/` PR is opened.
+If no PR was opened (e.g. blocked), omit the file.
 
 ## Example Usage
 
-**Scenario 1: API endpoint task**
-Task T-03: "Implement POST /orders endpoint per spec."
+**Scenario 1: API endpoint task** Task T-03: "Implement POST /orders endpoint per spec."
 Read spec for request/response schema, find existing endpoint patterns, create route + handler + validation + service layer, write integration test, confirm all test cases pass.
 
-**Scenario 2: Bug fix task**
-Task describes a null pointer in the login flow.
+**Scenario 2: Bug fix task** Task describes a null pointer in the login flow.
 Locate the defect, implement the fix, write a regression test that would have caught the bug.
 
 ## Next Step

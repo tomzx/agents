@@ -5,8 +5,7 @@ allowed-tools: Bash(ghx:*, gh:*, git:*, rg:*), Read, Glob, Grep, Write
 argument-hint: "[repository] [--focus <area>] [--limit N] [--create-issues N] [--since <YYYY-MM-DD>] [--quick|--deep]"
 ---
 
-TODAY=!`date +%Y-%m-%d`
-REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
+TODAY=!`date +%Y-%m-%d` REPO=!`git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#'`
 
 # Identify Codebase Improvements
 
@@ -64,10 +63,15 @@ Treat the categories as prompts, not a checklist to fill.
 
 ### High-Confidence Bar (both gates must pass)
 
-1. **Confidence is HIGH.** The agent opened the cited files and can point at the code. A signal that needs verification is MED and belongs only in the "needs verification" appendix, never in the main ranked list. Anything weaker is not reported.
-2. **Useful.** There is a concrete impact (a bug that can happen, time spent on every change, a user-visible failure), not a preference. If the payoff is a style opinion or a micro-optimization with no measured cost, drop it.
-3. **Not settled.** It is not a documented decision, a standard platform convention, or a tradeoff recorded in an ADR. If the code has drifted from a documented decision, the drift is the finding, not the decision.
-4. **Evidence is specific.** No "probably has an N+1 somewhere". Name the file, line, and behavior.
+1. **Confidence is HIGH.** The agent opened the cited files and can point at the code.
+   A signal that needs verification is MED and belongs only in the "needs verification" appendix, never in the main ranked list.
+   Anything weaker is not reported.
+2. **Useful.** There is a concrete impact (a bug that can happen, time spent on every change, a user-visible failure), not a preference.
+   If the payoff is a style opinion or a micro-optimization with no measured cost, drop it.
+3. **Not settled.** It is not a documented decision, a standard platform convention, or a tradeoff recorded in an ADR.
+   If the code has drifted from a documented decision, the drift is the finding, not the decision.
+4. **Evidence is specific.** No "probably has an N+1 somewhere".
+   Name the file, line, and behavior.
 
 ## The Dedup Contract (ghx)
 
@@ -75,7 +79,8 @@ This is mandatory, and it is what separates a useful pass from a noisy one.
 
 ### Load the known set once, up front
 
-Warm the cache and pull the issue history. Existing issues, open or closed, are the already-identified recommendations.
+Warm the cache and pull the issue history.
+Existing issues, open or closed, are the already-identified recommendations.
 
 ```bash
 ghx cache --repo "$REPO"
@@ -112,12 +117,16 @@ State the exhaustion evidence in the report: what areas were swept, roughly how 
 
 ### 1. Resolve scope and read context
 
-Resolve the repository from `$1`, then `$REPO`, then the current directory. Apply `--focus` if given.
-Read `.sdlc/context/` and any decision or design docs. Record settled decisions so they are not reported later.
+Resolve the repository from `$1`, then `$REPO`, then the current directory.
+Apply `--focus` if given.
+Read `.sdlc/context/` and any decision or design docs.
+Record settled decisions so they are not reported later.
 
 ### 2. Load the known set with ghx
 
-Run the load commands above. Record the count of existing issues and the prior report IDs. This set is consulted for every candidate in step 4.
+Run the load commands above.
+Record the count of existing issues and the prior report IDs.
+This set is consulted for every candidate in step 4.
 
 ### 3. Map the code surface
 
@@ -132,8 +141,10 @@ For each candidate:
 
 1. Open the cited files and confirm the finding is present and correctly attributed.
 2. Reject by-design behavior, documented decisions, and standard conventions.
-3. Apply the high-confidence bar. Downgrade to "needs verification" or drop.
-4. Run the dedup search. If tracked, discard and continue the loop.
+3. Apply the high-confidence bar.
+   Downgrade to "needs verification" or drop.
+4. Run the dedup search.
+   If tracked, discard and continue the loop.
 5. Keep it, capture the evidence (`file:line`), impact, effort estimate (S/M/L), confidence, and a 1-3 sentence fix sketch.
 
 Continue until the `--limit` count is reached or the surface is exhausted.
@@ -151,7 +162,8 @@ Tiebreakers: anything that unblocks other recommendations (a verification baseli
 ### 6. Write the report
 
 Write to `.sdlc/codebase-improvements-<TODAY>.md` (repo only).
-Continue the recommendation ID sequence from the previous report. Use the Output Format below.
+Continue the recommendation ID sequence from the previous report.
+Use the Output Format below.
 The report is the deliverable and must work on its own; do not reference the live conversation.
 
 ### 7. Optional issue creation
@@ -164,10 +176,13 @@ Before filing, check repository visibility: if the repository is public, confirm
 ## Flags
 
 - `--focus <area>` restricts the scan to one area (a module path, `api`, `cli`, `ui`, or a category such as `tests`).
-- `--limit N` caps the number of kept recommendations (default `10`). The loop still runs to exhaustion or until N is reached.
+- `--limit N` caps the number of kept recommendations (default `10`).
+  The loop still runs to exhaustion or until N is reached.
 - `--create-issues N` files the top N as GitHub issues (off by default; report-only).
 - `--since <YYYY-MM-DD>` restricts issue dedup and git signal to issues and commits since this date (default: all issues).
-- `--quick` scans hotspots only (recent churn, critical paths). `--deep` sweeps every package. Default is a hotspot-weighted standard pass.
+- `--quick` scans hotspots only (recent churn, critical paths).
+  `--deep` sweeps every package.
+  Default is a hotspot-weighted standard pass.
 
 ## Output Format
 
@@ -242,19 +257,25 @@ status: complete
 ```
 /identify-codebase-improvements
 ```
-Loads all issues with `ghx`, maps the surface, and reads the code. Finds a swallowed exception on the payment path, a duplicated retry helper in three modules, and an untested auth boundary. Two other candidates were dropped because issues already track them. Writes `.sdlc/codebase-improvements-2026-10-02.md` with 3 recommendations. Files nothing.
+Loads all issues with `ghx`, maps the surface, and reads the code.
+Finds a swallowed exception on the payment path, a duplicated retry helper in three modules, and an untested auth boundary.
+Two other candidates were dropped because issues already track them.
+Writes `.sdlc/codebase-improvements-2026-10-02.md` with 3 recommendations.
+Files nothing.
 
 **Scenario 2: Exhaustive deep pass**
 ```
 /identify-codebase-improvements --deep --limit 20
 ```
-Sweeps every package. Discards 14 candidates that match existing issues, keeps 11 untracked high-confidence improvements, and reports that no further untracked candidate remained after the final sweep.
+Sweeps every package.
+Discards 14 candidates that match existing issues, keeps 11 untracked high-confidence improvements, and reports that no further untracked candidate remained after the final sweep.
 
 **Scenario 3: Focused on tests**
 ```
 /identify-codebase-improvements --focus tests
 ```
-Reads only the test surface and critical paths. Surfaces untested money and auth code, and notes that a single valuable candidate was already tracked by issue #88.
+Reads only the test surface and critical paths.
+Surfaces untested money and auth code, and notes that a single valuable candidate was already tracked by issue #88.
 
 **Scenario 4: File the top findings**
 ```

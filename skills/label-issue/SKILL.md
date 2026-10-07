@@ -67,19 +67,25 @@ new labels
 ```
 /label-issue 42
 ```
-Issue describes a crash in the login flow. Applies: `bug`, `authentication`. No new labels needed.
+Issue describes a crash in the login flow.
+Applies: `bug`, `authentication`.
+No new labels needed.
 
 **Scenario 2: Feature request with no matching label**
 ```
 /label-issue 100
 ```
-Issue requests a dark mode toggle. No `ui` or `enhancement` label exists. Applies `feature-request` if available, recommends creating a `ui` label.
+Issue requests a dark mode toggle.
+No `ui` or `enhancement` label exists.
+Applies `feature-request` if available, recommends creating a `ui` label.
 
 **Scenario 3: Duplicate issue**
 ```
 /label-issue 55
 ```
-Issue is a known duplicate. Applies `duplicate` label. Recommends closing with a reference to the original.
+Issue is a known duplicate.
+Applies `duplicate` label.
+Recommends closing with a reference to the original.
 
 ## Useful Commands Reference
 

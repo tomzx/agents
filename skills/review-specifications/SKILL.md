@@ -18,10 +18,14 @@ Audits a technical specification and reports findings across seven categories: a
 
 1. Read the specification from `.sdlc/features/N-<slug>/specification.md` if present, otherwise from context or as a file path.
 2. Cross-reference against the requirements document if available.
-3. Run the deterministic checkers best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Inconsistencies.
+3. Run the deterministic checkers best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available.
+   A tool that is not installed is skipped (never blocks); a validation failure is a blocking finding under Inconsistencies.
 4. Identify issues in each of the six categories below.
-5. Report findings. Omit any category that has no findings.
-6. Write the findings to `.sdlc/features/N-<slug>/review-specification.md` with frontmatter `artifact: specification`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`. Record any unresolved open questions in the findings body. For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
+5. Report findings.
+   Omit any category that has no findings.
+6. Write the findings to `.sdlc/features/N-<slug>/review-specification.md` with frontmatter `artifact: specification`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
+   Record any unresolved open questions in the findings body.
+   For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
 
 ## Review Checklist
 
@@ -110,20 +114,16 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Mismatched schema**
-API contract says `user_id: string` but data model defines `id: uuid`.
+**Scenario 1: Mismatched schema** API contract says `user_id: string` but data model defines `id: uuid`.
 Report under Inconsistencies.
 
-**Scenario 2: Unspecified auth**
-Spec defines endpoints that modify user data but never mentions authentication or authorization rules.
+**Scenario 2: Unspecified auth** Spec defines endpoints that modify user data but never mentions authentication or authorization rules.
 Report under Missing Information.
 
-**Scenario 3: Unnecessary complexity**
-Spec requires a distributed lock for a feature that could use a simple DB transaction.
+**Scenario 3: Unnecessary complexity** Spec requires a distributed lock for a feature that could use a simple DB transaction.
 Report under Implementability.
 
-**Scenario 4: OpenAPI lint failure**
-`spectral lint api.yaml` reports an unresolved `$ref` and an operation without a response.
+**Scenario 4: OpenAPI lint failure** `spectral lint api.yaml` reports an unresolved `$ref` and an operation without a response.
 Report under Inconsistencies: the normative contract does not validate.
 
 ## Next Step

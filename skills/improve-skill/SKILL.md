@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Improve Skill
 
-Inspects one skill end to end, reasons about concrete improvements, and applies them in place. Designed for the Skill Refresher workflow that improves a random skill every day, but also useful when a human points it at a specific skill that seems weak.
+Inspects one skill end to end, reasons about concrete improvements, and applies them in place.
+Designed for the Skill Refresher workflow that improves a random skill every day, but also useful when a human points it at a specific skill that seems weak.
 
 ## Prerequisites
 
@@ -19,7 +20,8 @@ Inspects one skill end to end, reasons about concrete improvements, and applies 
 
 ## What Counts as an Improvement
 
-Keep only improvements that are high-value and low-risk. Prefer concrete, surgical edits over rewrites.
+Keep only improvements that are high-value and low-risk.
+Prefer concrete, surgical edits over rewrites.
 
 | Category | What to Look For |
 |----------|-----------------|
@@ -35,7 +37,8 @@ Keep only improvements that are high-value and low-risk. Prefer concrete, surgic
 
 ## What Counts as Churn (Avoid)
 
-Do not change things for the sake of change. These are not improvements:
+Do not change things for the sake of change.
+These are not improvements:
 
 | Anti-pattern | Why to Avoid |
 |--------------|--------------|
@@ -53,7 +56,8 @@ Do not change things for the sake of change. These are not improvements:
 SKILL=$1
 ```
 
-If `$1` is empty, report the error and stop. Confirm the skill exists:
+If `$1` is empty, report the error and stop.
+Confirm the skill exists:
 
 ```bash
 test -f "skills/$SKILL/SKILL.md" && echo "target: skills/$SKILL"
@@ -61,11 +65,14 @@ test -f "skills/$SKILL/SKILL.md" && echo "target: skills/$SKILL"
 
 ### 2. Understand the skill
 
-Read every file in `skills/$SKILL/`, starting with `SKILL.md`. Read `AGENTS.md` at the repository root for repo conventions (concise, no em-dashes, one sentence per line). Skim one or two neighboring skills under `skills/` to calibrate house style and section conventions.
+Read every file in `skills/$SKILL/`, starting with `SKILL.md`.
+Read `AGENTS.md` at the repository root for repo conventions (concise, no em-dashes, one sentence per line).
+Skim one or two neighboring skills under `skills/` to calibrate house style and section conventions.
 
 ### 3. Reason about improvements
 
-Evaluate the target skill against every category in "What Counts as an Improvement" above. For each candidate improvement, ask:
+Evaluate the target skill against every category in "What Counts as an Improvement" above.
+For each candidate improvement, ask:
 
 1. Does it fix a real problem a reader or the agent would actually hit?
 2. Is it low-risk (small, localized, no new dependencies)?
@@ -73,17 +80,23 @@ Evaluate the target skill against every category in "What Counts as an Improveme
 
 **Audit every CLI call.** Collect each CLI invocation in the skill (bash code blocks, inline backticks, and referenced scripts) and check whether the same result is reachable more efficiently:
 
-- **Another CLI**: does the repo already use a preferred tool for this? Check `AGENTS.md`, neighboring skills, and their `cli:` frontmatter. The repo prefers `ghx` over `gh` for listing, searching, and viewing issues and PRs.
+- **Another CLI**: does the repo already use a preferred tool for this?
+  Check `AGENTS.md`, neighboring skills, and their `cli:` frontmatter.
+  The repo prefers `ghx` over `gh` for listing, searching, and viewing issues and PRs.
 - **Different arguments or options**: does the CLI already expose what the skill reconstructs by hand, such as a `--json` output instead of piping through `jq`, a bulk command instead of a loop, or a `--search`/`--query` flag instead of fetching everything and filtering locally?
 - **Fewer or cached calls**: can several invocations collapse into one command that accepts multiple arguments, or use a cached/batched command instead of repeated single-item fetches?
 
-Adopt a rewrite only when it is at least as correct as the original, clearly simpler or cheaper, and uses a tool the repo already depends on. Leave an already-optimal call alone rather than rewriting for its own sake.
+Adopt a rewrite only when it is at least as correct as the original, clearly simpler or cheaper, and uses a tool the repo already depends on.
+Leave an already-optimal call alone rather than rewriting for its own sake.
 
-Discard anything that fails any of these checks. Prioritize correctness fixes (broken commands, wrong paths) over clarity and style. If no optimization holds up, keep the original call and say so.
+Discard anything that fails any of these checks.
+Prioritize correctness fixes (broken commands, wrong paths) over clarity and style.
+If no optimization holds up, keep the original call and say so.
 
 ### 4. Apply changes
 
-Edit only what passed the checks in Step 3. Follow repo conventions exactly:
+Edit only what passed the checks in Step 3.
+Follow repo conventions exactly:
 - Concise, one sentence per line where applicable
 - No em-dashes, use commas or parentheses instead
 - No comment noise
@@ -91,7 +104,9 @@ Edit only what passed the checks in Step 3. Follow repo conventions exactly:
 
 ### 5. Hard constraint
 
-Modify ONLY files inside `skills/$SKILL/`. Do not create, move, rename, or edit any file outside that directory. Do not change `AGENTS.md`, other skills, workflows, or configuration.
+Modify ONLY files inside `skills/$SKILL/`.
+Do not create, move, rename, or edit any file outside that directory.
+Do not change `AGENTS.md`, other skills, workflows, or configuration.
 
 ### 6. Verify the result
 
@@ -133,13 +148,15 @@ Reads `skills/git-commit/`, finds that the commit message format example uses a 
 ```
 /improve-skill review-tests
 ```
-The workflow picked `review-tests` at random. The skill adds a missing acceptance-checks section and fixes a code block that references a nonexistent script.
+The workflow picked `review-tests` at random.
+The skill adds a missing acceptance-checks section and fixes a code block that references a nonexistent script.
 
 **Scenario 3: No changes needed**
 ```
 /improve-skill find-dead-code
 ```
-After review, the skill is already clear, correct, and complete. Reports "No changes needed" and exits without editing.
+After review, the skill is already clear, correct, and complete.
+Reports "No changes needed" and exits without editing.
 
 **Scenario 4: Optimize a CLI call**
 ```

@@ -6,34 +6,46 @@ argument-hint: "[--yes] [--channel <id|url|name>] [--thread-ts <ts>] <message>"
 
 # Post Slack Message
 
-Posts a message to a Slack channel or as a thread reply using `post_slack_message.py` (Slack Web API `chat.postMessage`). This skill contains the compose-and-confirm flow so it can use the question tool; the script is the send primitive.
+Posts a message to a Slack channel or as a thread reply using `post_slack_message.py` (Slack Web API `chat.postMessage`).
+This skill contains the compose-and-confirm flow so it can use the question tool; the script is the send primitive.
 
 ## Behavior modes
 
-- **Review mode (default):** write the message to a temp file, then use the **question** tool to ask the user to confirm sending the content of that file. Nothing is posted until the user approves.
-- **Immediate mode (`--yes`):** skip the confirmation and post right away. Use this for fully unattended flows (scheduled jobs, automation, or a caller that has already shown the message to the user).
+- **Review mode (default):** write the message to a temp file, then use the **question** tool to ask the user to confirm sending the content of that file.
+  Nothing is posted until the user approves.
+- **Immediate mode (`--yes`):** skip the confirmation and post right away.
+  Use this for fully unattended flows (scheduled jobs, automation, or a caller that has already shown the message to the user).
 
 `--yes` (also `-y`, `--send`, `--auto`) is accepted in any position of the arguments.
 
 ## Prerequisites
 
-- `SLACK_TOKEN` set. A bot token (`xoxb-`) only needs the token; a web/browser token (`xoxc-`) also needs `SLACK_COOKIE` (the `xoxd-` value), the same credentials used by `slack-kb-individual` and `slackx`. Place them in `.env` at the repo root or export them in the environment.
+- `SLACK_TOKEN` set.
+  A bot token (`xoxb-`) only needs the token; a web/browser token (`xoxc-`) also needs `SLACK_COOKIE` (the `xoxd-` value), the same credentials used by `slack-kb-individual` and `slackx`.
+  Place them in `.env` at the repo root or export them in the environment.
 - The target channel: a channel id, a Slack archive URL, or a channel name.
 - Apply the shared communication guidelines in `skills/communication-guidelines/SKILL.md` when composing the message.
 
 ## Inputs
 
-- **channel:** one of `--channel <id>`, `--channel-url <url>`, or `--channel-name <name>` (the name is resolved to an id via `conversations.list`). Exactly one is required.
+- **channel:** one of `--channel <id>`, `--channel-url <url>`, or `--channel-name <name>` (the name is resolved to an id via `conversations.list`).
+  Exactly one is required.
 - **thread_ts:** optional `--thread-ts <ts>` to post as a thread reply; auto-detected when `--channel-url` points at a thread message.
-- **message:** the message body in Slack mrkdwn (`*bold*`, `<@USERID>` mentions, `<https://url|label>` links). Provided as a trailing argument, via `--file <path>`, or via `--stdin`. Exactly one source.
+- **message:** the message body in Slack mrkdwn (`*bold*`, `<@USERID>` mentions, `<https://url|label>` links).
+  Provided as a trailing argument, via `--file <path>`, or via `--stdin`.
+  Exactly one source.
 - **mode:** `--yes` for immediate send; otherwise review mode.
-- **dry-run:** `--dry-run` resolves the channel and shows what would be posted without sending. Use it to pre-validate credentials and targeting.
+- **dry-run:** `--dry-run` resolves the channel and shows what would be posted without sending.
+  Use it to pre-validate credentials and targeting.
 
 ## Steps
 
 ### 1. Resolve inputs
 
-Determine the channel (id/url/name) and the final message text. If the caller passed an explicit message string, use it verbatim. Otherwise compose the message from context, keeping it short and using Slack mrkdwn. Decide whether this is a thread reply (`--thread-ts`).
+Determine the channel (id/url/name) and the final message text.
+If the caller passed an explicit message string, use it verbatim.
+Otherwise compose the message from context, keeping it short and using Slack mrkdwn.
+Decide whether this is a thread reply (`--thread-ts`).
 
 ### 2. Write the message to a temp file
 
@@ -44,15 +56,20 @@ MSG_FILE="/tmp/opencode/post-slack-message-$(date +%Y%m%d-%H%M%S).md"
 # write the message text to $MSG_FILE (use the Write tool, or a heredoc via bash)
 ```
 
-This file is the single source of truth for both review and send. (To check targeting first, you may run a `--dry-run`.)
+This file is the single source of truth for both review and send.
+(To check targeting first, you may run a `--dry-run`.)
 
 ### 3. Branch on mode
 
 #### Review mode (default)
 
-Use the **question** tool to ask the user to confirm sending the content of the temp file. Do not summarize the message from memory; point the user at the file so they review the real content. For example:
+Use the **question** tool to ask the user to confirm sending the content of the temp file.
+Do not summarize the message from memory; point the user at the file so they review the real content.
+For example:
 
-> I've prepared the Slack message in `/tmp/opencode/post-slack-message-<ts>.md`. Please review it. Send it to `<channel>`?
+> I've prepared the Slack message in `/tmp/opencode/post-slack-message-<ts>.md`.
+> Please review it.
+> Send it to `<channel>`?
 
 Options:
 
@@ -61,12 +78,14 @@ Options:
 - **Cancel** - stop without sending.
 
 - On **Send it**: continue to step 4.
-- On **Edit**: apply the edits, rewrite the temp file, and re-ask. Loop until the user sends or cancels.
+- On **Edit**: apply the edits, rewrite the temp file, and re-ask.
+  Loop until the user sends or cancels.
 - On **Cancel**: stop and tell the user nothing was posted.
 
 #### Immediate mode (`--yes`)
 
-Skip the question and go straight to step 4. Only use this when the caller explicitly opted in.
+Skip the question and go straight to step 4.
+Only use this when the caller explicitly opted in.
 
 ### 4. Send the message
 
@@ -83,9 +102,11 @@ uv run post_slack_message.py --channel-url <url> --thread-ts <ts> --file "$MSG_F
 uv run post_slack_message.py --channel-name tom-rochette-updates --file "$MSG_FILE"
 ```
 
-The script prints the posted message's permalink to stdout (and a short status line to stderr). Other skills that delegate here (e.g. start-day, end-day) may call the script directly with a positional message when they have already opted into immediate send.
+The script prints the posted message's permalink to stdout (and a short status line to stderr).
+Other skills that delegate here (e.g. start-day, end-day) may call the script directly with a positional message when they have already opted into immediate send.
 
-If the send fails (missing token, `chat.postMessage` error, rate limit exhausted), show the error from stderr and stop. Do not silently retry; let the user decide.
+If the send fails (missing token, `chat.postMessage` error, rate limit exhausted), show the error from stderr and stop.
+Do not silently retry; let the user decide.
 
 ### 5. Report back
 
@@ -130,7 +151,9 @@ Report the permalink (and the channel, and the thread if applicable) to the user
 
 ## Notes for calling skills
 
-Skills like **start-day** and **end-day** post automated daily updates and already require the `SEND_DAILY_SLACK` opt-in. They may call `post_slack_message.py` directly (immediate send) because the user has pre-approved that flow. Any interactive or one-off post should go through this skill's review mode instead.
+Skills like **start-day** and **end-day** post automated daily updates and already require the `SEND_DAILY_SLACK` opt-in.
+They may call `post_slack_message.py` directly (immediate send) because the user has pre-approved that flow.
+Any interactive or one-off post should go through this skill's review mode instead.
 
 ## Useful commands reference
 

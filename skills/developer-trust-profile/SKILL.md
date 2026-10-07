@@ -7,7 +7,9 @@ argument-hint: "<github_username> [--after-review <owner/repo> <pr_number> <appr
 
 # Developer Trust Profile
 
-Manages per-developer trust profiles that inform PR review behavior. Each profile lives in its own file and accumulates observations across reviews. Call this skill to view a profile, create one from scratch, or update it after a PR review.
+Manages per-developer trust profiles that inform PR review behavior.
+Each profile lives in its own file and accumulates observations across reviews.
+Call this skill to view a profile, create one from scratch, or update it after a PR review.
 
 ## Prerequisites
 
@@ -80,7 +82,9 @@ Parse `$@`:
 
 ### 3. Load existing profile
 
-If `PROFILE_PATH` exists, read it. Extract current trust level, strengths, weaknesses, patterns, and review history. If it does not exist, initialize with defaults (trust level: `neutral`, all sections empty).
+If `PROFILE_PATH` exists, read it.
+Extract current trust level, strengths, weaknesses, patterns, and review history.
+If it does not exist, initialize with defaults (trust level: `neutral`, all sections empty).
 
 ### 4a. View mode (no `--after-review`)
 
@@ -188,25 +192,29 @@ _Last updated: {ISO_DATE}_
 ```
 /developer-trust-profile alice
 ```
-Reads `~/.developer-trust/alice.md` and prints a summary. If no profile exists, reports that alice has no profile yet.
+Reads `~/.developer-trust/alice.md` and prints a summary.
+If no profile exists, reports that alice has no profile yet.
 
 **Scenario 2: Create a profile from scratch via first review**
 ```
 /developer-trust-profile bob --after-review acme/api 42 approved
 ```
-No existing profile for bob. Fetches PR #42, synthesizes initial observations, creates a new profile with trust level `neutral` and the first review history entry.
+No existing profile for bob.
+Fetches PR #42, synthesizes initial observations, creates a new profile with trust level `neutral` and the first review history entry.
 
 **Scenario 3: Update an existing profile**
 ```
 /developer-trust-profile alice --after-review acme/api 55 not_approved
 ```
-Loads alice's profile, fetches PR #55 diff, merges new observations, appends review history row. Reconsiders trust level if patterns suggest a change is warranted.
+Loads alice's profile, fetches PR #55 diff, merges new observations, appends review history row.
+Reconsiders trust level if patterns suggest a change is warranted.
 
 **Scenario 4: Developer with persistent issues**
 ```
 /developer-trust-profile carol --after-review acme/api 88 not_approved
 ```
-Carol's profile shows 4 consecutive non-approvals, all due to missing tests. Updates trust level to `cautious` with reason "Consistently submits PRs without adequate test coverage despite prior feedback."
+Carol's profile shows 4 consecutive non-approvals, all due to missing tests.
+Updates trust level to `cautious` with reason "Consistently submits PRs without adequate test coverage despite prior feedback."
 
 ## Useful Commands Reference
 

@@ -47,7 +47,8 @@ Also capture per-file insertion/deletion totals to measure change volume:
 git log --since="<period>" --numstat --pretty=format: | awk 'NF==3 {add[$3]+=$1; del[$3]+=$2; commits[$3]++} END {for (f in commits) printf "%d\t%d\t%d\t%s\n", commits[f], add[f], del[f], f}' | sort -rn | head -30
 ```
 
-Exclude files that no longer exist (deleted files are noise). For each candidate path, confirm it still exists:
+Exclude files that no longer exist (deleted files are noise).
+For each candidate path, confirm it still exists:
 
 ```
 git ls-files --error-unmatch <path> 2>/dev/null
@@ -61,7 +62,8 @@ Build a ranked table using the commit-count as the primary sort key:
 |------|------|---------|-------------|---------------|-----|
 | 1    | …    | N       | +X          | −Y            | Z   |
 
-Focus the analysis on the **top 10** files. If fewer than 3 files show more than 1 commit, widen the period automatically and note the change.
+Focus the analysis on the **top 10** files.
+If fewer than 3 files show more than 1 commit, widen the period automatically and note the change.
 
 ### 4. Inspect Each High-Churn File
 
@@ -79,7 +81,8 @@ For each of the top files:
 
 ### 5. Generate Improvement Suggestions
 
-For each high-churn file, produce a focused set of suggestions drawn from the categories below. Only include categories that genuinely apply — do not pad with generic advice.
+For each high-churn file, produce a focused set of suggestions drawn from the categories below.
+Only include categories that genuinely apply — do not pad with generic advice.
 
 #### Suggestion Categories
 
@@ -182,7 +185,9 @@ Suggest a concrete order of operations for addressing the findings.
 ```
 /analyze-git-churn
 ```
-Analyzes the past week. Finds `src/api/routes.py` (12 commits) and `src/db/queries.py` (9 commits) as top churners. Suggests splitting the 800-line routes file and replacing a custom connection-retry loop with `tenacity`.
+Analyzes the past week.
+Finds `src/api/routes.py` (12 commits) and `src/db/queries.py` (9 commits) as top churners.
+Suggests splitting the 800-line routes file and replacing a custom connection-retry loop with `tenacity`.
 
 **Scenario 2: Monthly view**
 ```
@@ -194,7 +199,8 @@ Identifies a test helper that has been patched 20 times over the month, recommen
 ```
 /analyze-git-churn day
 ```
-Three files changed today. One config file was touched 4 times — suggests consolidating environment-specific overrides into a single `settings.py` with `pydantic-settings`.
+Three files changed today.
+One config file was touched 4 times — suggests consolidating environment-specific overrides into a single `settings.py` with `pydantic-settings`.
 
 ## Useful Commands Reference
 

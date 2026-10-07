@@ -3,14 +3,7 @@ name: end-of-month-summary
 description: Summarize monthly GitHub activity, Slack activity, colleague activity, and generate a monthly highlights report.
 ---
 
-BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR`
-TODAY=!`date +%Y-%m-%d`
-YEAR=!`date +%Y`
-MONTH=!`date +%m`
-MONTH_NAME=!`date +%B`
-MONTH_START=!`date -d "$(date +%Y-%m-01)" +%Y-%m-%d`
-MONTH_START_MINUS_ONE=!`date -d "$MONTH_START - 1 day" +%Y-%m-%d`
-NEXT_MONTH_START=!`date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d`
+BASE_DIR=!`~/.agents/scripts/get-env NOTES_DIR` TODAY=!`date +%Y-%m-%d` YEAR=!`date +%Y` MONTH=!`date +%m` MONTH_NAME=!`date +%B` MONTH_START=!`date -d "$(date +%Y-%m-01)" +%Y-%m-%d` MONTH_START_MINUS_ONE=!`date -d "$MONTH_START - 1 day" +%Y-%m-%d` NEXT_MONTH_START=!`date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d`
 
 # Generate End-of-Month Summary
 
@@ -50,7 +43,8 @@ Write output to `{BASE_DIR}/{YEAR}/{MONTH}/github.md`.
 
 ### 2. Summarize Personal Slack Activity
 
-Summarize `.slack.md` files in `{BASE_DIR}/{YEAR}/{MONTH}/` from the month ending {TODAY}. Write to `{BASE_DIR}/{YEAR}/{MONTH}/slack.md`:
+Summarize `.slack.md` files in `{BASE_DIR}/{YEAR}/{MONTH}/` from the month ending {TODAY}.
+Write to `{BASE_DIR}/{YEAR}/{MONTH}/slack.md`:
 
 ```markdown
 # Summary
@@ -104,7 +98,8 @@ Resolve the colleagues list:
 ~/.agents/scripts/get-env COLLEAGUES
 ```
 
-For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`. Slack's `after:` is exclusive, so pass the day before `MONTH_START` as `--after` and `NEXT_MONTH_START` as `--before`:
+For each person in the list, run as a subagent in parallel using `collect_individual_threads.py`.
+Slack's `after:` is exclusive, so pass the day before `MONTH_START` as `--after` and `NEXT_MONTH_START` as `--before`:
 
 ```bash
 uv run skills/slack-kb-individual/collect_individual_threads.py \
@@ -119,11 +114,13 @@ Aggregate into `{BASE_DIR}/{YEAR}/{MONTH}/slack.colleagues.md`.
 
 ### 5. Summarize Action Items
 
-Review all notes from the month in `{BASE_DIR}/{YEAR}/{MONTH}/` and extract pending action items. Write to `{BASE_DIR}/{YEAR}/{MONTH}/action-items.md`.
+Review all notes from the month in `{BASE_DIR}/{YEAR}/{MONTH}/` and extract pending action items.
+Write to `{BASE_DIR}/{YEAR}/{MONTH}/action-items.md`.
 
 ### 6. Summarize Thanks
 
-Compile thanks from the month's notes and Slack activity. Write to `{BASE_DIR}/{YEAR}/{MONTH}/thanks.md`.
+Compile thanks from the month's notes and Slack activity.
+Write to `{BASE_DIR}/{YEAR}/{MONTH}/thanks.md`.
 
 ## Example Usage
 
@@ -131,13 +128,13 @@ Compile thanks from the month's notes and Slack activity. Write to `{BASE_DIR}/{
 ```
 /end-of-month-summary
 ```
-Processes {MONTH_NAME} {YEAR}. Creates `{NOTES_DIR}/{YEAR}/{MONTH}/` with all output files.
+Processes {MONTH_NAME} {YEAR}.
+Creates `{NOTES_DIR}/{YEAR}/{MONTH}/` with all output files.
 
-**Scenario 2: Multiple colleagues**
-With 4 colleagues in `COLLEAGUES`, 4 subagents run in parallel to fetch their Slack activity, then results are merged into `slack.colleagues.md`.
+**Scenario 2: Multiple colleagues** With 4 colleagues in `COLLEAGUES`, 4 subagents run in parallel to fetch their Slack activity, then results are merged into `slack.colleagues.md`.
 
-**Scenario 3: Quiet month**
-Few GitHub events and minimal Slack. Summaries are brief; `action-items.md` notes "No outstanding action items."
+**Scenario 3: Quiet month** Few GitHub events and minimal Slack.
+Summaries are brief; `action-items.md` notes "No outstanding action items."
 
 ## Useful Commands Reference
 

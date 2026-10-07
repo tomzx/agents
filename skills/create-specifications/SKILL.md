@@ -21,30 +21,40 @@ Produces a detailed technical specification from a requirements document, coveri
 1. Read and understand the requirements document, the existing solutions survey if present, and the codebase analysis if present.
 2. Identify the major components and their responsibilities.
 3. Define data models: entities, attributes, and relationships.
-4. Specify API contracts: endpoints, request/response schemas, and error codes. When the feature defines an API surface, write the normative contract to `.sdlc/features/N-<slug>/api.yaml` (OpenAPI 3, template at `skills/sdlc/templates/features/api.yaml`) and keep only a summary table in `specification.md`, so the contract is lintable and diffable instead of prose.
-5. Describe key sequences as Mermaid `sequenceDiagram` blocks (one per flow): user flows, system interactions, and async processes. A message with no receiver makes a missing step obvious before code exists.
+4. Specify API contracts: endpoints, request/response schemas, and error codes.
+   When the feature defines an API surface, write the normative contract to `.sdlc/features/N-<slug>/api.yaml` (OpenAPI 3, template at `skills/sdlc/templates/features/api.yaml`) and keep only a summary table in `specification.md`, so the contract is lintable and diffable instead of prose.
+5. Describe key sequences as Mermaid `sequenceDiagram` blocks (one per flow): user flows, system interactions, and async processes.
+   A message with no receiver makes a missing step obvious before code exists.
 6. Document technical decisions and their rationale.
 7. Identify risks, unknowns, and deferred decisions.
 8. Design data models, API contracts, and persisted state for evolution so future versions stay forward compatible (see Forward Compatibility below).
-9. Validate best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint api.yaml` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available. A missing tool is not a failure; skip and note it. A validation failure is a defect to fix before handoff.
+9. Validate best-effort: lint `api.yaml` with `npx -y @stoplight/spectral-cli lint api.yaml` and render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available.
+   A missing tool is not a failure; skip and note it.
+   A validation failure is a defect to fix before handoff.
 10. Write the output to `.sdlc/features/N-<slug>/specification.md` (plus `api.yaml` when the feature has an API surface).
 
 ## Forward Compatibility
 
-A forward-compatible design keeps working as the system evolves without forcing coordinated upgrades on every consumer. When specifying data models and API contracts, ensure they can grow additively:
+A forward-compatible design keeps working as the system evolves without forcing coordinated upgrades on every consumer.
+When specifying data models and API contracts, ensure they can grow additively:
 
-- Tolerate unknown fields: consumers must ignore (or preserve) fields they do not recognize rather than rejecting the payload. Specify this explicitly for every schema.
-- Handle unknown enum values gracefully: closed enums that throw on unseen values block future additions. Prefer open enums, or require consumers to fail soft on unknown values.
-- Prefer additive changes: new optional fields, new endpoints, and new values are safe; removing, renaming, or repurposing existing ones is not. Call out which elements are part of the stable surface versus open to change.
+- Tolerate unknown fields: consumers must ignore (or preserve) fields they do not recognize rather than rejecting the payload.
+  Specify this explicitly for every schema.
+- Handle unknown enum values gracefully: closed enums that throw on unseen values block future additions.
+  Prefer open enums, or require consumers to fail soft on unknown values.
+- Prefer additive changes: new optional fields, new endpoints, and new values are safe; removing, renaming, or repurposing existing ones is not.
+  Call out which elements are part of the stable surface versus open to change.
 - Version the contract: include a schema/API version field where practical, and state the compatibility policy (e.g., additive-only within a major version).
 - Reserve extension points for known likely future change (reserved field numbers, extension columns, feature flags) rather than assuming that the current design is final.
 - Avoid positional coupling and fixed-set assumptions that would make a future addition a breaking change.
 
 ## Output Format
 
-Use the template at `skills/sdlc/templates/features/specification.md` (copied to `.sdlc/templates/features/specification.md` by `/initialize-sdlc-directory`; use the project's customized copy if present). Write the result to the artifact path named in the steps above.
+Use the template at `skills/sdlc/templates/features/specification.md` (copied to `.sdlc/templates/features/specification.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
+Write the result to the artifact path named in the steps above.
 
-When the feature has an API surface, also write `.sdlc/features/N-<slug>/api.yaml` from the template at `skills/sdlc/templates/features/api.yaml` (OpenAPI 3). The summary table in `specification.md` and `api.yaml` must agree; `api.yaml` is normative when they drift.
+When the feature has an API surface, also write `.sdlc/features/N-<slug>/api.yaml` from the template at `skills/sdlc/templates/features/api.yaml` (OpenAPI 3).
+The summary table in `specification.md` and `api.yaml` must agree; `api.yaml` is normative when they drift.
 
 Sequences use Mermaid `sequenceDiagram` blocks, for example:
 
@@ -67,12 +77,10 @@ In the same emission, list every file you produced under `artifacts:` (`.sdlc/fe
 
 ## Example Usage
 
-**Scenario 1: Feature with an API and database**
-Requirements describe a password reset flow.
+**Scenario 1: Feature with an API and database** Requirements describe a password reset flow.
 Spec defines the `password_reset_tokens` table, `POST /auth/reset-password` endpoint, token expiry sequence, and email dispatch contract.
 
-**Scenario 2: Background job**
-Requirements ask for async processing.
+**Scenario 2: Background job** Requirements ask for async processing.
 Spec defines the job queue schema, worker interface, retry policy, and failure alerting sequence.
 
 ## Completion Checklist

@@ -21,8 +21,10 @@ This review checks both.
 1. Read the charter from `teams/<team-slug>/charter.md` if present, otherwise from context or as a file path.
 2. Read adjacent charters and the org mission when available.
 3. Identify issues in each category below.
-4. Report findings using the output format. Omit any category with no findings.
-5. Write the findings to `teams/<team-slug>/review-charter.md` with frontmatter `artifact: team-charter`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body. Record any unresolved open questions in the findings body.
+4. Report findings using the output format.
+   Omit any category with no findings.
+5. Write the findings to `teams/<team-slug>/review-charter.md` with frontmatter `artifact: team-charter`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body.
+   Record any unresolved open questions in the findings body.
 6. On `approved`, also update the charter's frontmatter: set `status: approved` and `last_reviewed: <ISO date>`.
 
 ## Review Checklist
@@ -120,21 +122,13 @@ In the same emission, list the findings file under `artifacts:` (`teams/<team-sl
 
 ## Example Usage
 
-**Scenario 1: Purpose is a task list**
-Purpose reads "We write the payments service and run its CI."
-🔴 MUST rewrite as the outcome owned, for example "Own reliable money movement for the product."
+**Scenario 1: Purpose is a task list** Purpose reads "We write the payments service and run its CI." 🔴 MUST rewrite as the outcome owned, for example "Own reliable money movement for the product."
 
-**Scenario 2: Missing Non-responsibilities**
-The charter lists only what the team owns, and a neighboring team also changes checkout code.
-🟡 SHOULD add a Non-responsibilities entry naming what the other team owns, or an Open Question if undecided.
+**Scenario 2: Missing Non-responsibilities** The charter lists only what the team owns, and a neighboring team also changes checkout code. 🟡 SHOULD add a Non-responsibilities entry naming what the other team owns, or an Open Question if undecided.
 
-**Scenario 3: Activity metric**
-Success Metrics lists "number of deploys".
-🟡 SHOULD pair it with an outcome (change failure rate, time to restore) or replace it.
+**Scenario 3: Activity metric** Success Metrics lists "number of deploys". 🟡 SHOULD pair it with an outcome (change failure rate, time to restore) or replace it.
 
-**Scenario 4: Unratifiable length**
-The charter runs 20 pages with a full task inventory.
-🟡 SHOULD cut it to a single-sitting read, moving detail to linked docs.
+**Scenario 4: Unratifiable length** The charter runs 20 pages with a full task inventory. 🟡 SHOULD cut it to a single-sitting read, moving detail to linked docs.
 
 ## Next Step
 

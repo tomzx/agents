@@ -9,7 +9,8 @@ TODAY=!`date +%Y-%m-%d`
 
 # Onboard Repository
 
-Runs a one-time onboarding sequence that brings a repository up to the standard practices encoded in this skill library. The sequence bootstraps the SDLC structure, configures automated issue triaging, generates a README if needed, runs diagnostic skills, creates prioritized issues from findings, and triages any existing backlog.
+Runs a one-time onboarding sequence that brings a repository up to the standard practices encoded in this skill library.
+The sequence bootstraps the SDLC structure, configures automated issue triaging, generates a README if needed, runs diagnostic skills, creates prioritized issues from findings, and triages any existing backlog.
 
 ## Prerequisites
 
@@ -188,7 +189,8 @@ For each finding from Phase 4 that is rated **Critical** or **High** priority:
 
 2. Apply a label indicating the finding source (e.g., `area:maintenance`, `security`, `tech-debt`).
 
-For **Medium** and **Low** priority findings, batch them into a single summary issue titled "Repository health: medium/low priority findings" with a checklist of all items. Create this issue using `/create-issue` so it includes the **Created with** attribution footer per `github-post-attribution/SKILL.md`.
+For **Medium** and **Low** priority findings, batch them into a single summary issue titled "Repository health: medium/low priority findings" with a checklist of all items.
+Create this issue using `/create-issue` so it includes the **Created with** attribution footer per `github-post-attribution/SKILL.md`.
 This keeps the backlog clean while preserving the findings.
 
 Skip this phase if no GitHub remote is configured.
@@ -276,10 +278,14 @@ Same as above but targets the specified project root.
 ```
 /onboard-repository
 ```
-Project has no GitHub remote. Skips triage workflow creation, issue creation, and backlog triage. Completes SDLC bootstrap, health assessment, and README generation. Reports the skipped phases.
+Project has no GitHub remote.
+Skips triage workflow creation, issue creation, and backlog triage.
+Completes SDLC bootstrap, health assessment, and README generation.
+Reports the skipped phases.
 
 **Scenario 4: Re-onboard an existing project**
 ```
 /onboard-repository
 ```
-Project already has `.sdlc/` and a triage workflow. Reports what exists, runs the health assessment fresh, and only creates issues for new findings not already tracked.
+Project already has `.sdlc/` and a triage workflow.
+Reports what exists, runs the health assessment fresh, and only creates issues for new findings not already tracked.

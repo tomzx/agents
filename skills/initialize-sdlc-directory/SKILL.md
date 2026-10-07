@@ -19,13 +19,16 @@ Files that already exist are never overwritten — this is safe to run on a proj
 
 1. Determine the project root: use `$1` if provided, otherwise use the current working directory.
 
-2. **Resolve the SDLC write location** per `sdlc/references/shared.md`: default `<project-root>/.sdlc/`; if it cannot be created and `SDLC_DIR` is set, use `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror created files to the external store when set. Record which location was used in the report.
+2. **Resolve the SDLC write location** per `sdlc/references/shared.md`: default `<project-root>/.sdlc/`; if it cannot be created and `SDLC_DIR` is set, use `$SDLC_DIR/{owner}/{repository}/.sdlc/`; mirror created files to the external store when set.
+   Record which location was used in the report.
 
-3. **Pre-approve the external SDLC stores in the agent CLI.** Most harnesses prompt before reading or writing outside the workspace; grant read/write for `~/.sdlc/**` and `/tmp/sdlc/**` up front. Detect which config(s) exist and add only missing entries, preserving all other fields:
+3. **Pre-approve the external SDLC stores in the agent CLI.** Most harnesses prompt before reading or writing outside the workspace; grant read/write for `~/.sdlc/**` and `/tmp/sdlc/**` up front.
+   Detect which config(s) exist and add only missing entries, preserving all other fields:
 
    - **opencode** (`~/.config/opencode/opencode.json`): set `permission.external_directory` entries `"~/.sdlc/**": "allow"` and `"/tmp/sdlc/**": "allow"`.
 
-   For any other harness, add the equivalent entry following its own schema. Record what was created, updated, or skipped (already present), and remind the user to restart their CLI.
+For any other harness, add the equivalent entry following its own schema.
+Record what was created, updated, or skipped (already present), and remind the user to restart their CLI.
 
 4. For each directory below, create it (under the resolved write location) if it does not already exist:
    ```
@@ -50,9 +53,14 @@ Files that already exist are never overwritten — this is safe to run on a proj
    # Per-feature progress tracking and session logs
    features/*/progress.md
    ```
-   `state.yml` (the orchestrator run state) and each feature's `progress.md` (progress tracking + session log) are regenerated per machine and per run, so they must never be committed or included in PRs. The `features/*/progress.md` pattern ignores only the per-feature files, not the template at `templates/features/progress.md`. Only the repo's `.sdlc/.gitignore` is meaningful; do not create a `.gitignore` under the `SDLC_DIR` mirror.
+   `state.yml` (the orchestrator run state) and each feature's `progress.md` (progress tracking + session log) are regenerated per machine and per run, so they must never be committed or included in PRs.
+   The `features/*/progress.md` pattern ignores only the per-feature files, not the template at `templates/features/progress.md`.
+   Only the repo's `.sdlc/.gitignore` is meaningful; do not create a `.gitignore` under the `SDLC_DIR` mirror.
 
-5. Ensure the project root `.gitignore` excludes `status-report.html`, the generated output of `/sdlc-status`. Read the project root `.gitignore` if it exists; append `status-report.html` on its own line if the entry is missing. If the file does not exist, create it with that single entry. This file is regenerated on every status run and must never be committed.
+5. Ensure the project root `.gitignore` excludes `status-report.html`, the generated output of `/sdlc-status`.
+   Read the project root `.gitignore` if it exists; append `status-report.html` on its own line if the entry is missing.
+   If the file does not exist, create it with that single entry.
+   This file is regenerated on every status run and must never be committed.
 
 6. For each canonical template file (read from `../sdlc/templates/` relative to this skill), copy it to the corresponding path under `.sdlc/templates/` — **only if the destination file does not already exist**:
 
@@ -92,9 +100,13 @@ Files that already exist are never overwritten — this is safe to run on a proj
    - `vocabulary.md`
    - `infrastructure.md`
 
-8. **Write the SDLC anchor** to the repo's primary agent-instruction file, per `sdlc/references/shared.md` (AGENTS.md SDLC anchor). This injects a short, marker-delimited `## SDLC` section into `AGENTS.md` (creating `AGENTS.md` if it doesn't exist) so future agent sessions know `.sdlc/` exists and where to find context. The block is idempotent: create it if absent, replace its delimited content if the markers already exist, and never touch content outside the markers. Note the target file and whether it was created, updated, or skipped (read-only) in the report.
+8. **Write the SDLC anchor** to the repo's primary agent-instruction file, per `sdlc/references/shared.md` (AGENTS.md SDLC anchor).
+   This injects a short, marker-delimited `## SDLC` section into `AGENTS.md` (creating `AGENTS.md` if it doesn't exist) so future agent sessions know `.sdlc/` exists and where to find context.
+   The block is idempotent: create it if absent, replace its delimited content if the markers already exist, and never touch content outside the markers.
+   Note the target file and whether it was created, updated, or skipped (read-only) in the report.
 
-9. Report what was created and what was skipped (already existed). When `SDLC_DIR` is set, the report notes whether each path was written to the repo, the mirror, or both.
+9. Report what was created and what was skipped (already existed).
+   When `SDLC_DIR` is set, the report notes whether each path was written to the repo, the mirror, or both.
 
 ## Output Format
 
@@ -133,10 +145,13 @@ Next steps:
 ```
 /initialize-sdlc-directory
 ```
-Creates all directories and templates from scratch. All context files are created as stubs. Writes the SDLC anchor into `AGENTS.md` (creating it if absent).
+Creates all directories and templates from scratch.
+All context files are created as stubs.
+Writes the SDLC anchor into `AGENTS.md` (creating it if absent).
 
 **Scenario 2: Existing project with partial structure**
 ```
 /initialize-sdlc-directory /path/to/project
 ```
-Creates only the missing directories and files. Existing files are untouched.
+Creates only the missing directories and files.
+Existing files are untouched.

@@ -150,11 +150,8 @@ If the architecture context files describe subsystems that are not covered by th
    ```
    gh label list --repo <repo> --limit 200 --json name,color,description
    ```
-3. Discover area labels using the Area Discovery process:
-   a. Read `.sdlc/context/architecture.md` and `.sdlc/context/project-overview.md` for named subsystems.
-   b. List top-level and second-level directories to identify module boundaries.
-   c. Include any existing `area:*` or `component:*` labels already in the repo.
-   d. Map findings to `area:*` labels. Only create labels that correspond to real subsystems in the project.
+3. Discover area labels using the Area Discovery process: a. Read `.sdlc/context/architecture.md` and `.sdlc/context/project-overview.md` for named subsystems. b. List top-level and second-level directories to identify module boundaries. c. Include any existing `area:*` or `component:*` labels already in the repo. d. Map findings to `area:*` labels.
+   Only create labels that correspond to real subsystems in the project.
 4. Compute the desired label set:
    - Type, priority, triage state, and severity labels are always included (standard set).
    - Area labels come from step 3.
@@ -208,7 +205,8 @@ If the architecture context files describe subsystems that are not covered by th
 ```
 /configure-labels owner/myrepo
 ```
-Creates the full standard label set. Reports all labels as created.
+Creates the full standard label set.
+Reports all labels as created.
 
 **Scenario 2: Existing repository with partial labels**
 ```
@@ -222,7 +220,8 @@ Creates missing labels (area, platform, priority, triage state) and updates exis
 /configure-labels owner/myrepo
 ```
 Project has added `architecture.md` describing a `storage` subsystem.
-Creates the missing `area:storage` label. All other labels are unchanged.
+Creates the missing `area:storage` label.
+All other labels are unchanged.
 
 ## Useful Commands Reference
 

@@ -7,17 +7,21 @@ argument-hint: "[<slug>] [url]"
 
 # Record Web UI Demo (Playwright)
 
-Drive a real browser with Playwright to capture visual proof of a web UI change: screenshots at one or more viewports (desktop, mobile, etc.) and, optionally, a short video clip. Returns the asset paths so they can be embedded inline in a GitHub PR or comment.
+Drive a real browser with Playwright to capture visual proof of a web UI change: screenshots at one or more viewports (desktop, mobile, etc.) and, optionally, a short video clip.
+Returns the asset paths so they can be embedded inline in a GitHub PR or comment.
 
-This is the recording primitive for web UI changes. For CLI changes, use `/record-asciinema`.
+This is the recording primitive for web UI changes.
+For CLI changes, use `/record-asciinema`.
 
 ## Prerequisites
 
 - Playwright available one of:
   - `npx playwright` (Node project with `@playwright/test`, or installed globally)
   - `uv run playwright` / `python -m playwright` (Python project with `playwright`)
-- Chromium browser installed for Playwright (`npx playwright install chromium`, or `playwright install chromium`). The skill installs it if missing.
-- A reachable target URL. Either the caller provides one that is already running, or provides a server command the skill starts and tears down.
+- Chromium browser installed for Playwright (`npx playwright install chromium`, or `playwright install chromium`).
+  The skill installs it if missing.
+- A reachable target URL.
+  Either the caller provides one that is already running, or provides a server command the skill starts and tears down.
 
 ## Inputs
 
@@ -101,7 +105,8 @@ If no server command is given, verify the URL is already reachable:
 curl -sf "$RECORD_URL" >/dev/null 2>&1 || { echo "URL not reachable: $RECORD_URL"; exit 0; }
 ```
 
-If unreachable and no server command was provided, stop and signal the caller. Do not error out.
+If unreachable and no server command was provided, stop and signal the caller.
+Do not error out.
 
 ### 3. Ensure Playwright is available
 
@@ -129,7 +134,8 @@ $PW install chromium >/dev/null 2>&1 || true
 
 ### 4. Write the capture script
 
-Write a self-contained Playwright script to `$RECORD_DIR/capture-${RECORD_SLUG}.mjs` (Node) or `.py` (Python). Translate `$RECORD_SCENARIO` into concrete Playwright actions (clicks, navigation, form fills) before capture.
+Write a self-contained Playwright script to `$RECORD_DIR/capture-${RECORD_SLUG}.mjs` (Node) or `.py` (Python).
+Translate `$RECORD_SCENARIO` into concrete Playwright actions (clicks, navigation, form fills) before capture.
 
 Node template (`capture.mjs`):
 

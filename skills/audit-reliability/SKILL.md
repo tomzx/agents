@@ -9,9 +9,11 @@ TODAY=!`date +%Y-%m-%d`
 
 # Reliability Audit (ISO/IEC 25010)
 
-Audits the codebase for **reliability**: how the system behaves when components fail, and how it recovers. It finds statically detectable design weaknesses that cause outages and data loss.
+Audits the codebase for **reliability**: how the system behaves when components fail, and how it recovers.
+It finds statically detectable design weaknesses that cause outages and data loss.
 
-This is the **Reliability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model. Distinct from `observe-production` (is it failing right now?) and `audit-observability` (is failure instrumented?), this asks: is the system *designed* to tolerate and recover from failure?
+This is the **Reliability** characteristic of the [ISO/IEC 25010](https://en.wikipedia.org/wiki/ISO/IEC_25010) quality model.
+Distinct from `observe-production` (is it failing right now?) and `audit-observability` (is failure instrumented?), this asks: is the system *designed* to tolerate and recover from failure?
 
 ## Prerequisites
 
@@ -94,15 +96,21 @@ Cache treated as source of truth (reads from cache with no fallback/repopulate o
 
 ### 6. Cascading-failure risks
 
-Synchronous chains across services/deps with no bulkhead; shared thread/connection pools sized for one tenant; in-process caches without bounds (a full cache that OOMs one instance OOMs all). Coordinate with `audit-performance-efficiency` (unbounded growth) and `audit-security` (DoS) to dedup.
+Synchronous chains across services/deps with no bulkhead; shared thread/connection pools sized for one tenant; in-process caches without bounds (a full cache that OOMs one instance OOMs all).
+Coordinate with `audit-performance-efficiency` (unbounded growth) and `audit-security` (DoS) to dedup.
 
 ### 7. Confirm the decisive findings
 
-Pick the critical or high findings that decide the report. Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)). Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind. Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path. When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
+Pick the critical or high findings that decide the report.
+Run the one or two you can: write a scratch script or test under `/tmp` that calls the code, run it, and paste the output, reaching `L3 - Executed` (see [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md)).
+Never write scratch files into the repository; this audit is read-only and leaves no artifacts behind.
+Label every other finding with its level and pointer: `L1 - Cited` for a `file:line`, or `L2 - Ruled out` for a walked failure path.
+When a decisive finding cannot be executed, mark it `unproven` and state what runtime evidence it needed and why that was infeasible.
 
 ### 8. Report
 
-Classify by severity and print. Do not modify files.
+Classify by severity and print.
+Do not modify files.
 
 ## Severity
 

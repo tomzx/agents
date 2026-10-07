@@ -11,12 +11,14 @@ Reads a GitHub Project (V2) and selects the next issue to work on by intersectin
 1. A **priority view** (board or table grouped or sorted by priority), which ranks issues by priority.
 2. A **roadmap view** (timeline grouped by an iteration or date field), which confirms the work is scheduled.
 
-The selected issue is the highest-priority open issue that is also scheduled (planned) in the roadmap. This avoids working on high-priority-but-unplanned items and on planned-but-low-priority items.
+The selected issue is the highest-priority open issue that is also scheduled (planned) in the roadmap.
+This avoids working on high-priority-but-unplanned items and on planned-but-low-priority items.
 
 ## Prerequisites
 
 - `gh` CLI authenticated with read access to the project and its linked repositories
-- The `gh` token must have the `read:project` scope (project fields and items require it). Refresh with `gh auth refresh -s read:project` if queries return `INSUFFICIENT_SCOPES`
+- The `gh` token must have the `read:project` scope (project fields and items require it).
+  Refresh with `gh auth refresh -s read:project` if queries return `INSUFFICIENT_SCOPES`
 - A GitHub Project (V2) that has a priority view and a roadmap view
 - Project in `owner/number` format (`$1`), or omit to use `GITHUB_PROJECT` from `.env`
 - Priority view name (`$2`), or omit to use `PRIORITY_VIEW` from `.env`, defaulting to `Priority`
@@ -57,7 +59,8 @@ Select top candidate -> recommendation
 
 ## Priority ordering
 
-The priority order is the **order of options defined on the priority single-select field**, matching the columns shown in the priority view. The first option is the highest priority.
+The priority order is the **order of options defined on the priority single-select field**, matching the columns shown in the priority view.
+The first option is the highest priority.
 
 If the option order cannot be read from the field, use name-based ranking instead:
 
@@ -72,8 +75,10 @@ If the option order cannot be read from the field, use name-based ranking instea
 
 A candidate is "planned" when its roadmap field value is scheduled for now or soon:
 
-- **Iteration field**: assigned to the current iteration (whose range contains today) or a future iteration. Items in completed iterations, or unassigned, are not planned.
-- **Date field** (start, end, or due): the date falls within today through a near-term window (default: next 4 weeks). Unset dates are not planned.
+- **Iteration field**: assigned to the current iteration (whose range contains today) or a future iteration.
+  Items in completed iterations, or unassigned, are not planned.
+- **Date field** (start, end, or due): the date falls within today through a near-term window (default: next 4 weeks).
+  Unset dates are not planned.
 
 If the project has no detectable roadmap field, treat all items as planned, rank by priority alone, and note that no roadmap constraint was applied.
 
@@ -87,11 +92,13 @@ PRIORITY_VIEW="${2:-$(~/.agents/scripts/get-env PRIORITY_VIEW)}"; PRIORITY_VIEW=
 ROADMAP_VIEW="${3:-$(~/.agents/scripts/get-env ROADMAP_VIEW)}"; ROADMAP_VIEW="${ROADMAP_VIEW:-Roadmap}"
 ```
 
-Split `PROJECT` into `OWNER` and `NUMBER` on the `/`. If `PROJECT` is empty, stop and ask the user to pass `owner/number`.
+Split `PROJECT` into `OWNER` and `NUMBER` on the `/`.
+If `PROJECT` is empty, stop and ask the user to pass `owner/number`.
 
 ### 2. Fetch the project in one query
 
-Pull fields, views, and items together. `repositoryOwner` works for both user and organization owners:
+Pull fields, views, and items together.
+`repositoryOwner` works for both user and organization owners:
 
 ```
 gh api graphql -f query='query($owner: String!, $number: Int!) {
@@ -138,7 +145,9 @@ For projects with more than 100 items, paginate the `items` connection with the 
 
 ### 3. Identify the priority field
 
-Primary: find a single-select field whose name matches `/priority/i` (for example, `Priority`, `Prio`). Store its option list in the order returned, since the first option is the highest priority. If several match, prefer the one whose options look like priority levels (urgent, high, medium, low, p0-p3).
+Primary: find a single-select field whose name matches `/priority/i` (for example, `Priority`, `Prio`).
+Store its option list in the order returned, since the first option is the highest priority.
+If several match, prefer the one whose options look like priority levels (urgent, high, medium, low, p0-p3).
 
 If the priority view exists in the fetched views but no priority field matches by name, list the single-select fields found and ask the user which one ranks priority.
 
@@ -155,18 +164,21 @@ Store its iteration configuration (start dates and durations) so a candidate's s
 
 For each project item whose `content` is an `Issue`:
 
-- Skip closed issues (`state` is not `OPEN`). Draft project items are a separate `DraftIssue` content type, so matching `... on Issue` already excludes them.
+- Skip closed issues (`state` is not `OPEN`).
+  Draft project items are a separate `DraftIssue` content type, so matching `... on Issue` already excludes them.
 - Read the priority value (the single-select value whose field name matches the priority field).
 - Read the roadmap value (the iteration or date value whose field name matches the roadmap field).
 
 Then:
 
-1. **Planned filter**: keep only items whose roadmap value is current or future (see Roadmap scheduling). If no roadmap field exists, keep all.
+1. **Planned filter**: keep only items whose roadmap value is current or future (see Roadmap scheduling).
+   If no roadmap field exists, keep all.
 2. **Sort**: priority option index ascending (highest priority first), then roadmap start date ascending (soonest first).
 
 ### 6. Select and recommend
 
-Take the top candidate. If no candidate is planned, use the highest-priority open issue overall instead, and note that nothing is currently scheduled in the roadmap.
+Take the top candidate.
+If no candidate is planned, use the highest-priority open issue overall instead, and note that nothing is currently scheduled in the roadmap.
 
 Present the recommendation, the candidates considered, and the next step.
 
@@ -202,7 +214,8 @@ Present the recommendation, the candidates considered, and the next step.
 ```
 /select-issue
 ```
-Reads `GITHUB_PROJECT`, `PRIORITY_VIEW`, and `ROADMAP_VIEW` from `.env`. Selects the highest-priority issue scheduled in the current roadmap iteration.
+Reads `GITHUB_PROJECT`, `PRIORITY_VIEW`, and `ROADMAP_VIEW` from `.env`.
+Selects the highest-priority issue scheduled in the current roadmap iteration.
 
 **Scenario 2: Explicit project**
 ```
@@ -220,7 +233,8 @@ Uses the named views instead of the defaults.
 ```
 /select-issue myorg/5
 ```
-All high-priority issues are unscheduled. Uses the highest-priority open issue instead, and notes the roadmap gap.
+All high-priority issues are unscheduled.
+Uses the highest-priority open issue instead, and notes the roadmap gap.
 
 ## Relationship to other skills
 
