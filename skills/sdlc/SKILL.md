@@ -74,7 +74,7 @@ Main flow — 8 SDLC stages (entry: issue → learnings)
   /review-lifecycle       Audit completeness, consistency, spec alignment, transition correctness
           │
           ▼
-  /create-mockups        Define UI wireframes, screens, states, and flows (UI features; skip if no UI surface)
+  /create-mockups        Define UI mockups (per-screen HTML wireframes), screens, states, and flows (UI features; skip if no UI surface)
   /review-mockups        Audit coverage, usability, accessibility, consistency, spec fidelity
           │
           ▼
@@ -290,6 +290,8 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 │       ├── api.yaml                 # OpenAPI 3 contract, companion to specification.md (when the feature has an API surface)
 │       ├── lifecycle.md
 │       ├── mockups.md
+│       ├── mockups/                # Per-screen HTML mockups, one file per screen (e.g. notification-list.html)
+│       │   └── <screen-slug>.html
 │       ├── telemetry.md
 │       ├── observability.md
 │       ├── alerts.yaml              # Prometheus alert rules, companion to observability.md (when alerts are defined)
@@ -433,7 +435,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `feasibility` | Requirements, existing solutions, and codebase analysis ready for viability assessment |
 | `specifications` | Requirements, solutions survey, and feasibility ready for technical design |
 | `lifecycle` | An approved specification ready to document how resources evolve over time (resource lifecycle features) |
-| `mockups` | An approved specification (and lifecycle document if produced) ready to define the UI wireframes, screens, and interaction states (UI features) |
+| `mockups` | An approved specification (and lifecycle document if produced) ready to define the UI mockups, screens, and interaction states (UI features) |
 | `telemetry` | A specification ready to define how feature usage will be measured |
 | `observability` | A specification ready to define how feature health will be monitored |
 | `plan` | A specification (and telemetry/observability plans) ready for planning |
@@ -698,8 +700,8 @@ Each phase consumes output from the previous phase:
 | review-specifications | `.sdlc/features/N-<slug>/specification.md` | Findings → `review-specifications.md` |
 | create-lifecycle | `.sdlc/features/N-<slug>/specification.md` | `.sdlc/features/N-<slug>/lifecycle.md` (`status: draft`); skipped (no artifact) when the feature manages no resources with a lifecycle |
 | review-lifecycle | `.sdlc/features/N-<slug>/lifecycle.md` | Findings → `review-lifecycle.md` |
-| create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`); skipped (no artifact) when the feature has no UI surface |
-| review-mockups | `.sdlc/features/N-<slug>/mockups.md` | Findings → `review-mockups.md` |
+| create-mockups | `.sdlc/features/N-<slug>/requirements.md` + `specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/mockups.md` (`status: draft`) + `.sdlc/features/N-<slug>/mockups/<screen-slug>.html` per screen; skipped (no artifact) when the feature has no UI surface |
+| review-mockups | `.sdlc/features/N-<slug>/mockups.md` + `.sdlc/features/N-<slug>/mockups/*.html` | Findings → `review-mockups.md` |
 | create-telemetry | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/telemetry.md` (`status: draft`) |
 | review-telemetry | `.sdlc/features/N-<slug>/telemetry.md` | Findings → `review-telemetry.md` |
 | create-observability | `.sdlc/features/N-<slug>/specification.md` + `lifecycle.md` (if produced) | `.sdlc/features/N-<slug>/observability.md` (`status: draft`) + `alerts.yaml` (Prometheus rules, when alerts are defined and the stack is Prometheus-compatible) |

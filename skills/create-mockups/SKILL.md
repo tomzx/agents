@@ -6,7 +6,9 @@ argument-hint: "[specification-doc]"
 
 # Create Mockups
 
-Produces UI mockups and wireframes for a feature from its requirements and specification, settling the visual layout, component breakdown, interaction states, and flows before a line of UI code is written.
+Produces UI mockups for a feature from its requirements and specification, settling the visual layout, component breakdown, interaction states, and flows before a line of UI code is written.
+
+Each screen is delivered as a self-contained HTML document under `.sdlc/features/N-<slug>/mockups/`, with a companion `mockups.md` that carries the narrative: regions, components, states, flow, responsiveness, accessibility, and copy.
 
 Without this step, UI work starts with no shared picture of what to build, so layout, states, and accessibility are improvised during implementation and reworked in review.
 
@@ -25,35 +27,71 @@ For features with no user interface (a pure API, a background job, a CLI), skip 
 
 1. Read the requirements, the specification if present, and the codebase analysis if present.
 2. Decide whether the feature has a UI surface.
-   If it does not, emit `verdict: skipped` (do not write `mockups.md`).
+   If it does not, emit `verdict: skipped` (do not write `mockups.md` and do not create the `mockups/` directory).
    The `skipped` verdict routes the pipeline straight to the next phase, bypassing `/review-mockups`.
 3. Inventory every screen, view, or dialog the feature needs, cross-referenced against the requirements and the spec's flows.
-4. For each screen, draw an ASCII wireframe inside a fenced block, annotated with the regions, primary action, and data shown.
+4. For each screen, author a self-contained HTML mockup at `.sdlc/features/N-<slug>/mockups/<screen-slug>.html`.
+   The document shows the layout, labels each region, highlights the primary action, and renders every interaction state as its own labelled section.
+   It uses inline CSS only (no external stylesheets, scripts, fonts, or images, and no build step) so it opens directly in a browser from `file://`.
+   Media queries cover the target viewports so resizing the window demonstrates the responsive behavior.
 5. Break the UI down into components, marking which already exist in the codebase (reuse), which must be extended, and which are new.
 6. For each key component and screen, enumerate its interaction states: empty, loading, populated, error, and disabled or read-only where relevant.
-7. Map the navigation between screens as a flow, including entry points, exits, and the back path.
+   Each state also appears as a labelled section in the screen's HTML mockup.
+7. Map the navigation between screens as a flow, including entry points, exits, and the back path, rendered as a Mermaid flowchart in `mockups.md`.
 8. Specify responsive behavior across the viewports the feature targets (mobile, tablet, desktop), noting what collapses, reorders, or hides.
 9. Call out accessibility requirements: keyboard reachability, focus order and visible focus, screen-reader labels, color-contrast targets, and minimum touch-target sizes.
 10. Note copy and content as placeholders so writers can fill them without changing layout.
-11. Flag where high-fidelity mockups (Figma, HTML/CSS, a prototype) are warranted and cannot be conveyed by ASCII, and record a pointer or a request for them.
-12. Write the output to `.sdlc/features/N-<slug>/mockups.md`.
+11. Flag where a static HTML mockup is insufficient (motion, drag-and-drop, canvas, real data density, interactive prototype behavior) and a Figma file or clickable prototype is warranted, with a pointer or request.
+12. Write the narrative to `.sdlc/features/N-<slug>/mockups.md`, linking each screen to its HTML mockup.
 
 ## Output Format
 
 Use the template at `skills/sdlc/templates/features/mockups.md` (copied to `.sdlc/templates/features/mockups.md` by `/initialize-sdlc-directory`; use the project's customized copy if present).
-Write the result to the artifact path named in the steps above.
+Write the result to the artifact paths named in the steps above: `mockups.md` plus one HTML file per screen under `mockups/`.
 
+Each mockup HTML document follows this skeleton (inline `style`, no external dependencies):
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notification list - mockup</title>
+  <style>
+    /* Inline styles only; no external CSS, JS, fonts, or images. */
+    body { font-family: system-ui, sans-serif; margin: 0; }
+    /* Media queries for the target breakpoints. */
+    @media (max-width: 640px) { /* mobile */ }
+    @media (min-width: 641px) and (max-width: 1024px) { /* tablet */ }
+  </style>
+</head>
+<body>
+  <header><!-- app header: logo, nav, avatar --></header>
+  <main>
+    <section data-state="populated"><!-- labelled regions + primary action --></section>
+    <section data-state="empty"><!-- zero-data state --></section>
+    <section data-state="loading"><!-- skeleton or spinner --></section>
+    <section data-state="error"><!-- failure messaging and recovery --></section>
+  </main>
+</body>
+</html>
 ```
-+-----------------------------------------------+
-|  <logo>              <nav>            <avatar> |
-+-----------------------------------------------+
-|                                               |
-|  <primary content region>                     |
-|                                               |
-|  [ primary action ]                           |
-|                                               |
-+-----------------------------------------------+
-```
+
+`mockups.md` references each screen's HTML mockup and carries the narrative:
+
+````markdown
+## Screen Inventory
+
+| Screen | Purpose | Entry From | Exits To | Mockup |
+|---|---|---|---|---|
+| <name> | <what the user does here> | <where they came from> | <where they can go> | [`mockups/<screen-slug>.html`](mockups/<screen-slug>.html) |
+
+## Wireframes
+
+### <Screen 1>
+
+**Mockup:** [`mockups/<screen-slug>.html`](mockups/<screen-slug>.html)
 
 **Regions**
 
@@ -86,10 +124,11 @@ Write the result to the artifact path named in the steps above.
 
 ## Navigation Flow
 
-```
-<List view> --select--> <Detail view> --save--> <Confirmation>
-    ^                                          |
-    |_________________back_____________________|
+```mermaid
+flowchart LR
+  List -- select --> Detail
+  Detail -- save --> Confirmation
+  Confirmation -- back --> List
 ```
 
 ## Responsive Behavior
@@ -113,12 +152,12 @@ Write the result to the artifact path named in the steps above.
 
 ## High-Fidelity Needs
 
-- <Where ASCII is insufficient and a Figma/HTML/prototype is warranted, with a pointer or request>
+- <Where a static HTML mockup is insufficient (motion, drag-and-drop, canvas, interactive prototype) and a Figma file or clickable prototype is warranted, with a pointer or request>
 
 ## Out of Scope
 
 - <What is explicitly not designed here and why>
-```
+````
 
 ## Outcome
 
@@ -130,27 +169,28 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `skipped` | The feature has no UI surface; no artifact is written and the pipeline proceeds past review to the next phase |
 
 If the artifact could not be produced for any other reason, omit the file.
-In the same emission, list the artifact under `artifacts:` (`.sdlc/features/N-<slug>/mockups.md`); omit the key when emitting `skipped` (no file is written).
+In the same emission, list the artifacts under `artifacts:` (`.sdlc/features/N-<slug>/mockups.md` plus each `.sdlc/features/N-<slug>/mockups/<screen-slug>.html`); omit the key when emitting `skipped` (no file is written).
 
 ## Example Usage
 
 **Scenario 1: Notification center**
 Requirements describe a notification list with read/unread state and an empty state for new users.
-Wireframes cover the list screen, the empty state, and the per-notification detail, with states for loading, populated, and error, plus the navigation flow from the app shell.
+HTML mockups cover the list screen, the empty state, and the per-notification detail, each rendering loading, populated, and error sections, plus the navigation flow from the app shell.
 
 **Scenario 2: Bulk file upload**
 Requirements describe a multi-file upload with progress and failure retry.
-Wireframes cover the drop zone, the in-progress list with per-file progress, and the failure state with retry, plus a responsive note that the list collapses to one column on mobile.
+HTML mockups cover the drop zone, the in-progress list with per-file progress, and the failure state with retry, plus a responsive note that the list collapses to one column on mobile, demonstrated with a media query.
 
 **Scenario 3: Pure API feature, no UI**
 The specification defines a webhook receiver with no user interface.
-The skill leaves the artifact unwritten and emits `verdict: skipped` so the pipeline continues to the next phase without a review.
+The skill leaves the artifacts unwritten and emits `verdict: skipped` so the pipeline continues to the next phase without a review.
 
 ## Completion Checklist
 
 Before handing off to review, confirm:
 
-- [ ] Each key component and screen enumerates interaction states (empty, loading, populated, error)
+- [ ] Every screen has a self-contained HTML mockup under `mockups/`, referenced from `mockups.md`
+- [ ] Each key component and screen enumerates interaction states (empty, loading, populated, error), and each state is rendered in the screen's HTML mockup
 - [ ] Accessibility requirements called out (keyboard, screen-reader labels, contrast, touch targets)
 
 Self-check the draft against the [`review-mockups` checklist](../review-mockups/SKILL.md) and fix what you can, so review finds less to flag.

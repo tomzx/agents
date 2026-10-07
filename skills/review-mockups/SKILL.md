@@ -5,19 +5,22 @@ description: Review UI mockups and wireframes for coverage, usability, accessibi
 
 # Review Mockups
 
-Audits UI mockups and wireframes and reports findings across eight categories: coverage, usability, accessibility, consistency, state coverage, responsiveness, spec fidelity, and implementability.
+Audits UI mockups and reports findings across eight categories: coverage, usability, accessibility, consistency, state coverage, responsiveness, spec fidelity, and implementability.
+
+A mockup set has two parts: the `mockups.md` narrative (screen inventory, regions, components, states, flow, responsiveness, accessibility, copy) and the per-screen HTML mockups under `mockups/` that render each screen and its states.
 
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/mockups.md`, or a mockups document provided in context or as a file path
+- `.sdlc/features/N-<slug>/mockups/*.html` (the per-screen HTML mockups referenced from `mockups.md`)
 - `.sdlc/features/N-<slug>/requirements.md` (optional, improves coverage analysis)
 - `.sdlc/features/N-<slug>/specification.md` (optional, improves spec-fidelity analysis)
 
 ## Steps
 
-1. Read the mockups from `.sdlc/features/N-<slug>/mockups.md` if present, otherwise from context or as a file path.
+1. Read the mockups from `.sdlc/features/N-<slug>/mockups.md` if present, otherwise from context or as a file path, then read the HTML mockups under `.sdlc/features/N-<slug>/mockups/` that it references.
 2. Cross-reference against the requirements and specification if available.
 3. Identify issues in each of the eight categories below.
 4. Report findings.
@@ -29,7 +32,7 @@ Audits UI mockups and wireframes and reports findings across eight categories: c
 ## Review Checklist
 
 ### Coverage
-- Does every screen, view, or dialog implied by the requirements and spec flows have a wireframe?
+- Does every screen, view, or dialog implied by the requirements and spec flows have an HTML mockup under `mockups/`, referenced from `mockups.md`?
 - Are entry points, exits, and the back path shown for each screen?
 - Are onboarding or first-run surfaces covered where they apply?
 
@@ -47,28 +50,31 @@ Audits UI mockups and wireframes and reports findings across eight categories: c
 
 ### Consistency
 - Do the mockups reuse existing components from the codebase analysis where applicable?
-- Are spacing, naming, icon, and pattern usage consistent across screens?
+- Are spacing, naming, icon, and pattern usage consistent across screens and across the HTML mockups?
 - Does the design match established conventions in `.sdlc/context/conventions.md` where they exist?
 
 ### State Coverage
 - Are empty, loading, populated, and error states defined for every component that fetches or mutates data?
+- Does each HTML mockup render its screen's states as labelled sections, not just the happy path?
 - Are disabled and read-only states shown where permissions or process state require them?
 - Is the error state actionable, telling the user how to recover?
 
 ### Responsiveness
 - Is behavior defined for each viewport the feature targets (mobile, tablet, desktop)?
+- Do the HTML mockups carry media queries for those breakpoints, so resizing demonstrates the behavior?
 - Is it clear what collapses, reorders, or hides at each breakpoint, without hiding primary actions?
 - Are there layout assumptions (fixed widths, side-by-side columns) that break on small screens?
 
 ### Spec Fidelity
-- Do the data fields shown in each wireframe match the data model and API contracts in the specification?
+- Do the data fields shown in each mockup match the data model and API contracts in the specification?
 - Are the copy placeholders and labels consistent with domain terms in `.sdlc/context/vocabulary.md` where present?
 - Do the navigation flows match the sequences defined in the specification?
 
 ### Implementability
 - Can each screen be built from existing components, or are the new components clearly specified?
+- Are the HTML mockups self-contained (inline CSS, no external dependencies or build step) and openable directly in a browser?
 - Are there layout or interaction demands that are impractical with the current stack or needlessly complex?
-- Where high-fidelity mockups are flagged as needed, is the gap and its pointer clearly recorded?
+- Where a static HTML mockup is flagged as insufficient, is the gap and its pointer clearly recorded?
 
 ## Output Format
 
@@ -120,17 +126,20 @@ In the same emission, list the findings file under `artifacts:` (`.sdlc/features
 
 ## Example Usage
 
-**Scenario 1: Missing error state** A wireframe shows the populated list but never shows what the user sees when the fetch fails.
+**Scenario 1: Missing error state** An HTML mockup shows the populated list but never shows what the user sees when the fetch fails.
 Report under State Coverage.
 
 **Scenario 2: Unreachable by keyboard** The primary action is a custom div with no keyboard handling called out.
 Report under Accessibility.
 
-**Scenario 3: Data mismatch** The wireframe shows a `user_name` field, but the specification's API contract returns `display_name`.
+**Scenario 3: Data mismatch** The mockup shows a `user_name` field, but the specification's API contract returns `display_name`.
 Report under Spec Fidelity.
 
-**Scenario 4: Broken on mobile** A two-column comparison table has no responsive behavior defined and would overflow on a phone.
+**Scenario 4: Broken on mobile** A two-column comparison table has no media query and would overflow on a phone.
 Report under Responsiveness.
+
+**Scenario 5: Not renderable** A screen's HTML mockup links an external CSS file, so it renders unstyled when opened directly.
+Report under Implementability.
 
 ## Next Step
 

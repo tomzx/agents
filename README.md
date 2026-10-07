@@ -178,7 +178,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/review-specifications` | Review a specification for ambiguities and missing information. |
 | `/create-lifecycle` | Document how resources evolve over time (states, transitions, invariants, retention). |
 | `/review-lifecycle` | Review a lifecycle document for completeness, consistency, and spec alignment. |
-| `/create-mockups` | Create UI wireframes, screens, states, and flows from a specification. |
+| `/create-mockups` | Create UI mockups (per-screen HTML wireframes), screens, states, and flows from a specification. |
 | `/review-mockups` | Review mockups for coverage, usability, accessibility, and spec fidelity. |
 | `/create-plan` | Create an implementation plan with phases, milestones, and risks. |
 | `/review-plan` | Review a plan for completeness, feasibility, and risk coverage. |

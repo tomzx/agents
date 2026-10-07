@@ -525,6 +525,7 @@ If no session ID is available, omit the session link entirely.
 |---|---|
 | Markdown with frontmatter (feature artifacts, knowledge records, review findings) | Add `session_link: http://localhost:10000/?session=<id>` to the frontmatter |
 | Markdown without frontmatter (context files) | Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` on the first line |
+| HTML artifacts (e.g. per-screen mockups) | Add an HTML comment `<!-- session_link: http://localhost:10000/?session=<id> -->` on the first line |
 | YAML files (`api.yaml`, `alerts.yaml`, `service-levels.yaml`) | Add `# session_link: http://localhost:10000/?session=<id>` as the first line |
 
 ### Rules
