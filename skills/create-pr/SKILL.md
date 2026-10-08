@@ -21,7 +21,7 @@ After creation it posts a few inline context comments via `ghx` where the diff i
 - `gh` CLI authenticated with write access to the target repository
 - Current branch has commits not on the base branch
 - A related GitHub issue number (strongly recommended; omit only for housekeeping PRs)
-- Tests passing locally before the PR is opened
+- All CI checks (lint, typecheck, tests, build) passing locally before the PR is opened, so CI is not the first to report a break
 - For visual proof (captured beforehand): run [`/validate-implementation`](../validate-implementation/SKILL.md) on the branch first.
   It records a CLI demo (via [`/record-asciinema`](../record-asciinema/SKILL.md)) or a web screenshot (via [`/record-playwright`](../record-playwright/SKILL.md)) and writes `$PROOF_DIR/captured-proof.json`.
   If that manifest is absent, `create-pr` omits the Visual proof section and suggests running `/validate-implementation` first (it never captures on its own).
@@ -40,7 +40,7 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 ## Workflow
 
 ```
-Verify branch has commits + tests pass
+Verify branch has commits + CI checks pass locally
             |
             v
 Compute diff (base..HEAD)
@@ -107,8 +107,11 @@ stop           |
    ```
    If no commits, stop and inform the user.
 
-2. Confirm tests pass before opening: Run the project's test command.
-   If tests fail, stop and list the failures.
+2. Confirm the project's CI checks pass locally before opening, so CI is not the first to report a break.
+   Discover the commands the same way [`/improve-codebase`](../improve-codebase/SKILL.md) does: `AGENTS.md` first (authoritative), then the language manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Makefile`), matching what the CI workflow runs (see `.sdlc/context/infrastructure.md` when present).
+   Run every discovered check - lint, typecheck, tests, build - and confirm each exits 0.
+   Run them even when a change looks trivial; a green local run is what lets the PR skip waiting on CI to reveal a break.
+   If any check fails, stop and list the failures; fix them before creating the PR.
 
 3. Compute the diff against the base branch:
    ```
@@ -365,6 +368,7 @@ A PR where neither source yields anything omits the section (or drafts the descr
 
 Before requesting review, confirm:
 
+- [ ] The project's CI checks (lint, typecheck, tests, build) were run locally and all pass
 - [ ] Issue linked (Closes vs Related to #N) with acceptance criteria mapped to coverage checkboxes
 - [ ] Design decisions included (description or follow-up comment), the section omitted entirely when there are none
 - [ ] Visual proof embedded if `/validate-implementation` captured it, the section omitted entirely if not (no placeholder left)
