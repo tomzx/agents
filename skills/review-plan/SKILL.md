@@ -54,6 +54,7 @@ Reviews an implementation plan and reports findings across six categories: compl
 - Are there single points of failure not mentioned as risks?
 
 ### Timeline Realism
+Advisory unless the plan commits to calendar dates or gates another team; report arithmetic findings as advisory, not blocking.
 - Is the timeline consistent with the effort estimates (gantt durations vs. phase effort)?
 - When a gantt is present, do its task dependencies match the phase-dependency flowchart?
 - Are there parallel tracks that could shorten total duration?

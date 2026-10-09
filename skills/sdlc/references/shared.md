@@ -35,6 +35,8 @@ Use the `task` tool with a prompt that:
 1. Names the `review-*` skill to load and its SKILL.md path.
 2. Identifies the artifact to review (the file path just written by the create skill, or the PR/issue number for GitHub-based reviews).
 3. Instructs the subagent to read the SKILL.md, follow the review checklist, and report its findings and verdict in its final message.
+4. Supplies a compact code-facts packet, best-effort: the changed symbols with `file:line`, the commands already run and their observed results, and the acceptance criteria the artifact must satisfy.
+   This shortcuts what the reviewer would otherwise re-derive; it is not a substitute for reading the code, and it is omitted when the change is small enough to read directly.
 
 Example subagent prompt for `create-plan`:
 
@@ -48,6 +50,18 @@ Present the subagent's findings to the user:
 - **approved**: proceed to the next pipeline step named in the create skill's `## Next Step`.
 - **changes-requested**: offer to revise the artifact by re-entering the create skill in revision mode (see Revision Mode).
 - **rejected**: surface the rejection reason and ask the user how to proceed.
+
+### Blocking and advisory findings
+
+Every finding a review skill reports carries a `blocking` or `advisory` marker.
+Only blocking findings keep the verdict at `changes-requested`; advisory findings are recorded and carried forward without forcing another review round.
+The verdict is `changes-requested` only when at least one blocking finding is open.
+A finding is advisory by default unless it changes behavior, breaks a contract, or blocks a downstream phase: timeline arithmetic, wording, and naming preferences are advisory.
+
+### Review round cap
+
+A `create-*` / `review-*` pair runs at most two rounds.
+If the artifact is still `changes-requested` after the second round, stop and surface the disagreement to the user with both positions instead of looping.
 
 ### Which skills are covered
 

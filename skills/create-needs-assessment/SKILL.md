@@ -17,6 +17,11 @@ Acts as the earliest "should we build this?" gate in the SDLC pipeline by examin
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `goals.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
+## When to Skip
+
+Skip this phase, and record a one-line note naming the signal, when the issue is maintainer-authored and states the need and its acceptance criteria.
+The need is already established by the issue author, so the note is the record rather than a full assessment.
+
 ## Steps
 
 1. Read the issue or feature description.

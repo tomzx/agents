@@ -37,6 +37,13 @@ Before creating the PR with `gh pr create`, read [`github-post-attribution/SKILL
 
 Before composing any text posted or drafted on the user's behalf, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
 
+## Splitting into a Stack
+
+Prefer one PR when the parts only make sense together.
+Split into a stack when the parts carry distinct intent that is clearer communicated separately, such as a data migration, a documentation set, or a frontend change, so each PR's description states one intent and a reviewer can reason about that part alone.
+The goal of multiple PRs is clear communication of the different parts being changed, not a smaller diff for its own sake.
+When a stack is used, base each PR on the previous branch so each shows only its own delta, and order the descriptions so the reader knows where the part sits in the whole.
+
 ## Workflow
 
 ```

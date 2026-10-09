@@ -220,7 +220,11 @@ Fast paths               Abbreviated sequences from the main flow for small,
 
 Not every change needs the full pipeline.
 Use the table below to determine the minimum viable path for common small-work scenarios.
-When in doubt, include more phases rather than fewer.
+
+Scale the phase set and the review depth to the work, not to the pipeline.
+The phase list is a menu, not a checklist: skipping a phase whose verdict the issue already implies is correct, and every skip is stated explicitly in the run.
+Signals that let a phase be skipped: a maintainer-authored issue with acceptance criteria, criteria already settled, reuse of existing internal code, and a stated budget under a week (a heuristic, not a threshold to game).
+When none of those hold, or the change is security-sensitive or production-bound, keep the phase.
 
 | Scenario | Example | Path |
 |---|---|---|
@@ -229,6 +233,7 @@ When in doubt, include more phases rather than fewer.
 | **Config change** | Update a threshold, toggle a feature flag, fix a YAML typo | `create-implementation` → `create-pr` → `merge-pr` → `deploy-pr` |
 | **Dependency update** | Bump a library version, patch a CVE in a transitive dep | `create-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
 | **Refactor (no behavior change)** | Rename a method, extract a helper, improve naming | `create-tests` → `create-implementation` → `refactor-implementation` → `validate-implementation` → `create-pr` → `review-pr` → `merge-pr` |
+| **Internal change with a maintainer-authored issue** | A consolidation or refactor the issue already specifies, with acceptance criteria and a budget | `create-requirements` (light) → `create-specifications` (single pass) → `create-tasks-decomposition` → `create-implementation` → `create-tests` → `create-pr` |
 | **Documentation-only** | Fix a typo in docs, add a missing API example | `create-documentation` → `create-pr` → `merge-pr` |
 
 ### Rules for fast paths
@@ -242,6 +247,7 @@ When in doubt, include more phases rather than fewer.
 6. Include `validate-implementation` before `create-pr` whenever the change has a CLI or web UI surface; it self-reports `surface: none` (a no-op) for config and documentation-only changes, which is why those fast paths omit it.
 7. Never skip CI verification before merging.
 8. Fast paths that skip `review-pr` run `assess-pr-risk` before `merge-pr` instead: a `fast-track` or `confirm` token confirms the skip is safe, while `block` or `hold` escalates to `review-pr-full` before merging.
+9. When a fast path or a proportionality skip drops a phase, state the phase and the signal that justified the skip (see [Skipping Review Phases](#skipping-review-phases)).
 
 ### Using fast paths
 
@@ -546,6 +552,7 @@ If you commit/push manually, never `git add` these paths or `status-report.html`
     Never run a phase's commit, push, or PR actions without loading the governing skill first.
     Execute sub-skills in order from the entry point to the end of the pipeline.
 14. After each `create-*` phase, always run the corresponding `review-*` phase and address findings before advancing.
+    Between `create-requirements` and `create-specifications`, also run the [Settle Open Design Decisions](#settle-open-design-decisions) step.
 15. When all review findings are resolved, move to the next phase.
 16. After each phase completes, update `.sdlc/state.yml`: set `current_phase` to the next phase to run (or `complete` if the pipeline is done), update `github_ref` and `feature` if they changed.
     Also update `.sdlc/features/N-<slug>/progress.md` (see Progress Tracking below).
@@ -626,6 +633,13 @@ At the start and end of every session working on a feature, write a brief entry 
 - If blocked, update `current_phase` and the Current Blocker section.
 
 These markers ensure the next session (which may be days or weeks later) can quickly determine where to resume without reading all artifacts again.
+
+### Settle Open Design Decisions
+
+Between `create-requirements` and `create-specifications`, settle the design decisions the requirements pass left open.
+Requirements is the pass that surfaces which decisions exist (a representation, a grammar, a default, a storage choice), so settling them before requirements is premature, and settling them during implementation causes review churn and a later propagation pass.
+For each open decision, invoke `/create-decision` to record the choice, the alternatives, and the rationale.
+Once every open decision is recorded, the requirements review is no longer blocked on an undecided design, and the specification is written against settled decisions.
 
 ## Backtracking and Failure Recovery
 
@@ -751,6 +765,9 @@ Each phase consumes output from the previous phase:
 Review phases may be skipped in low-risk or exploratory contexts.
 State the skip explicitly: "Skipping review-requirements — prototype context."
 Never skip reviews for security-sensitive features or production-bound work.
+
+The same proportionality applies to the whole phase set, not only the reviews.
+Skip `create-needs-assessment`, `create-existing-solutions`, or `create-feasibility` when the signals in [Fast Paths for Small Work](#fast-paths-for-small-work) hold, and record the phase and the signal that justified the skip.
 
 ## Commit / Push / PR Gate (mandatory)
 

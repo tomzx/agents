@@ -21,7 +21,8 @@ Produces a structured implementation plan from a specification or requirements d
 ## Steps
 
 1. Read the specification or requirements, and the lifecycle, telemetry, and observability plans if present.
-2. **Determine the plan structure** (see [Plan Structure](#plan-structure-unified-vs-split)):
+2. **Determine the plan structure** (see [Plan Structure](#plan-structure-unified-vs-split)).
+   Scale it to the work first: for effort under roughly five person-days, produce a short unified plan with phases, goals, and deliverables, one effort line, and no split directory, `gantt`, or effort table.
    - Identify the distinct concerns the work spans from the spec (e.g., database/models, API, CLI, SDK, frontend).
    - Ask the user whether to produce a **unified** plan (`plan.md`) or a **split** plan set (`plan/` directory, one file per concern plus an `index.md`).
      Use the `question` tool when available; otherwise ask conversationally and wait for the answer.
@@ -39,6 +40,7 @@ Produces a structured implementation plan from a specification or requirements d
    Risks in the risk register often encode assumptions (e.g., "the third-party API will be available by Phase 2", "the team will have the required capacity", "the database migration will not require downtime").
    For each assumption that carries meaningful risk, promote it via `/create-assumption` so it is tracked and can be validated before implementation.
 9. Propose a timeline if team capacity is known: render it as a Mermaid `gantt` (one section per phase, or per concern for a split plan) when calendar dates are estimable; otherwise keep a duration-only table.
+   A short plan for small work omits the timeline entirely.
 10. Validate best-effort: render each `mermaid` block with `mmdc` (or `npx -y @mermaid-js/mermaid-cli`) when available.
     A missing tool is skipped; a render failure is a defect to fix before handoff.
 11. Write the output:
@@ -91,7 +93,7 @@ Before handing off to review, confirm:
 - [ ] Telemetry and observability deliverables pulled into the plan as explicit work items
 - [ ] Risky assumptions from the risk register promoted via `/create-assumption`
 - [ ] Phase dependencies rendered as a Mermaid `flowchart TD` (cross-concern for a split plan)
-- [ ] Timeline rendered as a Mermaid `gantt` when calendar dates are estimable, duration-only table otherwise
+- [ ] Timeline rendered as a Mermaid `gantt` when calendar dates are estimable, duration-only table otherwise, or omitted for a short plan on small work
 - [ ] If split: every concern has its own `plan/<concern>.md`, and `plan/index.md` lists them all plus the shared milestones, cross-concern dependencies, aggregated risks, and consolidated timeline
 
 Self-check the draft against the [`review-plan` checklist](../review-plan/SKILL.md) and fix what you can, so review finds less to flag.

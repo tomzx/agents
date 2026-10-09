@@ -18,6 +18,11 @@ Acts as a go/no-go gate.
 - Read any files present under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`) for project-level context
 - Apply any artifact style rules found in `conventions.md` to the produced document
 
+## When to Skip
+
+Skip this phase, and record a one-line note naming the signal, when the issue is maintainer-authored with acceptance criteria, the criteria are already settled, and the change reuses existing internal code with a stated budget.
+The verdict this phase would return (a go, with the issue's own budget as the estimate) is already implied, so the note is the record rather than a full assessment.
+
 ## Steps
 
 1. Read the issue or feature description.

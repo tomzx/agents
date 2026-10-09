@@ -10,6 +10,15 @@ Defines how a feature's production health will be monitored by identifying log s
 
 Without this step, features go to production with no monitoring: outages go undetected, root causes take hours to find, and on-call engineers lack runbooks.
 
+## Is Observability Warranted?
+
+Not every change deserves an observability plan.
+First decide whether the change introduces production runtime behavior worth monitoring at all: a new endpoint, a background loop, an external dependency, or a failure mode an operator would act on.
+If it does not (a refactor that only moves code, a schema change with no new runtime path, a documentation change), write nothing and say so.
+
+When it is warranted, define the smallest set that answers "if this number moved, what would I do", and treat `alerts.yaml` and a full plan as opt-in rather than default.
+A single counter or log line is a short section in the specification, not a plan.
+
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
@@ -27,8 +36,9 @@ Without this step, features go to production with no monitoring: outages go unde
 4. Define service-level metrics (counters, histograms, gauges) that reflect system health.
 5. Identify where distributed traces should be emitted for cross-service flows.
 6. Define health checks and readiness probes for new services or endpoints.
-7. Specify alerts with clear conditions, severity, and runbook links.
-   When the monitoring stack is Prometheus-compatible, write the normative alert definitions to `.sdlc/features/N-<slug>/alerts.yaml` (Prometheus rule format, template at `skills/sdlc/templates/features/alerts.yaml`) and keep the per-alert tables in the document as the human-readable summary.
+7. Specify alerts with clear conditions, severity, and runbook links, but only for signals an operator would act on.
+   When the monitoring stack is Prometheus-compatible and an actionable alert exists, write the normative alert definitions to `.sdlc/features/N-<slug>/alerts.yaml` (Prometheus rule format, template at `skills/sdlc/templates/features/alerts.yaml`) and keep the per-alert tables in the document as the human-readable summary.
+   When no signal warrants an alert, skip `alerts.yaml` and say so.
    Validate best-effort with `promtool check rules alerts.yaml` when available; a missing tool is skipped, a validation failure is a defect to fix before handoff.
 8. Determine observability infrastructure requirements (existing vs. new instrumentation).
 9. Write the output to `.sdlc/features/N-<slug>/observability.md` (plus `alerts.yaml` when alerts are defined and the stack is Prometheus-compatible).

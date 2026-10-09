@@ -15,6 +15,11 @@ The goal is twofold: avoid rebuilding what already exists, and collect proven ap
 - If no argument is provided, locate the feature directory under `.sdlc/features/` whose frontmatter `issue` field references `$ISSUE_NUMBER`.
 - `.sdlc/features/N-<slug>/requirements.md` (must have passed review with findings verdict `approved`), or a requirements document provided in context or as a file path (`$1`)
 
+## When to Skip
+
+Skip this phase, and record a one-line note naming the signal, when the change reuses existing internal code and there is no adopt-versus-build decision to make.
+The survey would conclude "reuse the internal pieces", which the issue already states.
+
 ## Steps
 
 1. Read the requirements document and extract what the feature must do (functional requirements) and the quality attributes it must satisfy (non-functional requirements).
