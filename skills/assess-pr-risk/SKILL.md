@@ -212,6 +212,10 @@ Reviewed commit: `SHORT_SHA`
 
 **Recommended next step:** <one sentence from the routing table, naming the skill to run>
 
+## Top risk drivers
+
+<For each High factor: the concrete failure, cost, or expensive future change, with file:line. Omit the section when risk is Low.>
+
 ## Risk factors
 
 | Factor | Score | Evidence |
@@ -236,10 +240,6 @@ Reviewed commit: `SHORT_SHA`
 
 Total: <N> points -> <level>. Caps applied: <none / which and why>.
 What would raise confidence: <one sentence>.
-
-## Top risk drivers
-
-<For each High factor: the concrete failure, cost, or expensive future change, with file:line. Omit the section when risk is Low.>
 
 ---
 <Attribution footer per github-post-attribution>
