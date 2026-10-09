@@ -129,7 +129,7 @@ If invoked directly (not by a parent skill), include these findings in the repor
 
 ### 6. Return the analysis
 
-Return the three tables and the findings list.
+Return the findings list and the three tables.
 If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes nothing.
 If invoked directly or orchestrated by review-pr-full, continue with the orchestrated-run contract below.
 
@@ -186,6 +186,12 @@ The verdict never gates anything: review-pr-full runs this step first and report
 ```markdown
 ## Test Coverage Analysis
 
+### Findings
+
+#### <severity> / <title>
+
+<description of the coverage gap and what test should be added>
+
 ### Introduced tests
 
 | Test file | Test(s) | What it tests |
@@ -203,12 +209,6 @@ The verdict never gates anything: review-pr-full runs this step first and report
 | File | Function / branch / path | Why it matters |
 |---|---|---|
 | <path> | <description> | <risk if this code regresses silently> |
-
-### Findings
-
-#### <severity> / <title>
-
-<description of the coverage gap and what test should be added>
 ```
 
 ## Example Usage
