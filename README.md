@@ -209,8 +209,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
-| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment in parallel with validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
-| `/review-requested-prs` | Fan out full reviews (validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
+| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment and behavior change summary in parallel with coverage, validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
+| `/review-requested-prs` | Fan out full reviews (assess-pr-risk, summarize-behavior-changes, validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. Owns the feedback contract and the analyze-only / execute modes. |
 | `/triage-pr-feedback` | Orchestrate reviewer-feedback triage: scan your open PRs for new feedback, run `handle-pr-reviewer-feedback --analyze-only` per PR, then prompt for decisions and hand off execution; built to run on a 10-15 minute schedule. |
@@ -224,6 +224,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/validate-pr` | Judge whether the PR builds the right product (needs alignment, criteria soundness, scope). |
 | `/verify-pr` | Verify conformance to acceptance criteria: traceability plus runtime proof (build, run, record demos). |
 | `/assess-pr-risk` | Estimate a PR's risk and the confidence of that estimate, and recommend the next reviewer action. |
+| `/summarize-behavior-changes` | Summarize what a PR changes behaviorally (before/after, consumers affected, breaking changes); runs in parallel with assess-pr-risk. |
 | `/record-asciinema` | Record a terminal/CLI demo with asciinema and render to GIF/SVG. |
 | `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |

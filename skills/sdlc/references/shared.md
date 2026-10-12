@@ -424,7 +424,7 @@ Rules:
 
 Context-level review skills (`review-goals`, `review-roadmap`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md`, `.sdlc/context/review-roadmap.md`, and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
 
-## PR Review Reports (validate-pr / verify-pr / review-pr / analyze-test-coverage)
+## PR Review Reports (validate-pr / verify-pr / review-pr / analyze-test-coverage / assess-pr-risk / summarize-behavior-changes)
 
 PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The local file is the reviewer's personal copy. Whether it is posted as a GitHub comment is decided by `should-post-to-github` (see `~/.sdlc/config.yaml`: `post_github_comments`, `excluded_owners`, `excluded_repos`, `excluded_authors`). When posting is disabled the report is saved locally only.
 
@@ -446,9 +446,12 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 | `verify-pr` | `verify.yaml` | `verify-pr.<sha>.md` (`verify-pr.report.md`) |
 | `review-pr` | `review.yaml` | `review-pr.<sha>.md` (`review-pr.report.md`), plus `gh-pr-view.md` (raw PR cache) |
 | `assess-pr-risk` | none (stateless; cheap to re-run) | `assess-pr-risk.<sha>.md` (`assess-pr-risk.report.md`) |
+| `summarize-behavior-changes` | none (stateless; cheap to re-run) | `summarize-behavior-changes.<sha>.md` (`summarize-behavior-changes.report.md`) |
 | `analyze-test-coverage` | none (stateless; cheap to re-run) | `analyze-test-coverage.<sha>.md` (`analyze-test-coverage.report.md`) |
 
 `assess-pr-risk` is dispatched by `review-pr-full` in parallel with the analyze-test-coverage -> validate -> verify -> review chain and is self-contained: it gathers its evidence from the diff, the codebase, and churn of the touched files, and never reads the chain skills' reports (they usually do not exist yet when it runs, so the parallel dispatch never weakens the estimate). It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
+
+`summarize-behavior-changes` is dispatched by `review-pr-full` in parallel with the same chain and with `assess-pr-risk`, and is self-contained: it reads only the diff and the codebase, so it never depends on a sibling report. It has no findings state (marker-based staleness like the others), and its marker verdict is always `informational`; it never gates a chain step and is never gated or dropped by one. Its report is the reviewer-facing answer to what will behave differently after merge (what changed, from what to what, which consumers are affected, which changes are breaking).
 
 `analyze-test-coverage` is the first chain step (before `validate-pr`, `verify-pr`, and `review-pr`), so its report exists as evidence before anything else judges the change. It writes the same per-run report and marker (`pass` when every behavior change is covered and no uncovered code is listed, `fail` otherwise), and its verdict never gates anything. When `review-pr`, `verify-pr`, or `review-implementation` delegates to it, it writes nothing and only returns its tables to the parent.
 

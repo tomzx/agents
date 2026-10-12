@@ -840,6 +840,7 @@ const PIPELINE = [
       ["validate-implementation", "Capture a CLI demo or web capture on the branch and get sign-off before the PR."],
       ["create-pr", "Open a PR with description, acceptance-criteria coverage, issue link, and reviewers."],
       ["assess-pr-risk", "Estimate risk and confidence to route how much review the PR needs (advisory)."],
+      ["summarize-behavior-changes", "Summarize what the PR changes behaviorally: before/after, consumers, breaking changes (advisory)."],
       ["validate-pr", "Judge whether the PR builds the right product."],
       ["verify-pr", "Prove conformance to the acceptance criteria with traceability and runtime evidence."],
       ["review-pr", "Run the full code-craft review."],
@@ -848,7 +849,7 @@ const PIPELINE = [
       ["merge-pr", "Verify approvals and CI, merge, delete the branch, and confirm the issue closed."]
     ],
     artifacts: ["tests.md", "refactorings.md", "review-implementation.md", "docs", "captured-proof.json", "Pull request"],
-    entries: ["implementation", "documentation", "validate-implementation", "pr", "assess-pr-risk", "validate-pr", "verify-pr", "handle-pr-ci", "handle-pr-reviewer-feedback", "merge-pr"]
+    entries: ["implementation", "documentation", "validate-implementation", "pr", "assess-pr-risk", "summarize-behavior-changes", "validate-pr", "verify-pr", "handle-pr-ci", "handle-pr-reviewer-feedback", "merge-pr"]
   },
   {
     id: "deploy", n: 6, title: "Deployment", tagline: "Ship it safely",
@@ -1023,6 +1024,7 @@ const SKILLS = [
   ["write-pr-description", "Build & PR", "Draft a concise, reviewer-focused PR description."],
   ["update-pr-description", "Build & PR", "Keep an existing PR description accurate after new commits."],
   ["assess-pr-risk", "Build & PR", "Estimate risk and confidence to route how much review a PR needs."],
+  ["summarize-behavior-changes", "Build & PR", "Summarize what a PR changes behaviorally: before/after, consumers, breaking changes."],
   ["validate-pr", "Build & PR", "Judge whether a PR builds the right product."],
   ["verify-pr", "Build & PR", "Verify conformance to acceptance criteria with runtime proof."],
   ["review-pr", "Build & PR", "Conduct the full code-craft review of a pull request."],

@@ -453,6 +453,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `validate-implementation` | Docs done and ready to capture visual proof + get user sign-off before opening a PR (records a CLI demo or web screenshot on the branch; no-op for non-visual changes) |
 | `pr` | Visual proof captured (or skipped); ready to open a pull request |
 | `assess-pr-risk` | PR is open; decide how much review it needs before spending review effort (advisory; also run before `merge-pr` on fast paths that skip review) |
+| `summarize-behavior-changes` | PR is open; get a reviewer-facing summary of what changes behaviorally (before/after, consumers, breaking changes) before reviewing (advisory, never blocks; runs as part of `promote-pr` and is also invocable directly) |
 | `validate-pr` | PR is open; judge whether it builds the right product before spending a build |
 | `verify-pr` | Right product confirmed; verify conformance to the acceptance criteria (traceability + runtime proof) |
 | `handle-pr-ci` | PR has failing CI checks to fix |
