@@ -113,7 +113,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Findings the author must address before it passes |
 | `rejected` | Fundamental flaw requiring rework or stopping |
 
-In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-cli-design.md`, plus `cli-design.md` when you amended the design to resolve a finding).
+In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-cli-design.md`).
 
 ## Example Usage
 

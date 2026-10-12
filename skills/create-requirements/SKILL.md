@@ -74,6 +74,8 @@ Before handing off to review, confirm:
 
 - [ ] Each functional requirement has testable, scenario-based acceptance criteria that do not just restate the FR
 - [ ] Every acceptance criterion is a fenced `gherkin` block whose tag matches its requirement ID
+- [ ] Each requirement contradicts no existing sibling feature: scan `.sdlc/features/*/requirements.md` for requirements that overlap or conflict with this draft, and for every conflict record the resolution in the artifact (an explicit carve-out that scopes one of them, or a supersession note naming the superseded requirement)
+- [ ] Every open question is either resolved in the draft or listed under Open Questions with the owner and what it blocks
 
 Self-check the draft against the [`review-requirements` checklist](../review-requirements/SKILL.md) and fix what you can, so review finds less to flag.
 

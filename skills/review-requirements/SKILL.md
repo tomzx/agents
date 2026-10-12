@@ -22,8 +22,9 @@ When a `cli-design.md` companion is present, the review covers the CLI design in
 2. Identify issues in each of the applicable categories below.
 3. Report findings using the output format.
    Omit any category that has no findings.
-4. Resolve each conflict before approval: amend the requirements document so the conflicting requirements are reconciled (relax, re-prioritize, split, or merge them).
-   If a conflict cannot be resolved within the document, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
+4. Record every conflict as a blocking finding under Conflicts, with a suggested resolution (relax, re-prioritize, split, or merge).
+   Do not amend the requirements document yourself: the authoring `create-*` skill owns amendments and applies them in revision mode.
+   If a conflict turns on a product trade-off the author cannot settle from the document alone, record it as an open question in the findings file and invoke `/create-decision` (for a chosen trade-off) or `/create-assumption` (for an unverified resolution) to record it formally.
 5. Write the findings to `.sdlc/features/N-<slug>/review-requirements.md` with frontmatter `artifact: requirements`, `verdict` (`approved` if there are no blocking findings, `changes-requested` if the author must address findings, `rejected` for a fundamental flaw), and `reviewed_at: <ISO date>`, and the findings as the body, per `skills/sdlc/references/shared.md`.
    Record any unresolved open questions in the findings body.
    For any question that carries meaningful risk to the implementation, also invoke `/create-assumption` to record it formally.
@@ -117,7 +118,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 | `changes-requested` | Findings the author must address before it passes |
 | `rejected` | Fundamental flaw requiring rework or stopping |
 
-In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-requirements.md` plus the requirements document when you amended it to resolve a conflict, and `cli-design.md` when you amended the design).
+In the same emission, list the findings file under `artifacts:` (`.sdlc/features/N-<slug>/review-requirements.md`).
 
 ## Example Usage
 

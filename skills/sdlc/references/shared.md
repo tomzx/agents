@@ -33,15 +33,16 @@ When a `create-*` skill completes and its successor is the matching `review-*` s
 
 Use the `task` tool with a prompt that:
 1. Names the `review-*` skill to load and its SKILL.md path.
-2. Identifies the artifact to review (the file path just written by the create skill, or the PR/issue number for GitHub-based reviews).
-3. Instructs the subagent to read the SKILL.md, follow the review checklist, and report its findings and verdict in its final message.
+2. Identifies the artifact to review (the file path just written by the create skill, or the PR/issue number for GitHub-based reviews), and names the artifact's known cross-references (the sibling artifacts and features it touches) so the reviewer does not re-grep the tree to rediscover them.
+3. Instructs the subagent to read the SKILL.md, follow its steps (including writing the `review-<artifact>.md` findings file and recording telemetry, best-effort), and report its verdict and a short summary of the findings in its final message.
+   Ask for terse findings in the message (the verdict plus one line per finding, without restating the artifact or the checklist); the findings file is the full record.
 4. Supplies a compact code-facts packet, best-effort: the changed symbols with `file:line`, the commands already run and their observed results, and the acceptance criteria the artifact must satisfy.
    This shortcuts what the reviewer would otherwise re-derive; it is not a substitute for reading the code, and it is omitted when the change is small enough to read directly.
 
 Example subagent prompt for `create-plan`:
 
 ```
-Read the review-plan skill at skills/review-plan/SKILL.md and follow its instructions to review the plan artifact at .sdlc/features/N-<slug>/plan.md. Apply the shared SDLC conventions in skills/sdlc/references/shared.md. Report your findings by category and state your verdict (approved, changes-requested, or rejected) in your final message.
+Read the review-plan skill at skills/review-plan/SKILL.md and follow its instructions to review the plan artifact at .sdlc/features/N-<slug>/plan.md. Apply the shared SDLC conventions in skills/sdlc/references/shared.md. Write your findings to .sdlc/features/N-<slug>/review-plan.md and record telemetry per the shared conventions. Report your verdict (approved, changes-requested, or rejected) and a one-line summary per finding in your final message.
 ```
 
 ### After the review returns
@@ -50,6 +51,16 @@ Present the subagent's findings to the user:
 - **approved**: proceed to the next pipeline step named in the create skill's `## Next Step`.
 - **changes-requested**: offer to revise the artifact by re-entering the create skill in revision mode (see Revision Mode).
 - **rejected**: surface the rejection reason and ask the user how to proceed.
+
+### Scoped re-review after a revision
+
+A revision that addresses `changes-requested` findings is re-reviewed in scope, not from scratch:
+
+1. Dispatch the same `review-*` skill with the previous findings file (`.sdlc/features/N-<slug>/review-<artifact>.md`) and the revision delta (the sections changed since that review).
+2. Instruct it to confirm each prior finding is addressed, and to review only the changed content.
+3. Verdict and evidence for content the revision did not touch carry over, unless the delta invalidates them.
+
+A full fresh review is re-run only when the revision changes most of the artifact, when there is no prior findings file, or when the artifact's cross-references changed enough that untouched sections may now conflict. This is the artifact counterpart of the PR re-review scope in Review Findings Persistence.
 
 ### Blocking and advisory findings
 
@@ -517,6 +528,7 @@ If that file exists and its `verdict` is `changes-requested`, operate in **revis
 
 - Read the existing artifact and the findings together.
 - Amend the artifact to address each finding. Do not regenerate from scratch: preserve content the findings did not challenge, and make the minimum changes that resolve every finding.
+  Apply targeted edits to the affected sections (the `edit` tool); rewrite the whole file with `write` only when the revision changes most of the artifact.
 - Set the artifact frontmatter `status` to `in-review` while revising. Reviews do not modify the artifact frontmatter; the authoring `create-*` skill owns the `status` field.
 - Optionally bump a `revision: <n>` counter in the artifact frontmatter, starting at 1 on the first revision.
 
