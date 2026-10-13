@@ -1,6 +1,6 @@
 ---
 name: sync-sdlc
-description: Analyze the codebase and reconcile it with the .sdlc/ directory. Creates the .sdlc/ structure if absent, populates context files, creates missing features, updates stale artifacts, and flags drift between code and documentation. With --create-issues, promotes pending (p-prefixed) features to issue-driven ones by creating placeholder GitHub issues.
+description: Analyze the codebase and reconcile it with the .sdlc/ directory. Creates the .sdlc/ structure if absent, populates context files, creates missing features, updates stale artifacts, and flags drift between code and documentation. On later runs, processes only the files changed since the last synced commit (recorded as code_ref), falling back to a full scan when no usable baseline exists. With --create-issues, promotes pending (p-prefixed) features to issue-driven ones by creating placeholder GitHub issues.
 argument-hint: "[project-root] [--create-issues]"
 ---
 
@@ -8,7 +8,8 @@ argument-hint: "[project-root] [--create-issues]"
 
 Reads the codebase and reconciles it with the `.sdlc/` directory.
 On first run, creates the `.sdlc/` structure from scratch and populates everything.
-On subsequent runs, compares the codebase against existing `.sdlc/` content to create missing features, update stale context files, and flag drift.
+On subsequent runs, it reconciles the codebase against existing `.sdlc/` content to create missing features, update stale context files, and flag drift, scoped to the files changed since the last synced commit (the `code_ref` recorded in `.sdlc/sync-meta.yml`), so a small change does not trigger a full repository scan.
+A full scan is used when no usable baseline exists: a first sync, a missing `code_ref`, or a rewritten history where `code_ref` is no longer an ancestor of `HEAD`.
 Works for both initial bootstrapping and periodic sync.
 
 ## Prerequisites
@@ -42,9 +43,27 @@ Works for both initial bootstrapping and periodic sync.
    where `<skill-base-dir>` is the parent directory containing the `sdlc/` templates (typically the agents repo root).
    Store the resulting SHA as `current_ref` and the remote URL as `current_remote`.
 
-3. **Read sync metadata and generate a migration summary.** Read `.sdlc/sync-meta.yml` from the project root if it exists.
-   - If it exists and `agents_ref` differs from `current_ref`: a. Run `git -C <skill-base-dir> log <stored-ref>..HEAD -- skills/sdlc/` to get the changelog of template and process changes. b. For each commit that changed a template or context file, read the diff to understand what was added, removed, or restructured. c. Produce a **migration summary** listing concrete actions needed to adapt the project's existing `.sdlc/` files (e.g. "remove Glossary section from project-overview.md", "add Observability section to specification template").
-   - If it does not exist, this is a first sync, so no migration is needed.
+3. **Read sync metadata and determine the sync scope.** Read `.sdlc/sync-meta.yml` from the project root if it exists.
+   Resolve two independent things from it: how much of the codebase to scan (the scope), and whether the agents templates changed (the migration).
+
+   **a. Determine the scope.** The scope is bounded by `code_ref`, the project repo `HEAD` recorded at the last sync (see step 21):
+   - Use a **full sync** when any of these hold: `.sdlc/` did not exist before this run, `sync-meta.yml` is absent or has no `code_ref`, the project is not a git repository, or `code_ref` is not an ancestor of `HEAD` (`git merge-base --is-ancestor <code_ref> HEAD` fails, for example after a rebase, force-push, squashed merge, or in a shallow clone that lacks the commit).
+     A full sync analyzes the whole codebase as described in steps 6, 15, and 17–18.
+   - Otherwise use an **incremental sync** and compute the **changed-file set** as the union of:
+     - committed changes since the baseline: `git -C <project-root> diff --name-status <code_ref>..HEAD`
+     - uncommitted changes: `git -C <project-root> status --porcelain` plus `git -C <project-root> diff HEAD` (tracked and untracked paths), so edits made since the last sync are not missed before they are committed
+     - renames: keep both the old and the new path so both sides are re-checked
+     Deduplicate into repo-relative paths, each with its change type (`added`, `modified`, `deleted`, `renamed`).
+     Exclude paths under `.sdlc/` and `status-report.html`: those are this skill's own outputs, not code to reconcile, so a dirty `.sdlc/` must not count as a change.
+   - If the changed-file set is empty and the working tree is clean:
+     - If step 3b finds a migration is needed (the agents templates changed), do not take the fast path: treat this run as a **full sync** so the migration is applied to every context file and feature artifact.
+     - Otherwise nothing changed since the last sync: **skip to step 20** (the `--create-issues` promotion, if requested) and then step 21, report "No changes since last sync (`<code_ref>`)" in the sync report, and do not run steps 5–19.
+       Step 4 still runs, because the structure, gitignore, and SDLC anchor must be re-ensured cheaply on every run.
+   - Record the scope and the changed-file set; steps 5, 6, 15, and 17–18 use them to limit what is read and reconciled.
+
+   **b. Generate a migration summary.** Independent of the scope, compare the agents version:
+   - If `sync-meta.yml` exists and `agents_ref` differs from `current_ref`: i. Run `git -C <skill-base-dir> log <stored-ref>..HEAD -- skills/sdlc/` to get the changelog of template and process changes. ii. For each commit that changed a template or context file, read the diff to understand what was added, removed, or restructured. iii. Produce a **migration summary** listing concrete actions needed to adapt the project's existing `.sdlc/` files (e.g. "remove Glossary section from project-overview.md", "add Observability section to specification template").
+   - If `sync-meta.yml` does not exist, this is a first sync, so no migration is needed.
    - If `agents_ref` matches `current_ref`, no migration is needed.
 
 4. If `.sdlc/` does not exist, run `/initialize-sdlc-directory` (passing `$1` if provided) to create the directory tree and copy templates.
@@ -59,11 +78,15 @@ Works for both initial bootstrapping and periodic sync.
 5. Read existing `.sdlc/` content to establish the current state.
    Resolve each path via SDLC_DIR resolution (repo first, then `$SDLC_DIR/{owner}/{repository}/.sdlc/`); treat the union of both locations as the current state, with the repo copy winning on conflict:
    - List all directories under `.sdlc/features/` (and the mirror's `features/` if set) to identify tracked features.
+     This listing is always needed, even on an incremental sync, to match changed files to features and to find orphaned ones.
    - Read each existing feature's `requirements.md`, `specification.md`, and `lifecycle.md` if present (from whichever location holds them).
+     On an incremental sync, read these only for the features the changed-file set touches (see step 16); features it does not touch keep their artifacts and are not re-read.
     - Read `.sdlc/context/project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`, `infrastructure.md`, `schema.dbml`, `observability.md`, and `telemetry.md` if they exist (from whichever location holds them).
    - Note which context files and feature artifacts are present vs. missing.
 
 6. Analyze the codebase to gather the information needed to fill in context files and identify features.
+   **On an incremental sync, limit the reads to the changed-file set** plus what is needed to interpret those files (their direct dependencies, siblings, and enclosing modules); do not re-read unchanged parts of the tree.
+   On a full sync, read the whole project.
    Read enough of the project to confidently answer:
    - What does this project do and what problem does it solve?
    - Who are the likely stakeholders?
@@ -88,7 +111,8 @@ Works for both initial bootstrapping and periodic sync.
    - What test files exist, and which features or modules do they cover?
    - What documentation exists (README sections, `docs/` pages, API docs, inline docstrings), and which features does it cover?
 
-Useful signals to look at (read what exists; skip what does not):
+Useful signals to look at (read what exists; skip what does not).
+On an incremental sync, consult only the signals the changed-file set touches; everything else was covered by the last full analysis and is assumed unchanged:
    - `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE`
    - `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Gemfile`, or equivalent manifest
    - CI configuration files (`.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, etc.)
@@ -99,6 +123,21 @@ Useful signals to look at (read what exists; skip what does not):
    - Existing documentation under `docs/` if present
    - `AGENTS.md` or `.agents/` for project-specific conventions already captured
     - Open or recently closed GitHub issues (`ghx issue list --limit 20`) if the project has a remote
+
+**Scope which context files to reconcile.** On a full sync, reconcile all of them.
+On an incremental sync, reconcile a context file only when the changed-file set touches something it documents, and report the rest as "unchanged (not in scope)".
+Use these triggers (a changed file matching none of them leaves every context file in scope-unchanged):
+
+| Context file | Reconcile when the changed-file set touches |
+|---|---|
+| `schema.dbml` | a migration, ORM model, SQL schema, or database config file |
+| `infrastructure.md` | a manifest, lockfile, CI/CD workflow, Dockerfile, or deployment/infra script |
+| `observability.md` | an instrumentation import, an observability library in a manifest, or observability config |
+| `telemetry.md` | an analytics SDK, analytics config, or a tracked event definition |
+| `architecture.md` | a new top-level directory, a new service or entry point, or a renamed/moved module that changes the component topology |
+| `project-overview.md` | a changed README/manifest that alters the project's purpose, scope, or stack |
+| `conventions.md` | a linter/formatter/type-checker config change, or a large batch of new files that establishes a new pattern |
+| `vocabulary.md` | new domain terms (new symbols, routes, or config keys) introduced by the change |
 
 **Parallelize context file reconciliation.** Steps 7–14 below each reconcile an independent context file and share no dependencies.
 Dispatch one subagent per file using the `Task` tool (`subagent_type: "general"`), passing the codebase analysis from step 6, the migration summary from step 3, the existing file content (if any), and the template structure.
@@ -177,13 +216,23 @@ If the `Task` tool is unavailable, process the files sequentially as written.
     Aim for 3–10 features; fewer for small projects, more for large ones.
     Good signals: top-level CLI commands, API route groups, major UI sections, distinct background jobs, named services.
     For each feature, record the source files that implement it, the test files that cover it, and any documentation that describes it.
-    This implementation, test, and documentation evidence drives artifact status and progress tracking in steps 17–18.
+    This implementation, test, and documentation evidence drives artifact status and progress tracking in steps 17–18, and is persisted as `code_index` in step 21 for the next incremental sync.
+    On an incremental sync, do not rescan the whole project for features: keep the features already tracked under `.sdlc/features/` and restrict identification to the changed-file set, looking for a new subsystem (a new top-level command, route group, service, or directory) that no existing feature covers.
+    A changed file that belongs to an existing feature is handled as an existing feature in step 18.
 
 16. Match identified features against existing `.sdlc/features/` directories.
     Build three lists:
     - **New features**: identified in the codebase but not present in `.sdlc/features/`.
     - **Existing features**: identified in the codebase and present in `.sdlc/features/`.
     - **Orphaned features**: present in `.sdlc/features/` but not identified in the codebase scan.
+
+    On an incremental sync, build these lists from the changed-file set instead of the whole codebase:
+    - Map each changed path to the feature that owns it. Use the `code_index` recorded in `sync-meta.yml` (written in step 21) first; if it is absent or does not cover the path, match the path against the feature's slug, its source directory, and the paths its artifacts reference, falling back to the feature whose artifacts describe that code.
+    - **New features**: changed paths that form a coherent new subsystem and match no existing feature.
+    - **Existing features (to reconcile)**: features that own at least one changed path; these are the only ones step 18 processes.
+    - **Unchanged features**: features with no changed path; leave them untouched (they were reconciled against `code_ref`).
+    - **Orphaned features**: features whose every recorded source path was deleted in the changed-file set.
+    - A changed path that matches no feature and no context-file trigger (step 7–14 table) is listed under "Items requiring manual review"; it is likely shared infrastructure, or a new feature that was too small to identify.
 
 **Process features in parallel.** Steps 17–18 below process new and existing features independently with no cross-feature dependencies.
 Dispatch one subagent per feature using the `Task` tool (`subagent_type: "general"`), passing the feature's type (new or existing), its source files, test files, and documentation evidence from step 15, the codebase analysis from step 6, and the existing artifacts (for existing features).
@@ -218,7 +267,7 @@ If the `Task` tool is unavailable, process all features sequentially as written.
          Write a Summary noting the feature was reverse-engineered from existing code during sync.
          Leave the Task Progress table empty since tasks were not formally decomposed.
 
-18. For each **existing feature**: a. Read the current `requirements.md` and `specification.md`. b. Generate a fresh analysis of the feature from the codebase. c. Compare the fresh analysis with the existing files. d. If the existing `requirements.md` is missing functional requirements that the code clearly implements, or contains requirements that no longer match the code, produce a drift report entry listing the discrepancies.
+18. For each **existing feature to reconcile** (on an incremental sync, only the features the changed-file set touches): a. Read the current `requirements.md` and `specification.md`. b. Generate a fresh analysis of the feature from the codebase. c. Compare the fresh analysis with the existing files. d. If the existing `requirements.md` is missing functional requirements that the code clearly implements, or contains requirements that no longer match the code, produce a drift report entry listing the discrepancies.
     Do **not** overwrite the existing file; instead, if `review-requirements.md` exists with `verdict: approved`, regress it to `verdict: changes-requested` and append a `## Sync drift: <date>` section to its body describing the discrepancies, so the forward pipeline resyncs and re-reviews it. e. If the existing `specification.md` has drifted from the code, regress `review-specification.md` the same way and add a drift report entry. f. If the existing `lifecycle.md` has drifted from the code (states or transitions no longer match what the code implements), regress `review-lifecycle.md` the same way and add a drift report entry. g. If the existing files match the codebase analysis, note it as "in sync" in the report. h. Reconcile `progress.md`.
     If it does not exist, create it following the same logic as step 17g.
     If it exists but `current_phase` predates implementation (e.g., `specification`, `plan`, or earlier) while the code is already implemented, update `current_phase` to `complete` and adjust the Pipeline Status table accordingly.
@@ -240,8 +289,15 @@ If the `Task` tool is unavailable, process all features sequentially as written.
     agents_ref: <current_ref>
     agents_remote: <current_remote>
     last_synced: <today's date in ISO 8601>
+    code_ref: <project repo HEAD SHA at this sync>
+    code_index:
+      "<feature-directory>":       # e.g. 42-notification-system
+        - <repo-relative source or test path this feature owns>
     ```
-    This file should be committed alongside the other `.sdlc/` changes so that the next sync can detect version drift.
+    Set `code_ref` from `git -C <project-root> rev-parse HEAD`; leave it `null` when the project is not a git repository.
+    `code_index` records, for each feature directory, the source and test paths that implement and cover it (the evidence gathered in step 15), so the next incremental sync can map a changed file to its feature without re-deriving the mapping.
+    On an incremental sync, carry the existing `code_index` entries over unchanged and update only the entries for the features the changed-file set touched.
+    This file should be committed alongside the other `.sdlc/` changes so that the next sync can detect version drift and scope itself to the changes since `code_ref`.
 
 22. Produce the sync report.
 
@@ -250,6 +306,11 @@ If the `Task` tool is unavailable, process all features sequentially as written.
 ```
 ## SDLC sync report
 
+### Sync scope
+- scope: full / incremental / none (no changes since last sync)
+- baseline: <code_ref> / none (first sync)
+- changed files: <count> (<paths, or "none">)
+
 ### Migration summary (agents changes since last sync)
 | Change | Affected files | Action taken |
 |---|---|---|
@@ -257,6 +318,8 @@ If the `Task` tool is unavailable, process all features sequentially as written.
 | <e.g. "Added Observability template"> | .sdlc/templates/features/ | Created new template |
 
 (If this is a first sync, this section shows "Initial sync, no migration needed.")
+
+(When there is nothing to do, the report is just the sync scope, the directory structure, the agent instructions, the sync metadata, and the line "No changes since last sync (`<code_ref>`)".)
 
 ### Directory structure
 (output from /initialize-sdlc-directory or /update-sdlc-templates)
@@ -268,18 +331,19 @@ If the `Task` tool is unavailable, process all features sequentially as written.
 - agents_ref: <SHA>
 - agents_remote: <URL>
 - last_synced: <date>
+- code_ref: <SHA or null>
 
 ### Context files
 | File | Status | Changes |
 |---|---|---|
-| .sdlc/context/project-overview.md | created / updated / unchanged | <summary of changes> |
-| .sdlc/context/architecture.md | created / updated / unchanged | <summary of changes> |
-| .sdlc/context/schema.dbml | created / updated / unchanged / not applicable (no database) | <summary of changes> |
-| .sdlc/context/conventions.md | created / updated / unchanged | <summary of changes> |
-| .sdlc/context/vocabulary.md | created / updated / unchanged | <summary of changes> |
-| .sdlc/context/infrastructure.md | created / updated / unchanged | <summary of changes> |
-| .sdlc/context/observability.md | created / updated / unchanged / not applicable (no observability infra) | <summary of changes> |
-| .sdlc/context/telemetry.md | created / updated / unchanged / not applicable (no analytics platform) | <summary of changes> |
+| .sdlc/context/project-overview.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/architecture.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/schema.dbml | created / updated / unchanged / unchanged (not in scope) / not applicable (no database) | <summary of changes> |
+| .sdlc/context/conventions.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/vocabulary.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/infrastructure.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/observability.md | created / updated / unchanged / unchanged (not in scope) / not applicable (no observability infra) | <summary of changes> |
+| .sdlc/context/telemetry.md | created / updated / unchanged / unchanged (not in scope) / not applicable (no analytics platform) | <summary of changes> |
 
 ### Feature reconciliation
 
@@ -299,6 +363,11 @@ If the `Task` tool is unavailable, process all features sequentially as written.
   - progress.md: created / updated / in sync
   - documentation: found (<paths>) / not found
 
+#### Unchanged features (not in scope)
+- N-<slug>: <Feature Name> (no changed files since <code_ref>; not re-reconciled)
+
+(Show this subsection only on an incremental sync; omit it on a full sync.)
+
 #### Orphaned features (no matching code)
 - N-<slug>: <Feature Name> — review and update scope or remove manually
 
@@ -308,6 +377,7 @@ If the `Task` tool is unavailable, process all features sequentially as written.
 
 ### Items requiring manual review
 - <any context file sections that could not be determined>
+- <changed files that matched no feature and no context-file trigger>
 - <any orphaned features>
 
 ### Next steps
@@ -331,6 +401,8 @@ Creates `.sdlc/` with templates, populates all context files fresh, creates feat
 /sync-sdlc
 ```
 Updates templates, compares and updates context files, creates new features, checks existing features for drift, reconciles progress and test artifacts, flags orphaned features.
+When `.sdlc/sync-meta.yml` has a `code_ref` that is an ancestor of `HEAD`, only the files changed since that commit (plus uncommitted edits) are scanned: the context files and features those files touch are reconciled, and the rest are reported as unchanged.
+A run with no changed files stops after the cheap maintenance steps.
 
 **Scenario 3: Sync a project from a different directory**
 ```

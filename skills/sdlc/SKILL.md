@@ -536,6 +536,7 @@ If you commit/push manually, never `git add` these paths or `status-report.html`
    Each maintenance skill runs independently and produces findings that can be fed into `create-issue` and `prioritize-issues`.
 8. If the entry point is `sync`, invoke the `sync-sdlc` skill directly.
    It analyzes the codebase against the existing `.sdlc/` directory and produces a reconciliation report.
+   On a project that has synced before, it processes only the files changed since the last sync commit (`code_ref` in `.sdlc/sync-meta.yml`), falling back to a full scan when no usable baseline exists.
    This is a standalone operation that does not advance the pipeline.
 9. If the entry point is `project`, invoke the `create-project` skill directly.
    It interviews the user to populate the core context files under `.sdlc/context/` (running `initialize-sdlc-directory` first when `.sdlc/` is absent), then invoke `review-project` and address findings.
