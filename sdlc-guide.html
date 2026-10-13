@@ -912,6 +912,7 @@ const ARTIFACT_TREE = {
     { name: "state.yml", desc: "Orchestrator run state. current_phase always holds the next phase to run, plus github_ref and the feature directory. Local-only, never committed." },
     { name: "context/", desc: "Project-level context that every artifact aligns to.", children: [
       { name: "project-overview.md", desc: "Project goals, scope, and key stakeholders." },
+      { name: "use-cases.md", desc: "Actors and goals: what the project supports, wants to support, and excludes." },
       { name: "architecture.md", desc: "System topology, components, entity relationships, and data flow." },
       { name: "conventions.md", desc: "Naming, structure, and coding standards. The source of style rules applied to every document." },
       { name: "vocabulary.md", desc: "Domain and technical terms, so agents and humans share one language." },
@@ -1095,7 +1096,7 @@ const SKILLS = [
 
 const START_STEPS = [
   { title: "Bootstrap the .sdlc/ tree", body: "Run setup once per project. It creates the .sdlc/ directory, populates the templates, and writes a short SDLC anchor into your AGENTS.md so every future agent session knows where the artifacts live.", cmds: ["/sdlc setup", "/sync-sdlc"] },
-  { title: "Add project context", body: "The pipeline reads .sdlc/context/ before producing any artifact. create-project interviews you to fill in project-overview, architecture, conventions, vocabulary, and infrastructure.", cmds: ["/sdlc project", "/create-project"] },
+  { title: "Add project context", body: "The pipeline reads .sdlc/context/ before producing any artifact. create-project interviews you to fill in project-overview, use-cases, architecture, conventions, vocabulary, and infrastructure.", cmds: ["/sdlc project", "/create-project"] },
   { title: "Set up labels", body: "The triage skills expect a standard label taxonomy. Configure it once per repository.", cmds: ["/sdlc configure-labels"] },
   { title: "Run your first feature", body: "Give the orchestrator a feature idea and let it walk through create, review, and the next phase. Watch the rhythm: draft, review, address findings, advance. Getting comfortable with that loop is most of using the system.", cmds: ['/sdlc issue "Add dark mode toggle"', "/sdlc bugfix 57"] },
   { title: "Resume any time", body: "Status and continue are read-only and safe. They show where you are and resume exactly where the last session stopped.", cmds: ["/sdlc status", "/sdlc continue"] }

@@ -81,7 +81,7 @@ Works for both initial bootstrapping and periodic sync.
      This listing is always needed, even on an incremental sync, to match changed files to features and to find orphaned ones.
    - Read each existing feature's `requirements.md`, `specification.md`, and `lifecycle.md` if present (from whichever location holds them).
      On an incremental sync, read these only for the features the changed-file set touches (see step 16); features it does not touch keep their artifacts and are not re-read.
-    - Read `.sdlc/context/project-overview.md`, `architecture.md`, `conventions.md`, `vocabulary.md`, `infrastructure.md`, `schema.dbml`, `observability.md`, and `telemetry.md` if they exist (from whichever location holds them).
+    - Read `.sdlc/context/project-overview.md`, `use-cases.md`, `architecture.md`, `conventions.md`, `vocabulary.md`, `infrastructure.md`, `schema.dbml`, `observability.md`, and `telemetry.md` if they exist (from whichever location holds them).
    - Note which context files and feature artifacts are present vs. missing.
 
 6. Analyze the codebase to gather the information needed to fill in context files and identify features.
@@ -90,6 +90,7 @@ Works for both initial bootstrapping and periodic sync.
    Read enough of the project to confidently answer:
    - What does this project do and what problem does it solve?
    - Who are the likely stakeholders?
+   - What can users and operators do with it, and which actors perform each of those things?
    - What is in scope and explicitly out of scope?
    - What are the key technical and business constraints?
    - What major components exist and how do they relate?
@@ -136,24 +137,33 @@ Use these triggers (a changed file matching none of them leaves every context fi
 | `telemetry.md` | an analytics SDK, analytics config, or a tracked event definition |
 | `architecture.md` | a new top-level directory, a new service or entry point, or a renamed/moved module that changes the component topology |
 | `project-overview.md` | a changed README/manifest that alters the project's purpose, scope, or stack |
+| `use-cases.md` | a new user-visible capability (command, route, or major UI section) or a changed README/manifest that alters what the project can do |
 | `conventions.md` | a linter/formatter/type-checker config change, or a large batch of new files that establishes a new pattern |
 | `vocabulary.md` | new domain terms (new symbols, routes, or config keys) introduced by the change |
 
-**Parallelize context file reconciliation.** Steps 7–14 below each reconcile an independent context file and share no dependencies.
+**Parallelize context file reconciliation.** Steps 7–14 below reconcile the independent context files and share no dependencies.
 Dispatch one subagent per file using the `Task` tool (`subagent_type: "general"`), passing the codebase analysis from step 6, the migration summary from step 3, the existing file content (if any), and the template structure.
 Each subagent starts with a fresh context, so its prompt must be fully self-contained.
 Collect all results for the sync report.
 If the `Task` tool is unavailable, process the files sequentially as written.
 
-7. Reconcile and write `.sdlc/context/project-overview.md`.
-   - If the file does not exist: create it using the project-overview template, populate with real content derived from the codebase.
-   - If the file exists: read it, compare its content with the codebase analysis, and update sections that have drifted.
-     **Also apply the migration summary**: if a section was removed from the template since the last sync, remove the corresponding section from the file.
-     If a section was added, add it.
-     Preserve any manual additions that are still accurate.
-     Flag sections that changed in the report.
-   - Do not leave any `<…>` placeholders.
-   - If a section genuinely cannot be determined from the code (e.g., named stakeholders), write a concise note explaining what is unknown rather than a filler placeholder.
+7. Reconcile and write `.sdlc/context/project-overview.md` and `.sdlc/context/use-cases.md`.
+   Reconcile each independently, applying the scope rules above: on an incremental sync, a file is in scope only when its trigger in the table fires.
+   - **`project-overview.md`**:
+     - If the file does not exist: create it using the project-overview template, populate with real content derived from the codebase.
+     - If the file exists: read it, compare its content with the codebase analysis, and update sections that have drifted.
+       **Also apply the migration summary**: if a section was removed from the template since the last sync, remove the corresponding section from the file.
+       If a section was added, add it.
+       Preserve any manual additions that are still accurate.
+       Flag sections that changed in the report.
+     - Do not leave any `<…>` placeholders.
+     - If a section genuinely cannot be determined from the code (e.g., named stakeholders), write a concise note explaining what is unknown rather than a filler placeholder.
+   - **`use-cases.md`**:
+     - If the file does not exist: create it using the use-cases template, with one Supported entry per user-visible capability you identified.
+     - If the file exists: reconcile the **Supported** table against the user-visible capabilities the codebase implements (commands, routes, major UI sections, workflows) and the project scope in `project-overview.md`.
+       Reuse an existing `UC-N` for the same use case, add a new ID for a genuinely new use case, and remove rows for capabilities the codebase no longer has.
+     - **Preserve the `Wanted` and `Out of scope` sections**: they record human intent, so change them only when the codebase or a linked issue/feature gives evidence. Never invent a wanted use case.
+     - Do not leave any `<…>` placeholders in the Supported table.
 
 8. Reconcile and write `.sdlc/context/architecture.md` using the same compare-and-update approach, applying the migration summary where relevant.
    - Include a component table and describe the data flow based on what you read.
@@ -337,6 +347,7 @@ If the `Task` tool is unavailable, process all features sequentially as written.
 | File | Status | Changes |
 |---|---|---|
 | .sdlc/context/project-overview.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
+| .sdlc/context/use-cases.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
 | .sdlc/context/architecture.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |
 | .sdlc/context/schema.dbml | created / updated / unchanged / unchanged (not in scope) / not applicable (no database) | <summary of changes> |
 | .sdlc/context/conventions.md | created / updated / unchanged / unchanged (not in scope) | <summary of changes> |

@@ -272,6 +272,7 @@ When the `SDLC_DIR` environment variable is set, the same tree can also live (or
 ├── .gitignore                     # Excludes state.yml and features/*/progress.md (local-only)
 ├── context/
 │   ├── project-overview.md        # Project goals, scope, key stakeholders
+│   ├── use-cases.md               # Actors and goals: supported, wanted, out of scope
 │   ├── goals.md                   # Objectives, key results, KPIs (optional, via /create-goals)
 │   ├── roadmap.md                 # Initiatives sequenced Now/Next/Later, aligned to goals (optional, via /create-roadmap)
 │   ├── service-levels.md         # SLOs, SLIs, SLAs, error budgets (optional, via /create-service-levels)
@@ -542,7 +543,7 @@ If you commit/push manually, never `git add` these paths or `status-report.html`
    It interviews the user to populate the core context files under `.sdlc/context/` (running `initialize-sdlc-directory` first when `.sdlc/` is absent), then invoke `review-project` and address findings.
    This is a standalone operation that does not advance the pipeline.
    Prefer it over `sync` when the project has no code to analyze.
-10. Read `.sdlc/context/` (`project-overview.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline.
+10. Read `.sdlc/context/` (`project-overview.md`, `use-cases.md`, `architecture.md`, `conventions.md`, `schema.dbml`, `infrastructure.md`) for project-level context before invoking any sub-skill, and apply the style rules found in `conventions.md` to every document produced during the pipeline.
     The shared conventions (context reading and `.sdlc/` path resolution via `SDLC_DIR`) are defined in `references/shared.md` and are not repeated per sub-skill.
 11. Confirm the artifacts available for the current phase (previous phase output under `.sdlc/features/N-<slug>/`, existing files, or context).
 12. **Before executing each sub-skill**, run the [Linked-PR Guard](#linked-pr-guard-between-phases): invoke `check-linked-pr` against the current issue.
@@ -694,7 +695,7 @@ Each phase consumes output from the previous phase:
 | initialize-sdlc-directory | Project root (optional) | `.sdlc/` directory tree + templates populated + SDLC anchor in `AGENTS.md` |
 | update-sdlc-templates | `.sdlc/templates/` + canonical templates | Merged/updated templates; conflicts flagged |
 | configure-labels | GitHub repository | Standard label taxonomy created/updated; summary of created, updated, and unchanged labels |
-| create-project | Project root with `.sdlc/` (created if absent) + user answering the interview | Populated core `.sdlc/context/` files (`project-overview.md`, `architecture.md`, `infrastructure.md`, `conventions.md`, `vocabulary.md`); placeholders remain for skipped questions |
+| create-project | Project root with `.sdlc/` (created if absent) + user answering the interview | Populated core `.sdlc/context/` files (`project-overview.md`, `use-cases.md`, `architecture.md`, `infrastructure.md`, `conventions.md`, `vocabulary.md`); placeholders remain for skipped questions |
 | review-project | Core `.sdlc/context/` files | Findings → `.sdlc/context/review-project.md` (verdict `approved`/`changes-requested`/`rejected`) |
 | create-issue | Feature idea / bug description | Structured GitHub issue |
 | review-issue | GitHub issue | Findings + improved ACs (resolve before next phase) |

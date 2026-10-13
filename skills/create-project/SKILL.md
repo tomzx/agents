@@ -39,10 +39,11 @@ This skill closes that gap: it asks, one topic per round, the questions the stub
    | Round | File | Ask about |
    |---|---|---|
    | 1 | `project-overview.md` | What the project does and the problem it solves, key stakeholders, in-scope and out-of-scope capabilities, hard constraints (technical, business, regulatory) |
-   | 2 | `architecture.md` | Major components and their responsibilities, how data flows between them, core domain entities and their relationships, intended topology. For an empty project, capture the intended architecture and mark it as planned |
-   | 3 | `infrastructure.md` | Language, runtime, framework, and database choices, development tooling and its exact commands, environments, CI/CD pipelines, deployment and rollback |
-   | 4 | `conventions.md` | Naming (files, functions, classes), directory structure, coding standards, commit message format, branching strategy, how SDLC artifacts should be written |
-   | 5 | `vocabulary.md` | Domain terms the project will use, technical terms, acronyms and abbreviations |
+   | 2 | `use-cases.md` | The actors who use the project, what each one does with it, which capabilities exist today versus are wanted (with a signal for each wanted one), and what is deliberately out of scope |
+   | 3 | `architecture.md` | Major components and their responsibilities, how data flows between them, core domain entities and their relationships, intended topology. For an empty project, capture the intended architecture and mark it as planned |
+   | 4 | `infrastructure.md` | Language, runtime, framework, and database choices, development tooling and its exact commands, environments, CI/CD pipelines, deployment and rollback |
+   | 5 | `conventions.md` | Naming (files, functions, classes), directory structure, coding standards, commit message format, branching strategy, how SDLC artifacts should be written |
+   | 6 | `vocabulary.md` | Domain terms the project will use, technical terms, acronyms and abbreviations |
 
 6. After each round, write the answers into the corresponding file using its template at `skills/sdlc/templates/context/`.
    Keep the template's section order and structure.
@@ -55,7 +56,7 @@ This skill closes that gap: it asks, one topic per round, the questions the stub
 - **Ask, do not infer.** If the user is unsure, that section stays a placeholder.
   Fabricated context is worse than missing context because downstream skills trust these files.
 - **Prefer concrete over generic.** For conventions, push for enforceable rules ("kebab-case file names", "Conventional Commits") over aspirations ("clean code").
-- **Seed vocabulary from earlier rounds.** When rounds 1 to 3 introduce domain terms, propose them for round 5 instead of asking the user to recall them.
+- **Seed vocabulary from earlier rounds.** When rounds 1 to 4 introduce domain terms, propose them for round 6 instead of asking the user to recall them.
 
 ## Revision Mode
 
@@ -73,6 +74,7 @@ Report what was written and what remains open:
 | File | Status |
 |---|---|
 | .sdlc/context/project-overview.md | written / unchanged / revised |
+| .sdlc/context/use-cases.md | written / unchanged / revised |
 | .sdlc/context/architecture.md | written / unchanged / revised |
 | .sdlc/context/infrastructure.md | written / unchanged / revised |
 | .sdlc/context/conventions.md | written / unchanged / revised |
@@ -94,7 +96,7 @@ In the same emission, list every context file you wrote under `artifacts:`.
 ```
 /create-project
 ```
-No `.sdlc/` exists yet; `initialize-sdlc-directory` runs first, then five interview rounds fill the five context files.
+No `.sdlc/` exists yet; `initialize-sdlc-directory` runs first, then six interview rounds fill the six context files.
 Deployment is undecided, so the deployment section stays a placeholder and is listed as an open question.
 
 **Scenario 2: Partially filled context**
@@ -123,9 +125,10 @@ The skill asks only about those two points and amends the files, leaving everyth
 
 Before handing off to review, confirm:
 
-- [ ] All five context files written, with placeholders only for explicitly skipped questions
+- [ ] All six context files written, with placeholders only for explicitly skipped questions
 - [ ] Every domain term used across the files appears in `vocabulary.md`
 - [ ] Components named in `architecture.md` all appear in `infrastructure.md`
+- [ ] Every use case in `use-cases.md` names an actor, and every Wanted entry carries a signal
 
 Self-check the drafts against the [`review-project` checklist](../review-project/SKILL.md) and fix what you can, so review finds less to flag.
 

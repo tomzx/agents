@@ -94,6 +94,7 @@ Record what was created, updated, or skipped (already present), and remind the u
 
 7. For each context file below, create it under `.sdlc/context/` — **only if the destination file does not already exist** — using the corresponding canonical template (from `../sdlc/templates/context/`) as starting content:
    - `project-overview.md`
+   - `use-cases.md`
    - `goals.md`
    - `architecture.md`
    - `conventions.md`
@@ -117,6 +118,7 @@ Record what was created, updated, or skipped (already present), and remind the u
 - .sdlc/.gitignore
 - .gitignore (status-report.html added)
 - .sdlc/context/project-overview.md
+- .sdlc/context/use-cases.md
 - .sdlc/templates/features/requirements.md
 ...
 
@@ -130,12 +132,13 @@ Record what was created, updated, or skipped (already present), and remind the u
 
 Next steps:
 1. Fill in `.sdlc/context/project-overview.md` with your project's goals, stakeholders, and scope.
-2. Fill in `.sdlc/context/goals.md` with your objectives, key results, and KPIs (or run `/create-goals`).
-3. Fill in `.sdlc/context/architecture.md` with the system topology.
-4. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
-5. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
-6. Fill in `.sdlc/context/infrastructure.md` with the technology stack, development tooling, environments, and deployment procedures.
-7. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
+2. Fill in `.sdlc/context/use-cases.md` with the actors and goals the project supports, wants to support, and excludes.
+3. Fill in `.sdlc/context/goals.md` with your objectives, key results, and KPIs (or run `/create-goals`).
+4. Fill in `.sdlc/context/architecture.md` with the system topology.
+5. Fill in `.sdlc/context/conventions.md` with naming, structure, and coding conventions.
+6. Fill in `.sdlc/context/vocabulary.md` with domain terms, technical terms, and abbreviations used across the project.
+7. Fill in `.sdlc/context/infrastructure.md` with the technology stack, development tooling, environments, and deployment procedures.
+8. Edit templates under `.sdlc/templates/features/` and `.sdlc/templates/knowledge/` to match your project's preferred artifact formats.
    Run `/update-sdlc-templates` later to pull in upstream improvements while preserving your edits.
 ```
 

@@ -12,7 +12,7 @@ The review answers one question: could an agent that has never seen this project
 ## Prerequisites
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
-- The context files under `.sdlc/context/` (`project-overview.md`, `architecture.md`, `infrastructure.md`, `conventions.md`, `vocabulary.md`), or the equivalent documents provided in context or as file paths.
+- The context files under `.sdlc/context/` (`project-overview.md`, `use-cases.md`, `architecture.md`, `infrastructure.md`, `conventions.md`, `vocabulary.md`), or the equivalent documents provided in context or as file paths.
 - Source code in the project root (optional, for the currency spot-check).
 
 ## Steps
@@ -30,6 +30,7 @@ The review answers one question: could an agent that has never seen this project
 ### Completeness
 
 - Does every section of every context file contain substantive content, with no template placeholders (`<...>`, "TBD") left?
+- Does `use-cases.md` list at least one Supported use case, each with a named actor?
 - For an empty project, are not-yet-built parts (architecture, infrastructure) explicitly marked as planned rather than presented as existing?
 - Is `goals.md` absent?
   Note it as informational with a pointer to `/create-goals`; it is not a blocker for this review.
@@ -39,11 +40,12 @@ The review answers one question: could an agent that has never seen this project
 - Do terms used in `project-overview.md` and `architecture.md` match the definitions in `vocabulary.md` (no synonym drift, no redefinitions)?
 - Does every component named in `architecture.md` appear in the `infrastructure.md` technology stack, or is the gap explained?
 - Does the scope in `project-overview.md` (in and out) agree with what `architecture.md` describes, with no out-of-scope components documented as core?
+- Do the Supported use cases in `use-cases.md` correspond to capabilities the scope and architecture describe, and does every Wanted entry carry a signal (an issue, feature, or roadmap reference)?
 
 ### Clarity
 
 - Does the purpose state the problem being solved, not just the mechanism being built?
-- After reading the five files alone, could a new contributor describe the project's boundaries, parts, and rules without asking anyone?
+- After reading the context files alone, could a new contributor describe the project's boundaries, parts, and rules without asking anyone?
 - Are stakeholder interests concrete enough to resolve a prioritization disagreement?
 
 ### Actionability

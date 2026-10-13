@@ -1,5 +1,10 @@
 # Memory
 
+## 2026-10-13: adding an SDLC context file is a cross-skill change
+
+- Adding a file under `.sdlc/context/` requires updating every skill that creates, reconciles, interviews for, or reviews the context set, plus the canonical template and the hand-maintained SDLC HTML docs. Adding the template and the `shared.md` list alone is incomplete.
+- For use cases specifically: `sync-sdlc` reconciles the Supported table from the code and must preserve the human-authored Wanted and Out of scope sections and the stable `UC-N` ids.
+
 ## 2026-10-06: a recorded decision is not an executed one
 
 - The reviewer-feedback analysis file has two terminal markers: `decision` (the user chose implement/decline/defer) and `executed_at` (the executor carried it out). An item with `decision` but no `executed_at` is "decided but not run", surfaced by `triage_pr_feedback.py` as `pending_execution`.
