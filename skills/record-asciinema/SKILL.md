@@ -3,6 +3,7 @@ name: record-asciinema
 description: Record a terminal/CLI demonstration with asciinema, render it to an embeddable GIF (or SVG), and return the asset path. Reusable recording primitive used by verify-pr and validate-implementation.
 allowed-tools: Bash(asciinema:*, agg:*, asciicast2gif:*, svg-term:*, ~/.agents/scripts/get-env:*), Read, Write, Glob
 argument-hint: "[<slug>] [-- <command...>]"
+cli: asciinema
 ---
 
 # Record CLI Demo (asciinema)
@@ -108,9 +109,13 @@ asciinema rec "$RECORD_DIR/${RECORD_SLUG}.cast" \
 
 ### 4. Verify the recording matches the intent
 
+Export the recording to a plain-text log and read it back (asciinema 3.x; `cat` only concatenates recordings now):
+
 ```bash
-asciinema cat "$RECORD_DIR/${RECORD_SLUG}.cast"
+asciinema convert "$RECORD_DIR/${RECORD_SLUG}.cast" "$RECORD_DIR/${RECORD_SLUG}.txt"
 ```
+
+On asciinema 2.x, use `asciinema cat "$RECORD_DIR/${RECORD_SLUG}.cast"` instead.
 
 Confirm the captured output demonstrates the claim.
 If it is empty or wrong, re-record with `--overwrite`.

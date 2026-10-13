@@ -3,6 +3,7 @@ name: create-mermaid-visualization
 description: Create any Mermaid diagram (flowchart, sequence, class, state, ER, C4, architecture, gantt, mindmap, timeline, pie, sankey, and 20+ more) from a description or source material. Use when the user says "diagram", "visualize", "mermaid", "draw a flowchart", "sequence diagram", "ER diagram", "mindmap", "gantt chart", or asks to document architecture, processes, data flows, or relationships as a diagram. Covers selecting the right diagram type, correct syntax, validation, and delivery into Markdown or files.
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 argument-hint: "[what to visualize or diagram type]"
+cli: mmdc
 ---
 
 # Create Mermaid Visualization

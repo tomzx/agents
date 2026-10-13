@@ -90,7 +90,7 @@ See `reference/llm-commits.md` for supported tools and exact command syntax.
 
 5. **Suggest testing**
    ```bash
-   wt step commit --show-prompt | head  # verify prompt builds
+   wt step commit --dry-run | head  # verify prompt builds
    wt merge  # in a repo with uncommitted changes
    ```
 
@@ -109,13 +109,16 @@ Follow discovery process:
    - For Rust: Common cargo commands
    - For Python: Check pyproject.toml
 
-3. **Design appropriate hooks** (7 hook types available)
+3. **Design appropriate hooks** (10 hook types available)
+   - Before branch resolution → `pre-switch`
    - Dependencies (fast, must complete) → `pre-start`
    - Tests/linting (must pass) → `pre-commit` or `pre-merge`
    - Long builds, dev servers → `post-start`
-   - Terminal/IDE updates → `post-switch`
+   - Terminal/IDE updates, staying on a branch → `post-switch`
+   - Post-commit notifications/CI triggers → `post-commit`
    - Deployment → `post-merge`
-   - Cleanup tasks → `pre-remove`
+   - Cleanup before removal → `pre-remove`
+   - Stop dev servers, remove containers → `post-remove`
 
 4. **Validate commands work**
    ```bash
@@ -153,13 +156,16 @@ When users want to add automation to an existing project:
 1. **Read existing config**: `cat .config/wt.toml`
 
 2. **Determine hook type** - When should this run?
+   - Before branch resolution → `pre-switch`
    - Creating worktree (blocking) → `pre-start`
    - Creating worktree (background) → `post-start`
    - Every switch → `post-switch`
    - Before committing → `pre-commit`
+   - After committing → `post-commit`
    - Before merging → `pre-merge`
    - After merging → `post-merge`
    - Before removal → `pre-remove`
+   - After removal → `post-remove`
 
 3. **Handle format conversion if needed**
 

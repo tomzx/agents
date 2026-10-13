@@ -33,6 +33,9 @@ agentic
   run         list | get | events | create | cancel | wait | stream
   context     get | refresh
   harness     list | create | update | delete
+  person      list | get | create | update | delete | link | unlink
+  change      list | get | create | delete | accept | verify | reject | revert | intervene
+  metrics     show | baseline (list | set | delete)
   settings    get | set
 ```
 
@@ -91,6 +94,8 @@ The API has no authentication, so expose it only on a trusted network.
 | Worktree | An isolated `git worktree` created for a task from a registered repository. |
 | Agent run | One prompt sent to a harness (a coding agent) in a working directory. Its transcript is a stream of events. |
 | Context refresh | A special agent run that reads the task and its items and rewrites `summary` and `next_steps`. |
+| Change | A unit of factory output recorded against a task and moved through a lifecycle (proposed, verified, accepted, rejected, reverted) so the metrics can be computed from it. |
+| Person | Someone linked to tasks and items, so a task shows who it is for or about. |
 
 Every meaningful change writes a timeline event, so `agentic task timeline <task>` shows how a task evolved.
 
@@ -218,6 +223,70 @@ agentic harness delete <harness>
 A harness is a coding-agent process reachable over ACP (Agent Client Protocol); `opencode acp` is the default and `pi-acp` is also seeded.
 `harness list` marks each harness `available` or `missing` by looking its command up on PATH.
 
+## Changes and metrics
+
+A **change** is the unit of factory output the metrics are computed from. Record one per piece of work that reaches production, move it through its lifecycle, and record the human interventions it needed.
+
+```bash
+agentic change create <task> --title "Fix flaky ingest test"
+agentic change create <task> --title "Add retry" --change-class bugfix --external-ref <sha>
+
+agentic change list                          # newest first
+agentic change list --task-id <task> --status accepted
+agentic change get <change>                  # includes its interventions
+
+agentic change verify <change>               # verified
+agentic change accept <change>               # reached production
+agentic change reject <change>               # rejected before acceptance
+agentic change revert <change>               # an accepted change that did not survive
+
+agentic change intervene <change> --kind correction --note "fixed the migration by hand"
+agentic change delete <change>               # deletes the change and its interventions
+```
+
+Change classes: `feature`, `bugfix`, `refactor`, `chore`, `docs`, `test`, `trivial`.
+Statuses: `proposed`, `verified`, `accepted`, `rejected`, `reverted`.
+`change create` starts `proposed`; `verify`, `accept`, `reject`, and `revert` move it and stamp the transition time.
+`change intervene --kind` is one of `question`, `correction`, `manual_fix`, `rerun`, `approval`, `other`.
+Any intervention (including an approval) marks the change human-intervened, which lowers the autonomy rate.
+
+The metrics read those records:
+
+```bash
+agentic metrics show                         # autonomy rate and yield vs their baselines
+agentic metrics show --window-days 30 --observation-days 14 --tolerance 0.02
+agentic metrics show --task-id <task> --change-class bugfix
+
+agentic metrics baseline list
+agentic metrics baseline set autonomy_rate 0.2 --note "before the factory run"
+agentic metrics baseline set yield 0.8
+agentic metrics baseline delete autonomy_rate
+```
+
+- **Autonomy rate** is the share of accepted changes that needed no human intervention.
+- **Yield** is the share of accepted changes that survived the observation window without being reverted.
+- `metrics show` reports each metric's direction (`improving`, `worsening`, `flat`, `no-baseline`, or `no-data`) against its stored baseline; `--tolerance` sets the flat band.
+- `metrics baseline set <metric> <value>` takes a metric of `autonomy_rate` or `yield`.
+
+## People
+
+Link people to tasks and items so a task shows who it is for or about.
+
+```bash
+agentic person list
+agentic person get <person>
+
+agentic person create --name "Alice Smith" --handle alice --email alice@example.com
+agentic person update <person> --notes "owns ingest"
+agentic person delete <person>               # deletes the person and their links
+
+agentic person link <person> --task <task>
+agentic person link <person> --item <item>
+agentic person unlink <person> --task <task>
+```
+
+`person link`/`unlink` take exactly one of `--task` or `--item`. `person get` shows what the person is linked to, and `task get` also lists the task's people.
+
 ## Settings
 
 ```bash
@@ -270,7 +339,7 @@ Four commands have side effects beyond the database. Confirm the target and inte
 
 - Start a session with `agentic health`, then `agentic task list --format json` to see current work.
 - Pipe to `jq` for scripting; the CLI emits JSON whenever stdout is not a terminal.
-- `task get` already includes items, worktrees, runs, and timeline, so prefer it over several list calls.
+- `task get` already includes items, worktrees, runs, timeline, and people, so prefer it over several list calls.
 - Whether an item carries useful content depends on the fetch; if `content` is empty, run `agentic item refresh <item>`.
 - `run wait` returns once the run reaches `succeeded`, `failed`, or `cancelled`; on timeout it prints the still-running state instead of failing.
 - `task create` imports a GitHub issue via `ghx`; if the import fails, create the task by title and link the issue with `link add --url`.

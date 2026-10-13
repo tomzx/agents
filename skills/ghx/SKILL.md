@@ -17,7 +17,7 @@ cli: ghx
 `ghx` is an extended GitHub CLI.
 It talks to the GitHub GraphQL API directly to provide two kinds of capability:
 
-1. **Cached browsing** — fetches issues, pull requests, and their comments and caches every result to `~/.cache/ghx/cache/<host>/<owner>/<repo>` to minimise API calls.
+1. **Cached browsing** — fetches issues, pull requests, and their comments and caches every result locally (SQLite at `~/.cache/ghx/cache/cache.db` by default, or one JSON file per entry under `~/.cache/ghx/cache/<host>/<owner>/<repo>/` with `--storage file`) to minimise API calls.
 2. **Comment operations** — inline review comments, line-range comments, thread replies, pending reviews, and a local "stash" for offline review comments, none of which the standard `gh` CLI supports.
 
 ---
@@ -129,9 +129,28 @@ ghx repo list                        # locally cached repositories
 
 | Command | Cache behaviour |
 |---|---|
-| `cache` | Fetches all issues/PRs (all states, with comments); writes one JSON file each. Skips when younger than `--cache-duration`. `--since <date>` refreshes only entries created/updated on or after the date. `--type issues` or `--type prs` refreshes one portion only. Explicit `--since`/`--type` bypass the freshness check; `--since` cannot combine with `--force`. |
-| `issue list` / `pr list` | Reads all cached files and filters in memory when the full cache is fresh; falls back to the GitHub API otherwise. |
-| `issue view` / `pr view` | Serves from the per-item file when it is < 60 min old; fetches from the API and updates the cache otherwise. `--refresh` bypasses all cache checks, always fetches from the API, and updates the cache. |
+| `cache` | Fetches all issues/PRs (all states, with comments); writes to the local cache (one JSON file each with `--storage file`). Skips when younger than `--cache-duration`. `--since <date>` refreshes only entries created/updated on or after the date. `--type issues` or `--type prs` refreshes one portion only. Explicit `--since`/`--type` bypass the freshness check; `--since` cannot combine with `--force`. |
+| `issue list` / `pr list` | Reads the local cache and filters in memory when the full cache is fresh; falls back to the GitHub API otherwise. |
+| `issue view` / `pr view` | Serves from the cache when the entry is < 60 min old; fetches from the API and updates the cache otherwise. `--refresh` bypasses all cache checks, always fetches from the API, and updates the cache. |
+
+---
+
+## Other commands
+
+```bash
+ghx serve                              # local read-only web UI over the cache
+ghx stats --from 2026-01-01 --to 2026-06-30 -o report.html   # PR activity report
+ghx telemetry summary                  # local API/cache timing report
+ghx cache migrate                      # move a file-backed cache to SQLite
+ghx mock serve                         # mock GraphQL server for testing
+```
+
+- `ghx serve` (`--addr`, `--open`) browses every cached repository; it is read-only against the cache except for its refresh action.
+- `ghx stats [REPO...]` writes an HTML report of pull request activity (an author by reviewer matrix with time to first review); it serves from the cache when available and falls back to the API.
+- `ghx telemetry` (`status`, `enable`, `disable`, `summary`, `export`, `clear`) reads or controls the local telemetry database; recording is on by default (opt out with `--telemetry=false` or `GHX_TELEMETRY=0`).
+- `ghx cache migrate` moves a file-backed cache to the SQLite backend (the default storage).
+
+Global flags apply to every command: `--repo/-R [HOST/]OWNER/REPO`, `--cache-dir <path>`, `--storage sqlite|file` (env `GHX_STORAGE`), `--log-level <debug|info|warn|error>`, `--telemetry` (env `GHX_TELEMETRY`), and `--telemetry-db <path>`.
 
 ---
 
