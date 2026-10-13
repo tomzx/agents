@@ -22,18 +22,28 @@ An opinion piece is not exempt from research: before taking a position, gather t
 Research is the difference between a supportable position and an unsupported hot take, and it is what the reader uses to judge the argument.
 If a perspective piece genuinely has no external sources (for example, it reports on the author's own first-hand experience), say so explicitly and note what the argument is based on instead.
 
+## Planning
+
+For a **long-form article** (roughly four or more sections, or any article whose structure is not already fixed by a template), settle the argument and structure before drafting by running the [`create-article-plan`](../create-article-plan/SKILL.md) skill, which writes `plan.md` next to the article.
+Skip it for a **short templated piece** (for example a research note on a fixed skeleton), where the template is the plan, and for a revision that does not change the argument or section structure.
+The plan's format and self-check live in that skill; this skill owns drafting and revision.
+Draft from `plan.md` when one exists, so the article delivers the planned argument.
+
 ## Steps
 
 1. Read all provided sources thoroughly.
    If none were provided, including for an opinion piece, research the topic first (see Prerequisites) rather than writing from prior belief alone.
 2. Identify the core insight or argument the article should convey.
 3. Calibrate tone and depth to the target audience.
-4. Draft the article using the structure below, following the formatting rules.
-5. Add visualizations where they aid comprehension (see "Visualizations" below).
-6. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
-7. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
-8. Revise for clarity, flow, and conciseness.
-9. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article).
+4. **Plan the article** (see "Planning" above).
+   For a new long-form article, run the [`create-article-plan`](../create-article-plan/SKILL.md) skill to write `plan.md` next to the target article file.
+   Skip it for a short templated piece (the template is the plan), and for a revision that does not change the argument or structure.
+5. Draft the article from the plan (or from the core insight and audience when no plan was written), using the structure below and following the formatting rules.
+6. Add visualizations where they aid comprehension (see "Visualizations" below).
+7. Verify all links: curl every URL in the article and replace any that return 4xx, 5xx, or connection errors.
+8. Discover related articles in the same repository (see "Finding Related Articles" below) and add a "See also" section.
+9. Revise for clarity, flow, and conciseness.
+10. Include an `agent_sessions` list in the frontmatter, holding the identifiers of every LLM/agent session that contributed to the article (use the current session ID from context, and append to the existing list when revising an article).
    The list may contain zero entries: if no session ID is available, omit the field entirely.
 
 ## Formatting Rules
@@ -175,6 +185,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Use concrete examples, numbers, or comparisons to anchor abstract points
 - Include a visualization when an idea would otherwise take many sentences to explain
 - Attribute claims to sources with hyperlinks; don't state opinions as facts
+- Deliver the planned argument and sections when a `plan.md` was written, rather than drifting from it
 - Ground opinion pieces in research too: cite the sources that inform the position, including the strongest counterarguments, instead of asserting the view without support
 - End with something the reader can take away or act on
 - Each sentence sits on its own line in the markdown source
@@ -194,6 +205,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 ## Output Format
 
 Produce the article as clean markdown starting with YAML frontmatter containing `audience_notes` and the `agent_sessions` list.
+When a plan was written, `plan.md` stays a separate working file next to the article and is not part of the article output.
 After the article, include a brief sources section:
 
 ```markdown
@@ -231,4 +243,5 @@ The position must be based on and cite the sources, not asserted from prior beli
 ## Next Step
 
 A review subagent is dispatched automatically to run `/review-article` to audit the article for accuracy, clarity, structure, sourcing, audience fit, cross-article consistency, and style.
+When a `plan.md` was written, the review also checks the article against the plan (plan fidelity).
 The review subagent reads the review-article skill at `skills/review-article/SKILL.md` and the article just written, then reports its findings and verdict.

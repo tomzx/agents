@@ -245,6 +245,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/sync-documentation` | Reconcile the `docs/` tree with code (stale refs, broken links, nav drift). |
 | `/research-topic` | Research any topic, snapshot every visited page, and synthesize a structured document. |
 | `/research-article` | Research a topic to map the state of the art and gather sources. |
+| `/create-article-plan` | Plan a long-form article's argument and structure before writing it. |
 | `/create-article` | Write a high-quality article for a given audience and sources. |
 | `/create-article-image-prompt` | Generate 3-5 image prompts for an article, each with its exact placement. |
 | `/review-article` | Review an article for accuracy, clarity, structure, and fit. |

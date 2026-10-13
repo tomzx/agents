@@ -14,6 +14,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Target audience (if known, improves audience-fit check)
 - Relevant sources (optional, improves accuracy check)
 - Other related articles in the same series (optional, enables cross-article consistency checks)
+- Plan file (optional): a `plan.md` next to the article, when one was written, enables the plan-fidelity check
 
 ## Steps
 
@@ -22,9 +23,10 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
    This serves as a comprehension check: if the summary diverges from what the author intended, the clarity or structure sections will explain why.
 3. Cross-reference claims against provided sources if available.
 4. Compare claims, figures, and terminology against other related articles in context if available.
-5. Identify issues in each category below.
-6. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
-7. Report findings using the output format.
+5. If a plan file is provided, or a `plan.md` exists next to the article, check the article against it (see Plan Fidelity below).
+6. Identify issues in each category below.
+7. Prioritize each finding: 🔴 MUST, 🟡 SHOULD, 🟢 MAY.
+8. Report findings using the output format.
    Omit categories with no findings.
 
 ## Review Checklist
@@ -65,6 +67,12 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Is terminology and naming used consistently across related articles?
 - Do claims or conclusions in one article contradict another in the series?
 - Are cross-article references (links to companion articles) accurate and up to date?
+
+### Plan Fidelity
+- Does the article deliver the core insight stated in the plan?
+- Do the sections match the planned outline and each establish its planned claim?
+- Are the planned sources used, or replaced with equally credible ones?
+- Are the non-goals respected (no out-of-scope material pulled in)?
 
 ### Style
 - Is each sentence on its own line in the markdown source?
@@ -108,6 +116,10 @@ The author should verify this matches their intent; a mismatch indicates a clari
 ## Cross-Article Consistency
 
 <Findings or "No issues found.">
+
+## Plan Fidelity
+
+<Findings or "No issues found."; omit this section when no plan file was available.>
 
 ## Style
 

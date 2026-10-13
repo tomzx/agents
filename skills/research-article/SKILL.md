@@ -181,6 +181,7 @@ Recommend an article that explains CRDTs and covers their limitations.
 ## Next Step
 
 Run `/create-article`, passing the key sources from this brief and the recommended core insight and angle.
+For a long-form article, run `/create-article-plan` first to turn the brief's recommendation into a `plan.md`, then `/create-article` to draft from it.
 The research brief is the "relevant sources" prerequisite for `/create-article`, so the writing step can focus on structure, tone, and audience calibration rather than on finding material.
 
 After the article is drafted, run `/review-article` to audit it for accuracy, sourcing, and clarity.
