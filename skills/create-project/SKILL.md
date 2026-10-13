@@ -39,7 +39,7 @@ This skill closes that gap: it asks, one topic per round, the questions the stub
    | Round | File | Ask about |
    |---|---|---|
    | 1 | `project-overview.md` | What the project does and the problem it solves, key stakeholders, in-scope and out-of-scope capabilities, hard constraints (technical, business, regulatory) |
-   | 2 | `use-cases.md` | The actors who use the project, what each one does with it, which capabilities exist today versus are wanted (with a signal for each wanted one), and what is deliberately out of scope |
+   | 2 | `use-cases.md` | The actors who use the project, the goals each one pursues with it (why they reach for it, not what its commands do), which goals exist today versus are wanted (with a signal for each wanted one), and what is deliberately out of scope |
    | 3 | `architecture.md` | Major components and their responsibilities, how data flows between them, core domain entities and their relationships, intended topology. For an empty project, capture the intended architecture and mark it as planned |
    | 4 | `infrastructure.md` | Language, runtime, framework, and database choices, development tooling and its exact commands, environments, CI/CD pipelines, deployment and rollback |
    | 5 | `conventions.md` | Naming (files, functions, classes), directory structure, coding standards, commit message format, branching strategy, how SDLC artifacts should be written |
@@ -128,7 +128,7 @@ Before handing off to review, confirm:
 - [ ] All six context files written, with placeholders only for explicitly skipped questions
 - [ ] Every domain term used across the files appears in `vocabulary.md`
 - [ ] Components named in `architecture.md` all appear in `infrastructure.md`
-- [ ] Every use case in `use-cases.md` names an actor, and every Wanted entry carries a signal
+- [ ] Every entry in `use-cases.md` states a goal an actor has (not an operation the project exposes), names that actor, and every Wanted entry carries a signal
 
 Self-check the drafts against the [`review-project` checklist](../review-project/SKILL.md) and fix what you can, so review finds less to flag.
 

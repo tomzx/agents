@@ -30,7 +30,7 @@ The review answers one question: could an agent that has never seen this project
 ### Completeness
 
 - Does every section of every context file contain substantive content, with no template placeholders (`<...>`, "TBD") left?
-- Does `use-cases.md` list at least one Supported use case, each with a named actor?
+- Does `use-cases.md` list at least one Supported use case, each stating a goal an actor has for using the project and naming that actor?
 - For an empty project, are not-yet-built parts (architecture, infrastructure) explicitly marked as planned rather than presented as existing?
 - Is `goals.md` absent?
   Note it as informational with a pointer to `/create-goals`; it is not a blocker for this review.
@@ -40,11 +40,12 @@ The review answers one question: could an agent that has never seen this project
 - Do terms used in `project-overview.md` and `architecture.md` match the definitions in `vocabulary.md` (no synonym drift, no redefinitions)?
 - Does every component named in `architecture.md` appear in the `infrastructure.md` technology stack, or is the gap explained?
 - Does the scope in `project-overview.md` (in and out) agree with what `architecture.md` describes, with no out-of-scope components documented as core?
-- Do the Supported use cases in `use-cases.md` correspond to capabilities the scope and architecture describe, and does every Wanted entry carry a signal (an issue, feature, or roadmap reference)?
+- Do the Supported use cases in `use-cases.md` state goals the scope and architecture serve (not a command, route, or UI section for its own sake), and does every Wanted entry carry a signal (an issue, feature, or roadmap reference)?
 
 ### Clarity
 
 - Does the purpose state the problem being solved, not just the mechanism being built?
+- Is each use case a reason to use the project rather than an operation the project exposes (a maintenance or configuration capability such as "clear the cache" or "set up credentials" is not a use case)?
 - After reading the context files alone, could a new contributor describe the project's boundaries, parts, and rules without asking anyone?
 - Are stakeholder interests concrete enough to resolve a prioritization disagreement?
 

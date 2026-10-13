@@ -137,7 +137,7 @@ Use these triggers (a changed file matching none of them leaves every context fi
 | `telemetry.md` | an analytics SDK, analytics config, or a tracked event definition |
 | `architecture.md` | a new top-level directory, a new service or entry point, or a renamed/moved module that changes the component topology |
 | `project-overview.md` | a changed README/manifest that alters the project's purpose, scope, or stack |
-| `use-cases.md` | a new user-visible capability (command, route, or major UI section) or a changed README/manifest that alters what the project can do |
+| `use-cases.md` | a new user-visible capability (command, route, or major UI section) or a changed README/manifest that alters what actors can achieve with the project |
 | `conventions.md` | a linter/formatter/type-checker config change, or a large batch of new files that establishes a new pattern |
 | `vocabulary.md` | new domain terms (new symbols, routes, or config keys) introduced by the change |
 
@@ -159,9 +159,11 @@ If the `Task` tool is unavailable, process the files sequentially as written.
      - Do not leave any `<…>` placeholders.
      - If a section genuinely cannot be determined from the code (e.g., named stakeholders), write a concise note explaining what is unknown rather than a filler placeholder.
    - **`use-cases.md`**:
-     - If the file does not exist: create it using the use-cases template, with one Supported entry per user-visible capability you identified.
-     - If the file exists: reconcile the **Supported** table against the user-visible capabilities the codebase implements (commands, routes, major UI sections, workflows) and the project scope in `project-overview.md`.
-       Reuse an existing `UC-N` for the same use case, add a new ID for a genuinely new use case, and remove rows for capabilities the codebase no longer has.
+     - Entries are goals an actor has for using the project, not operations the project exposes.
+       Do not add an entry for a command, route, or UI section by itself: fold enabling capabilities (credential setup, cache inspection and clearing, direct listing of cached entities) into the goal they support, or leave them to `project-overview.md` scope.
+     - If the file does not exist: create it using the use-cases template, with one Supported entry per distinct goal the actors pursue with the project.
+     - If the file exists: reconcile the **Supported** table against the goals the codebase lets actors pursue and the project scope in `project-overview.md`, not against its commands and routes one for one.
+       Reuse an existing `UC-N` for the same goal, add a new ID for a genuinely new goal, and remove rows for goals the codebase no longer serves.
      - **Preserve the `Wanted` and `Out of scope` sections**: they record human intent, so change them only when the codebase or a linked issue/feature gives evidence. Never invent a wanted use case.
      - Do not leave any `<…>` placeholders in the Supported table.
 
