@@ -53,14 +53,20 @@ Bug reproduced?
  Yes            No
   |              |
   v              v
-Record before   Post comment
-(if surface      (unable to reproduce,
- classifiable)   ask for details)
+Classify origin  Post comment
+(regression?     (unable to reproduce,
+ git bisect)      ask for details)
+        |
+        v
+Record before
+(if surface
+ classifiable)
         |
         v
 Post comment
 (reproduced,
- ready to fix)
+ origin, ready
+ to fix)
 ```
 
 ## Steps
@@ -135,7 +141,43 @@ Record the reproduction attempt:
 - Any differences from the reported behavior
 - Environment or version discrepancies
 
-### 5. Record the before state (when reproduced)
+### 5. Classify the bug's origin (regression or new)
+
+Once the bug is reproduced, decide whether it is a regression (the behavior worked in an earlier version and broke later) or a new bug (the behavior never worked, or it is new code).
+This tells the fixer how urgent the bug is and where to look for the cause.
+
+Look for signals that it worked before:
+
+- The issue says it used to work, or names the version that broke it.
+- An earlier release or tag behaved correctly.
+- A test, changelog, or release note covers the behavior.
+- `git log -L <start>,<end>:<file>` or `git blame` shows the line changed recently.
+
+When it is a regression and the reproduction can be reduced to a script, find the introducing commit with `git bisect run`.
+Run the bisect in a disposable worktree so the fix worktree is not disturbed:
+
+```bash
+git fetch origin --tags
+git worktree add ../$WORKTREE_NAME-bisect <bad-ref>
+cd ../$WORKTREE_NAME-bisect
+git bisect start <bad-ref> <good-ref>
+git bisect run <repro-script>
+git bisect reset
+cd -
+git worktree remove --force ../$WORKTREE_NAME-bisect
+```
+
+- `<bad-ref>` is a ref that has the bug (often `origin/main` or the version from the report).
+- `<good-ref>` is an earlier ref that does not (a release tag, or the commit before the suspect change), and it must be an ancestor of `<bad-ref>`.
+- `<repro-script>` must live outside the worktree (an absolute path, or on `PATH`) and must not leave tracked files modified.
+  It returns `0` when the behavior is correct, `1` when the bug is present, or `125` when the commit cannot be tested (for example it does not build), which `git bisect run` skips.
+  Never return `128` or higher, git treats that as a fatal error.
+- If no known-good ref exists, or the reproduction cannot be scripted, fall back to `git log` and `git blame` on the buggy lines and name the most likely commit, marked as suspected.
+
+Record the outcome as `regression` (with the introducing commit and its subject), `regression, suspected` (when only `git blame` pointed at a commit), `new`, or `unknown`.
+The `--force` on removal is needed because the repro script usually leaves untracked build artifacts behind.
+
+### 6. Record the before state (when reproduced)
 
 When the bug is reproduced, capture a recording of the buggy behavior so `validate-implementation` can pair it with an after-the-fix recording before the PR is opened.
 This runs only on the bug-fix fast path and is best-effort: if the recording tools are unavailable or the surface cannot be classified, skip silently and proceed.
@@ -186,7 +228,7 @@ EOF
 The rendered before asset lands at `$PROOF_DIR/before-bug.gif` (or `.png` / `.svg`).
 If no asset was produced (tools absent or surface unclassifiable), do not write a manifest; `validate-implementation` will report `surface: none` / `tools-missing` and `create-pr` will omit proof.
 
-### 6. Post reproduction results
+### 7. Post reproduction results
 
 #### If the bug is reproduced
 
@@ -201,6 +243,8 @@ Reproduced. Working on a fix.
 - <Exact steps that triggered the bug>
 - <Observed error or behavior>
 - <Any environment or version differences from the original report>
+
+**Origin:** regression, introduced by `<short-sha>` (<commit subject>) | regression, suspected | new (the behavior never worked) | unknown
 
 **Before recording:** captured at `$PROOF_DIR/before-bug.*` (pairs with an after-the-fix recording captured by `/validate-implementation` before the PR). Omit this line if no recording was taken.
 
@@ -233,6 +277,7 @@ Proceed with `create-implementation` or `fix-issue`.
 |---|---|
 | **Cannot reproduce** | Comment on issue, ask for more details, clean up worktree |
 | **Worktree creation fails** | Fall back to a regular branch in the main working directory |
+| **Origin not determinable** | No known-good ref or no scriptable check; record the origin as `unknown` (or `regression, suspected` when `git blame` points at a commit), do not block the fix |
 | **Issue is not a bug** | Comment on the issue suggesting it be reclassified, stop |
 
 ## Outcome
@@ -250,7 +295,7 @@ If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/s
 ```
 /reproduce-issue 42 owner/myrepo
 ```
-Fetches issue #42 (null pointer on login), creates worktree on `fix/42-null-pointer-login`, reproduces by sending a request with missing field, records the crash to `/tmp/<owner>/<repo>/42/before-bug.gif` with a manifest, posts reproduction details on the issue.
+Fetches issue #42 (null pointer on login), creates worktree on `fix/42-null-pointer-login`, reproduces by sending a request with missing field, classifies it as a regression and bisects it to the commit that introduced the null dereference, records the crash to `/tmp/<owner>/<repo>/42/before-bug.gif` with a manifest, posts reproduction details (including the introducing commit) on the issue.
 Ready for `create-implementation`.
 
 **Scenario 2: Cannot reproduce**

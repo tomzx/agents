@@ -108,6 +108,40 @@ Never commit, and never edit source as part of this skill.
 When `--no-verify` is passed, or the bug is a static certainty with no runnable seam, record `verification: static` and move on.
 Do not overstate a static finding as confirmed.
 
+## Regression or New Bug
+
+After a bug is confirmed, say whether it is a regression (the behavior worked and broke) or a new bug (it never worked).
+The origin tells the reader how urgent the finding is and where to look for the cause.
+
+Signals that it is a regression:
+
+- The behavior is covered by an older release, changelog, or release note.
+- An earlier tag or the base of a release branch behaves correctly.
+- `git log -L <start>,<end>:<file>` or `git blame` shows the behavior changed recently.
+
+When a Critical or High regression has a scriptable verification seam, find the introducing commit with `git bisect run`.
+A bisect builds and runs the repro across many commits, so reserve it for those findings and use `git log`/`git blame` for the rest.
+Bisect in a disposable worktree so the working tree is not touched, per the Verification rule:
+
+```bash
+git fetch origin --tags
+git worktree add /tmp/<repo>-bisect <bad-ref>
+cd /tmp/<repo>-bisect
+git bisect start <bad-ref> <good-ref>
+git bisect run <repro-script>
+git bisect reset
+cd -
+git worktree remove --force /tmp/<repo>-bisect
+```
+
+- `<bad-ref>` is a ref that has the bug (often `HEAD`), `<good-ref>` is an earlier one that does not (a release tag, or the commit before the suspect change), and `<good-ref>` must be an ancestor of `<bad-ref>`.
+- `<repro-script>` must live outside the worktree (an absolute path, or on `PATH`) and must not leave tracked files modified.
+  It returns `0` when the behavior is correct, `1` when the bug is present, or `125` when the commit cannot be tested (for example it does not build), which `git bisect run` skips.
+  Never return `128` or higher, git treats that as a fatal error.
+- A bisect needs a known-good ref; when none is known, or the seam is not scriptable, fall back to `git log` and `git blame` on the buggy lines and record the most likely commit as suspected.
+- Record the outcome as `regression` (with the introducing commit and its subject), `regression, suspected`, `new`, or `unknown`.
+- The `--force` on removal is needed because the repro script usually leaves untracked build artifacts behind.
+
 ## The Dedup Contract (ghx)
 
 This is mandatory.
@@ -178,9 +212,10 @@ For each candidate:
 2. Open the cited code and reject false positives (guards, by-design behavior, dead code, generated code).
 3. Verify where a seam exists.
    Record `verified` with the command and outcome, or `static`.
-4. Run the dedup search.
+4. Classify the origin as a regression or a new bug (see Regression or New Bug), bisecting to the introducing commit for Critical and High findings when a scriptable seam exists.
+5. Run the dedup search.
    If tracked, discard and continue the loop.
-5. Keep it, capturing severity, evidence, trigger, impact, verification status, and a 1-3 sentence fix sketch.
+6. Keep it, capturing severity, evidence, trigger, impact, verification status, origin, and a 1-3 sentence fix sketch.
 
 Continue until the `--limit` count is reached or the surface is exhausted.
 
@@ -208,7 +243,7 @@ The report is the deliverable and must stand alone; do not reference the live co
 
 Only when `--create-issues N` is passed, file the top N via `/create-issue`.
 Label them `bug` (and the relevant area label if one exists).
-Each issue body cites the evidence and the verification, and links back to the report.
+Each issue body cites the evidence, the verification, and the origin (with the introducing commit when known), and links back to the report.
 Before filing, check repository visibility: if the repository is public, confirm before publishing any bug that describes a security weakness or a credential location.
 
 ## Flags
@@ -243,15 +278,16 @@ status: complete
 ## Summary
 
 - Bugs kept: N (N confirmed, N static)
+- Regressions: N (introducing commit found: N), new: N, unknown: N
 - Raw candidates dropped as already tracked: M
 - Deferred to "suspected": K
 - Not covered: <areas deliberately left out>
 
 ## Ranked Bugs
 
-| Rank | ID | Bug | Category | Severity | Evidence | Verification | Confidence |
-|---|---|---|---|---|---|---|---|
-| 1 | BUG-3 | <imperative title> | <category> | High | `src/x.py:42` | verified | HIGH |
+| Rank | ID | Bug | Category | Severity | Evidence | Verification | Origin | Confidence |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BUG-3 | <imperative title> | <category> | High | `src/x.py:42` | verified | regression since `a1b2c3d` | HIGH |
 
 ## Bug Detail
 
@@ -264,6 +300,7 @@ status: complete
 - **Impact:** <what goes wrong, concretely>
 - **Reachability:** <how the path is reached in production>
 - **Verification:** verified | static. <command and outcome when verified>
+- **Origin:** regression since `<sha>` (<subject>) | regression, suspected | new | unknown
 - **Confidence:** HIGH | MED
 - **Fix sketch:** <1-3 sentences>
 - **Suggested next step:** `/create-issue` then `/fix-issue` | `/reproduce-issue` (no seam)
@@ -300,7 +337,7 @@ status: complete
 /identify-bugs
 ```
 Loads all issues with `ghx`, maps the critical paths, and reads the code.
-Confirms an unawaited promise in the request handler with a failing test, and a swallowed exception on the payment path statically.
+Confirms an unawaited promise in the request handler with a failing test (a regression, bisected to the commit that introduced it), and a swallowed exception on the payment path statically (origin unknown).
 Two other candidates were dropped because issues already track them.
 Writes `.sdlc/bugs-2026-10-02.md` with 3 bugs.
 Files nothing.
@@ -355,5 +392,6 @@ Pair with `/fix-issue` (fixes what it finds) and `/identify-codebase-improvement
 | `ghx issue list --repo <repo> --search "<keywords>" --state all --limit 10` | Per-candidate dedup search |
 | `ghx issue view <number> --repo <repo> --comments` | Read a candidate match in full (pass a number, not a URL) |
 | `git log --since="1 month ago" --name-only --pretty=format: \| sort \| uniq -c \| sort -rn` | Churn hotspots to weight the hunt |
+| `git bisect start <bad-ref> <good-ref> && git bisect run <script>` | Find the commit that introduced a regression |
 | `rg -n -U -B1 "except[^:]*:\s*\n\s*(pass\|continue\|\.\.\.)" -g '*.py' .` | Swallowed exceptions (Python) |
 | `rg -n "catch\s*\([^)]*\)\s*\{\s*\}" -g '*.{js,ts}' .` | Empty catch blocks (JS/TS) |
