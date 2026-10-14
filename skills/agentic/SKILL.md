@@ -2,19 +2,21 @@
 name: agentic
 description: >
   Drive the Agentic app from the command line with the `agentic` CLI: create and
-  manage tasks, link Slack/GitHub/Drive/URL/note items to them, register
-  repositories, create git worktrees, start and watch agent runs, and read or
-  refresh a task's agent-maintained summary and next steps. Trigger when the user
-  wants to file or update an Agentic task, attach a thread/issue/doc to a task,
-  spin up a worktree, run an agent against a task, refresh task context, or
-  inspect tasks by status or tag.
+  manage tasks, link Slack/GitHub/Drive/URL/note items to them, work the focus
+  stack, link task dependencies and read the graph, register repositories, create
+  git worktrees, start and watch agent runs, record agent sessions, read the
+  operation audit log, and read or refresh a task's agent-maintained summary and
+  next steps. Trigger when the user wants to file or update an Agentic task,
+  attach a thread/issue/doc to a task, work or inspect the focus stack, spin up a
+  worktree, run an agent against a task, refresh task context, or inspect tasks
+  by status, tag, deadline, or dependency.
 cli: agentic
 ---
 
 # agentic Skill
 
 `agentic` is the user-facing command-line client for the Agentic app, a local-first task tracker that ties together the Slack threads, GitHub issues/PRs, Drive docs, URLs, and notes that feed a unit of work.
-Work is organized around **tasks**; everything else (items, associations, worktrees, agent runs, timeline events) hangs off a task.
+Work is organized around **tasks**; everything else (items, associations, worktrees, runs, sessions, the focus stack, timeline events) hangs off a task.
 The CLI is a thin HTTP client over the Agentic API, so it drives the same data the app UI shows, and it emits JSON for scripting.
 
 The app also ships `agentic-server` (the backend). This skill covers only the `agentic` client.
@@ -24,18 +26,22 @@ The app also ships `agentic-server` (the backend). This skill covers only the `a
 ```
 agentic
   health
-  task        list | get | create | update | delete | timeline
+  task        list | deadlines | get | create | update | delete | timeline | link | unlink | deps
+  graph
   tag         list
   item        list | get | create | refresh | delete
   link        add | remove
   repository  list | add | remove
   worktree    list | create | remove
   run         list | get | events | create | cancel | wait | stream
+  session     list | get | add | update | remove
   context     get | refresh
   harness     list | create | update | delete
-  person      list | get | create | update | delete | link | unlink
+  person      list | get | create | update | delete | merge | link | unlink
   change      list | get | create | delete | accept | verify | reject | revert | intervene
   metrics     show | baseline (list | set | delete)
+  stack       list | current | history | push | pop | promote | reorder | edit | remove
+  operation   list
   settings    get | set
 ```
 
@@ -51,7 +57,9 @@ Global options are accepted on any command (they live on the app, and every leaf
 | `--format <auto\|json\|text>` | Output format. `auto` (default) uses JSON when stdout is not a terminal, text otherwise. |
 | `--timeout <seconds>` | Per-request timeout. Default `60`. |
 
-The CLI help also advertises `AGENTIC_API_URL`, `AGENTIC_FORMAT`, and `AGENTIC_TIMEOUT`, but the current release ignores them (the flags always win), so pass the flags explicitly.
+The CLI help advertises `AGENTIC_API_URL`, `AGENTIC_FORMAT`, and `AGENTIC_TIMEOUT`, but the current release ignores them (the flags always win, and their defaults override the environment), so pass the flags explicitly.
+`AGENTIC_ACTOR` is different: the CLI reads it and sends it to the server, defaulting to `human`.
+Set `AGENTIC_ACTOR=agent` to have the server record the work as agent-performed; the run harness sets it automatically for the agent process it spawns.
 
 Output is JSON when piped, so `agentic task list | jq` works without a flag.
 Pass `--format text` for the human-readable form (one line per task/item/run) even when piped.
@@ -79,6 +87,7 @@ agentic health          # -> ok (agentic) at http://127.0.0.1:8600
 ```
 
 If it fails, start the backend from the repository root: `uv run agentic-server serve --host 0.0.0.0 --port 8600`.
+Agent runs need a worker too: `uv run agentic-server worker`.
 Point at another instance with `--api-url`.
 The API has no authentication, so expose it only on a trusted network.
 
@@ -86,15 +95,19 @@ The API has no authentication, so expose it only on a trusted network.
 
 | Concept | What it is |
 |---|---|
-| Task | The unit of work. Carries `status`, `priority`, `tags`, a `summary`, and `next_steps`. |
+| Task | The unit of work. Carries `status`, `priority`, `tags`, a `deadline`, a `summary`, and `next_steps`. |
 | Item | Something external: a Slack thread, GitHub issue/PR, Drive doc, URL, note, commit, or file. De-duplicated by URL or external id. |
 | Association | A link between an item and a task (many-to-many), with an optional note. |
 | Repository | A local git checkout registered by path. |
 | Repository group | A named set of repositories a task's agent should consider. Set on a task with `--group-id`. |
 | Worktree | An isolated `git worktree` created for a task from a registered repository. |
 | Agent run | One prompt sent to a harness (a coding agent) in a working directory. Its transcript is a stream of events. |
+| Agent session | A session recorded against a task by hand (its session id, harness, working directory, and label), for one the app did not start, such as an OpenChamber session. Both runs and sessions produce the links that reopen a session. |
 | Context refresh | A special agent run that reads the task and its items and rewrites `summary` and `next_steps`. |
 | Change | A unit of factory output recorded against a task and moved through a lifecycle (proposed, verified, accepted, rejected, reverted) so the metrics can be computed from it. |
+| Stack entry | A task's place on the focus stack: its position (0 is current), whether it is current, and a soft-delete timestamp. |
+| Task session | A stretch of time a stack entry spent as the current task; the stack derives execution count and duration from these. |
+| Operation | An audit record of a mutating request: its method, path, status, the client that sent it (web, cli, api), and whether a human or an agent was behind it. |
 | Person | Someone linked to tasks and items, so a task shows who it is for or about. |
 
 Every meaningful change writes a timeline event, so `agentic task timeline <task>` shows how a task evolved.
@@ -108,15 +121,21 @@ agentic task list --q "flaky"             # substring filter
 agentic task list --tag bug --tag ci      # every given tag must match (AND)
 agentic task list --format json | jq '.[].id'
 
-agentic task get <task>                    # task plus its items, worktrees, runs, and timeline
+agentic task deadlines                    # in-flight tasks due within 7 days, soonest first (overdue included)
+agentic task deadlines --within-days 30
+
+agentic task get <task>                    # task plus its items, worktrees, runs, sessions, people, changes, and timeline
 agentic task timeline <task>
 
 agentic task create --title "Fix flaky ingest test"
 agentic task create --title "Ship feature X" --priority 3 --tags bug --tags ci
+agentic task create --title "Ship X" --deadline 2026-11-01
 agentic task create --github-url https://github.com/o/r/issues/482   # imports the issue
+agentic task create --slack-url https://acme.slack.com/archives/C0123/p1700000000123456   # imports the thread
 
 agentic task update <task> --status in_progress
 agentic task update <task> --priority 0 --tags triage
+agentic task update <task> --deadline 2026-12-01 --clear-deadline
 agentic task update <task> --summary "hand-written summary"
 
 agentic task delete <task>                 # deletes everything attached
@@ -126,8 +145,10 @@ Statuses: `open`, `in_progress`, `blocked`, `done`, `archived`.
 Priorities: `0` low, `1` medium, `2` high (default), `3` urgent.
 `--tags` and `--repository-ids` are repeatable; pass `--empty-tags` or `--empty-repository-ids` to clear them.
 `create` takes `--group-id` and `--harness-id`; `update` takes `--harness-id` but not `--group-id`.
+`--deadline` is an ISO 8601 date or date-time; `update` also takes `--clear-deadline`.
 
 `task create --github-url` fetches the GitHub issue (via `ghx`), fills the title and description, and links the issue as an item in one call.
+`task create --slack-url` fetches the Slack thread, links it, and starts an agent run that names the task and summarizes the discussion (the title stays a placeholder until it finishes).
 
 ## Items and links
 
@@ -157,6 +178,24 @@ agentic link remove <task> <item>
 
 `link add` with no `--item-id` creates a new item from `--url`, `--content`, or `--title`, then associates it.
 Use `--note` to record why the item is attached.
+
+## Dependencies and the graph
+
+Tasks can depend on each other through before/after links, which form a DAG.
+
+```bash
+agentic task link <task> <related> --relation before   # <related> must be done first
+agentic task link <task> <related> --relation after    # <related> follows <task> (default)
+agentic task deps <task>                               # the tasks linked before and after this one
+agentic task unlink <task> <related>
+
+agentic graph                        # every in-flight task as a node, plus the edges between them
+agentic graph --include-done         # include done and archived tasks
+```
+
+`--relation before` means the related task must be done first; `after` means it follows this one.
+A link that would close a cycle is refused.
+`graph` returns `nodes` (id, title, status, priority) and `edges` (`before_id` -> `after_id`); done and archived tasks are hidden unless you pass `--include-done`.
 
 ## Repositories and worktrees
 
@@ -199,6 +238,23 @@ Transcript event types a run streams include `message`, `thought`, `user`, `tool
 
 `run create` picks the working directory in this order: `--cwd`, then `--worktree-id`, then a default worktree or the task's first repository.
 Leave `--harness-id` unset to use the task's harness, then the app default.
+A run records the session it produced, so `run get` shows the links that reopen it.
+
+## Sessions
+
+A session records an agent session against a task by hand, for one the app did not start, such as an OpenChamber session.
+`run get` and `session get` both expose the links that reopen a session: OpenChamber, a terminal template, and the harness's resume command.
+
+```bash
+agentic session list <task>
+agentic session add <task> <agent-session-id> --harness-id opencode --cwd /home/me/src/myrepo --label "investigation"
+agentic session get <task> <record-id>          # shows the recorded session and how to reopen it
+agentic session update <task> <record-id> --label "renamed"
+agentic session remove <task> <record-id>       # removes the record only; the session itself is untouched
+```
+
+Mind the two ids: `session add` takes the agent's session id (the one the harness reports), while `get`, `update`, and `remove` take the recorded session's id (the first column of `session list`).
+`session add` defaults the harness to the task's harness.
 
 ## Task context
 
@@ -211,17 +267,45 @@ agentic context refresh <task>    # starts a refresh_context run that rewrites t
 
 `context refresh` returns a run; watch it with `run wait` or `run stream`.
 
+## Focus stack
+
+The focus stack is the current task plus the queue below it, so you work one thing at a time.
+The app materializes the stack from in-flight tasks: every task that is open, in progress, or blocked and has never been on the stack joins at the bottom automatically.
+
+```bash
+agentic stack list                 # the stack, current task first
+agentic stack current              # the current task (the top of the stack)
+agentic stack history              # soft-deleted entries, most recent first
+
+agentic stack push --title "Fix the flaky test"          # add a new task on top (position default)
+agentic stack push --task-id <task> --position next      # add an existing task after the current one
+agentic stack push --task-id <task> --position last      # add it at the bottom
+
+agentic stack pop                  # mark the current task done and promote the next one
+agentic stack promote <entry>      # move an entry to the top (make it current)
+agentic stack reorder <entry> 2    # move an entry to position 2 (0 is current)
+agentic stack edit <entry> --title "Better title" --description "..."
+agentic stack remove <entry>       # soft delete the entry; the task is kept
+```
+
+`--position` is `top` (becomes current), `next` (after the current task), or `last` (the bottom).
+`pop` marks the task `done`; `remove` only takes it off the stack and leaves the task as it was.
+A task you popped or removed keeps its soft-deleted entry, so it is not re-added automatically; push it again to bring it back.
+Each entry's text line shows its execution count and total time as the current task.
+
 ## Harnesses
 
 ```bash
-agentic harness list              # id, whether the command is on PATH, and its path
-agentic harness create myagent opencode --args acp --model gpt-x
+agentic harness list              # id, whether the command is on PATH, and which is the default (marked *)
+agentic harness create myagent opencode --args acp --model gpt-x --resume-command "opencode --session {session}"
 agentic harness update <harness> --model other-model
 agentic harness delete <harness>
 ```
 
-A harness is a coding-agent process reachable over ACP (Agent Client Protocol); `opencode acp` is the default and `pi-acp` is also seeded.
+A harness is a coding-agent process reachable over ACP (Agent Client Protocol).
+`opencode2` (`opencode2 acp`) is seeded as the default when installed, otherwise `opencode` (`opencode acp`); `pi` (via `pi-acp`) is also seeded.
 `harness list` marks each harness `available` or `missing` by looking its command up on PATH.
+`--resume-command` is the template that builds a session's resume link (placeholders `{session}`, `{cwd}`, `{harness}`).
 
 ## Changes and metrics
 
@@ -230,9 +314,10 @@ A **change** is the unit of factory output the metrics are computed from. Record
 ```bash
 agentic change create <task> --title "Fix flaky ingest test"
 agentic change create <task> --title "Add retry" --change-class bugfix --external-ref <sha>
+agentic change create <task> --title "Add retry" --repository-id <repository> --worktree-id <worktree>
 
 agentic change list                          # newest first
-agentic change list --task-id <task> --status accepted
+agentic change list --task-id <task> --status accepted --change-class bugfix
 agentic change get <change>                  # includes its interventions
 
 agentic change verify <change>               # verified
@@ -248,7 +333,7 @@ Change classes: `feature`, `bugfix`, `refactor`, `chore`, `docs`, `test`, `trivi
 Statuses: `proposed`, `verified`, `accepted`, `rejected`, `reverted`.
 `change create` starts `proposed`; `verify`, `accept`, `reject`, and `revert` move it and stamp the transition time.
 `change intervene --kind` is one of `question`, `correction`, `manual_fix`, `rerun`, `approval`, `other`.
-Any intervention (including an approval) marks the change human-intervened, which lowers the autonomy rate.
+Any intervention (including an approval) marks the change non-touchless, which lowers the autonomy rate.
 
 The metrics read those records:
 
@@ -276,16 +361,34 @@ Link people to tasks and items so a task shows who it is for or about.
 agentic person list
 agentic person get <person>
 
-agentic person create --name "Alice Smith" --handle alice --email alice@example.com
+agentic person create --name "Alice Smith" --aliases alice --aliases alice@example.com
 agentic person update <person> --notes "owns ingest"
-agentic person delete <person>               # deletes the person and their links
+agentic person update <person> --aliases alice   # replaces the whole alias list
+agentic person merge <person> --into <person>    # absorbs the source's aliases and links
+agentic person delete <person>                   # deletes the person and their links
 
 agentic person link <person> --task <task>
 agentic person link <person> --item <item>
 agentic person unlink <person> --task <task>
 ```
 
-`person link`/`unlink` take exactly one of `--task` or `--item`. `person get` shows what the person is linked to, and `task get` also lists the task's people.
+`--aliases` is repeatable (a handle or email); on `update` it replaces the whole list.
+`merge` folds one person into another, moving their aliases and links.
+`person link`/`unlink` take exactly one of `--task` or `--item`.
+`person get` shows what the person is linked to, and `task get` also lists the task's people.
+
+## Operations (audit log)
+
+Every mutating API request is recorded with the client that sent it and whether a human or an agent was behind it.
+
+```bash
+agentic operation list                       # newest first, up to 100 by default
+agentic operation list --client cli --actor agent
+agentic operation list --limit 500
+```
+
+`--client` is `web`, `cli`, or `api`; `--actor` is `human` or `agent`.
+This covers operations with no task to hang a timeline event off (settings, repositories, harnesses, people), so it is the cross-cutting view of how work entered the system.
 
 ## Settings
 
@@ -326,23 +429,40 @@ agentic run wait <run-id>
 agentic task update <task> --status in_progress
 ```
 
+**Work the focus stack.**
+
+```bash
+agentic stack list
+agentic stack push --title "Next thing to do"
+agentic stack pop                  # finish the current task and move on
+```
+
+**Attach a session you opened elsewhere.**
+
+```bash
+agentic session add <task> <agent-session-id> --cwd /home/me/src/myrepo --label "openchamber"
+agentic session get <task> <record-id>    # the links that reopen it
+```
+
 ## Safety
 
-Four commands have side effects beyond the database. Confirm the target and intent with the user before running them.
+Several commands have side effects beyond the database. Confirm the target and intent with the user before running them.
 
-- `task delete <task>` removes the task's worktrees from disk (best effort) and deletes its associations, worktrees, runs, transcript events, and timeline. There is no undo.
+- `task delete <task>` removes the task's worktrees from disk (best effort) and deletes its associations, worktrees, runs, transcript events, sessions, changes, and timeline. There is no undo.
 - `worktree remove <task> <worktree>` runs `git worktree remove --force` and prunes; any uncommitted changes in that worktree are lost.
 - `repository remove <repository>` removes that repository's worktrees from disk (best effort) before untracking it; the main checkout stays in place, but uncommitted changes in its worktrees are lost.
+- `stack pop` marks the current task `done`; `stack push --title` creates a task; `stack remove` only takes the entry off the stack (the task is kept).
 - `run create` and `context refresh` start a coding agent, which can edit files and run commands, and permissions are auto-approved by default. State the prompt and the working directory before starting.
 
 ## Tips
 
 - Start a session with `agentic health`, then `agentic task list --format json` to see current work.
 - Pipe to `jq` for scripting; the CLI emits JSON whenever stdout is not a terminal.
-- `task get` already includes items, worktrees, runs, timeline, and people, so prefer it over several list calls.
+- `task get` already includes items, worktrees, runs, sessions, people, changes, and timeline, so prefer it over several list calls.
 - Whether an item carries useful content depends on the fetch; if `content` is empty, run `agentic item refresh <item>`.
 - `run wait` returns once the run reaches `succeeded`, `failed`, or `cancelled`; on timeout it prints the still-running state instead of failing.
 - `task create` imports a GitHub issue via `ghx`; if the import fails, create the task by title and link the issue with `link add --url`.
+- Set `AGENTIC_ACTOR=agent` so the server records your mutations as agent-performed in the timeline and the operations log.
 
 ## Wrap up
 

@@ -397,7 +397,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/sync-repository` | Keep SDLC, code, tests, and docs consistent. |
 | `/worktrunk` | Guidance for Worktrunk CLI -- worktree management and hooks. |
 | `/write-cli` | Read, create, update, sync, comment on, and delete Write.quick documents via the `write-cli` CLI. |
-| `/agentic` | Drive the Agentic app via the `agentic` CLI: tasks, items, links, worktrees, agent runs, and task context. |
+| `/agentic` | Drive the Agentic app via the `agentic` CLI: tasks, items, links, dependencies, the focus stack, worktrees, agent runs, sessions, and task context. |
 | `/gws-pull-transcripts` | Pull Google Meet transcripts from Google Drive. |
 | `/vacation-handoff` | Generate a handoff covering deadlines and in-flight work. |
 
