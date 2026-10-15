@@ -177,11 +177,12 @@ When a precomputed plan was given, skip the `ISSUE_NUMBER` lookup (it is a namin
 
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.
 
-Capture the short SHA of the commit under review, which is the worktree HEAD (the fetched PR head).
-This is used in the commit message in step 6, after the worktree has been removed:
+Capture the short SHA of the commit under review, which is the worktree HEAD (the fetched PR head), and the current session ID.
+Both are used in the commit message in step 6, after the worktree has been removed:
 
 ```bash
 HEAD_SHORT_SHA=$(git -C "$WORKTREE_DIR" rev-parse --short HEAD)
+SESSION_ID="${OPENCODE_SESSION_ID:-}"
 ```
 
 ### 4. Dispatch stale review steps
@@ -291,7 +292,7 @@ git worktree remove $WORKTREE_DIR
 
 The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`).
 Commit exactly this PR's Markdown reports **and every asset they reference** and push, so the reports are durable and shareable across machines.
-Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in step 3) so the commit records which revision it covers:
+Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in step 3) so the commit records which revision it covers, and the current session ID (`$SESSION_ID`, also from step 3) on a separate line so each commit traces back to the run that produced it:
 
 ```bash
 REVIEWS_REPO="$HOME/.sdlc"
@@ -302,13 +303,15 @@ if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
     "$PR_REVIEW_DIR"/'*.gif' "$PR_REVIEW_DIR"/'*.svg' "$PR_REVIEW_DIR"/'*.webp' \
     "$PR_REVIEW_DIR"/'*.cast' "$PR_REVIEW_DIR"/'*.webm' "$PR_REVIEW_DIR"/'*.mp4' 2>/dev/null || true
   if ! git -C "$REVIEWS_REPO" diff --cached --quiet; then
-    git -C "$REVIEWS_REPO" commit -m "review-pr-full: $REPO#$PR_NUMBER @ $HEAD_SHORT_SHA"
+    COMMIT_ARGS=(-m "review-pr-full: $REPO#$PR_NUMBER @ $HEAD_SHORT_SHA")
+    [ -n "$SESSION_ID" ] && COMMIT_ARGS+=(-m "session: $SESSION_ID")
+    git -C "$REVIEWS_REPO" commit "${COMMIT_ARGS[@]}"
     git -C "$REVIEWS_REPO" push || echo "note: push failed for $REPO#$PR_NUMBER"
   fi
 fi
 ```
 
-The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}` so every run is identifiable by repository, PR, and the commit it reviewed.
+The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}`, followed by a `session: {session_id}` line when a session ID is available, so every run is identifiable by repository, PR, the commit it reviewed, and the run that produced it.
 
 Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed.
 Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions above (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
