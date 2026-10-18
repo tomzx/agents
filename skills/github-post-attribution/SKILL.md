@@ -135,6 +135,8 @@ ${FOOTER}"
 Then check before posting: the rendered body must contain no `${` and no literal `SKILL_FILE_URL` / `SKILL_SHORT_SHA` tokens.
 For backtick-free bodies, an unquoted `<<EOF` heredoc with a backslash-escaped SHA backtick also works; the split form above is the safe default because it is unaffected by backticks elsewhere in the template.
 
+For a PR review report (`validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`), do not post with a bare `ghx pr comment`: post it with the **Posting a review report** recipe in `skills/sdlc/references/shared.md`, which updates that step's existing comment instead of adding a new one, taking the append/replace choice from `PR_REVIEW_POST_MODE`.
+
 ## Notes
 
 - **No package manager**: skills do not declare dependencies in YAML; consuming skills must **read** this file (or follow a one-line pointer in their own `SKILL.md`) so the agent loads the procedure.

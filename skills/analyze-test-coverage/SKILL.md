@@ -1,7 +1,7 @@
 ---
 name: analyze-test-coverage
 description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr-full as the first step of its review chain (before validate-pr, verify-pr, and review-pr), and delegated to by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
-allowed-tools: Bash(git:*, ghx:*), Read, Glob, Grep
+allowed-tools: Bash(git:*, gh:*, ghx:*), Read, Glob, Grep
 argument-hint: "[diff-ref | worktree-dir]"
 ---
 
@@ -170,14 +170,15 @@ Then point the stable name at it: `ln -sf "analyze-test-coverage.$SHORT_SHA.md" 
 
 5. Post the report as a PR comment, decided by `should-post-to-github`.
    If `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"` exits 1, skip posting (the report is already saved).
-   If it exits 0:
+   If it exits 0, build the body and post it with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (with `STEP="analyze-test-coverage"`):
 
 ```bash
+REPORT="$(cat "$PR_REVIEW_DIR/analyze-test-coverage.report.md")"
 FOOTER="Posted with [analyze-test-coverage](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-ghx pr comment "$PR_NUMBER" --repo "$REPO" --body "$(cat "$PR_REVIEW_DIR/analyze-test-coverage.report.md")
-
-${FOOTER}"
+# Then run the shared recipe with STEP="analyze-test-coverage" (REPORT and FOOTER set above).
 ```
+
+The recipe updates this step's existing comment on the PR (append or replace per `PR_REVIEW_POST_MODE`, default `replace`) instead of adding a new comment on every run; in `replace` mode the body also ends with the reviewed-commits index.
 
 The verdict never gates anything: review-pr-full runs this step first and reports the verdict to the human reviewer, while the later chain steps can read the posted report as evidence.
 

@@ -9,7 +9,7 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 
 Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate?) and `/summarize-behavior-changes` (what will behave differently after this merges?) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?).
 When the diff touches a CLI, SDK, API, or database surface, the matching conditional surface review (`/review-cli-changes`, `/review-sdk-changes`, `/review-api-changes`, `/review-db-changes`) is dispatched alongside them (see Conditional surface reviews).
-Each step posts its own report and marks the commit it reviewed.
+Each step posts its own report (updating that step's existing comment when there is one, see step 4) and marks the commit it reviewed.
 When the run finishes, it commits this PR's report directory (reports plus any assets they reference, such as screenshots and casts) in the user-global reviews store and pushes it (see step 6).
 
 `/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`) can read it as evidence.
@@ -208,6 +208,7 @@ Dispatch each skill in `STALE_STEPS` as a subagent task via the Task tool.
 The subagent prompt MUST be the exact skill invocation command, not a paraphrased or self-authored description.
 Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt.
 Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
+When `PR_REVIEW_POST_MODE` is set to a non-default value, add one line to every prompt so the choice survives the dispatch (`Post in append mode: PR_REVIEW_POST_MODE=append`; see Posting mode below) and change nothing else.
 
 Use the `general` subagent type for all steps.
 
@@ -219,6 +220,22 @@ Do not parallelize chain steps, because each step may halt the pipeline.
 If an advisory step (assess-pr-risk, summarize-behavior-changes, or a surface review) is stale but no chain step is (or the chain halts before finishing), it still runs and its report still applies on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
+
+#### Posting mode (append or replace)
+
+Every post goes through the shared **Posting a review report** recipe in `skills/sdlc/references/shared.md`: the sub-skill finds its own existing comment for that step (the authenticated user's top-level comment carrying that step's marker) and updates it, instead of adding a comment per reviewed commit.
+The choice is read from the `PR_REVIEW_POST_MODE` environment variable:
+
+| `PR_REVIEW_POST_MODE` | Effect on that step's existing comment |
+|---|---|
+| `replace` (default) | The body is swapped for the new report: one comment per step, always showing the latest reviewed commit, plus an index of the commits reviewed (most recent first), each linking to the review commit in the reviews repository that holds that run's reports (step 6 links the current run's entry after committing), and a link to the PR's directory there |
+| `append` | The new report is added below the existing body: one comment per step holding every reviewed commit's report, oldest first, newest last (no index, since the earlier reports are already there) |
+
+Set the variable before running; it is passed to each subagent through the prompt line above, so the machine running `review-pr-full` is the one whose setting applies.
+In `replace` mode the index and the reviews-repository link come from the reviews store: it lists every commit the store recorded for this PR (its commit messages name the reviewed commits, and the commits themselves hold the reports), most recent first, each entry linking to its review commit, and the block ends with a link to that PR's directory in the reviews repository. The current run's entry is listed first with `(this review)` and no link, because its review commit does not exist yet when the step posts; step 6 below patches it to point at that commit once it has been made.
+Prefer `replace` for the usual case (the comment reads as the current review and still points at the history; the per-run reports and the end-of-run commit are that history).
+Prefer `append` when a comment should instead read as the timeline of reviews across commits.
+When the variable is unset, `replace` is used, so re-runs stop duplicating comments either way.
 
 #### assess-pr-risk
 
@@ -340,23 +357,63 @@ Include the short SHA of the reviewed commit (`$HEAD_SHORT_SHA`, captured in ste
 REVIEWS_REPO="$HOME/.sdlc"
 PR_REVIEW_DIR="$REPO/pull-requests/$PR_NUMBER"
 if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
-  git -C "$REVIEWS_REPO" add -- "$PR_REVIEW_DIR"/'*.md' \
-    "$PR_REVIEW_DIR"/'*.png' "$PR_REVIEW_DIR"/'*.jpg' "$PR_REVIEW_DIR"/'*.jpeg' \
-    "$PR_REVIEW_DIR"/'*.gif' "$PR_REVIEW_DIR"/'*.svg' "$PR_REVIEW_DIR"/'*.webp' \
-    "$PR_REVIEW_DIR"/'*.cast' "$PR_REVIEW_DIR"/'*.webm' "$PR_REVIEW_DIR"/'*.mp4' 2>/dev/null || true
+  # Stage only this PR's reports and the assets they reference. Each file is
+  # added individually: `git add` fails entirely when any pathspec matches
+  # nothing, and most asset extensions are absent on a given run.
+  for ext in md png jpg jpeg gif svg webp cast webm mp4; do
+    for f in "$PR_REVIEW_DIR"/*."$ext"; do
+      if [ -e "$f" ]; then
+        git -C "$REVIEWS_REPO" add -- "$f"
+      fi
+    done
+  done
   if ! git -C "$REVIEWS_REPO" diff --cached --quiet; then
     COMMIT_ARGS=(-m "review-pr-full: $REPO#$PR_NUMBER @ $HEAD_SHORT_SHA")
     [ -n "$SESSION_ID" ] && COMMIT_ARGS+=(-m "session: $SESSION_ID")
     git -C "$REVIEWS_REPO" commit "${COMMIT_ARGS[@]}"
-    git -C "$REVIEWS_REPO" push || echo "note: push failed for $REPO#$PR_NUMBER"
+    if git -C "$REVIEWS_REPO" push; then
+      # The steps posted before this commit existed, so a replace-mode comment
+      # listed the reviewed commit first without a link (see Posting mode). Now
+      # that the review commit is pushed, point that entry at it. Best-effort:
+      # append-mode and non-posted comments simply do not match.
+      STORE_SHA="$(git -C "$REVIEWS_REPO" rev-parse --short HEAD)"
+      REVIEWS_URL="$(git -C "$REVIEWS_REPO" remote get-url origin 2>/dev/null \
+        | sed -E 's#^git@([^:]+):#https://\1/#; s#\.git$##')"
+      case "$REVIEWS_URL" in
+        http://*|https://*) ;;
+        *) REVIEWS_URL="" ;;
+      esac
+      if [ -n "$REVIEWS_URL" ]; then
+        ME="$(gh api user --jq .login)"
+        for STEP in assess-pr-risk summarize-behavior-changes review-cli-changes review-sdk-changes review-api-changes review-db-changes analyze-test-coverage validate-pr verify-pr review-pr; do
+          CID="$(gh api --paginate "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --jq ".[] | select(.user.login == \"$ME\") | select(.body | contains(\"\\\"step\\\":\\\"$STEP\\\"\")) | .id" \
+            | tail -n 1)"
+          [ -n "$CID" ] || continue
+          OLD="$(gh api "repos/$REPO/issues/comments/$CID" --jq .body)"
+          PLACEHOLDER="- \`$HEAD_SHORT_SHA\` (this review)"
+          case "$OLD" in *"$PLACEHOLDER"*) ;; *) continue ;; esac
+          NEWLINE="- [\`$HEAD_SHORT_SHA\`]($REVIEWS_URL/commit/$STORE_SHA)"
+          gh api -X PATCH "repos/$REPO/issues/comments/$CID" \
+            -f body="${OLD//"$PLACEHOLDER"/$NEWLINE}" >/dev/null
+        done
+      fi
+    else
+      echo "note: push failed for $REPO#$PR_NUMBER"
+    fi
   fi
 fi
 ```
 
 The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}`, followed by a `session: {session_id}` line when a session ID is available, so every run is identifiable by repository, PR, the commit it reviewed, and the run that produced it.
 
+After a successful push, step 6 also makes the current entry in each step's reviewed-commits index clickable: the steps posted before the commit existed, so they listed `$HEAD_SHORT_SHA` as a plain hash with `(this review)`, and this patch replaces that line with a link to the new review commit (the one holding this run's reports).
+It looks only for that exact placeholder in each step's own comment, so it is a no-op when posting was skipped, in `append` mode (there is no index), or for steps that did not post.
+When the store is not a git checkout, has no `origin` remote, its `origin` is not an HTTP(S) GitHub URL, or the commit or push failed, the patch is skipped and that entry stays a plain hash.
+
 Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed.
-Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions above (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
+Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions in the staging loop (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
+Each file is added on its own, because `git add` fails as a whole when any pathspec matches nothing and most runs have no assets at all.
 Findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted.
 If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely.
 If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
@@ -489,6 +546,16 @@ The assess and chain markers match HEAD, but the summarize-behavior-changes mark
 Dispatches only `/summarize-behavior-changes 79 acme/api`.
 It writes its report with the `informational` marker.
 Summary shows "Completed (rest up to date; summary posted)".
+
+**Scenario 12: Re-review after new commits, with append mode**
+```
+/review-pr-full 42 acme/api
+```
+`PR_REVIEW_POST_MODE=append` is set in the environment, so the append choice is passed to every dispatched step.
+The PR gained commits since the last run, so all stale steps (including any applicable surface review) re-run.
+Each step finds its own existing comment (the one carrying that step's marker) and appends the new report below the old one, so one comment per step carries the review history for the PR, oldest review first, newest last.
+With the default `replace` mode, each step would instead swap its comment body so the comment shows only the latest reviewed commit, and would end it with the list of commits reviewed (most recent first), each entry linking to the review commit in the reviews repository that holds that run's reports, plus a link to the PR's directory there, so the earlier feedback stays reachable.
+Step 6 then commits and pushes the new reports and patches each comment so the current run's entry links to that commit too.
 
 **Scenario 13: Only the database surface review is stale**
 ```

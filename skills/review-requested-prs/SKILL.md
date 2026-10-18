@@ -185,6 +185,8 @@ where <status> is one of: completed, up-to-date, stopped-validate,
 stopped-verify, stopped-review, error.
 ```
 
+When `PR_REVIEW_POST_MODE` is set in the environment, add one line to every subagent prompt so the mode reaches each `review-pr-full` session and the steps it dispatches: `Post in append mode: PR_REVIEW_POST_MODE=append` (see review-pr-full, Posting mode).
+
 For example:
 
 ```

@@ -468,6 +468,115 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 Findings history remains in `<skill>.yaml` (the source of truth) and the GitHub comments; the per-run files preserve the rendered report for each reviewed commit.
 
+### Posting a review report
+
+Whether a report is posted as a GitHub comment is decided by `should-post-to-github`.
+When it is, every review step posts the same way and **updates its own existing comment** instead of adding a new comment on each reviewed commit: one comment per step per PR.
+
+- **The step is identified by its marker.** The existing comment is the authenticated user's own top-level PR comment whose body contains this step's marker (`"step":"<skill>"`). Only top-level comments are searched; inline review threads are never touched.
+- **The mode is read once per run from `PR_REVIEW_POST_MODE`:**
+  - `replace` (default, and the fallback for any unrecognized value): the comment body is swapped for the new report, so the comment always shows the latest reviewed commit. The body also carries the reviewed-commits index below, so the commits already reviewed and the full reports stay discoverable from a comment that no longer holds them.
+  - `append`: the new report is added below the existing body, so one comment keeps every reviewed commit's report, oldest first, newest last. No index is added, because the earlier reports are already in the comment.
+- In `append` mode the newest report must go last: markers are parsed in text order with the most recent match winning, so placing the new report above the old one would leave the old marker as the current one and the step would look stale on every run.
+- `replace` loses no report: the per-run `<skill>.<sha>.md` files, the end-of-run commit (its message names the reviewed commit), and the index below are the record; the comment is the latest view of it.
+
+#### Reviewed-commits index (replace mode)
+
+Because `replace` discards the previous body, the new body ends with an index: every commit reviewed for this PR, **most recent first**, each one linking to the review commit in the reviews repository that holds that run's reports, plus a link to the PR's directory there, so a reader can go read the earlier feedback.
+
+The list comes from the reviews store itself: every `review-pr-full` commit names the reviewed commit in its subject (`review-pr-full: {owner}/{repo}#{PR} @ {short_sha}`) and is itself the commit holding that run's reports, so `git log` over the PR's directory yields both the reviewed commits and the review commits to link to, newest first. The current run is not in the store yet when the comment is posted, so its short SHA (`$SHORT_SHA`) is listed first with `(this review)` and no link. The list is deduplicated by reviewed commit (the most recent review of each is kept) and capped at the ten most recent. On a first run it is the current commit alone. Entries are links only when the store's `origin` resolves to an HTTP(S) GitHub URL; otherwise they stay plain hashes and the directory link is dropped.
+
+`review-pr-full` closes that gap after posting: step 6 commits and pushes the reports, then patches each step's comment to replace the `{sha} (this review)` placeholder with a link to the review commit it just made, so every entry is clickable once the run finishes. A step run on its own (not through `review-pr-full`) has no commit step, so its current entry stays a plain hash.
+
+Recipe, per step (`REPORT` is the report file's contents, `FOOTER` is the attribution footer, `STEP` is the step name):
+
+```bash
+POST_MODE="${PR_REVIEW_POST_MODE:-replace}"
+STEP="<skill>"
+REVIEWS_REPO="$HOME/.sdlc"
+PR_PATH="$REPO/pull-requests/$PR_NUMBER"
+ME="$(gh api user --jq .login)"
+
+if [ "$POST_MODE" = "append" ]; then
+  BODY="${REPORT}
+
+---
+
+${FOOTER}"
+else
+  REVIEWS_URL="$(git -C "$REVIEWS_REPO" remote get-url origin 2>/dev/null \
+    | sed -E 's#^git@([^:]+):#https://\1/#; s#\.git$##')"
+  case "$REVIEWS_URL" in
+    http://*|https://*) ;;
+    *) REVIEWS_URL="" ;;
+  esac
+  REVIEWS_BRANCH="$(git -C "$REVIEWS_REPO" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null \
+    | sed 's#^origin/##')"
+  if [ -n "$REVIEWS_URL" ] && [ -n "$REVIEWS_BRANCH" ]; then
+    REVIEWS_DIR_URL="$REVIEWS_URL/tree/$REVIEWS_BRANCH/$PR_PATH"
+  else
+    REVIEWS_DIR_URL="$REVIEWS_URL"
+  fi
+
+  # Newest first: the current run (not committed yet, so unlinked), then one
+  # "reviewed_sha store_sha" pair per reviews-store commit for this PR.
+  REVIEWED="$(
+    printf '%s\n' "$SHORT_SHA current"
+    git -C "$REVIEWS_REPO" log --format='%h %s' -- "$PR_PATH" 2>/dev/null \
+      | sed -nE 's#^([0-9a-f]+) review-pr-full: [^@]+ @ ([0-9a-f]+)$#\2 \1#p'
+  )"
+  INDEX="$(
+    printf '%s\n' "$REVIEWED" | awk -v url="$REVIEWS_URL" '
+      NF && !seen[$1]++ {
+        count++
+        if (count > 10) next
+        if ($2 == "current") printf "- `%s` (this review)\n", $1
+        else if (url == "") printf "- `%s`\n", $1
+        else printf "- [`%s`](%s/commit/%s)\n", $1, url, $2
+      }'
+  )"
+
+  HISTORY="### Reviewed commits
+
+${INDEX}"
+  if [ -n "$REVIEWS_DIR_URL" ]; then
+    HISTORY="${HISTORY}
+
+[Full reports for this PR](${REVIEWS_DIR_URL})"
+  fi
+
+  BODY="${REPORT}
+
+---
+
+${HISTORY}
+
+---
+
+${FOOTER}"
+fi
+
+COMMENT_ID="$(gh api --paginate "repos/$REPO/issues/$PR_NUMBER/comments" \
+  --jq ".[] | select(.user.login == \"$ME\") | select(.body | contains(\"\\\"step\\\":\\\"$STEP\\\"\")) | .id" \
+  | tail -n 1)"
+
+if [ -z "$COMMENT_ID" ]; then
+  ghx pr comment "$PR_NUMBER" --repo "$REPO" --body "$BODY"
+elif [ "$POST_MODE" = "append" ]; then
+  OLD="$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" --jq .body)"
+  gh api -X PATCH "repos/$REPO/issues/comments/$COMMENT_ID" \
+    -f body="${OLD}
+
+---
+
+${BODY}" >/dev/null
+else
+  gh api -X PATCH "repos/$REPO/issues/comments/$COMMENT_ID" -f body="$BODY" >/dev/null
+fi
+```
+
+`gh api` is used to find and edit the comment because it returns the numeric comment id that the edit endpoint takes; the first post goes through `ghx pr comment` like the other skills' posts.
+
 ### Re-review scope
 
 Each run picks the cheapest sufficient scope before analyzing anything:

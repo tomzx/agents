@@ -545,15 +545,16 @@ Posting it as a PR comment is decided by `should-post-to-github`.
 After writing the review, run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`.
 If it exits 1, skip posting, the review is already saved to `$PR_REVIEW_DIR/review-pr.report.md`.
 
-If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict.
+If it exits 0, post the review file as a comment on the PR so the author and other reviewers can see the verdict, building the body and posting it with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (with `STEP="review-pr"`).
 The file already contains the `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` marker.
 
 ```bash
+REPORT="$(cat "$PR_REVIEW_DIR/review-pr.report.md")"
 FOOTER="Posted with [review-pr](${SKILL_FILE_URL}) (\`${SKILL_SHORT_SHA}\`)"
-ghx pr comment $PR_NUMBER --repo $REPO --body "$(cat "$PR_REVIEW_DIR/review-pr.report.md")
-
-${FOOTER}"
+# Then run the shared recipe with STEP="review-pr" (REPORT and FOOTER set above).
 ```
+
+The recipe updates this step's existing comment on the PR (append or replace per `PR_REVIEW_POST_MODE`, default `replace`) instead of adding a new comment on every run; in `replace` mode the body also ends with the reviewed-commits index.
 
 ### Clean up
 

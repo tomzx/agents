@@ -202,7 +202,8 @@ The verdict is always `informational`; this step never gates anything.
 
 Posting as a PR comment is decided by `should-post-to-github`.
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
-If it exits 0, post the report file with the attribution footer per `../github-post-attribution/SKILL.md`.
+If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer per `../github-post-attribution/SKILL.md`, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="summarize-behavior-changes"`).
+The recipe updates this step's existing comment on the PR (append or replace per `PR_REVIEW_POST_MODE`, default `replace`) instead of adding a new comment on every run; in `replace` mode the body also ends with the reviewed-commits index.
 
 ### 9. Clean up
 
