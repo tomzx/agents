@@ -12,9 +12,11 @@
 Discovers PRs needing review (requested from you, open PRs you have already
 reviewed, plus PRs where a team you belong to was requested and the request was
 later dropped because a teammate answered it), checks staleness of
-assess-pr-risk / summarize-behavior-changes / analyze-test-coverage /
-validate-pr / verify-pr / review-pr comment markers against each PR's HEAD
-commit, and outputs which review steps need to be dispatched.
+assess-pr-risk / summarize-behavior-changes / review-cli-changes /
+review-sdk-changes / review-api-changes / review-db-changes /
+analyze-test-coverage / validate-pr / verify-pr / review-pr comment markers
+against each PR's HEAD commit, and outputs which review steps need to be
+dispatched.
 
 Dropped team requests are invisible to search: once any member of a requested
 team comments or reviews, GitHub removes the team request for everyone, so
@@ -26,6 +28,12 @@ notifications only when ``--notifications`` is passed, per repo for explicit
 assess-pr-risk and summarize-behavior-changes run in parallel with the
 analyze-test-coverage -> validate -> verify -> review chain: each is stale
 independently of the chain, never gates a chain step, and is never gated by one.
+
+The surface reviews (review-cli-changes, review-sdk-changes, review-api-changes,
+review-db-changes) are conditional: a surface step is only stale when the PR's
+changed files match that surface (see SURFACE_STEP_PATTERNS), so a PR that
+touches no CLI, SDK, API, or DB surface never carries one. Like the parallel
+steps they never gate a chain step and are never gated by one.
 
 Each PR also gets a blocking depth: the number of open PRs stacked on it
 (directly or transitively), an attention signal for deciding what to review
@@ -153,10 +161,55 @@ CHAIN_STEPS = ("analyze-test-coverage", "validate-pr", "verify-pr", "review-pr")
 # independent staleness, no gating in either direction.
 PARALLEL_STEPS = ("assess-pr-risk", "summarize-behavior-changes")
 
+# Surface-specific reviews. They are conditional: a surface step is stale only
+# when the PR's changed files touch that surface (SURFACE_STEP_PATTERNS), and
+# like the parallel steps they neither gate nor are gated by the chain.
+SURFACE_STEPS = (
+    "review-cli-changes",
+    "review-sdk-changes",
+    "review-api-changes",
+    "review-db-changes",
+)
+
+# File-path heuristics deciding whether a surface review applies to a PR.
+# Deliberately broad: a false positive only costs one cheap static subagent
+# that stops with "no surface change in the diff", while a false negative would
+# silently skip a review the diff called for. The same patterns are documented
+# in review-pr-full, so both agree on which surface a diff touches.
+SURFACE_STEP_PATTERNS: dict[str, re.Pattern[str]] = {
+    "review-cli-changes": re.compile(
+        r"(^|/)(cli|cmd|commands?|bin)([/._-]|$)|(^|/)__main__\.py$",
+        re.IGNORECASE,
+    ),
+    "review-sdk-changes": re.compile(
+        r"(^|/)(sdk|sdk-[^/]+|clients?)([/._-]|$)|(^|/)client\.[a-z]+$",
+        re.IGNORECASE,
+    ),
+    "review-api-changes": re.compile(
+        r"(^|/)(routes?|controllers?|handlers?|endpoints?|resolvers?|api)([/._-]|$)"
+        r"|(^|/)openapi[^/]*$|(^|/)swagger[^/]*$"
+        r"|\.proto$|\.graphql$|(^|/)schema\.(json|ya?ml)$",
+        re.IGNORECASE,
+    ),
+    "review-db-changes": re.compile(
+        r"(^|/)(migrations?|alembic|flyway|db/migrate)([/._-]|$)"
+        r"|\.sql$|(^|/)schema\.(sql|rb)$",
+        re.IGNORECASE,
+    ),
+}
+
 # Every step the skills write markers for.
-VALID_STEPS = PARALLEL_STEPS + CHAIN_STEPS
+VALID_STEPS = PARALLEL_STEPS + SURFACE_STEPS + CHAIN_STEPS
 
 STEP_ORDER: dict[str, int] = {step: index for index, step in enumerate(VALID_STEPS)}
+
+# Compact dashboard labels for the surface columns.
+SURFACE_LABELS: dict[str, str] = {
+    "review-cli-changes": "cli",
+    "review-sdk-changes": "sdk",
+    "review-api-changes": "api",
+    "review-db-changes": "db",
+}
 
 VERDICT_FIELDS: dict[str, str] = {
     "validate-pr": "validate_verdict",
@@ -167,6 +220,10 @@ VERDICT_FIELDS: dict[str, str] = {
 STEP_TO_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_commit",
     "summarize-behavior-changes": "behavior_commit",
+    "review-cli-changes": "cli_commit",
+    "review-sdk-changes": "sdk_commit",
+    "review-api-changes": "api_commit",
+    "review-db-changes": "db_commit",
     "validate-pr": "validate_commit",
     "verify-pr": "verify_commit",
     "review-pr": "review_commit",
@@ -176,6 +233,10 @@ STEP_TO_FIELD: dict[str, str] = {
 STEP_TO_POSTED_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_posted",
     "summarize-behavior-changes": "behavior_posted",
+    "review-cli-changes": "cli_posted",
+    "review-sdk-changes": "sdk_posted",
+    "review-api-changes": "api_posted",
+    "review-db-changes": "db_posted",
     "validate-pr": "validate_posted",
     "verify-pr": "verify_posted",
     "review-pr": "review_posted",
@@ -185,6 +246,10 @@ STEP_TO_POSTED_FIELD: dict[str, str] = {
 STEP_TO_VERDICT_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_verdict",
     "summarize-behavior-changes": "behavior_verdict",
+    "review-cli-changes": "cli_verdict",
+    "review-sdk-changes": "sdk_verdict",
+    "review-api-changes": "api_verdict",
+    "review-db-changes": "db_verdict",
     "validate-pr": "validate_verdict",
     "verify-pr": "verify_verdict",
     "review-pr": "review_verdict",
@@ -267,18 +332,31 @@ class PRReviewState:
     coverage_commit: str = ""
     assess_commit: str = ""
     behavior_commit: str = ""
+    cli_commit: str = ""
+    sdk_commit: str = ""
+    api_commit: str = ""
+    db_commit: str = ""
     validate_posted: bool = False
     verify_posted: bool = False
     review_posted: bool = False
     coverage_posted: bool = False
     assess_posted: bool = False
     behavior_posted: bool = False
+    cli_posted: bool = False
+    sdk_posted: bool = False
+    api_posted: bool = False
+    db_posted: bool = False
     validate_verdict: str = ""
     verify_verdict: str = ""
     review_verdict: str = ""
     coverage_verdict: str = ""
     assess_verdict: str = ""
     behavior_verdict: str = ""
+    cli_verdict: str = ""
+    sdk_verdict: str = ""
+    api_verdict: str = ""
+    db_verdict: str = ""
+    changed_files: list[str] = field(default_factory=list)
     assess_risk: str = ""
     assess_confidence: str = ""
     approvers: list[str] = field(default_factory=list)
@@ -941,6 +1019,7 @@ query($owner:String!,$name:String!,$number:Int!){
       isDraft
       additions
       deletions
+      files(first:100){nodes{path}}
       author{login}
       createdAt
       commits(last:1){nodes{commit{committedDate}}}
@@ -991,6 +1070,9 @@ def fetch_pr_data(client: Github, pr: PRReviewState) -> None:
         pr.draft = pull["isDraft"]
         pr.additions = pull["additions"] or 0
         pr.deletions = pull["deletions"] or 0
+        pr.changed_files = [
+            node["path"] for node in (pull.get("files") or {}).get("nodes", [])
+        ]
         pr.author = (pull["author"] or {}).get("login", "")
         pr.created_at = _format_iso(pull["createdAt"])
         commits = pull["commits"]["nodes"]
@@ -1155,6 +1237,10 @@ def check_local_markers(pr: PRReviewState) -> None:
         pr=pr.number,
         assess_commit=pr.assess_commit[:8] or "none",
         behavior_commit=pr.behavior_commit[:8] or "none",
+        cli_commit=pr.cli_commit[:8] or "none",
+        sdk_commit=pr.sdk_commit[:8] or "none",
+        api_commit=pr.api_commit[:8] or "none",
+        db_commit=pr.db_commit[:8] or "none",
         validate_commit=pr.validate_commit[:8] or "none",
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
@@ -1170,12 +1256,31 @@ def check_local_markers(pr: PRReviewState) -> None:
     )
 
 
+def applicable_surface_steps(pr: PRReviewState) -> list[str]:
+    """Return the surface reviews whose surface *pr* touches, if any.
+
+    A surface step applies when at least one changed file path matches its
+    pattern. An empty file list (a degenerate or unavailable diff) yields no
+    surface step, so an unknown diff never fans out four extra subagents.
+    """
+    if not pr.changed_files:
+        return []
+    return [
+        step
+        for step in SURFACE_STEPS
+        if any(SURFACE_STEP_PATTERNS[step].search(path) for path in pr.changed_files)
+    ]
+
+
 def determine_stale_steps(pr: PRReviewState) -> list[str]:
     """Return the ordered list of review steps that are stale for *pr*.
 
     assess-pr-risk and summarize-behavior-changes come first so they can be
     dispatched concurrently with the first stale chain step; each is stale
     independently of the chain.
+    The applicable surface reviews (SURFACE_STEPS) follow them: they are
+    conditional on the changed files and are stale like the parallel steps,
+    never gating and never gated.
     The chain runs analyze-test-coverage before the other steps so its
     report exists as evidence for them; a coverage fail never gates them.
     """
@@ -1183,14 +1288,20 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
     if not head:
         return []
 
-    if (
+    surfaces = applicable_surface_steps(pr)
+
+    core_at_head = (
         pr.assess_commit == head
         and pr.behavior_commit == head
         and pr.coverage_commit == head
         and pr.validate_commit == head
         and pr.verify_commit == head
         and pr.review_commit == head
-    ):
+    )
+    surfaces_at_head = all(
+        getattr(pr, STEP_TO_FIELD[step]) == head for step in surfaces
+    )
+    if core_at_head and surfaces_at_head:
         return []
 
     steps: list[str] = []
@@ -1199,6 +1310,10 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
 
     if pr.behavior_commit != head:
         steps.append("summarize-behavior-changes")
+
+    for step in surfaces:
+        if getattr(pr, STEP_TO_FIELD[step]) != head:
+            steps.append(step)
 
     if pr.coverage_commit != head:
         steps.append("analyze-test-coverage")
@@ -1373,6 +1488,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table.add_column("Review", justify="center")
         table.add_column("Risk", justify="center")
         table.add_column("Behavior", justify="center")
+        table.add_column("Surfaces", justify="center")
         table.add_column("Blocks", justify="right")
         table.add_column("Status")
         table.add_column("Approver")
@@ -1446,6 +1562,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 review_col,
                 assess_col,
                 behavior_col,
+                _surfaces_cell(pr),
                 _blocking_depth_cell(pr.blocking_depth),
                 status,
                 approver_col,
@@ -1491,8 +1608,10 @@ def readiness_signal(pr: PRReviewState) -> str:
     error, a failing chain verdict, a standing changes-requested review, or an
     assess-pr-risk ``block``/``hold`` route. Green means the PR could be
     approved automatically: not a draft, no stale review steps, a passing
-    review verdict, no advisory coverage fail, and no ``decide``/``investigate``
-    route asking for a closer look. Everything else is yellow. An existing
+    review verdict, no advisory coverage fail, no failing applicable surface
+    review (a surface ``changes-requested`` keeps it out of green but is not
+    itself a red block), and no ``decide``/``investigate`` route asking for a
+    closer look. Everything else is yellow. An existing
     approval is not required for green; this light decides whether to approve,
     not whether approval already happened.
     """
@@ -1511,6 +1630,10 @@ def readiness_signal(pr: PRReviewState) -> str:
         and pr.review_verdict == "pass"
         and pr.coverage_verdict != "fail"
         and pr.assess_verdict not in SLOW_ROUTES
+        and all(
+            getattr(pr, STEP_TO_VERDICT_FIELD[step]) != "fail"
+            for step in applicable_surface_steps(pr)
+        )
     ):
         return "green"
     return "yellow"
@@ -1622,6 +1745,36 @@ def _assess_cell(pr: PRReviewState) -> str:
     return cell
 
 
+def _surfaces_cell(pr: PRReviewState) -> str:
+    """Return the Surfaces column cell: the applicable surface reviews.
+
+    One compact token per applicable surface (cli, sdk, api, db), colored by
+    its state: dim with a dot when the review has not run, red with ``!`` when
+    it ran against an older commit, green with a check when it passed, red with
+    a cross when it requested changes. A PR that touches no surface shows an
+    em dash, which is the common case.
+    """
+    surfaces = applicable_surface_steps(pr)
+    if not surfaces:
+        return "[dim]—[/dim]"
+    parts: list[str] = []
+    for step in surfaces:
+        label = SURFACE_LABELS[step]
+        commit = getattr(pr, STEP_TO_FIELD[step])
+        verdict = getattr(pr, STEP_TO_VERDICT_FIELD[step])
+        if not commit:
+            parts.append(f"[dim]{label}·[/dim]")
+        elif commit != pr.head_commit:
+            parts.append(f"[red]{label}![/red]")
+        elif verdict == "fail":
+            parts.append(f"[red]{label}✗[/red]")
+        elif verdict == "pass":
+            parts.append(f"[green]{label}✓[/green]")
+        else:
+            parts.append(f"[blue]{label}·[/blue]")
+    return " ".join(parts)
+
+
 def _marker_cell(
     commit: str,
     posted: bool,
@@ -1679,8 +1832,9 @@ def effective_stale_steps(pr: PRReviewState) -> list[str]:
     """Return the stale steps not skipped because an earlier chain step failed.
 
     A failed chain step cuts off the chain steps at and after it, but the
-    parallel steps (assess-pr-risk, summarize-behavior-changes) are never cut
-    off: they neither gate nor are gated.
+    parallel steps (assess-pr-risk, summarize-behavior-changes) and the
+    conditional surface reviews (SURFACE_STEPS) are never cut off: they neither
+    gate nor are gated.
     analyze-test-coverage is advisory (its fail never cuts) and precedes
     validate-pr, so a validate fail does not cut it either.
     """
@@ -1690,7 +1844,8 @@ def effective_stale_steps(pr: PRReviewState) -> list[str]:
             cutoff = STEP_ORDER[step] + 1
     chain = [s for s in pr.stale_steps if s in CHAIN_STEPS and STEP_ORDER[s] < cutoff]
     parallel = [s for s in pr.stale_steps if s in PARALLEL_STEPS]
-    return parallel + chain
+    surface = [s for s in pr.stale_steps if s in SURFACE_STEPS]
+    return parallel + surface + chain
 
 
 def format_review_full_commands(prs: list[PRReviewState]) -> str:

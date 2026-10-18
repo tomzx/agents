@@ -1,6 +1,6 @@
 ---
 name: review-pr-full
-description: Orchestrate a full PR review for a single PR, running assess-pr-risk and summarize-behavior-changes in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
+description: Orchestrate a full PR review for a single PR, running assess-pr-risk and summarize-behavior-changes in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain, plus the conditional surface reviews (review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes) when the diff touches that surface. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
 argument-hint: "<pr-number> [repository] | <pr-url>"
 ---
@@ -8,12 +8,23 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 # Review PR Full
 
 Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate?) and `/summarize-behavior-changes` (what will behave differently after this merges?) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?).
+When the diff touches a CLI, SDK, API, or database surface, the matching conditional surface review (`/review-cli-changes`, `/review-sdk-changes`, `/review-api-changes`, `/review-db-changes`) is dispatched alongside them (see Conditional surface reviews).
 Each step posts its own report and marks the commit it reviewed.
 When the run finishes, it commits this PR's report directory (reports plus any assets they reference, such as screenshots and casts) in the user-global reviews store and pushes it (see step 6).
 
 `/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`) can read it as evidence.
 `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early.
 It never halts the pipeline: a `fail` verdict (uncovered changes found) is reported in the summary for the human reviewer, who decides what to do with it.
+
+### Conditional surface reviews
+
+Four surface reviews deep-dive one interface the diff touches: `/review-cli-changes` (commands, options, output, exit codes), `/review-sdk-changes` (public symbols, signatures, types, packaging), `/review-api-changes` (endpoints, fields, status codes, versioning), and `/review-db-changes` (migrations, locks, reversibility, backfills).
+They are **conditional**: a surface review is stale only when the PR's changed files match that surface, so a PR that touches none of them dispatches none of them.
+The staleness script decides applicability from the same file-path heuristics this skill documents (see step 4), so a run with a precomputed plan (`--steps`) and a run that computes its own plan select the same surface steps.
+
+They are advisory in the same way as `/analyze-test-coverage`: each never gates a chain step and is never gated by one, so a surface `fail` is reported in the summary but never halts the pipeline and never changes the status.
+A running surface review is dispatched concurrently with the parallel steps and the first chain step (all are static and cheap).
+Each surface review stops on its own with "No <surface> change in the diff" when the diff does not actually touch its surface, so a heuristic false positive costs one cheap subagent and nothing more.
 
 `/summarize-behavior-changes` produces the reviewer-facing answer to "what will behave differently once this merges?" It is self-contained (diff and codebase only), so it is dispatched in parallel with the first chain step and `assess-pr-risk`, and it never gates anything: its marker verdict is always `informational`.
 
@@ -32,7 +43,7 @@ This keeps the parent orchestrator from becoming a bottleneck: one `review-pr-fu
 
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback)
-- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, and `summarize-behavior-changes` skills available
+- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`, and the four conditional surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) skills available
 
 ## Workflow
 
@@ -66,9 +77,11 @@ date"           |   else resolve via gh pr view)
                 |
                 v
             Dispatch stale steps:
-              assess-pr-risk and
-              summarize-behavior-changes
-              concurrently with the chain:
+              assess-pr-risk, summarize-
+              behavior-changes, and the
+              applicable surface reviews
+              (cli/sdk/api/db) concurrently
+              with the chain:
               analyze-test-coverage -> validate-pr
               -> verify-pr -> review-pr
             Check for blocking verdict after each chain step
@@ -128,11 +141,15 @@ The `--dispatch` flag makes the script output one command per line for each stal
 ```
 /assess-pr-risk 42 acme/api
 /summarize-behavior-changes 42 acme/api
+/review-api-changes 42 acme/api
+/review-db-changes 42 acme/api
 /analyze-test-coverage 42 acme/api
 /validate-pr 42 acme/api
 /verify-pr 42 acme/api
 /review-pr 42 acme/api
 ```
+
+(The surface lines appear only when the changed files touch that surface: this example's diff changes an API route and a migration, so `review-api-changes` and `review-db-changes` are listed while the CLI and SDK reviews are not.)
 
 If the script outputs nothing, all steps are up to date for the current commit.
 Report "All review steps are up to date for PR #N in owner/repo" and stop.
@@ -144,7 +161,7 @@ Each line has the format:
 ```
 
 The steps are already in the correct execution order.
-`assess-pr-risk` and `summarize-behavior-changes` are listed first so they can be dispatched concurrently with the first stale chain step; the chain steps follow in their sequential order (analyze-test-coverage before validate-pr before verify-pr before review-pr).
+`assess-pr-risk` and `summarize-behavior-changes` are listed first so they can be dispatched concurrently with the first stale chain step; the applicable surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) follow them, also dispatched concurrently and advisory; the chain steps follow in their sequential order (analyze-test-coverage before validate-pr before verify-pr before review-pr).
 Set `STALE_STEPS` to the ordered list of step names.
 
 ### 3. Create the shared worktree
@@ -192,14 +209,14 @@ The subagent prompt MUST be the exact skill invocation command, not a paraphrase
 Do not let the orchestrator generate its own task description, pass the literal command string below as the subagent prompt.
 Include the `WORKTREE_DIR` so the sub-skill reuses the shared worktree instead of creating its own.
 
-Use the `general` subagent type for all six steps.
+Use the `general` subagent type for all steps.
 
-**Parallel dispatch of assess-pr-risk and summarize-behavior-changes.** When `STALE_STEPS` contains `assess-pr-risk` and/or `summarize-behavior-changes`, dispatch each concurrently with the first stale chain step: put those Task calls in a single message so they run at the same time.
-Both are cheap relative to the chain (no build; static analysis of the diff and codebase) and independent of it.
+**Parallel dispatch of the advisory steps.** When `STALE_STEPS` contains `assess-pr-risk`, `summarize-behavior-changes`, or any surface review (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`), dispatch each concurrently with the first stale chain step: put those Task calls in a single message so they run at the same time.
+All of them are cheap relative to the chain (no build; static analysis of the diff and codebase) and independent of it.
 
 The chain steps run sequentially (analyze-test-coverage, then validate-pr, then verify-pr, then review-pr), waiting for each subagent to finish before starting the next.
 Do not parallelize chain steps, because each step may halt the pipeline.
-If `assess-pr-risk` or `summarize-behavior-changes` is stale but no chain step is (or the chain halts before finishing), the parallel step still runs and its report still applies on its own.
+If an advisory step (assess-pr-risk, summarize-behavior-changes, or a surface review) is stale but no chain step is (or the chain halts before finishing), it still runs and its report still applies on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
 
@@ -227,6 +244,31 @@ The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path
 
 Never gate anything on its result and never halt because of it: its marker verdict is always `informational`.
 Because it is self-contained, it never waits on the chain, and its report is the reviewer-facing answer to what will behave differently after merge.
+
+#### Conditional surface reviews
+
+`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, and `review-db-changes` are dispatched only when `STALE_STEPS` contains them.
+The staleness script lists a surface step only when the PR's changed files touch that surface, using the same file-path heuristics mirrored here:
+
+| Surface review | Listed when changed paths match |
+|---|---|
+| `review-cli-changes` | `cli/`, `cmd/`, `commands/`, `bin/`, `__main__.py` |
+| `review-sdk-changes` | `sdk/`, `sdk-*/`, `client/`, `clients/`, `client.<ext>` |
+| `review-api-changes` | `routes/`, `controllers/`, `handlers/`, `endpoints/`, `resolvers/`, `api/`, `openapi*`, `swagger*`, `*.proto`, `*.graphql`, `schema.{json,yaml}` |
+| `review-db-changes` | `migrations/`, `alembic/`, `flyway/`, `db/migrate/`, `*.sql`, `schema.{sql,rb}` |
+
+The heuristics are deliberately broad: when a surface review is dispatched on a diff that turns out not to touch its surface, it stops on its own with "No <surface> change in the diff", so a false positive costs one cheap subagent and nothing more.
+A false negative is the only costly miss, which is why the patterns lean broad.
+
+Dispatch a subagent with this exact prompt for each surface step in `STALE_STEPS`, concurrently with the other advisory steps:
+
+```
+Run the {skill} skill: /{skill} {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
+```
+
+Never gate anything on a surface review's result and never halt because of it: a `fail` (changes-requested) is reported in the summary for the human reviewer.
+A surface review reads only the diff, the base revision, and the codebase, so it is self-contained and needs no other step's report.
 
 #### analyze-test-coverage
 
@@ -331,7 +373,7 @@ VERDICT <status> | PR #{PR} | {REPO} | steps={STALE_STEPS} | <short note>
 
 | Status | Meaning |
 |---|---|
-| `completed` | Every stale step ran and passed (or there were none left to run after a partial pass); includes runs whose only stale step was assess-pr-risk, summarize-behavior-changes, or analyze-test-coverage |
+| `completed` | Every stale step ran and passed (or there were none left to run after a partial pass); includes runs whose only stale step was assess-pr-risk, summarize-behavior-changes, analyze-test-coverage, or an applicable surface review |
 | `up-to-date` | Nothing was stale; all steps already match the current HEAD |
 | `stopped-validate` | validate-pr returned Wrong thing or Inconclusive; later chain steps not run (analyze-test-coverage already ran; assess-pr-risk and summarize-behavior-changes unaffected) |
 | `stopped-verify` | verify-pr failed (build failure, nonconforming, missing issue/criteria); review-pr not run |
@@ -341,6 +383,7 @@ VERDICT <status> | PR #{PR} | {REPO} | steps={STALE_STEPS} | <short note>
 The risk assessment never changes the status: its verdict token is reported in the summary and the table, and routing on it is the human reviewer's call.
 The same applies to analyze-test-coverage: it is the first chain step and nothing is gated on it, so even a coverage `fail` verdict leaves the status `completed`, with the outcome reported in the summary note and the table.
 `summarize-behavior-changes` is always `informational` and likewise never changes the status.
+The surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) also never change the status: a `fail` (changes-requested) is reported in the summary and the table, and whether to act on it is the human reviewer's call.
 
 Then show the table:
 
@@ -350,6 +393,7 @@ Then show the table:
 | owner/repo | #42 | verify, review | Completed (assess, behavior, coverage, validate up to date) |
 | owner/repo | #42 | assess | Completed (chain up to date) |
 | owner/repo | #42 | behavior | Completed (rest up to date; summary posted) |
+| owner/repo | #42 | api | Completed (rest up to date; api surface review requested changes) |
 | owner/repo | #42 | coverage | Completed (rest up to date; gaps found, see note) |
 | owner/repo | #42 | — | Skipped (all up to date) |
 | owner/repo | #42 | assess, behavior, coverage, validate | Stopped at validate (wrong product) |
@@ -357,12 +401,13 @@ Then show the table:
 
 ## Example Usage
 
-**Scenario 1: Fresh PR, all six steps needed**
+**Scenario 1: Fresh PR, every applicable step needed**
 ```
 /review-pr-full 42 acme/api
 ```
 No prior markers found.
-Dispatches assess-pr-risk and summarize-behavior-changes concurrently with analyze-test-coverage, then validate-pr, verify-pr, and review-pr in sequence.
+Dispatches assess-pr-risk, summarize-behavior-changes, and any applicable surface review concurrently with analyze-test-coverage, then validate-pr, verify-pr, and review-pr in sequence.
+The diff touches a route and a migration, so review-api-changes and review-db-changes are dispatched too; review-cli-changes and review-sdk-changes are not applicable and are not dispatched.
 All pass.
 Summary shows "Completed".
 
@@ -391,7 +436,7 @@ Summary shows "Completed (assess, behavior, coverage, validate, verify up to dat
 ```
 /review-pr-full 42 acme/api
 ```
-All six markers match HEAD.
+All markers match HEAD.
 Script outputs nothing.
 Reports "All review steps are up to date for PR #42 in acme/api".
 
@@ -445,6 +490,14 @@ Dispatches only `/summarize-behavior-changes 79 acme/api`.
 It writes its report with the `informational` marker.
 Summary shows "Completed (rest up to date; summary posted)".
 
+**Scenario 13: Only the database surface review is stale**
+```
+/review-pr-full 91 acme/api
+```
+The PR changes a migration, so the staleness script lists review-db-changes, and every other applicable step matches HEAD.
+Dispatches only `/review-db-changes 91 acme/api`, which reports a blocking index creation as a 🔴 MUST.
+Because the surface review is advisory, the status stays `completed` and the finding is reported in the summary note and the Surfaces column.
+
 ## Script Reference
 
 | Script | Description |
@@ -463,4 +516,8 @@ Summary shows "Completed (rest up to date; summary posted)".
 | `analyze-test-coverage` | Coverage sub-skill and first chain step (introduced tests, change coverage, uncovered code), so its report exists as evidence before validate/verify/review run. Static analysis only; never halts the pipeline. |
 | `assess-pr-risk` | Risk and confidence assessment dispatched concurrently with the chain; advisory only, never halts the pipeline. |
 | `summarize-behavior-changes` | Behavior change summary dispatched concurrently with the chain and with assess-pr-risk; self-contained (diff and codebase), advisory only (marker `informational`), never halts the pipeline. |
+| `review-cli-changes` | Conditional surface review for a CLI change (compatibility, options, output, exit codes); dispatched only when the diff touches a CLI surface, advisory, never halts the pipeline. |
+| `review-sdk-changes` | Conditional surface review for an SDK change (public symbols, signatures, types, packaging); dispatched only when the diff touches an SDK surface, advisory, never halts the pipeline. |
+| `review-api-changes` | Conditional surface review for an API contract change (endpoints, fields, status codes, versioning); dispatched only when the diff touches an API surface, advisory, never halts the pipeline. |
+| `review-db-changes` | Conditional surface review for a database change (migrations, locks, reversibility, backfills); dispatched only when the diff touches a database surface, advisory, never halts the pipeline. |
 | `quick-pr-review` | Lightweight counterpart: rapid auto-approve to unblock. Use this skill when you need deep review, not rapid unblocking. |
