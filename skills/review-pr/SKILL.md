@@ -1,7 +1,7 @@
 ---
 name: review-pr
 description: "Conduct the code-craft review of a GitHub pull request (approach and simplicity, including whether the change is larger than the problem needs, quality, architecture, security, tests, operational concerns). Static only: does not build or run the code (verify-pr's conformance role) or judge whether the target is the right product (validate-pr's validation role)."
-allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number>"
 ---
 
@@ -115,6 +115,12 @@ This skill's incremental rules:
 - Evaluate only the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff), re-confirming every `open` finding in the state file against it, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
 - Do not re-evaluate code the delta does not touch, and keep the previous verdict unless the delta invalidates it.
 - Add findings for problems in the new code only.
+
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress start --step review-pr --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
 
 Create a git worktree on the PR branch so full files (not just diff hunks) can be read in context.
 If `$WORKTREE_DIR` is already set (e.g. by an orchestrator like `review-requested-prs`), use that directory directly and skip creation and cleanup.
@@ -559,6 +565,7 @@ The recipe updates this step's existing comment on the PR (append or replace per
 ### Clean up
 
 ```bash
+~/.agents/scripts/review-progress stop --step review-pr --repo "$REPO" --pr "$PR_NUMBER"
 if [ "$_WORKTREE_OWNER" = true ]; then
   git worktree remove $WORKTREE_DIR
 fi

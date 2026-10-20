@@ -1,7 +1,7 @@
 ---
 name: review-pr-full
 description: Orchestrate a full PR review for a single PR, running assess-pr-risk and summarize-behavior-changes in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain, plus the conditional surface reviews (review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes) when the diff touches that surface. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*), Task
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, ~/.agents/scripts/review-progress:*), Task
 argument-hint: "<pr-number> [repository] | <pr-url>"
 ---
 
@@ -220,6 +220,7 @@ Do not parallelize chain steps, because each step may halt the pipeline.
 If an advisory step (assess-pr-risk, summarize-behavior-changes, or a surface review) is stale but no chain step is (or the chain halts before finishing), it still runs and its report still applies on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
+While a step runs it also publishes an empty `<skill>.<sha>.in-progress` marker in the PR's report directory and removes it when it returns, so a UI can show that step as running (see `sdlc/references/shared.md`, In-progress marker). The orchestrator does not write or remove those markers itself, apart from clearing leftovers in step 5.
 
 #### Posting mode (append or replace)
 
@@ -347,6 +348,12 @@ After all stale steps complete (or the pipeline halts), remove the shared worktr
 git worktree remove $WORKTREE_DIR
 ```
 
+Then clear any in-progress marker the run left behind, in case a subagent was killed before it could remove its own (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress clear --repo "$REPO" --pr "$PR_NUMBER"
+```
+
 ### 6. Commit and push the review reports
 
 The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`).
@@ -414,7 +421,7 @@ When the store is not a git checkout, has no `origin` remote, its `origin` is no
 Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed.
 Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions in the staging loop (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
 Each file is added on its own, because `git add` fails as a whole when any pathspec matches nothing and most runs have no assets at all.
-Findings-state YAML files, `gh-pr-view` caches, and stray non-report files such as `.DS_Store` are deliberately left uncommitted.
+Findings-state YAML files, `gh-pr-view` caches, in-progress markers (`<skill>.<sha>.in-progress`), and stray non-report files such as `.DS_Store` are deliberately left uncommitted.
 If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely.
 If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
 

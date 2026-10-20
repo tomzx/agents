@@ -1,7 +1,7 @@
 ---
 name: validate-pr
 description: Judge whether a PR builds the right product. Recovers the customer need behind the linked issue, then checks whether the acceptance criteria and the implemented behavior actually serve that need. Catches "faithfully built the wrong spec", symptom-not-cause fixes, and scope drift. No build or runtime execution (that is verify-pr's conformance role).
-allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -110,6 +110,8 @@ Extract:
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
 - `PR_STATE`: the PR state (`state`: `OPEN`, `CLOSED`, or `MERGED`)
 
+Define the report directory once: `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"`, then `mkdir -p "$PR_REVIEW_DIR"`.
+
 #### 1a. Re-review scope (reuse the previous run when possible)
 
 Read the validation state file `$PR_REVIEW_DIR/validate.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports).
@@ -123,6 +125,12 @@ This skill's incremental rules:
 - Recover the need and criteria as usual, but assess only how the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) affects need-fit, criteria soundness, and scope.
 - Re-confirm every `open` finding in the state file against that delta, flipping `status` to `addressed` or `stale` where the delta resolves or obsoletes them.
 - Do not re-evaluate code the delta does not touch, and keep the previous verdict unless the delta changes it.
+
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress start --step validate-pr --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
 
 #### 1b. Resolve and fetch linked issue(s)
 
@@ -308,8 +316,6 @@ EOF
  
  # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
  # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
- PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
- mkdir -p "$PR_REVIEW_DIR"
  # Per-run report named by the reviewed commit: preserves report history by filename.
  printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/validate-pr.$SHORT_SHA.md"
  # Stable name that always points at the most recent run's report.
@@ -338,6 +344,7 @@ The recipe updates this step's existing comment on the PR (append or replace per
 ### 7. Clean up
 
 ```bash
+~/.agents/scripts/review-progress stop --step validate-pr --repo "$REPO" --pr "$PR_NUMBER"
 if [ "$_WORKTREE_OWNER" = true ]; then
   git worktree remove $WORKTREE_DIR
 fi

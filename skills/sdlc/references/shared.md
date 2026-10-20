@@ -468,6 +468,40 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 Findings history remains in `<skill>.yaml` (the source of truth) and the GitHub comments; the per-run files preserve the rendered report for each reviewed commit.
 
+### In-progress marker
+
+While a review step runs, it publishes an empty marker file so a consumer can tell that evaluation is actually running for the PR's current head, rather than merely stale (for example a spinner beside validate-pr in a dashboard).
+The marker is state, not a report, and it is the only "in progress" signal a step produces: no report file is written before the step finishes.
+
+```
+$PR_REVIEW_DIR/<skill>.<sha>.in-progress
+```
+
+The name carries the identity and the file is empty:
+
+- `<skill>` is the step, for example `validate-pr`.
+- `<sha>` is the head commit under evaluation, full or at least 7 hex characters.
+- Presence means the step is running for that commit; the file's mtime is when it started.
+
+A consumer reads the name (not the contents), so no parsing is needed: a marker counts only when its `<sha>` matches the PR head.
+A marker for an older sha is a run that is over, and a file for another step is another evaluation.
+
+The writer is `~/.agents/scripts/review-progress`, which owns the path, the name, and the cleanup:
+
+```bash
+~/.agents/scripts/review-progress start --step validate-pr --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+~/.agents/scripts/review-progress stop --step validate-pr --repo "$REPO" --pr "$PR_NUMBER"
+```
+
+Rules:
+
+- `start` once the step knows `HEAD_COMMIT`, `REPO`, `PR_NUMBER`, and `PR_REVIEW_DIR`, after any pre-analysis decision that can stop the step (same head, closed or merged PR, no applicable surface) and before real analysis begins.
+- `start` also removes that step's marker for an older sha, so a re-run moves the marker instead of piling up files.
+- `stop` when the step returns, on every path: after the report is written and posted, and after any early stop or error. The presence of the file therefore means "this step is evaluating this sha now".
+- The file is never posted, staged, or committed: its `.in-progress` extension keeps it out of the `<skill>.*.md` report glob and out of the commit staging in `review-pr-full`.
+- A killed run leaves its marker behind. The next run of that step replaces it, and `review-pr-full` runs `~/.agents/scripts/review-progress clear --repo "$REPO" --pr "$PR_NUMBER"` after the pipeline finishes. A consumer should also treat a marker whose mtime is far in the past as interrupted, because there is no heartbeat.
+- `review_requested_prs.py --json` exposes the markers per PR as `in_progress` (`{"<step>": {"sha", "started_at"}}`, where `started_at` comes from the file's mtime), restricted to markers whose sha matches the PR head, so a UI can read them without scanning the store itself.
+
 ### Posting a review report
 
 Whether a report is posted as a GitHub comment is decided by `should-post-to-github`.

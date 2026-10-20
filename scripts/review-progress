@@ -1,0 +1,136 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# ///
+"""Publish and clear a review step's in-progress marker.
+
+A review step (validate-pr, verify-pr, ...) publishes an empty marker file
+while it runs, so a UI can show that evaluation as running for the PR's
+current head (for example a spinner beside validate-pr).
+
+The marker lives in the reviewer-owned PR store and its name carries the
+identity; the file has no content:
+
+    $HOME/.sdlc/<owner>/<repo>/pull-requests/<pr>/<step>.<sha>.in-progress
+
+- ``<step>`` is the skill name, for example ``validate-pr``.
+- ``<sha>`` is the head commit under evaluation (7 to 64 hex characters).
+- Presence means the step is running for that sha; the file's mtime is when
+  it started.
+
+Usage:
+    scripts/review-progress start --step validate-pr --repo owner/repo --pr 42 --sha <head>
+    scripts/review-progress stop --step validate-pr --repo owner/repo --pr 42
+    scripts/review-progress clear --repo owner/repo --pr 42
+
+``start`` removes any marker for the step (an older sha from a previous run)
+and creates the new one, so a re-run moves the marker rather than piling up
+files. ``stop`` removes the step's marker, and ``clear`` removes every marker
+for the PR, which ``review-pr-full`` uses to clean up after a killed step.
+
+The marker is state, not a report: it is never posted or committed, and its
+``.in-progress`` extension keeps it out of the ``<step>.*.md`` report glob.
+Every command is best-effort and exits 0 even when it cannot write, because a
+missing marker must never fail a review.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+STEP_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+SHA_PATTERN = re.compile(r"^[0-9a-fA-F]{7,64}$")
+SUFFIX = ".in-progress"
+STORE_ROOT = Path.home() / ".sdlc"
+
+
+def _store_dir(repo: str, pr: int) -> Path:
+    return STORE_ROOT / repo / "pull-requests" / str(pr)
+
+
+def _marker_path(repo: str, pr: int, step: str, sha: str) -> Path:
+    return _store_dir(repo, pr) / f"{step}.{sha}{SUFFIX}"
+
+
+def _warn(message: str) -> None:
+    print(f"review-progress: {message}", file=sys.stderr)
+
+
+def start(repo: str, pr: int, step: str, sha: str) -> None:
+    directory = _store_dir(repo, pr)
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        for old in directory.glob(f"{step}.*{SUFFIX}"):
+            old.unlink(missing_ok=True)
+        _marker_path(repo, pr, step, sha).touch()
+    except OSError as exc:
+        _warn(f"could not write the {step} marker in {directory}: {exc}")
+
+
+def stop(repo: str, pr: int, step: str) -> None:
+    directory = _store_dir(repo, pr)
+    for marker in directory.glob(f"{step}.*{SUFFIX}"):
+        try:
+            marker.unlink(missing_ok=True)
+        except OSError as exc:
+            _warn(f"could not remove {marker}: {exc}")
+
+
+def clear(repo: str, pr: int) -> None:
+    directory = _store_dir(repo, pr)
+    for marker in directory.glob(f"*{SUFFIX}"):
+        try:
+            marker.unlink(missing_ok=True)
+        except OSError as exc:
+            _warn(f"could not remove {marker}: {exc}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Publish or clear a review step's in-progress marker."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    for name in ("start", "stop"):
+        sub = subparsers.add_parser(name)
+        sub.add_argument("--step", required=True, help="skill name, e.g. validate-pr")
+        sub.add_argument("--repo", required=True, help="owner/repository")
+        sub.add_argument("--pr", required=True, type=int, help="pull request number")
+        if name == "start":
+            sub.add_argument("--sha", required=True, help="head commit under review")
+
+    clear_parser = subparsers.add_parser("clear")
+    clear_parser.add_argument("--repo", required=True, help="owner/repository")
+    clear_parser.add_argument(
+        "--pr", required=True, type=int, help="pull request number"
+    )
+
+    args = parser.parse_args()
+
+    if args.command != "clear" and not STEP_PATTERN.match(args.step):
+        _warn(f"ignoring invalid step name: {args.step}")
+        return 0
+    if args.command == "start" and not SHA_PATTERN.match(args.sha):
+        _warn(f"ignoring invalid head sha: {args.sha}")
+        return 0
+    if args.repo.count("/") != 1 or ".." in args.repo.split("/"):
+        _warn(f"ignoring invalid repository: {args.repo}")
+        return 0
+    if args.pr < 1:
+        _warn(f"ignoring invalid pull request number: {args.pr}")
+        return 0
+
+    if args.command == "start":
+        start(args.repo, args.pr, args.step, args.sha)
+    elif args.command == "stop":
+        stop(args.repo, args.pr, args.step)
+    else:
+        clear(args.repo, args.pr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

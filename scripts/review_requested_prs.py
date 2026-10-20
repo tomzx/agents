@@ -35,6 +35,10 @@ changed files match that surface (see SURFACE_STEP_PATTERNS), so a PR that
 touches no CLI, SDK, API, or DB surface never carries one. Like the parallel
 steps they never gate a chain step and are never gated by one.
 
+Each PR also carries the steps currently evaluating it, read from the empty
+``<step>.<sha>.in-progress`` markers the skills publish while they run, so
+``--json`` consumers (dashboards) can show those steps as running.
+
 Each PR also gets a blocking depth: the number of open PRs stacked on it
 (directly or transitively), an attention signal for deciding what to review
 first, since a low-risk PR blocking five others deserves attention before
@@ -201,6 +205,12 @@ SURFACE_STEP_PATTERNS: dict[str, re.Pattern[str]] = {
 # Every step the skills write markers for.
 VALID_STEPS = PARALLEL_STEPS + SURFACE_STEPS + CHAIN_STEPS
 
+# Transient per-step marker written while a step runs (see
+# ``skills/sdlc/references/shared.md``, In-progress marker). The file is
+# empty; its name is ``<step>.<sha>.in-progress``. The extension keeps these
+# out of the ``<step>.*.md`` report glob.
+IN_PROGRESS_SUFFIX = ".in-progress"
+
 STEP_ORDER: dict[str, int] = {step: index for index, step in enumerate(VALID_STEPS)}
 
 # Compact dashboard labels for the surface columns.
@@ -359,6 +369,7 @@ class PRReviewState:
     changed_files: list[str] = field(default_factory=list)
     assess_risk: str = ""
     assess_confidence: str = ""
+    in_progress: dict[str, dict[str, str]] = field(default_factory=dict)
     approvers: list[str] = field(default_factory=list)
     changes_requested: list[str] = field(default_factory=list)
     additions: int = 0
@@ -1191,6 +1202,36 @@ def _note_last_comment(
     pr.last_comment_by = login or ""
 
 
+def check_in_progress_markers(pr: PRReviewState, local_dir: Path) -> None:
+    """Collect the steps currently evaluating this PR's head.
+
+    A step publishes an empty ``<step>.<sha>.in-progress`` file while it runs
+    (see ``skills/sdlc/references/shared.md``, In-progress marker). The name
+    carries the identity and the mtime is when the run started. Only markers
+    for the PR's current head count: a marker for an older sha belongs to a
+    run that is over, and a killed run's leftover marker must not look live.
+    """
+    markers: dict[str, dict[str, str]] = {}
+    for path in local_dir.glob(f"*{IN_PROGRESS_SUFFIX}"):
+        stem = path.name[: -len(IN_PROGRESS_SUFFIX)]
+        step, _, sha = stem.rpartition(".")
+        if step not in VALID_STEPS or len(sha) < 7:
+            continue
+        if not pr.head_commit or not pr.head_commit.startswith(sha):
+            continue
+        try:
+            started = path.stat().st_mtime
+        except OSError:
+            continue
+        markers[step] = {
+            "sha": sha,
+            "started_at": datetime.fromtimestamp(started, tz=timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+        }
+    pr.in_progress = markers
+
+
 def check_local_markers(pr: PRReviewState) -> None:
     """Scan local report files for review-skill markers.
 
@@ -1231,6 +1272,8 @@ def check_local_markers(pr: PRReviewState) -> None:
             if getattr(pr, field_name):
                 break
 
+    check_in_progress_markers(pr, local_dir)
+
     log.debug(
         "local_markers_checked",
         repo=pr.repo,
@@ -1245,6 +1288,7 @@ def check_local_markers(pr: PRReviewState) -> None:
         verify_commit=pr.verify_commit[:8] or "none",
         review_commit=pr.review_commit[:8] or "none",
         coverage_commit=pr.coverage_commit[:8] or "none",
+        in_progress=",".join(sorted(pr.in_progress)) or "none",
         assess_verdict=pr.assess_verdict or "none",
         assess_risk=pr.assess_risk or "none",
         assess_confidence=pr.assess_confidence or "none",

@@ -1,7 +1,7 @@
 ---
 name: review-cli-changes
 description: "Review a change to a command-line interface (new or changed commands, options, arguments, output, exit codes) for compatibility, consistency, and usability. Use when a PR, branch, or diff touches a CLI surface and the user asks whether the CLI change is safe, whether it breaks callers, whether flags or output are consistent, or wants a CLI-focused change review."
-allowed-tools: Bash(git:*, gh:*, ghx:*, rg:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+allowed-tools: Bash(git:*, gh:*, ghx:*, rg:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number> [repository] | <diff-ref | worktree-dir>"
 ---
 
@@ -150,6 +150,12 @@ Only surface hunks feed the checklist; internal hunks stay with `/review-pr`.
 
 ### 4. Apply the Review Checklist to each surface change
 
+Publish the in-progress marker before walking the checklist when this is a PR run (skip it for a bare diff ref), and remove it before returning (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress start --step review-cli-changes --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
+
 Walk the categories below for every surface change.
 Skip a category only when the diff cannot touch it, and say so.
 
@@ -185,6 +191,12 @@ Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR
 If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="review-cli-changes"`).
 
 ### 7. Clean up
+
+For a PR run, remove the in-progress marker:
+
+```bash
+~/.agents/scripts/review-progress stop --step review-cli-changes --repo "$REPO" --pr "$PR_NUMBER"
+```
 
 If this skill created a worktree (no `$WORKTREE_DIR` was provided), remove it.
 

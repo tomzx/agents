@@ -1,7 +1,7 @@
 ---
 name: verify-pr
 description: Verify that a PR conforms to its specified requirements (acceptance criteria). Combines static criteria-to-code traceability with runtime execution that proves each criterion by building and running the PR. Records CLI demos (asciinema) and web UI captures (Playwright). Does not judge code craft (that is review-pr) or whether the target is the right product (that is validate-pr).
-allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(gh:*, git:*, ghx:*, asciinema:*, agg:*, npx:*, node:*, uv:*, python:*, python3:*, curl:*, ~/.agents/scripts/get-env:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Edit, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -131,6 +131,8 @@ Extract:
 - `ISSUE_NUMBER`: the first linked issue number from `closingIssuesReferences` (or empty if none)
 - `PR_STATE`: the PR state (`state`: `OPEN`, `CLOSED`, or `MERGED`)
 
+Define the report directory once: `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"`, then `mkdir -p "$PR_REVIEW_DIR"`.
+
 #### 1a. Re-review scope (reuse the previous run when possible)
 
 Read the verification state file `$PR_REVIEW_DIR/verify.yaml` (schema in `sdlc/references/shared.md`, PR Review Reports; one finding per acceptance criterion, `status` one of `conforms` / `conforms-static` / `unverified` / `fails`).
@@ -143,6 +145,12 @@ This skill's incremental rules:
 
 - Trace criteria to code as usual, but at runtime re-run only criteria whose implementation the delta `git diff "$LAST_SHA" "$HEAD_COMMIT"` (or the contained tree-diff) touches, plus every criterion whose `status` is `fails`.
 - Criteria the delta does not touch keep their `status` and evidence; reference the previous report's demonstrations instead of re-recording.
+
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress start --step verify-pr --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
 
 #### 1b. Resolve and fetch linked issue(s)
 
@@ -432,8 +440,6 @@ EOF
  
  # Report location is reviewer-owned, not in the repo: see sdlc/references/shared.md
  # (PR Review Reports). Survives worktree removal and never pollutes the checked-out repo.
- PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
- mkdir -p "$PR_REVIEW_DIR"
  # Per-run report named by the verified commit: preserves report history by filename.
  printf '%s\n' "${BODY}" > "$PR_REVIEW_DIR/verify-pr.$SHORT_SHA.md"
  # Stable name that always points at the most recent run's report.
@@ -464,6 +470,7 @@ The recipe updates this step's existing comment on the PR (append or replace per
 After posting results, clean up:
 
 ```bash
+~/.agents/scripts/review-progress stop --step verify-pr --repo "$REPO" --pr "$PR_NUMBER"
 if [ "$_WORKTREE_OWNER" = true ]; then
   git worktree remove $WORKTREE_DIR
 fi

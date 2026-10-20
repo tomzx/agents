@@ -1,7 +1,7 @@
 ---
 name: analyze-test-coverage
 description: "Analyze a set of code changes (diff or files) and produce a structured test coverage report with three parts: introduced tests, change coverage, and uncovered code. Called by review-pr-full as the first step of its review chain (before validate-pr, verify-pr, and review-pr), and delegated to by review-pr, review-implementation, and verify-pr; can also be invoked directly on any diff."
-allowed-tools: Bash(git:*, gh:*, ghx:*), Read, Glob, Grep
+allowed-tools: Bash(git:*, gh:*, ghx:*, ~/.agents/scripts/review-progress:*), Read, Glob, Grep
 argument-hint: "[diff-ref | worktree-dir]"
 ---
 
@@ -155,9 +155,17 @@ git -C "$WORKTREE_DIR" fetch origin "$BASE_BRANCH"
 DIFF_REF="origin/${BASE_BRANCH}...HEAD"
 ```
 
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+mkdir -p "$PR_REVIEW_DIR"
+~/.agents/scripts/review-progress start --step analyze-test-coverage --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
+
 3. Produce the three tables and findings as usual, then set the marker verdict: `pass` when every behavior change is covered and the uncovered-code table is empty; `fail` when any change-coverage row is `No` or any uncovered code is listed.
 
-4. Write the report per `sdlc/references/shared.md` (PR Review Reports): define `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"`, `mkdir -p` it, and save the analysis to `$PR_REVIEW_DIR/analyze-test-coverage.$SHORT_SHA.md`, starting the file with the marker so the orchestrator can detect which commit was analyzed:
+4. Write the report per `sdlc/references/shared.md` (PR Review Reports): save the analysis to `$PR_REVIEW_DIR/analyze-test-coverage.$SHORT_SHA.md`, starting the file with the marker so the orchestrator can detect which commit was analyzed:
 
 ```markdown
 <!-- {"step":"analyze-test-coverage","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
@@ -179,6 +187,12 @@ FOOTER="Posted with [analyze-test-coverage](${SKILL_FILE_URL}) (\`${SKILL_SHORT_
 ```
 
 The recipe updates this step's existing comment on the PR (append or replace per `PR_REVIEW_POST_MODE`, default `replace`) instead of adding a new comment on every run; in `replace` mode the body also ends with the reviewed-commits index.
+
+6. Remove the in-progress marker:
+
+```bash
+~/.agents/scripts/review-progress stop --step analyze-test-coverage --repo "$REPO" --pr "$PR_NUMBER"
+```
 
 The verdict never gates anything: review-pr-full runs this step first and reports the verdict to the human reviewer, while the later chain steps can read the posted report as evidence.
 

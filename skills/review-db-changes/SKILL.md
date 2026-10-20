@@ -1,7 +1,7 @@
 ---
 name: review-db-changes
 description: "Review a database change (schema migration, index or constraint, data backfill, destructive statement) for lock safety, reversibility, data integrity, and zero-downtime deploy compatibility. Use when a PR, branch, or diff touches migrations, schema files, or data-changing SQL and the user asks whether the migration is safe, whether it locks a table, whether it is reversible, or wants a database-focused change review."
-allowed-tools: Bash(git:*, gh:*, ghx:*, rg:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+allowed-tools: Bash(git:*, gh:*, ghx:*, rg:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number> [repository] | <diff-ref | worktree-dir>"
 ---
 
@@ -162,6 +162,12 @@ Mark a hunk as a schema change, a data change, or a destructive change, because 
 
 ### 5. Apply the Review Checklist to each change
 
+Publish the in-progress marker before walking the checklist when this is a PR run (skip it for a bare diff ref), and remove it before returning (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+~/.agents/scripts/review-progress start --step review-db-changes --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
+
 Walk the categories below for every change.
 Skip a category only when the diff cannot touch it, and say so.
 
@@ -195,6 +201,12 @@ Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR
 If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="review-db-changes"`).
 
 ### 8. Clean up
+
+For a PR run, remove the in-progress marker:
+
+```bash
+~/.agents/scripts/review-progress stop --step review-db-changes --repo "$REPO" --pr "$PR_NUMBER"
+```
 
 If this skill created a worktree (no `$WORKTREE_DIR` was provided), remove it.
 

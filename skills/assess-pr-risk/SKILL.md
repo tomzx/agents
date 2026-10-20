@@ -1,7 +1,7 @@
 ---
 name: assess-pr-risk
 description: Estimate how risky a GitHub pull request is and how confident that estimate is, then recommend the next action for a human reviewer. Self-contained: it gathers its evidence from the diff, the codebase, and churn of the touched files, so it can run in parallel with the other review skills. Use when the user asks "how risky is this PR", "assess PR risk", "risk and confidence for this PR", "should I review this deeply", or wants to decide what to do next with a PR.
-allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+allowed-tools: Bash(gh:*, ghx:*, git:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number> [repository]"
 ---
 
@@ -86,6 +86,13 @@ Extract `headRefOid`, `headRepository.nameWithOwner`, `closingIssuesReferences`,
 If `PR_STATE` is `CLOSED` or `MERGED`, note it and stop; risk assessment is for open PRs.
 
 Define the report directory once: `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"` (see `sdlc/references/shared.md`, PR Review Reports).
+
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+mkdir -p "$PR_REVIEW_DIR"
+~/.agents/scripts/review-progress start --step assess-pr-risk --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
 
 ### 2. Create a git worktree on the PR branch
 
@@ -197,6 +204,7 @@ The recipe updates this step's existing comment on the PR (append or replace per
 ### 8. Clean up
 
 ```bash
+~/.agents/scripts/review-progress stop --step assess-pr-risk --repo "$REPO" --pr "$PR_NUMBER"
 if [ "$_WORKTREE_OWNER" = true ]; then
   git worktree remove $WORKTREE_DIR
 fi

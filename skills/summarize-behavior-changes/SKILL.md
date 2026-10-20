@@ -1,7 +1,7 @@
 ---
 name: summarize-behavior-changes
 description: Summarize the behavior changes a pull request introduces: what changed, from what to what, which consumers it affects, and which changes are breaking. Self-contained (diff and codebase only), so it runs in parallel with analyze-test-coverage and assess-pr-risk. Use when the user asks "what does this PR change", "behavior change summary", "what will behave differently after merge", "does this change behavior", or wants a reviewer-facing or release-facing summary of a PR's effects.
-allowed-tools: Bash(git:*, ghx:*, gh:*, ~/.agents/scripts/should-post-to-github:*), Read, Write, Glob, Grep
+allowed-tools: Bash(git:*, ghx:*, gh:*, ~/.agents/scripts/should-post-to-github:*, ~/.agents/scripts/review-progress:*), Read, Write, Glob, Grep
 argument-hint: "<pr-number> [repository] | <diff-ref | worktree-dir>"
 ---
 
@@ -94,6 +94,13 @@ Extract from the `gh pr view --json` output:
 If `PR_STATE` is `CLOSED` or `MERGED`, note it and stop; the summary is for open PRs.
 
 Define the report directory once: `PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"` (see `sdlc/references/shared.md`, PR Review Reports).
+
+Publish the in-progress marker before analyzing, and remove it before returning on every path (see `sdlc/references/shared.md`, In-progress marker):
+
+```bash
+mkdir -p "$PR_REVIEW_DIR"
+~/.agents/scripts/review-progress start --step summarize-behavior-changes --repo "$REPO" --pr "$PR_NUMBER" --sha "$HEAD_COMMIT"
+```
 
 ### 2. Create a git worktree on the PR branch
 
@@ -208,6 +215,7 @@ The recipe updates this step's existing comment on the PR (append or replace per
 ### 9. Clean up
 
 ```bash
+~/.agents/scripts/review-progress stop --step summarize-behavior-changes --repo "$REPO" --pr "$PR_NUMBER"
 if [ "$_WORKTREE_OWNER" = true ]; then
   git worktree remove $WORKTREE_DIR
 fi
