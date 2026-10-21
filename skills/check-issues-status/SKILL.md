@@ -23,9 +23,7 @@ For a single issue, invoke `/check-issue-status <number> [repository]` directly.
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - `gh` CLI authenticated with read access to the target repositories.
 - `check-issue-status` skill available.
-- A local checkout of any repository whose issues will be inspected.
-  `check-issue-status` reads code, so it can only verdict on issues whose repo matches the current working directory's checkout.
-  Issues from other repos are deferred (see step 4).
+- No local checkout is required: `check-issue-status` clones each repository it needs (see its step 1).
 
 ## Scope and modes
 
@@ -52,11 +50,10 @@ gh search issues --json repository,number,title
 Group results by repository
         |
         v
-For each issue in the cwd's repo:
+For each issue:
   delegate to /check-issue-status <number> <repo>
-  (report-only unless --post)
-        |
-Issues in other repos: defer
+  (report-only unless --post;
+   it clones the repo when not checked out)
         |
         v
 Aggregate combined summary (implemented first)
@@ -75,14 +72,6 @@ Parse the arguments:
 - `--limit <n>` (default 30) caps how many issues are fetched and processed.
 - `--post` allows `check-issue-status` to post comments on `implemented` verdicts.
   Off by default, so a batch run is report-only.
-
-Determine the current working directory's repository so per-issue code inspection targets the right checkout:
-
-```bash
-git remote get-url origin
-```
-
-Record its `{owner}/{repository}` as `CWD_REPO`.
 
 ### 2. Build and run the search
 
@@ -110,16 +99,19 @@ Group the results by `repository.nameWithOwner`.
 ### 4. Delegate per issue
 
 Load `check-issue-status` (via the skill tool) before processing the first issue, then apply its workflow to each issue.
-For each issue, in result order:
+For each issue, in result order, delegate to the singular skill:
 
-- If its `repository.nameWithOwner` equals `CWD_REPO`, delegate to the singular skill:
-  ```
-  /check-issue-status <number> <owner/repo>
-  ```
-  Unless `--post` is set, run `check-issue-status` in report-only mode: perform the analysis and return the verdict and evidence, but skip its comment-posting step.
-  Collect these for the aggregate report.
-- Otherwise (the issue is in a repo that is not checked out locally), defer it.
-  Do not inspect; `check-issue-status` cannot read code that is not checked out.
+```
+/check-issue-status <number> <owner/repo>
+```
+
+Unless `--post` is set, run `check-issue-status` in report-only mode: perform the analysis and return the verdict and evidence, but skip its comment-posting step.
+Collect these for the aggregate report.
+
+`check-issue-status` resolves code access itself: it uses a matching local checkout when one exists and otherwise clones the repository into its cache directory, so issues from several repositories can be processed in one run.
+A first pass over a repository not yet cloned costs one clone (shallow, default branch); later runs reuse and refresh it.
+
+If the clone fails for an issue's repository (private repository without access, no network), record the issue as deferred with the reason and continue with the rest.
 
 Process issues sequentially to avoid rate limiting.
 
@@ -152,7 +144,7 @@ Output a combined table:
 
 ### Deferred
 
-- `other/repo#9`, `other/repo#12` (no local checkout of other/repo)
+- `other/private-repo#9` (clone failed: no access)
 - 14 more issues beyond --limit 30 (re-run with a higher limit to include them)
 ```
 
@@ -167,7 +159,8 @@ Do not post without an explicit choice.
 | Mode | Response |
 |---|---|
 | **No scope resolvable and no author/query** | Stop and ask the user for a repository, author, or query |
-| **Issues span repos not checked out locally** | Inspect those matching `CWD_REPO`; defer the rest with their numbers listed |
+| **Issues span several repositories** | Inspect all of them; `check-issue-status` clones repositories that are not checked out |
+| **Clone fails for one repository** | Defer that repository's issues with the reason and continue; do not verdict without code |
 | **Large backlog** | Process up to `--limit`, defer the remainder, suggest re-running with a higher limit or a narrower query |
 | **Search returns zero issues** | Report "No issues matched the scope." and stop |
 
@@ -180,7 +173,7 @@ If `$OUTCOME_YAML` is set, emit a batch verdict there per `skills/sdlc/reference
 | `has-implemented` | At least one inspected issue is `implemented` |
 | `mixed-or-partial` | None `implemented`, but at least one `partial` (or a mix) |
 | `all-not-implemented` | Every inspected issue is `not-implemented` |
-| `none-inspected` | All issues were deferred (no local checkouts) |
+| `none-inspected` | All issues were deferred (clone failures or none fetched) |
 
 ## Example Usage
 
@@ -210,13 +203,12 @@ Searches open issues authored by `jane` in `owner/myrepo`, inspects each, report
 ```
 Searches open issues matching the query, inspects each, reports status.
 
-**Scenario 5: Cross-repo author search with deferral**
+**Scenario 5: Cross-repo author search**
 ```
 /check-issues-status --author jane --limit 50
 ```
 No repo scope, so the search spans repositories.
-Issues in `owner/myrepo` (the cwd checkout) are inspected; issues in other repos are deferred with their numbers listed.
-Re-run inside each repo's checkout to inspect them.
+Each repository is inspected in turn; ones not checked out locally are cloned into `check-issue-status`'s cache directory on first use, so all matching issues get a verdict without any manual setup.
 
 **Scenario 6: Post close-suggestion comments**
 ```
@@ -229,6 +221,5 @@ Same as scenario 1, but `implemented` findings post their evidence comment on th
 - Default mode is report-only so a batch run never posts unneeded comments.
   Use `--post` once the report is reviewed.
 - Repeated runs are safe: `check-issue-status` checks for its own prior comment marker before posting and edits in place when the code has moved, so even `--post` runs do not repost an already-flagged issue.
-- The orchestrator does not inspect code itself; it delegates to `check-issue-status`.
-  A local checkout of the target repo is required for any per-issue verdict.
+- The orchestrator does not inspect code itself; it delegates to `check-issue-status`, which uses a local checkout when the repository is already checked out and otherwise clones it into its cache directory.
 - For a single issue, skip this orchestrator and call `/check-issue-status <number> [repository]` directly.

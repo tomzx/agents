@@ -9,6 +9,7 @@ argument-hint: "<issue-number> [repository]"
 
 Determines whether a GitHub issue is already addressed in the codebase.
 Reads the issue, extracts the behavior it requests in whatever format it is written, and inspects the code to verify whether that behavior is already present.
+It inspects the current checkout when it is the target repository, and clones the repository on demand when it is not.
 Use before starting work, or to find stale issues that can be closed.
 
 This skill inspects code, not GitHub metadata.
@@ -20,7 +21,7 @@ To actually trigger a reported bug at runtime, use `reproduce-issue`.
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - If no argument is provided, target the issue from `$ISSUE_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository.
-- The current working directory is a checkout of the target repository (this skill reads code).
+- Network access when the repository still has to be cloned (step 1).
 - A GitHub issue number describing a feature request, a bug, or a task.
 
 ### Skill attribution (GitHub)
@@ -33,7 +34,44 @@ Before composing any text posted or drafted on the user's behalf, apply [`commun
 
 ## Steps
 
-### 1. Fetch the issue
+### 1. Resolve the code checkout
+
+Code inspection needs a checkout of the target repository.
+Use the current checkout when it is the target repository, and clone the repository when it is not.
+
+Resolve the current directory's repository:
+
+```bash
+git remote get-url origin
+```
+
+Record its `{owner}/{repository}` as `CWD_REPO`.
+If the command fails (no git repository, or no `origin` remote), treat it as no match and clone.
+
+- If `CWD_REPO` matches `$REPO` (case-insensitive), set `WORK_DIR` to the current directory.
+  Run `git status --porcelain`; if the tree has uncommitted changes, note it in the report, since the evidence may not match the published code.
+- Otherwise clone the repository into a cache directory and set `WORK_DIR` to it, reusing a previous clone when one exists:
+
+  ```bash
+  CACHE_DIR="$HOME/.cache/agents/check-issue-status/$(echo $REPO | tr '/' '-')"
+  BRANCH=$(gh repo view $REPO --json defaultBranchRef --jq .defaultBranchRef.name)
+
+  if [ -d "$CACHE_DIR/.git" ]; then
+    git -C "$CACHE_DIR" fetch --depth 50 origin "$BRANCH"
+  else
+    mkdir -p "$(dirname "$CACHE_DIR")"
+    git clone --depth 50 --branch "$BRANCH" "https://github.com/$REPO.git" "$CACHE_DIR"
+  fi
+
+  git -C "$CACHE_DIR" checkout -B "$BRANCH" "origin/$BRANCH"
+  ```
+
+- If no usable checkout is available (the current directory is not the target repository and the clone fails from missing access or no network), report the error and stop.
+  Do not inspect an unrelated checkout, since code evidence would be from the wrong repository.
+
+Run every `Glob`, `Grep`, `Read`, `rg`, and `git` command below inside `$WORK_DIR`.
+
+### 2. Fetch the issue
 
 Fetch the issue to understand what it asks for:
 
@@ -41,11 +79,9 @@ Fetch the issue to understand what it asks for:
 ghx issue view $ISSUE_NUMBER --repo $REPO
 ```
 
-Read any files present under `.sdlc/context/` (`architecture.md`, `vocabulary.md`, `conventions.md`) for context that helps locate the relevant code.
+Read any files present under `.sdlc/context/` in `$WORK_DIR` (`architecture.md`, `vocabulary.md`, `conventions.md`) for context that helps locate the relevant code.
 
-If the working directory is not a checkout of `$REPO` (different `git remote get-url origin`), warn the user and stop, since code evidence would be from the wrong repository.
-
-### 2. Classify the issue
+### 3. Classify the issue
 
 Decide which of these the issue is:
 
@@ -56,7 +92,7 @@ Decide which of these the issue is:
 Record the classification.
 It only changes how evidence is framed, not the procedure.
 
-### 3. Extract behavioral claims
+### 4. Extract behavioral claims
 
 Issues arrive in many formats: formal acceptance criteria, prose, screenshots, error logs, checklists, or a single sentence.
 Do not assume a structure.
@@ -71,7 +107,7 @@ If the body is too vague to extract any claim (for example, a one-liner with no 
 Then stop.
 Do not guess claims from a vague report.
 
-### 4. Locate the relevant code
+### 5. Locate the relevant code
 
 For each claim, derive 2 to 4 search signals:
 
@@ -83,8 +119,8 @@ For each claim, derive 2 to 4 search signals:
 Search the codebase with `Glob` (by file name) and `Grep` (by content), or `rg` directly:
 
 ```bash
-rg -n --type py "def login_with_sso" .
-rg -n "AUTH_TOKEN_EXPIRED" .
+rg -n --type py "def login_with_sso" "$WORK_DIR"
+rg -n "AUTH_TOKEN_EXPIRED" "$WORK_DIR"
 ```
 
 Read each match with `Read`.
@@ -93,7 +129,7 @@ Record `file:line` for every relevant location.
 If no code touches the area at all, the behavior is almost certainly not implemented.
 Note what was searched and move to the next claim.
 
-### 5. Verify each claim against the code
+### 6. Verify each claim against the code
 
 For every claim, decide a status using only what the code shows:
 
@@ -109,14 +145,15 @@ Run a targeted check only when a claim is about runtime behavior and static read
 
 ```bash
 # run a single existing test that covers the behavior
-pytest -q path/to/test_sso.py::test_login_sso
+cd "$WORK_DIR" && pytest -q path/to/test_sso.py::test_login_sso
 ```
 
 Never run broad test suites or anything destructive.
 One targeted test or one-off check is enough.
+A cached clone has no environment set up, so when the check needs installed dependencies or credentials, skip it and rely on static evidence instead.
 If a targeted check still cannot decide, mark the claim Partially met and defer runtime proof to `reproduce-issue`.
 
-### 6. Determine the overall verdict
+### 7. Determine the overall verdict
 
 Combine the per-claim statuses:
 
@@ -128,13 +165,13 @@ Combine the per-claim statuses:
 
 For a bug, `implemented` means the bug is already fixed (the code already does the desired behavior, so the issue is likely stale); `not-implemented` means the bug is still present and the issue is live.
 
-### 7. Check for a prior status comment
+### 8. Check for a prior status comment
 
 This skill must not spam an issue with repeated "already addressed" comments.
 Before posting, capture the code commit being analyzed and look for a prior status comment from this skill:
 
 ```bash
-CODE_SHA=$(git rev-parse --short HEAD)
+CODE_SHA=$(git -C "$WORK_DIR" rev-parse --short HEAD)
 
 gh api repos/$REPO/issues/$ISSUE_NUMBER/comments \
   --jq '[.[] | select(.body | test("<!-- check-issue-status:"))] | last | {id: .id, body: .body}'
@@ -143,7 +180,7 @@ gh api repos/$REPO/issues/$ISSUE_NUMBER/comments \
 A posted comment carries a hidden marker of the form `<!-- check-issue-status:<verdict>:<code-sha> -->`.
 From the prior comment (if any), extract `PRIOR_VERDICT`, `PRIOR_CODE_SHA`, and the comment `id`.
 
-- No prior marker: proceed to step 8 and post normally when the verdict is `implemented`.
+- No prior marker: proceed to step 9 and post normally when the verdict is `implemented`.
 - Prior marker with `PRIOR_VERDICT = implemented` and `PRIOR_CODE_SHA = CODE_SHA`: the finding is unchanged.
   Skip posting and report "already flagged as implemented (code unchanged since)".
 - Prior marker with `PRIOR_VERDICT = implemented` and a different `PRIOR_CODE_SHA`: the finding still stands or has changed.
@@ -158,7 +195,7 @@ gh api --method PATCH repos/$REPO/issues/comments/$COMMENT_ID \
   -F body="<refreshed body with updated marker and footer>"
 ```
 
-### 8. Report
+### 9. Report
 
 Present the findings in this form:
 
@@ -166,6 +203,7 @@ Present the findings in this form:
 ## Issue #<n> status: <verdict>
 
 **Classification:** feature request | bug report | other
+**Inspected:** `<WORK_DIR>` at `<code-sha>` (current checkout | cached clone)
 
 ### Claims
 
@@ -175,11 +213,13 @@ Present the findings in this form:
    - Searched <signals>; <why absent>.
 ```
 
+If the inspected checkout had uncommitted changes, say so next to the SHA.
+
 Then act by verdict:
 
 | Verdict | Action |
 |---|---|
-| `implemented` | Suggest closing the issue. Post a comment idempotently (per step 7) with the proof and the attribution footer. Do not start work. |
+| `implemented` | Suggest closing the issue. Post a comment idempotently (per step 8) with the proof and the attribution footer. Do not start work. |
 | `partial` | Report what exists and what is missing so the user can narrow the issue or proceed. Do not post unless asked. |
 | `not-implemented` | Report clear to work on. Do not post a comment. |
 
@@ -207,11 +247,13 @@ EOF
 
 | Mode | Response |
 |---|---|
+| **Working directory is not a checkout of `$REPO`** | Clone it into the cache directory and inspect that (step 1) |
+| **Clone fails (private repository without access, no network)** | Report the error and stop; do not inspect an unrelated checkout |
+| **Cached clone exists but is stale** | Always fetch and check out the default branch before searching (step 1) |
 | **Issue too vague to extract claims** | Apply the author rule (refine if yours, ask if not), then stop |
-| **Working directory is not a checkout of `$REPO`** | Warn the user and stop |
 | **Code area found but a claim needs runtime proof** | Run one targeted test; if undecided, mark Partially met and defer to `reproduce-issue` |
 | **Issue is neither a feature nor a bug** | Classify as "other", verify the desired end state, proceed |
-| **Prior `implemented` comment already on the issue** | Compare stored code SHA; skip if unchanged, edit in place if code moved (step 7) |
+| **Prior `implemented` comment already on the issue** | Compare stored code SHA; skip if unchanged, edit in place if code moved (step 8) |
 
 ## Outcome
 
