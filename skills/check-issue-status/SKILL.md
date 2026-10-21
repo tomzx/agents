@@ -234,6 +234,8 @@ This appears to already be addressed in the code.
 **Evidence:**
 - <claim> - `path/to/file.py:42`
 
+**Inspected at commit:** CODE_SHA
+
 If this covers the request, the issue can be closed. If something is still missing, please clarify.
 
 ---
