@@ -2,14 +2,23 @@
 
 Worktrunk provides a plugin for each supported agent CLI. What a plugin provides depends on the hooks that CLI exposes:
 
-| Capability | Codex | OpenCode | Gemini CLI |
-|---|:-:|:-:|:-:|
-| Configuration skill | ✓ |  | ✓ |
-| Activity tracking (🤖/💬 in `wt list`) |  | ✓ | ✓ |
+| Capability | Claude Code | Codex | OpenCode | Gemini CLI |
+|---|:-:|:-:|:-:|:-:|
+| Configuration skill |  | ✓ |  | ✓ |
+| Activity tracking (🤖/💬 in `wt list`) | ✓ |  | ✓ | ✓ |
+| Statusline (`wt list statusline`) | ✓ |  |  |  |
 
 The configuration skill is documentation the agent reads to help set up LLM commits, hooks, and troubleshooting. Activity tracking shows which worktrees have running sessions. Codex omits activity tracking because its hooks have no turn-end event, so a 🤖 marker could never clear back to 💬.
 
 ## Installation
+
+### Claude Code
+
+```bash
+wt config plugins claude install
+```
+
+This installs the Worktrunk plugin, which adds activity tracking. `wt config plugins claude install-statusline` configures the Claude Code statusline to run `wt list statusline --format=claude-code`, and `wt config plugins claude uninstall` removes the plugin.
 
 ### Codex
 

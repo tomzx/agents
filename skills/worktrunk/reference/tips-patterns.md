@@ -155,7 +155,7 @@ Then `wt mc` opens an editor for the commit message while plain `wt merge` conti
 
 ## Track agent status
 
-Custom emoji markers show agent state in `wt list`. The [OpenCode plugin](https://github.com/max-sixty/worktrunk/tree/main/dev/opencode-plugin.ts) and the Gemini extension set these automatically:
+Custom emoji markers show agent state in `wt list`. The Claude Code plugin, the [OpenCode plugin](https://github.com/max-sixty/worktrunk/tree/main/dev/opencode-plugin.ts), and the Gemini extension set these automatically:
 
 ```
 + feature-api      ↑  🤖              ↑1      ./repo.feature-api
@@ -426,18 +426,17 @@ url = "http://{{ branch | sanitize }}.{{ repo }}.localhost:8080"
 
 ## Monitor hook logs
 
-Follow background hook output:
+Follow background hook output.
+`wt config state logs --format=json` reports each hook log with its `source`, `hook_type`, and `name`, so `jq` can resolve the path:
 
 ```bash
-tail -f "$(wt config state logs get --hook=user:post-start:server)"
+tail -f "$(wt config state logs --format=json | jq -r '.hook_output[] | select(.source == "user" and .hook_type == "post-start" and (.name | startswith("server"))) | .path' | head -1)"
 ```
 
-The `--hook` format is `source:hook-type:name` — e.g., `project:post-start:build` for project-defined hooks. Use `wt config state logs get` to list all available logs.
-
-Create an alias for frequent use:
+Create an alias for frequent use, taking a `source:hook-type:name` prefix:
 
 ```bash
-alias wtlog='f() { tail -f "$(wt config state logs get --hook="$1")"; }; f'
+alias wtlog='f() { tail -f "$(wt config state logs --format=json | jq -r --arg spec "$1" ".hook_output[] | select((.source + \":\" + .hook_type + \":\" + .name) | startswith(\$spec)) | .path" | head -1)"; }; f'
 ```
 
 ## Bare repository layout

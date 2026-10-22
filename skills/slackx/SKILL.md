@@ -7,7 +7,8 @@ description: >
   workspace users/channels, storing everything locally so subsequent reads are
   instant and incremental. Trigger when the user wants to read, cache, refresh,
   or poll a Slack thread or channel, render a thread with human-readable author
-  names, search the workspace and cache matches, or says "slackx" explicitly.
+  names, search the workspace and cache matches, track per-consumer read
+  positions, or says "slackx" explicitly.
   Other Slack skills (slack-resolve-threads,
   slack-kb-channel, slack-kb-individual) build on top of this tool.
 cli: slackx
@@ -15,7 +16,7 @@ cli: slackx
 
 # slackx Skill
 
-`slackx` is a small Python CLI (package name `slack-cached`) that caches Slack threads, channel messages, DMs, users, and channels to a local SQLite database.
+`slackx` is a small Python CLI (package and distribution name `slackx`, renamed from `slack-cached`) that caches Slack threads, channel messages, DMs, users, and channels to a local SQLite database.
 Given a Slack permalink (or a channel and root timestamp), it fetches the thread via `conversations.replies` and stores every message.
 On subsequent runs it only fetches new replies (and detects edits) by passing `oldest` to the API based on the highest cached `ts`.
 
@@ -30,14 +31,18 @@ The old flat commands (`fetch`, `show`, `search`, `poll`, `fetch-users`, `fetch-
 
 ```
 slackx
-  conversations   fetch | show | search | poll
-  channels        fetch | list
-  users           fetch | list
-  cache           status | clear
+  conversations        fetch | get (show) | search | poll
+  conversations read   mark | show | clear
+  channels             fetch | list | get (show)
+  users                fetch | list | get (show)
+  cache                status | clear
+  rpc                  serve | call | methods | exec
   serve
 ```
 
 Every command takes `--help` (or `-h`) and shows its own options and positional arguments.
+
+`get` is the canonical name for reading a single conversation, channel, or user; `show` is an accepted alias and is used throughout this skill.
 
 ### Options live on the leaf command
 
@@ -147,7 +152,8 @@ slackx conversations fetch C0123ABCDEF --full-threads --last all
 ### Show (read from cache)
 
 `conversations show` prints a thread or channel to stdout (human-readable by default).
-It auto-fetches when not already cached; pass `--no-fetch` to read only the cache.
+It auto-fetches when not already cached; pass `--fetch` to refresh even a cached target, or `--no-fetch` to never fetch the target itself.
+`--no-fetch` still reads the cached channel list (and fetches it when empty) to resolve a channel given by name, so pass a channel id when you want to guarantee no Slack calls.
 
 ```bash
 slackx conversations show https://acme.slack.com/archives/C0123ABCDEF/p1700000000123456
@@ -159,11 +165,15 @@ slackx conversations show C0123ABCDEF --last all --with-thread-message
 
 Options:
 
-- `--fetch/--no-fetch`: auto-fetch on a cache miss (default on).
+- `--fetch/--no-fetch`: fetch only on a cache miss by default; `--fetch` refreshes the cached target before printing, and `--no-fetch` never fetches the target itself but still resolves a channel name through the cached (or freshly fetched) channel list.
 - `--json`: pretty-printed JSON.
 - `--jsonl`: the whole payload as a single compact JSON line, easy to append to a file.
 - `--with-thread-message`: when showing a channel, also include thread replies, rendered marked as belonging to their thread (default is top-level messages only).
 - `--last`: channel lookback window (default `1d`).
+- `--reader`: name of the reader whose read pointer to advance (default `default`).
+
+After printing, `show` advances the `--reader`'s read pointer for the shown channel or thread to the newest cached message, so showing counts as reading.
+See "Read pointers" below.
 
 Output shapes:
 
@@ -224,6 +234,31 @@ Each entry may be a channel id, a bare name, or a `#`-prefixed name.
 Names are resolved against cached channels, so run `slackx channels fetch` first if resolving by name.
 Add `--full-threads` to expand threads, and `--json` for per-cycle JSON summaries on stdout.
 
+### Read pointers
+
+`conversations read` tracks per-consumer last-read pointers for channels and threads, so several consumers (a web UI, a poll watcher, ad-hoc scripts) can each keep their own position over the same cache.
+Pointers are namespaced by `--reader` (default `default`); `conversations show` advances the reader's pointer to the newest cached message, while `mark` records one explicitly.
+None of these commands call Slack.
+
+```bash
+slackx conversations read mark C0123ABCDEF                    # advance the channel pointer to the newest cached message
+slackx conversations read mark C0123ABCDEF --ts 1700000000.123456   # ...for one thread
+slackx conversations read mark C0123ABCDEF --last-read 1700000000.123456 --reader web
+
+slackx conversations read show                                # every reader's pointers
+slackx conversations read show --reader web --channel general # one reader, one channel
+slackx conversations read show --json
+
+slackx conversations read clear --reader web                  # forget everything for this reader
+slackx conversations read clear --reader web --channel C0123ABCDEF       # one channel
+slackx conversations read clear --reader web --channel C0123ABCDEF --ts 1700000000.123456   # one thread
+```
+
+`mark` takes a `TARGET` (permalink, channel id/name, `#name`, or DM) and, with `--ts`, targets a thread; without `--ts` it advances the channel-level pointer.
+`mark --last-read <ts>` sets the pointer explicitly; otherwise it uses the newest cached message in scope.
+`read show` prints human-readable output by default, `--json`/`--jsonl` for machine output.
+`read clear` requires `--reader` and removes only what the `--channel`/`--ts` scope selects (everything for the reader when neither is given).
+
 ---
 
 ## Channels
@@ -235,17 +270,19 @@ slackx channels fetch
 slackx channels fetch C001
 ```
 
-Print cached channels (human-readable by default, `--json` for pretty JSON, `--jsonl` for a single compact JSON line).
-Pass a channel id, name, or URL to show only that channel; it is fetched from Slack via `conversations.info` when not cached, unless `--no-fetch` is given.
+`channels list` prints every cached channel; `channels get` prints one channel (human-readable by default, `--json` for pretty JSON, `--jsonl` for a single compact JSON line).
+`channels get` takes a channel id or name; it is fetched from Slack via `conversations.info` when not cached, unless `--no-fetch` is given.
+`--no-fetch` still resolves a channel given by name through the cached channel list (fetching it when empty), so pass a channel id to avoid Slack calls entirely.
 
 ```bash
 slackx channels list
-slackx channels list C001 --json
-slackx channels list general --jsonl
-slackx channels list https://acme.slack.com/archives/C001
+slackx channels list --json
+slackx channels get C001 --json
+slackx channels get general --jsonl
 ```
 
-Options: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields` (`id,name,is_private,display_name,fetched_at,payload`, default `id,name,is_private`).
+Options on `channels list`: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields` (`id,name,is_private,display_name,fetched_at,payload`, default `id,name,is_private`).
+`channels get` takes the same `--fetch/--no-fetch` and `--fields` (no `--limit`).
 The `--json` payload has keys `channel_count` and `channels`.
 
 Unknown or inaccessible channels surface a clean `channel_not_found` error (exit code 1) rather than a traceback.
@@ -261,17 +298,18 @@ slackx users fetch
 slackx users fetch U001
 ```
 
-Print cached users (human-readable by default).
-Pass a user id to show only that user; it is fetched from Slack via `users.info` when not cached, unless `--no-fetch` is given.
+`users list` prints every cached user (human-readable by default).
+`users get` prints one user, fetching it from Slack via `users.info` when not cached, unless `--no-fetch` is given.
 
 ```bash
 slackx users list
 slackx users list --json
 slackx users list --jsonl
-slackx users list U001 --json
+slackx users get U001 --json
 ```
 
-Options: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields` (`id,name,real_name,fetched_at,payload`, default `id,name,real_name`).
+Options on `users list`: `--fetch/--no-fetch`, `--limit` (0 for all), and `--fields` (`id,name,real_name,fetched_at,payload`, default `id,name,real_name`).
+`users get` takes the same `--fetch/--no-fetch` and `--fields` (no `--limit`).
 The `--json` payload has keys `user_count` and `users`.
 
 ---
@@ -293,11 +331,12 @@ slackx cache clear                 # asks for confirmation on a TTY
 slackx cache clear messages
 slackx cache clear channels --yes
 slackx cache clear users -y
+slackx cache clear read --yes
 slackx cache clear all --yes
 ```
 
-`cache clear` takes an optional `TARGET` of `all` (default), `messages`, `channels`, or `users`, and `--yes/-y` to skip the confirmation prompt.
-Clearing messages also clears their thread metadata, so the threads are refetched on next use.
+`cache clear` takes an optional `TARGET` of `all` (default), `messages`, `channels`, `users`, or `read`, and `--yes/-y` to skip the confirmation prompt.
+Clearing messages also clears their thread metadata, so the threads are refetched on next use; `read` clears the last-read pointers owned by every reader.
 
 ---
 
@@ -307,8 +346,29 @@ Browse the cached database through a local Slack-like web UI (Ctrl+P jumps betwe
 
 ```bash
 slackx serve --port 8280
-slackx serve --host 0.0.0.0 --port 8280
+slackx serve --host 0.0.0.0 --port 8280 --rpc-token "$SLACKX_RPC_TOKEN"
 ```
+
+`serve` also mounts the JSON-RPC endpoint at `POST /rpc` (see below).
+
+---
+
+## JSON-RPC API
+
+`slackx serve` and `slackx rpc serve` both expose the cache over JSON-RPC at `POST /rpc` (default `http://127.0.0.1:8280/rpc`).
+Clients can modify the cache and run CLI commands, so binding a non-loopback host requires `--rpc-token` (or `SLACKX_RPC_TOKEN`).
+`--rpc-allow-exec` (default on) exposes `cli.run`, which executes slackx commands for clients.
+
+```bash
+slackx rpc serve --host 127.0.0.1 --port 8280
+slackx rpc methods --url http://127.0.0.1:8280/rpc
+slackx rpc call users.list --params '{"limit":10}' --url http://127.0.0.1:8280/rpc
+slackx rpc exec -- conversations get C1 --json
+```
+
+`rpc exec` runs any slackx command on the server and mirrors its output and exit code.
+Put the remote command after `--`.
+Clients select the server with `--url` (alias `--server`), `--token`, or `SLACKX_RPC_URL` / `SLACKX_RPC_TOKEN`.
 
 ---
 
@@ -348,7 +408,7 @@ A built-in fake Slack API server for testing and development:
 uv run slack-fake-server --port 8199 --num-threads 50
 ```
 
-It serves deterministic workspace data (`conversations.list`, `conversations.replies`, `conversations.history`, `conversations.info`, `users.list`) and can simulate Slack-tier rate limiting with `--rate-limits`.
+It serves deterministic workspace data (`auth.test`, `conversations.list`, `conversations.info`, `conversations.history`, `conversations.replies`, `users.list`, `users.info`, `search.messages`, and `POST chat.postMessage`) and can simulate Slack-tier rate limiting with `--rate-limits`.
 Other options include `--host`, `--seed`, `--num-users`, `--num-channels`, `--num-ims`, `--messages-per-thread`, `--activity-ratio`, and `--epoch-base`.
 
 Point `slackx` at it with the API base URL option on the leaf command (or the environment variable):
@@ -367,7 +427,7 @@ slackx conversations fetch C001 --api-base-url http://localhost:8199/api
 - `show` auto-fetches on a cache miss, but an existing cached thread only refreshes on its reply boundary.
   Run an explicit `conversations fetch` first when you need the current live state.
 - Run `slackx channels fetch` before `conversations poll` if you want to reference channels by name instead of id.
-- For inline review comments or PR operations, use `ghx`, not this tool; this tool is Slack-only and read-only (no write/reaction path).
+- For inline review comments or PR operations, use `ghx`, not this tool; this tool is Slack-only and has no Slack write/reaction path.
 
 ---
 

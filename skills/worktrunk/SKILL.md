@@ -16,12 +16,15 @@ Reference files are synced from [worktrunk.dev](https://worktrunk.dev) documenta
 
 - **reference/config.md**: User and project configuration (LLM, hooks, command defaults)
 - **reference/hook.md**: Hook types, timing, and execution order
-- **reference/switch.md**, **merge.md**, **list.md**, etc.: Command documentation
+- **reference/switch.md**, **merge.md**, **list.md**, **remove.md**, **step.md**: Command documentation
 - **reference/llm-commits.md**: LLM commit message generation
 - **reference/tips-patterns.md**: Language-specific tips and patterns
 - **reference/shell-integration.md**: Shell integration debugging
 - **reference/troubleshooting.md**: Troubleshooting for LLM and hooks
 - **reference/agent-integration.md**: Agent CLI plugins (installation, activity tracking)
+- **reference/extending.md**: Extension mechanisms (hooks, aliases, custom subcommands)
+- **reference/faq.md**: Frequently asked questions, including comparisons to alternatives
+- **reference/worktrunk.md**: Overview of what Worktrunk is and why it exists
 
 For command-specific options, run `wt <command> --help`.
 For configuration, follow the workflows below.

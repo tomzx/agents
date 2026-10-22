@@ -56,6 +56,8 @@ mmdc -i diagram.mmd -o /tmp/opencode/diagram.svg
 ```
 
 An exit code of 0 means the syntax parses.
+A non-zero exit from a Puppeteer browser launch (missing `chrome-headless-shell` or `No usable sandbox`) is an environment problem, not a syntax error.
+Diagrams that use icons, such as `architecture-beta` with `logos:` prefixes, only render them when the pack is installed (`npm install @iconify-json/logos`) and passed: `mmdc -i diagram.mmd -o /tmp/opencode/diagram.svg --iconPacks @iconify-json/logos`.
 If `mmdc` is unavailable, re-read the diagram against the family reference line by line and check the pitfalls below.
 
 Never add a diagram to a document until it passes validation.
@@ -135,7 +137,7 @@ flowchart TD
     A --> B
 ````
 
-- Themes: `default`, `forest`, `dark`, `neutral`, `base`.
+- Themes: `default`, `forest`, `dark`, `neutral`, `base`, `neo`, `neo-dark`, `redux`, `redux-dark`, `redux-color`, `redux-dark-color`.
   Layout: `layout: dagre` (default) or `layout: elk` for complex graphs.
   Look: `look: classic` or `look: handDrawn`.
 

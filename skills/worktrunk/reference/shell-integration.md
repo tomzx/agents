@@ -54,6 +54,12 @@ wt config show
 The RUNTIME section shows whether shell integration is active for the current
 session.
 
+## Previewing Output
+
+`wt config shell show-theme` prints samples of every message type (progress,
+success, error, warning, hint, info, and prompts) so you can check how
+Worktrunk output renders in the current terminal.
+
 ## Warning Messages
 
 When shell integration isn't working, `wt switch` shows warnings explaining why.

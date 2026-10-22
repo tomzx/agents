@@ -267,6 +267,16 @@ When `main_state == "integrated"`: `"ancestor"` `"trees_match"` `"no_added_chang
 
 Missing a field that would be generally useful? Open an issue at https://github.com/max-sixty/worktrunk.
 
+## Statusline
+
+`wt list statusline` prints a single-line status for shell prompts.
+
+- `table` (default) shows branch, status, working changes, commits, upstream, and CI.
+- `json` returns the same structure as `wt list --format=json` for the current worktree.
+- `claude-code` reads Claude Code context from stdin and adds directory and model segments.
+
+Use `wt config plugins claude install-statusline` to wire the statusline into Claude Code.
+
 ## Command reference
 
 ```

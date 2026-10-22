@@ -29,13 +29,14 @@ branch does not exist, it is created from the trunk; each later new branch is cr
 branch immediately before it. There is no separate adopt mode — existence decides. `--base`
 selects a non-default trunk.
 
-`init` also enables `git rerere`. Under a TTY the first run in a repo asks for confirmation; set
-`git config rerere.enabled true` beforehand to skip it.
+`init` enables `git rerere` in interactive sessions, after a confirmation prompt on the first run in
+a repo. Non-interactive runs leave it disabled, so set `git config rerere.enabled true` beforehand
+if you want it.
 
 ## add
 
 - **Must run from the top branch** of the stack (or the trunk when the stack is still empty).
-  Non-interactively, anywhere else exits **5** with `can only add branches on top of the stack`;
+  Non-interactively, anywhere else exits **5** with `can only add branches to the top of the stack`;
   under a TTY the CLI instead offers to initialize a new stack using the given (or auto-generated)
   branch name as the first layer. Run `gh stack top` first, or `gh stack init` to start a stack.
 - **Uncommitted changes carry over.** Without `-Am`, `add` does not touch the working tree, so
@@ -43,7 +44,8 @@ selects a non-default trunk.
 - **`add -Am` commits in place when the current branch has no commits yet** — for example
   immediately after `init` — instead of creating a branch. This is deliberate: the first layer
   usually needs its content before a second layer exists.
-- `-A` and `-u` are mutually exclusive, and both require `-m`.
+- `-A` and `-u` are mutually exclusive, and both need `-m` in non-interactive use (without it,
+  your editor opens for the commit message).
 
 ## push
 
@@ -113,6 +115,7 @@ The routine command. Steps, in order:
 Pulls from the remote and cascade-rebases. Use it when `sync` reported a conflict or when you need
 to rebase only part of the stack.
 
+- An optional branch name selects the stack containing that branch instead of the current branch.
 - `--upstack` rebases from the current branch to the top. This is what you run after editing a
   lower layer.
 - `--downstack` rebases from the trunk to the current branch.
@@ -158,6 +161,8 @@ Removes the stack **grouping** only. It never deletes pull requests or branches.
   it on GitHub and locally.
 - With a stack number it works from anywhere in the repository, tracked locally or not, via the API.
   Local tracking is also removed when present.
+- If GitHub leaves any PR stacked (queued or with auto-merge enabled), the stack is kept and local
+  tracking is unchanged.
 - `--local` removes local tracking only and never contacts GitHub. Combining `--local` with a stack
   number that is not tracked locally is an error.
 - An unknown stack number exits **2**.
@@ -168,6 +173,7 @@ Removes the stack **grouping** only. It never deletes pull requests or branches.
 
 - Scope with an argument: pass a PR number to merge that PR and every unmerged PR below it in the
   stack, or pass a stack number to merge every unmerged PR in that stack.
+  A bare number is resolved as a stack number first, then as a PR number.
 - **All-or-nothing.** If any PR in that exact merge set cannot be merged, none are, and the reason
   is reported.
 - The method comes from `--squash`, `--rebase`, `--merge`, or `--merge-method <method>`. Without
@@ -190,5 +196,5 @@ navigating from an active branch, so `bottom` moves to the lowest *unmerged* bra
 
 ## Utilities
 
-`gh stack alias` prints a shell alias for `gh stack`, and `gh stack feedback` opens the gh-stack
-feedback form. Neither is needed for agent workflows.
+`gh stack alias` installs a wrapper script (default name `gs`) that forwards to `gh stack`, and
+`gh stack feedback` opens the gh-stack feedback form. Neither is needed for agent workflows.

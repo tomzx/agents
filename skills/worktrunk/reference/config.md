@@ -140,7 +140,7 @@ command = "codex exec -m gpt-5.1-codex-mini -c model_reasoning_effort='low' -c s
 
 ```toml
 [commit.generation]
-command = "opencode run -m anthropic/claude-haiku-4.5 --variant fast"
+command = "opencode run -m anthropic/claude-haiku-4.5#fast"
 ```
 
 ### llm
@@ -654,6 +654,11 @@ Pre-approve all hook and alias commands for current project:
 $ wt config approvals add
 ```
 
+Review all commands, including previously approved ones:
+```bash
+$ wt config approvals add --all
+```
+
 Clear approvals for current project:
 ```bash
 $ wt config approvals clear
@@ -1101,7 +1106,7 @@ $ wt list
 ### Use cases
 
 - **Work status** — `🚧` WIP, `✅` ready for review, `🔥` urgent
-- **Agent tracking** — The [OpenCode plugin](https://github.com/max-sixty/worktrunk/tree/main/dev/opencode-plugin.ts) sets markers automatically
+- **Agent tracking** — The Claude Code plugin and the [OpenCode plugin](https://github.com/max-sixty/worktrunk/tree/main/dev/opencode-plugin.ts) set markers automatically
 - **Notes** — Any short text: `"blocked"`, `"needs tests"`
 
 ### Storage

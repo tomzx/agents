@@ -4,12 +4,13 @@ description: >
   Drive the Agentic app from the command line with the `agentic` CLI: create and
   manage tasks, link Slack/GitHub/Drive/URL/note items to them, work the focus
   stack, link task dependencies and read the graph, register repositories, create
-  git worktrees, start and watch agent runs, record agent sessions, read the
-  operation audit log, and read or refresh a task's agent-maintained summary and
-  next steps. Trigger when the user wants to file or update an Agentic task,
-  attach a thread/issue/doc to a task, work or inspect the focus stack, spin up a
-  worktree, run an agent against a task, refresh task context, or inspect tasks
-  by status, tag, deadline, or dependency.
+  git worktrees, start and watch agent runs, record agent sessions, manage
+  scheduled shell tasks, read the operation audit log, and read or refresh a
+  task's agent-maintained summary and next steps. Trigger when the user wants to
+  file or update an Agentic task, attach a thread/issue/doc to a task, work or
+  inspect the focus stack, spin up a worktree, run an agent against a task,
+  schedule a recurring command, refresh task context, or inspect tasks by
+  status, tag, deadline, or dependency.
 cli: agentic
 ---
 
@@ -29,7 +30,7 @@ agentic
   task        list | deadlines | get | create | update | delete | timeline | link | unlink | deps
   graph
   tag         list
-  item        list | get | create | refresh | delete
+  item        list | get | create | refresh | refresh-due | refresh-source | done | reopen | delete
   link        add | remove
   repository  list | add | remove
   worktree    list | create | remove
@@ -39,10 +40,11 @@ agentic
   harness     list | create | update | delete
   person      list | get | create | update | delete | merge | link | unlink
   change      list | get | create | delete | accept | verify | reject | revert | intervene
-  metrics     show | baseline (list | set | delete)
+  metrics     show | cycle-time | baseline (list | set | delete)
   stack       list | current | history | push | pop | promote | reorder | edit | remove
+  schedule    list | get | create | update | run | runs | delete
   operation   list
-  settings    get | set
+  settings    get | set | refresh-status
 ```
 
 Every command takes `--help` (or `-h`) and prints its own options and arguments.
@@ -57,7 +59,7 @@ Global options are accepted on any command (they live on the app, and every leaf
 | `--format <auto\|json\|text>` | Output format. `auto` (default) uses JSON when stdout is not a terminal, text otherwise. |
 | `--timeout <seconds>` | Per-request timeout. Default `60`. |
 
-The CLI help advertises `AGENTIC_API_URL`, `AGENTIC_FORMAT`, and `AGENTIC_TIMEOUT`, but the current release ignores them (the flags always win, and their defaults override the environment), so pass the flags explicitly.
+The CLI reads `AGENTIC_API_URL`, `AGENTIC_FORMAT`, and `AGENTIC_TIMEOUT` at startup, but the current release overwrites all three with the flag defaults before the request runs, so it ignores them (the help advertises `AGENTIC_API_URL` all the same); pass `--api-url`, `--format`, and `--timeout` explicitly.
 `AGENTIC_ACTOR` is different: the CLI reads it and sends it to the server, defaulting to `human`.
 Set `AGENTIC_ACTOR=agent` to have the server record the work as agent-performed; the run harness sets it automatically for the agent process it spawns.
 
@@ -97,6 +99,7 @@ The API has no authentication, so expose it only on a trusted network.
 |---|---|
 | Task | The unit of work. Carries `status`, `priority`, `tags`, a `deadline`, a `summary`, and `next_steps`. |
 | Item | Something external: a Slack thread, GitHub issue/PR, Drive doc, URL, note, commit, or file. De-duplicated by URL or external id. |
+| Refresh policy | How often the background job re-fetches Slack and GitHub items, given per age bucket (for example `1d=1h,7d=6h,30d=1d,*=7d`). Set with `settings set`. |
 | Association | A link between an item and a task (many-to-many), with an optional note. |
 | Repository | A local git checkout registered by path. |
 | Repository group | A named set of repositories a task's agent should consider. Set on a task with `--group-id`. |
@@ -107,6 +110,7 @@ The API has no authentication, so expose it only on a trusted network.
 | Change | A unit of factory output recorded against a task and moved through a lifecycle (proposed, verified, accepted, rejected, reverted) so the metrics can be computed from it. |
 | Stack entry | A task's place on the focus stack: its position (0 is current), whether it is current, and a soft-delete timestamp. |
 | Task session | A stretch of time a stack entry spent as the current task; the stack derives execution count and duration from these. |
+| Scheduled task | A shell command the app runs on a 5-field cron schedule, with its run history. |
 | Operation | An audit record of a mutating request: its method, path, status, the client that sent it (web, cli, api), and whether a human or an agent was behind it. |
 | Person | Someone linked to tasks and items, so a task shows who it is for or about. |
 
@@ -136,6 +140,11 @@ agentic task create --slack-url https://acme.slack.com/archives/C0123/p170000000
 agentic task update <task> --status in_progress
 agentic task update <task> --priority 0 --tags triage
 agentic task update <task> --deadline 2026-12-01 --clear-deadline
+agentic task create --title "Renew TLS cert" --snooze 2026-11-01   # parked until then
+agentic task update <task> --snooze 2026-11-05                     # park until a date or date-time
+agentic task update <task> --clear-snooze                          # bring it back now
+agentic task update <task> --waiting-on <person> --follow-up 2026-11-05
+agentic task update <task> --clear-waiting                         # stop waiting
 agentic task update <task> --summary "hand-written summary"
 
 agentic task delete <task>                 # deletes everything attached
@@ -146,6 +155,8 @@ Priorities: `0` low, `1` medium, `2` high (default), `3` urgent.
 `--tags` and `--repository-ids` are repeatable; pass `--empty-tags` or `--empty-repository-ids` to clear them.
 `create` takes `--group-id` and `--harness-id`; `update` takes `--harness-id` but not `--group-id`.
 `--deadline` is an ISO 8601 date or date-time; `update` also takes `--clear-deadline`.
+`--snooze` is likewise an ISO 8601 date or date-time: the task leaves the focus stack until then, and `--clear-snooze` brings it back immediately.
+`--waiting-on <person>` parks the task until that person acts, forever unless `--follow-up` sets a date to check back; `--clear-waiting` stops waiting.
 
 `task create --github-url` fetches the GitHub issue (via `ghx`), fills the title and description, and links the issue as an item in one call.
 `task create --slack-url` fetches the Slack thread, links it, and starts an agent run that names the task and summarizes the discussion (the title stays a placeholder until it finishes).
@@ -161,11 +172,18 @@ agentic item create --url https://acme.slack.com/archives/C0123/p170000000012345
 agentic item create --content "Remember to rotate the token"   # a note
 agentic item create --url <url> --no-fetch                      # store without fetching
 agentic item refresh <item>            # re-fetch metadata and content
+agentic item refresh-due               # re-fetch the Slack/GitHub items the refresh policy says are due
+agentic item refresh-source slack      # re-fetch every item of one source now, ignoring the policy
+agentic item done <item>               # mark a Slack conversation done (later replies are flagged, not reopened)
+agentic item reopen <item>             # clear the done decision
 agentic item delete <item>             # deletes the item and its associations
 ```
 
+The background refresh job re-fetches Slack and GitHub items on a per-age schedule (the refresh policy); `refresh-due` runs that same selection on demand, and `refresh-source` ignores the schedule and refreshes one whole source now.
+`done`/`reopen` are for Slack conversations: `done` records the newest message at that moment, so a later reply is flagged rather than silently reopening the thread.
+
 Item sources: `slack`, `github`, `gdrive`, `url`, `note`, `commit`, `file`.
-The source is inferred from `--url` or `--content`; pass `--source` to override.
+The source is inferred from `--url` or `--content`; pass `--source` to override, and `--external-id` to set the upstream id used for de-duplication.
 
 Link items to a task, either an existing item or a new one created in the same call:
 
@@ -238,6 +256,7 @@ Transcript event types a run streams include `message`, `thought`, `user`, `tool
 
 `run create` picks the working directory in this order: `--cwd`, then `--worktree-id`, then a default worktree or the task's first repository.
 Leave `--harness-id` unset to use the task's harness, then the app default.
+`--model` overrides the harness's model for that run only; leave it unset to let the harness decide.
 A run records the session it produced, so `run get` shows the links that reopen it.
 
 ## Sessions
@@ -306,6 +325,7 @@ A harness is a coding-agent process reachable over ACP (Agent Client Protocol).
 `opencode2` (`opencode2 acp`) is seeded as the default when installed, otherwise `opencode` (`opencode acp`); `pi` (via `pi-acp`) is also seeded.
 `harness list` marks each harness `available` or `missing` by looking its command up on PATH.
 `--resume-command` is the template that builds a session's resume link (placeholders `{session}`, `{cwd}`, `{harness}`).
+`--model` sets the model the harness uses, and `--default-model-source` names the JSON file and `{dotted.path}` template (`<file>#<template>`) the app reads to display the harness's own default model.
 
 ## Changes and metrics
 
@@ -342,6 +362,10 @@ agentic metrics show                         # autonomy rate and yield vs their 
 agentic metrics show --window-days 30 --observation-days 14 --tolerance 0.02
 agentic metrics show --task-id <task> --change-class bugfix
 
+agentic metrics cycle-time                    # issue close, review wait, and review-to-merge trends per repository
+agentic metrics cycle-time --days 30 --bucket-days 7 --refresh
+agentic metrics cycle-time --repository <repository>
+
 agentic metrics baseline list
 agentic metrics baseline set autonomy_rate 0.2 --note "before the factory run"
 agentic metrics baseline set yield 0.8
@@ -351,6 +375,9 @@ agentic metrics baseline delete autonomy_rate
 - **Autonomy rate** is the share of accepted changes that needed no human intervention.
 - **Yield** is the share of accepted changes that survived the observation window without being reverted.
 - `metrics show` reports each metric's direction (`improving`, `worsening`, `flat`, `no-baseline`, or `no-data`) against its stored baseline; `--tolerance` sets the flat band.
+- `metrics cycle-time` reads each repository's GitHub activity and reports issue-close, review-wait, and review-to-merge trends.
+  It makes one request per repository with a GitHub remote; use `--repository` to scope it to one.
+  `--days` (default 90) sets the window, `--bucket-days` (default 7) the bucket size, and `--refresh` bypasses the cache.
 - `metrics baseline set <metric> <value>` takes a metric of `autonomy_rate` or `yield`.
 
 ## People
@@ -369,12 +396,13 @@ agentic person delete <person>                   # deletes the person and their 
 
 agentic person link <person> --task <task>
 agentic person link <person> --item <item>
+agentic person link <person> --requested-by <task>     # mark them as the task's requester
 agentic person unlink <person> --task <task>
 ```
 
 `--aliases` is repeatable (a handle or email); on `update` it replaces the whole list.
 `merge` folds one person into another, moving their aliases and links.
-`person link`/`unlink` take exactly one of `--task` or `--item`.
+`person link`/`unlink` take exactly one of `--task`, `--item`, or `--requested-by` (the task the person asked for).
 `person get` shows what the person is linked to, and `task get` also lists the task's people.
 
 ## Operations (audit log)
@@ -390,17 +418,55 @@ agentic operation list --limit 500
 `--client` is `web`, `cli`, or `api`; `--actor` is `human` or `agent`.
 This covers operations with no task to hang a timeline event off (settings, repositories, harnesses, people), so it is the cross-cutting view of how work entered the system.
 
+## Scheduled tasks
+
+A scheduled task runs a shell command on a cron schedule inside the app, separate from agent runs. Each keeps its run history.
+
+```bash
+agentic schedule list                       # soonest next run first
+agentic schedule get <schedule>
+agentic schedule runs                       # run history for every task, newest first
+agentic schedule runs --schedule-id <schedule> --limit 50
+
+agentic schedule create "nightly" "npm test" "0 3 * * *"
+agentic schedule create "digest" "uv run digest" "0 9 * * 1-5" --cwd /home/me/src/repo --timezone Europe/Paris
+agentic schedule create "paused" "make audit" "0 0 1 * *" --disabled
+
+agentic schedule update <schedule> --schedule "30 4 * * *"
+agentic schedule update <schedule> --disable
+agentic schedule update <schedule> --enable
+
+agentic schedule run <schedule>             # run it now, in the background
+agentic schedule delete <schedule>          # deletes the task and its run history
+```
+
+`create` takes `NAME`, `COMMAND`, and a 5-field cron `SCHEDULE` (minute hour day-of-month month day-of-week).
+`--cwd` defaults to the server's directory and `--timezone` to the server's zone; `--disabled` creates the task paused.
+`update` also takes `--name`, `--command`, `--cwd`, and `--timezone`, and `--enable`/`--disable`.
+
 ## Settings
 
 ```bash
 agentic settings get
+agentic settings refresh-status               # when the background refresh job last ran, per source
+
 agentic settings set --openchamber-url http://box:3001
 agentic settings set --openchamber-session-path "/?session={session}"
 agentic settings set --terminal-url-template "https://terminal.example/?cwd={cwd}"
 agentic settings set --openchamber-url ""     # empty string disables the link
+
+agentic settings set --slack-refresh-policy "1d=1h,7d=6h,30d=1d,*=7d"
+agentic settings set --github-refresh-policy "1d=1h,7d=6h"
+
+agentic settings set --ghx-backend rpc --ghx-rpc-url http://box:8010
+agentic settings set --ghx-backend cli
+agentic settings set --slackx-backend rpc --slackx-rpc-url http://box:8011 --slackx-rpc-token secret
 ```
 
-`settings set` handles the three session-link settings only.
+`settings set` handles the three session-link settings (`--openchamber-url`, `--openchamber-session-path`, `--terminal-url-template`), the two refresh policies (`--slack-refresh-policy`, `--github-refresh-policy`), and how the server runs ghx and slackx (`--ghx-backend`, `--ghx-rpc-url`, `--ghx-rpc-token`, `--slackx-backend`, `--slackx-rpc-url`, `--slackx-rpc-token`); an empty string disables a link or a source's refresh.
+A backend is `cli` (spawn the binary per call) or `rpc` (call its JSON-RPC server); the URL is the server's base and the endpoint is `<url>/rpc`.
+A refresh policy is a comma-separated list of `age=interval` buckets from newest to oldest age, with `*` as the catch-all.
+`settings refresh-status` shows when the background refresh job last ran for each source.
 `settings get` also shows `editor_url_template`, which is set in the app, not the CLI.
 
 ## Common workflows

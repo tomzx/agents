@@ -283,6 +283,8 @@ $ wt hook pre-merge user:        # Run all user hooks
 $ wt hook pre-merge project:     # Run all project hooks
 $ wt hook pre-merge user:test    # Run only user's "test" hook
 $ wt hook pre-merge --yes        # Skip approval prompts (for CI)
+$ wt hook pre-merge --dry-run    # Show what would run without executing
+$ wt hook post-start --foreground    # Run background hooks in the foreground
 $ wt hook pre-start --branch=feature/test    # Override a template variable
 $ wt hook pre-merge -- --extra args     # Forward tokens into {{ args }}
 ```

@@ -22,7 +22,7 @@ When in doubt, show the command.
 ## Prerequisites
 
 - `asciinema` installed
-- One of `agg`, `asciicast2gif`, or `svg-term-cli` installed (for rendering).
+- One of `agg`, `asciicast2gif`, or `svg-term-cli` (which provides the `svg-term` binary) installed (for rendering).
   `agg` is preferred (fastest, best quality).
 - If none are installed, the skill still returns the raw `.cast` with playback instructions.
 

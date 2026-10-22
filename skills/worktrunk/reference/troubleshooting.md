@@ -50,7 +50,7 @@ If a template file is used, verify it exists at the specified path.
 Check sequence:
 1. Verify `.config/wt.toml` exists: `ls -la .config/wt.toml`
 2. Check TOML syntax (use `wt hook show` to see parsed config)
-3. Verify hook type spelling matches one of the seven types
+3. Verify hook type spelling matches one of the ten types
 4. Test command manually in the worktree
 
 ### Hook failing
@@ -58,7 +58,7 @@ Check sequence:
 Debug steps:
 1. Run the command manually in the worktree to see errors
 2. Check for missing dependencies (npm packages, system tools)
-3. Verify template variables expand correctly (`wt hook show --verbose`)
+3. Verify template variables expand correctly (`wt hook show --expanded`)
 4. For background hooks, check `.git/wt/logs/` for output
 
 ### Slow blocking hooks

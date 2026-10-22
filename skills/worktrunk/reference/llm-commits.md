@@ -19,7 +19,7 @@ Uses the fast mini model with low reasoning effort and an empty system prompt fo
 
 ```toml
 # opencode — use a fast model variant
-command = "opencode run -m anthropic/claude-haiku-4.5 --variant fast"
+command = "opencode run -m anthropic/claude-haiku-4.5#fast"
 
 # llm
 command = "llm -m claude-haiku-4.5"

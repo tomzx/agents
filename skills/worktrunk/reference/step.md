@@ -33,7 +33,7 @@ $ wt step push
 - [`eval`](#wt-step-eval) — [experimental] Evaluate a template expression
 - [`for-each`](#wt-step-for-each) — [experimental] Run a command in every worktree
 - [`promote`](#wt-step-promote) — [experimental] Swap a branch into the main worktree
-- [`prune`](#wt-step-prune) — Remove worktrees and branches merged into the default branch
+- [`prune`](#wt-step-prune) — [experimental] Remove worktrees and branches merged into the default branch
 - [`relocate`](#wt-step-relocate) — [experimental] Move worktrees to expected paths
 - [`tether`](#wt-step-tether) — [experimental] Run a command; kill its whole process tree when its worktree is removed
 - [`<alias>`](https://worktrunk.dev/extending/#aliases) — Run a configured command alias
