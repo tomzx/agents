@@ -359,7 +359,7 @@ When providing feedback:
 * Prioritize Feedback
 	* Clearly mark nitpicks and optional comments
 	* Use an approach such as [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119) where you indicate whether a change is a MUST, SHOULD, or MAY
-	* Prefix each finding with the Code Review Checklist section it maps to, splitting signal, section, and title with `/`, e.g. `### 🔴 MUST / Security & Data / Remove hardcoded API key`, so the table's status rows trace back to the findings
+	* Prefix each finding with the Code Review Checklist section it maps to, splitting signal, section, and title with `/`, e.g. `### 🔴 MUST / Security & Data / Remove hardcoded API key`, so the header's section lights trace back to the findings
 	* Traffic light color emojis: 🔴 MUST, 🟡 SHOULD, 🟢 MAY
 	* Another emoji based option is [gitmoji](https://gitmoji.dev/)
 * Maintain Positive Tone
@@ -371,7 +371,8 @@ When providing feedback:
 
 ## Output
 
-Put 🔴/🟢 at the top of the document to indicate the overall status of the review (ready to merge, needs work, etc.)
+Start the report with the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line (🟢 go, 🟡 caution, or 🔴 no-go, with a one-sentence reason), then one line per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance), each with its own light and a terse note.
+The overall light is the worst section light, and each section light is consistent with the findings in that section.
 
 Indicate the date+time (using ISO 8601 format) the file was generated in the file header.
 
@@ -380,9 +381,6 @@ Order findings by importance: 🔴 MUST first, then 🟡 SHOULD, then 🟢 MAY, 
 Each finding states its evidence level in the form `L<n> - <Name>` plus a `file:line` or other pointer.
 The ceiling is `L2 - Ruled out`, because this review does not run code.
 A finding that needs execution is not this skill's to prove: route it to `/verify-pr`.
-
-Include a checklist table with one row per Code Review Checklist section (Scope & Relevance, Approach & Simplicity, Code Quality & Design, Testing & Coverage, Architecture & Structure, Operational Concerns, Security & Data, Documentation & Maintenance).
-Use the traffic-light symbols only, consistent with the findings: 🟢 (pass) / 🟡 (needs attention) / 🔴 (issues), and keep notes terse so the table stays scannable.
 
 Include an Approach section right after the Summary: a 2-3 sentence summary of the approach the PR takes (its main mechanism and where it sits in the codebase), then a one-line **smallest sufficient change** statement (the smallest change that would deliver the intent) and a one-line **excess** statement (what the PR adds beyond it and why each part was necessary, or "none"), followed by an alternatives-considered table (Decision / Alternatives considered / Why chosen / Change-cost).
 For small PRs a single line ("Approach: ...") is acceptable, but the smallest-sufficient and excess statements are required whenever the PR introduces any new mechanism.
@@ -400,7 +398,7 @@ Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_N
 Then write the review to `$PR_REVIEW_DIR/review-pr.$SHORT_SHA.md` (resolving per `sdlc/references/shared.md`).
 Each run gets its own file named by the reviewed commit, so report history is preserved by filename, and `review-pr.report.md` is pointed at the newest run.
 A full review contains the complete sections below; an incremental review stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
-Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed.
+Start the file with the marker `<!-- {"step":"review-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->` so the orchestrator can detect which commit was reviewed, then add the traffic-light header.
 Substitute `HEAD_COMMIT` with the full head SHA, `HEAD_TREE` with the head commit's tree hash, and `MARKER_VERDICT` with the outcome verdict (`approved`, `changes-requested`, or `rejected`).
 
 ```bash
@@ -415,10 +413,19 @@ ln -sf "review-pr.$SHORT_SHA.md" "$PR_REVIEW_DIR/review-pr.report.md"
 ### Example Output
 
 ```
-<!-- {"step":"review-pr","sha":"a1b2c3d","tree":"3f9c2e1","verdict":"fail"} -->
+<!-- {"step":"review-pr","sha":"a1b2c3d","tree":"3f9c2e1","verdict":"changes-requested"} -->
 # Review of PR #42: Add payment processing endpoint
 
-🟢 **Approved with minor suggestions**
+**🔴 No-go** — remove the hardcoded test API key, then reuse the existing retry helper.
+
+- 🟢 Scope & Relevance
+- 🟡 Approach & Simplicity, retry loop duplicates the existing `@retry` helper
+- 🟢 Code Quality & Design
+- 🟡 Testing & Coverage, webhook signature verification and API key loading untested
+- 🟢 Architecture & Structure, follows existing `src/payments/` patterns
+- 🟡 Operational Concerns, no rate limiting on `POST /payments`
+- 🔴 Security & Data, hardcoded test API key in `client.py:8`
+- 🟢 Documentation & Maintenance
 
 Reviewed SHA: `a1b2c3d`
 
@@ -443,19 +450,6 @@ retry loop (3 fixed attempts, no backoff) over a module-level
 |---|---|---|---|
 | Hand-rolled retry loop in `client.py` | `@retry` helper (`src/api/middleware.py`) | Not stated in the PR | Any retry-policy change (backoff, jitter, retryable errors) edits the loop in place while every other call site changes one decorator argument |
 | Endpoint in `src/payments/routes.py` | Reuse the generic resource router in `src/api/` | Follows the existing `src/payments/` module layout | Low |
-
-## Checklist
-
-| Section | Status | Notes |
-|---|---|---|
-| Scope & Relevance | 🟢 | No unrelated changes |
-| Approach & Simplicity | 🟡 | Retry loop duplicates the existing `@retry` helper |
-| Code Quality & Design | 🟢 | SOLID, naming, no duplication |
-| Testing & Coverage | 🟡 | Webhook signature verification and API key loading untested |
-| Architecture & Structure | 🟢 | Follows existing `src/payments/` patterns |
-| Operational Concerns | 🟡 | No rate limiting on `POST /payments` |
-| Security & Data | 🔴 | Hardcoded test API key in `client.py` |
-| Documentation & Maintenance | 🟢 | No user-facing docs affected |
 
 ## Findings
 
@@ -575,11 +569,12 @@ fi
 
 If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
 
-| Verdict | When | Marker verdict |
-|---|---|---|
-| `approved` | No blocking findings; the subject passes review | `pass` |
-| `changes-requested` | Findings the author must address before it passes | `fail` |
-| `rejected` | Fundamental flaw requiring rework or stopping | `fail` |
+| Verdict | Light | When | Marker verdict |
+|---|---|---|---|
+| `approved` | 🟢 Go | No blocking findings and no findings at all; the subject passes review | `pass` |
+| `approved` | 🟡 Caution | No blocking findings, but SHOULD or MAY findings remain | `pass` |
+| `changes-requested` | 🔴 No-go | Findings the author must address before it passes | `fail` |
+| `rejected` | 🔴 No-go | Fundamental flaw requiring rework or stopping | `fail` |
 
 ## Example Usage
 

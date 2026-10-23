@@ -165,12 +165,19 @@ mkdir -p "$PR_REVIEW_DIR"
 
 3. Produce the three tables and findings as usual, then set the marker verdict: `pass` when every behavior change is covered and the uncovered-code table is empty; `fail` when any change-coverage row is `No` or any uncovered code is listed.
 
-4. Write the report per `sdlc/references/shared.md` (PR Review Reports): save the analysis to `$PR_REVIEW_DIR/analyze-test-coverage.$SHORT_SHA.md`, starting the file with the marker so the orchestrator can detect which commit was analyzed:
+4. Write the report per `sdlc/references/shared.md` (PR Review Reports): save the analysis to `$PR_REVIEW_DIR/analyze-test-coverage.$SHORT_SHA.md`, starting the file with the marker so the orchestrator can detect which commit was analyzed.
+Below the marker, add the traffic-light header (Report header (traffic light)): the title, one overall go/no-go line, then one line each for Introduced tests, Change coverage, and Uncovered code with their own lights.
 
 ```markdown
 <!-- {"step":"analyze-test-coverage","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
 
-## Test Coverage Analysis
+# Test Coverage Analysis: #<PR_NUMBER> <title>
+
+**🔴 / 🟡 / 🟢 <No-go / Caution / Go>** — <one sentence: is every behavior change covered?>
+
+- 🟢 / 🟡 / 🔴 Introduced tests — <N tests added or modified>
+- 🟢 / 🟡 / 🔴 Change coverage — <N of M behavior changes covered>
+- 🟢 / 🟡 / 🔴 Uncovered code — <N entries, highest severity MUST / SHOULD / MAY>
 ...
 ```
 
@@ -199,7 +206,13 @@ The verdict never gates anything: review-pr-full runs this step first and report
 ## Output Format
 
 ```markdown
-## Test Coverage Analysis
+# Test Coverage Analysis: #<PR_NUMBER> <title>
+
+**🔴 / 🟡 / 🟢 <No-go / Caution / Go>** — <one sentence: is every behavior change covered?>
+
+- 🟢 / 🟡 / 🔴 Introduced tests — <N tests added or modified>
+- 🟢 / 🟡 / 🔴 Change coverage — <N of M behavior changes covered>
+- 🟢 / 🟡 / 🔴 Uncovered code — <N entries, highest severity MUST / SHOULD / MAY>
 
 ### Findings
 

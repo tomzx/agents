@@ -468,6 +468,50 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 
 Findings history remains in `<skill>.yaml` (the source of truth) and the GitHub comments; the per-run files preserve the rendered report for each reviewed commit.
 
+### Report header (traffic light)
+
+Every report starts with the marker line, then a title, an overall go/no-go light, and the list of properties the step evaluated, each with its own light.
+The lights come before the summary and the findings, so a reader gets the go/no-go answer from the top of the report.
+
+```markdown
+<!-- {"step":"review-pr","sha":"a1b2c3d","tree":"3f9c2e1","verdict":"changes-requested"} -->
+# Review of PR #42: Add payment processing endpoint
+
+**🔴 No-go** — remove the hardcoded test API key before merge.
+
+- 🟢 Scope & Relevance
+- 🟡 Approach & Simplicity, hand-rolled retry loop duplicates the `@retry` helper
+- 🟢 Code Quality & Design
+- 🟡 Testing & Coverage, API key loading untested
+- 🟢 Architecture & Structure
+- 🟡 Operational Concerns, no rate limit on `POST /payments`
+- 🔴 Security & Data, hardcoded test API key in `client.py:8`
+- 🟢 Documentation & Maintenance
+```
+
+Light meanings:
+
+| Light | Meaning |
+|---|---|
+| 🟢 | Go: passes, nothing to do before merging or shipping |
+| 🟡 | Caution: passes with gaps, or needs attention before merging |
+| 🔴 | No-go: blocking problem, do not merge or ship as is |
+
+The overall light is the worst of the property lights, rendered through the step's own verdict vocabulary:
+
+| Step | 🟢 | 🟡 | 🔴 |
+|---|---|---|---|
+| `review-pr`, `review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes` | `approved` | `approved` with non-blocking SHOULD/MAY findings | `changes-requested`, `rejected` |
+| `validate-pr` | Right thing | Partially right | Wrong thing, Inconclusive |
+| `verify-pr` | Conforms | Should-level gaps only | Does not conform (any Must criterion unmet or unproven) |
+| `analyze-test-coverage` | No gaps | SHOULD/MAY gaps only | Any MUST gap |
+| `assess-pr-risk` | `fast-track`, `confirm` | `decide`, `investigate` | `block`, `hold` |
+| `summarize-behavior-changes` | Declared changes only | Unstated behavior change | Breaking change with no migration note |
+
+A property light is the worst finding severity in that property: any MUST finding is 🔴, any SHOULD or MAY finding is 🟡, none is 🟢.
+The light renders the verdict and findings the step already reached; it never adds a judgment of its own.
+`summarize-behavior-changes` keeps its `informational` marker verdict even when its light is 🔴, because it never gates a chain step.
+
 ### In-progress marker
 
 While a review step runs, it publishes an empty marker file so a consumer can tell that evaluation is actually running for the PR's current head, rather than merely stale (for example a spinner beside validate-pr in a dashboard).

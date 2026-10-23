@@ -243,12 +243,12 @@ Sound criteria are a prerequisite for meaningful verification (`/verify-pr`); fl
 
 ### 5. Render the validation verdict
 
-| Verdict | When | Marker verdict |
-|---|---|---|
-| **Right thing** | The implemented behavior and criteria serve the real need; no unmet need, no meaningful orphan work | `pass` |
-| **Partially right** | The core need is addressed but with gaps: an unmet secondary need, some orphan work, or criteria that partly miss the point | `pass` |
-| **Wrong thing** | The target itself is wrong: the need is not addressed, or the spec solves the wrong problem, or a fix treats the symptom not the cause | `fail` |
-| **Inconclusive** | The need could not be recovered from the issue (see failure modes) | `fail` |
+| Verdict | Light | When | Marker verdict |
+|---|---|---|---|
+| **Right thing** | 🟢 Go | The implemented behavior and criteria serve the real need; no unmet need, no meaningful orphan work | `pass` |
+| **Partially right** | 🟡 Caution | The core need is addressed but with gaps: an unmet secondary need, some orphan work, or criteria that partly miss the point | `pass` |
+| **Wrong thing** | 🔴 No-go | The target itself is wrong: the need is not addressed, or the spec solves the wrong problem, or a fix treats the symptom not the cause | `fail` |
+| **Inconclusive** | 🔴 No-go | The need could not be recovered from the issue (see failure modes) | `fail` |
 
 A **Wrong thing** verdict is the most valuable output of this skill: it means the PR should not proceed to verification or review until the target is corrected, regardless of how well it is built.
 
@@ -260,12 +260,19 @@ First update `$PR_REVIEW_DIR/validate.yaml`: set `updated_at` (ISO 8601), `last_
 Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
 Then write the report to a file, overwriting the previous report.
-A full validation contains the complete template below; an incremental validation stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict:
+A full validation contains the complete template below; an incremental validation stays short: scope (the delta, with diffstat), findings whose `status` changed, newly added findings, and the verdict.
+Start the report with the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line each for Need fit, Criteria soundness, and Scope with their own lights.
 
 ```bash
 BODY="$(cat <<'EOF'
 <!-- {"step":"validate-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
-## Validation Report
+# Validation Report: #<PR_NUMBER> <title>
+
+**🟢 / 🟡 / 🔴 <Go / Caution / No-go>** — <one sentence: does the PR address the right need?>
+
+- 🟢 / 🟡 / 🔴 Need fit — <does the implementation address the recovered need?>
+- 🟢 / 🟡 / 🔴 Criteria soundness — <do the acceptance criteria constrain toward the need?>
+- 🟢 / 🟡 / 🔴 Scope — <orphan work, over-building, under-building, or scope creep?>
 
 ### Summary
 

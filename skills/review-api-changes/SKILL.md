@@ -184,6 +184,7 @@ Start the file with the marker so an orchestrator can detect which commit was re
 
 Replace `HEAD_COMMIT`, `HEAD_TREE`, and `SHORT_SHA` with the resolved values (`SHORT_SHA` is the first 7 characters of `HEAD_COMMIT`).
 `MARKER_VERDICT` is `pass` for `approved`, and `fail` for `changes-requested` or `rejected`.
+Below the marker, start the report with the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line per checklist category with its own light and a terse note.
 
 Write the report to `$PR_REVIEW_DIR/review-api-changes.$SHORT_SHA.md` and point the stable symlink at it:
 
@@ -300,7 +301,19 @@ If this skill created a worktree (no `$WORKTREE_DIR` was provided), remove it.
 <!-- {"step":"review-api-changes","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
 # API Change Review: #<PR_NUMBER> <title> (or <diff-ref>)
 
-🔴 / 🟢 <Overall assessment in one sentence.>
+**🔴 / 🟡 / 🟢 <No-go / Caution / Go>** — <one sentence: why, and what unblocks it.>
+
+- 🔴 / 🟡 / 🟢 Breaking Changes — <terse note>
+- 🔴 / 🟡 / 🟢 Additive Compatibility — <terse note>
+- 🔴 / 🟡 / 🟢 Versioning & Deprecation — <terse note>
+- 🔴 / 🟡 / 🟢 Resource & Method Semantics — <terse note>
+- 🔴 / 🟡 / 🟢 Status Codes & Errors — <terse note>
+- 🔴 / 🟡 / 🟢 Pagination, Filtering & Sorting — <terse note>
+- 🔴 / 🟡 / 🟢 Auth, Limits & Safety — <terse note>
+- 🔴 / 🟡 / 🟢 Idempotency & Retries — <terse note>
+- 🔴 / 🟡 / 🟢 Compatibility with Callers in Flight — <terse note>
+- 🔴 / 🟡 / 🟢 Schema Drift & Documentation — <terse note>
+- 🔴 / 🟡 / 🟢 Tests — <terse note>
 
 Reviewed commit: `SHORT_SHA`
 Base: `<BASE_BRANCH or base ref>` · Version scheme: `<path | header | none>`
@@ -328,22 +341,6 @@ Base: `<BASE_BRANCH or base ref>` · Version scheme: `<path | header | none>`
 
 <...>
 
-## Checklist
-
-| Category | Status | Notes |
-|---|---|---|
-| Breaking Changes | 🔴 / 🟡 / 🟢 | <terse note> |
-| Additive Compatibility | 🟢 | <terse note> |
-| Versioning & Deprecation | 🟢 | <terse note> |
-| Resource & Method Semantics | 🟢 | <terse note> |
-| Status Codes & Errors | 🟢 | <terse note> |
-| Pagination, Filtering & Sorting | 🟢 | <terse note> |
-| Auth, Limits & Safety | 🟢 | <terse note> |
-| Idempotency & Retries | 🟢 | <terse note> |
-| Compatibility with Callers in Flight | 🟢 | <terse note> |
-| Schema Drift & Documentation | 🟢 | <terse note> |
-| Tests | 🟢 | <terse note> |
-
 ## Outcome
 
 <One sentence: what must change before the API change ships, and whether a version bump is required.>
@@ -353,11 +350,12 @@ Base: `<BASE_BRANCH or base ref>` · Version scheme: `<path | header | none>`
 
 If `$OUTCOME_YAML` is set, emit your verdict there per `skills/sdlc/references/shared.md`:
 
-| Verdict | When | Marker verdict |
-|---|---|---|
-| `approved` | No blocking findings; the API change passes review | `pass` |
-| `changes-requested` | Findings the author must address before it passes | `fail` |
-| `rejected` | Fundamental flaw requiring rework or stopping | `fail` |
+| Verdict | Light | When | Marker verdict |
+|---|---|---|---|
+| `approved` | 🟢 Go | No blocking findings and no findings at all; the API change passes review | `pass` |
+| `approved` | 🟡 Caution | No blocking findings, but SHOULD or MAY findings remain | `pass` |
+| `changes-requested` | 🔴 No-go | Findings the author must address before it passes | `fail` |
+| `rejected` | 🔴 No-go | Fundamental flaw requiring rework or stopping | `fail` |
 
 In the same emission, list the findings file under `artifacts:` (the report path written in step 6).
 

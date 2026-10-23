@@ -206,6 +206,8 @@ Start the file with the marker so the orchestrator can detect which commit was s
 ```
 
 The verdict is always `informational`; this step never gates anything.
+Below the marker, add the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line each for Behavior changes, Breaking changes, and Declaration with their own lights.
+The lights report what the diff shows; they gate nothing.
 
 Posting as a PR comment is decided by `should-post-to-github`.
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
@@ -234,6 +236,12 @@ It is self-contained, so its report is written before the later chain steps run 
 ```markdown
 <!-- {"step":"summarize-behavior-changes","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"informational"} -->
 # Behavior Changes: #<PR_NUMBER> <title>
+
+**🟢 / 🟡 / 🔴 <Clear / Caution / No-go>** — <one sentence: what a consumer or release-note author must know before merge>
+
+- 🟢 / 🟡 / 🔴 Behavior changes — <N changes across <k> areas>
+- 🟢 / 🟡 / 🔴 Breaking changes — <none, or the list, and whether each has a migration note>
+- 🟢 / 🟡 / 🔴 Declaration — <every change named in the issue or PR description, or N unstated>
 
 Reviewed commit: `SHORT_SHA`
 

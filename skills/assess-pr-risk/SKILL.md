@@ -175,22 +175,22 @@ State in one sentence what would raise confidence (e.g. "adding tests for the ch
 
 ### 6. Route the next action
 
-| Risk | Confidence | Verdict token | Recommended next action |
-|---|---|---|---|
-| Low | High | `fast-track` | Safe to unblock: run `/quick-pr-review`, or merge once checks pass |
-| Low | Medium | `confirm` | Cheap confirmation first: run `/review-pr`, then fast-track |
-| Low | Low | `investigate` | Evidence is thin: run `/review-pr-full` |
-| Medium | High | `decide` | Read the risk drivers below and decide with findings in hand |
-| Medium | Medium or Low | `investigate` | Run `/review-pr-full` before deciding |
-| High | High | `block` | Address the High risk drivers before merging |
-| High | Medium or Low | `hold` | Treat as high risk until proven otherwise: full review plus human deep-dive |
+| Risk | Confidence | Verdict token | Light | Recommended next action |
+|---|---|---|---|---|
+| Low | High | `fast-track` | 🟢 Go | Safe to unblock: run `/quick-pr-review`, or merge once checks pass |
+| Low | Medium | `confirm` | 🟢 Go | Cheap confirmation first: run `/review-pr`, then fast-track |
+| Low | Low | `investigate` | 🟡 Caution | Evidence is thin: run `/review-pr-full` |
+| Medium | High | `decide` | 🟡 Caution | Read the risk drivers below and decide with findings in hand |
+| Medium | Medium or Low | `investigate` | 🟡 Caution | Run `/review-pr-full` before deciding |
+| High | High | `block` | 🔴 No-go | Address the High risk drivers before merging |
+| High | Medium or Low | `hold` | 🔴 No-go | Treat as high risk until proven otherwise: full review plus human deep-dive |
 
 The verdict token goes in the report marker so orchestrators can act on it mechanically.
 
 ### 7. Write the report and post it
 
 Write the report to `$PR_REVIEW_DIR/assess-pr-risk.<SHORT_SHA>.md` and point the stable symlink at it (`ln -sf "assess-pr-risk.<SHORT_SHA>.md" "assess-pr-risk.report.md"`).
-Start the file with the marker, substituting the verdict token, the risk level, and the confidence level (the orchestrator script displays the last two in its Risk column):
+Start the file with the marker, substituting the verdict token, the risk level, and the confidence level (the orchestrator script displays the last two in its Risk column), then add the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line per risk factor with its own light.
 
 ```
 <!-- {"step":"assess-pr-risk","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"VERDICT_TOKEN","risk":"RISK_LEVEL","confidence":"CONFIDENCE_LEVEL"} -->
@@ -215,6 +215,17 @@ fi
 ```markdown
 <!-- {"step":"assess-pr-risk","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"VERDICT_TOKEN","risk":"RISK_LEVEL","confidence":"CONFIDENCE_LEVEL"} -->
 # PR Risk Assessment: #<PR_NUMBER> <title>
+
+**🟢 / 🟡 / 🔴 <Go / Caution / No-go>** — <one sentence: what the next action means for the reviewer>
+
+- 🟢 / 🟡 / 🔴 Blast radius — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Public interface — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Security sensitivity — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Reversibility — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Operational exposure — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Coverage gap — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Change proportionality — Low / Medium / High
+- 🟢 / 🟡 / 🔴 Churn — Low / Medium / High
 
 Reviewed commit: `SHORT_SHA`
 **Risk: Low / Medium / High** · **Confidence: Low / Medium / High** · **Next action: <verdict token>**

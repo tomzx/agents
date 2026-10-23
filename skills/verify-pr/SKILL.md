@@ -309,12 +309,14 @@ Record it in the report's notes for `/review-pr` (Approach & Simplicity, design 
 
 For each criterion, record the runtime result combined with its static status:
 
-| Status | Evidence level | Meaning |
-|--------|----------------|---------|
-| **Conforms** | `L3 - Executed` or `L4 - Reproduced` | Code traced (Step 3) and runtime execution confirms the criterion is met |
-| **Conforms (static only)** | `L2 - Ruled out` at best, marked `unproven` | Code traced but runtime could not confirm; the report must state what runtime evidence the criterion needed and why it was infeasible (test couldn't run, dev server wouldn't start, ambiguous result) |
-| **Not verified** | `unproven` | Could not confirm (no path to verify at runtime, and static trace inconclusive) |
-| **Nonconforming** | `L1 - Cited`, `L3 - Executed`, or `L4 - Reproduced` | Runtime output, or the absence of implementing code, shows the criterion is not met |
+| Status | Light | Evidence level | Meaning |
+|--------|-------|----------------|---------|
+| **Conforms** | 🟢 Go | `L3 - Executed` or `L4 - Reproduced` | Code traced (Step 3) and runtime execution confirms the criterion is met |
+| **Conforms (static only)** | 🟡 Caution | `L2 - Ruled out` at best, marked `unproven` | Code traced but runtime could not confirm; the report must state what runtime evidence the criterion needed and why it was infeasible (test couldn't run, dev server wouldn't start, ambiguous result) |
+| **Not verified** | 🟡 Caution | `unproven` | Could not confirm (no path to verify at runtime, and static trace inconclusive) |
+| **Nonconforming** | 🔴 No-go | `L1 - Cited`, `L3 - Executed`, or `L4 - Reproduced` | Runtime output, or the absence of implementing code, shows the criterion is not met |
+
+A **Must** criterion that is only static, unverified, or nonconforming renders 🔴 for that criterion and makes the overall light 🔴, because it does not count as a pass.
 
 A **Must** criterion may only count as Conforms on an `L3 - Executed` or `L4 - Reproduced` result.
 An `L0 - Asserted`, `L1 - Cited`, or `L2 - Ruled out` result does not carry a pass.
@@ -371,12 +373,19 @@ First update `$PR_REVIEW_DIR/verify.yaml`: set `updated_at` (ISO 8601), `last_re
 Then move the review checkpoint tag to the verified head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).
 
 Then write the report to a file, overwriting the previous report.
-A full verification contains the complete template below; an incremental verification stays short: scope (the delta, with diffstat), criteria re-run this pass, criteria whose `status` changed, and the verdict:
+A full verification contains the complete template below; an incremental verification stays short: scope (the delta, with diffstat), criteria re-run this pass, criteria whose `status` changed, and the verdict.
+Start the report with the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line per acceptance criterion with its own light (🟢 Conforms, 🟡 static-only or unverified Should, 🔴 Nonconforming or unproven Must).
 
 ```bash
 BODY="$(cat <<'EOF'
 <!-- {"step":"verify-pr","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"MARKER_VERDICT"} -->
-## Verification Report
+# Verification Report: #<PR_NUMBER> <title>
+
+**🟢 / 🔴 <Go / No-go>** — <one sentence: does the PR conform to every Must criterion?>
+
+- 🟢 / 🟡 / 🔴 <criterion 1 text> (Must) — <conforms / static only / not verified / nonconforming, with the evidence pointer>
+- 🟢 / 🟡 / 🔴 <criterion 2 text> (Should) — <...>
+- <one line per acceptance criterion>
 
 ### Summary
 
