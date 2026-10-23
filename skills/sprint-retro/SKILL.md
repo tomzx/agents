@@ -17,6 +17,11 @@ Produces a structured sprint retrospective by reviewing the past two weeks of da
 - `~/.agents/scripts/get-env` utility available
 - At least one week of daily notes present in `{BASE_DIR}`
 
+### Communication guidelines
+
+Before writing the retrospective sections, apply [`communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md).
+Kudos and improvement sections drift into prose most easily, so keep each bullet to one point.
+
 ## Steps
 
 ### 1. Gather Data
