@@ -625,9 +625,11 @@ agentic operation list --limit 500</code></pre>
       <h3 class="text-lg font-semibold text-primary mt-6 mb-2">How the tools fit together</h3>
       <div class="mermaid">
 flowchart LR
-  OC[openchamber<br/>web UI] --> OC2[opencode2<br/>coding agent]
+  ME[Me<br/>human] --> OC[openchamber<br/>web UI]
+  ME --> A[agentic<br/>task tracker]
+  OC --> OC2[opencode2<br/>coding agent]
   OC2 --> WT[git worktree<br/>per task]
-  A[agentic<br/>task tracker] --> OC2
+  A --> OC2
   A --> GHX[ghx<br/>GitHub data]
   A --> SLX[slackx<br/>Slack data]
   A --> GIT[git]
