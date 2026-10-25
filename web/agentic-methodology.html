@@ -115,6 +115,8 @@
       <a href="#operations" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Operations log</a>
       <a href="#tools" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Tools relied on</a>
       <a href="#related" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Related</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Knowledge</span>
+      <a href="#memory" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Memory strategy</a>
       <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Reference</span>
       <a href="#commands" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Command cheat sheet</a>
 
@@ -599,6 +601,31 @@ agentic operation list --limit 500</code></pre>
         </table>
       </div>
       <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4">Prefer <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">ghx</code> over <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> for listing, searching, and viewing issues and PRs, and for getting and posting comments. Fall back to <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> only when ghx does not support the needed operation.</div>
+    </section>
+
+    <section id="memory" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Memory strategy</h2>
+      <p class="text-base-content/80 mb-4">Memory is file-based and split into two layers: a short, durable layer that every session reads at startup, and a deeper PARA layer that compounds over time. The goal is to remember conclusions and preferences, not session narration.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Two memory files, read every session</h3>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80 mb-4">
+        <li>A global <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">MEMORY.md</code> beside <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">AGENTS.md</code>, for cross-project lessons: workflow preferences, tooling gotchas, process decisions.</li>
+        <li>A project-level <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">MEMORY.md</code> in the repository root, for facts about that repository: conventions, decisions, gotchas.</li>
+        <li>Both are read at the start of each session, before any work.</li>
+      </ul>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">What gets written</h3>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80 mb-4">
+        <li>Conclusions, not session narration: decisions, conventions, gotchas, preferences.</li>
+        <li>Only what a future session cannot cheaply rediscover from the code, help output, or docs.</li>
+        <li>Never transient state that a near-term commit would invalidate: failing tests, in-flight refactors, known gaps.</li>
+        <li>Entries are concise, dated, and free of secrets and session-specific noise.</li>
+      </ul>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">PARA memory files</h3>
+      <p class="text-base-content/80 mb-4">The <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">para-memory-files</code> skill maintains a file-based PARA system: projects, areas, resources, and archives. It stores daily notes, entity records, and weekly syntheses so knowledge compounds instead of evaporating with each session.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Sessions to memory</h3>
+      <p class="text-base-content/80 mb-4">The <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">sessions-memory</code> skill reads the local agentsview SQLite archive (Codex, OpenCode, Gemini, Copilot, and others) and turns session history into two layers: per-day timeline notes and PARA entity facts. It tracks what has already been processed, so each run is incremental.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Slack knowledge base</h3>
+      <p class="text-base-content/80 mb-4">Slack channels are ingested into temporal monthly memory files and then merged into theme-organized knowledge bases, so decisions made in threads survive and stay searchable.</p>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200">Memory is written through skills, not by hand, so the format stays consistent and the durable layer stays short.</div>
     </section>
 
     <section id="related" class="mb-12">
