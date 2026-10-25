@@ -837,19 +837,21 @@ const PIPELINE = [
       ["refactor-implementation", "Introduce only the abstractions and seams the change needs, preserving behavior."],
       ["review-implementation", "Audit correctness, quality, security, and spec alignment."],
       ["create-documentation", "Write Divio-structured docs: tutorial, how-to, reference, explanation."],
-      ["validate-implementation", "Capture a CLI demo or web capture on the branch and get sign-off before the PR."],
-      ["create-pr", "Open a PR with description, acceptance-criteria coverage, issue link, and reviewers."],
-      ["assess-pr-risk", "Estimate risk and confidence to route how much review the PR needs (advisory)."],
-      ["summarize-behavior-changes", "Summarize what the PR changes behaviorally: before/after, consumers, breaking changes (advisory)."],
-      ["validate-pr", "Judge whether the PR builds the right product."],
-      ["verify-pr", "Prove conformance to the acceptance criteria with traceability and runtime evidence."],
-      ["review-pr", "Run the full code-craft review."],
+      ["review-documentation", "Audit documentation for completeness, accuracy, clarity, and structure."],
+      ["validate-implementation", "Capture a CLI demo or web capture on the branch and get sign-off before the PR (no-op for non-visual changes)."],
+      ["create-pr", "Open a PR as a draft with description, acceptance-criteria coverage, and issue link (embeds pre-captured proof)."],
+      ["promote-pr", "Run review-pr-full on the draft and promote it to ready-for-review (requesting reviewers) only when it clears the review bar."],
+      ["assess-pr-risk", "Estimate risk and confidence to route how much review the PR needs (advisory; runs as part of promote-pr)."],
+      ["summarize-behavior-changes", "Summarize what the PR changes behaviorally: before/after, consumers, breaking changes (advisory; runs as part of promote-pr)."],
+      ["validate-pr", "Judge whether the PR builds the right product (runs as part of promote-pr)."],
+      ["verify-pr", "Prove conformance to the acceptance criteria with traceability and runtime evidence (runs as part of promote-pr)."],
+      ["review-pr", "Run the full code-craft review (runs as part of promote-pr)."],
       ["handle-pr-ci", "Diagnose failing checks, fix, push, and confirm green."],
       ["handle-pr-reviewer-feedback", "Address reviewer comments, push, and re-request review."],
       ["merge-pr", "Verify approvals and CI, merge, delete the branch, and confirm the issue closed."]
     ],
-    artifacts: ["tests.md", "refactorings.md", "review-implementation.md", "docs", "captured-proof.json", "Pull request"],
-    entries: ["implementation", "documentation", "validate-implementation", "pr", "assess-pr-risk", "summarize-behavior-changes", "validate-pr", "verify-pr", "handle-pr-ci", "handle-pr-reviewer-feedback", "merge-pr"]
+    artifacts: ["tests.md", "refactorings.md", "review-implementation.md", "docs", "review-documentation.md", "captured-proof.json", "Pull request"],
+    entries: ["implementation", "documentation", "validate-implementation", "pr", "promote-pr", "handle-pr-ci", "handle-pr-reviewer-feedback", "merge-pr"]
   },
   {
     id: "deploy", n: 6, title: "Deployment", tagline: "Ship it safely",
@@ -876,7 +878,7 @@ const PIPELINE = [
 ];
 
 const IDEAS = [
-  { icon: "\u21c4", title: "Create / review pairing", body: "Every create-* skill has a matching review-* skill that audits it in a fresh subagent context. 25+ pairs. The verdict is approved, changes-requested, or rejected, and it lives in a file beside the artifact." },
+  { icon: "\u21c4", title: "Create / review pairing", body: "Every create-* skill has a matching review-* skill that audits it in a fresh subagent context. 27+ pairs. The verdict is approved, changes-requested, or rejected, and it lives in a file beside the artifact." },
   { icon: "\u25a4", title: "File-first, traceable", body: "Requirements, specs, plans, and findings are files under .sdlc/, not chat history. IDs like FEAT-42, FR-1, and TC-5 link issue to requirement to test to code." },
   { icon: "\u26a0", title: "Gates and backtracking", body: "Phases stop when the work is not needed or not feasible. A failure backtracks to the nearest phase that owns the root cause, never silently skipping ahead." },
   { icon: "\u2192", title: "Proportionality", body: "Small work takes a fast path: a typo does not need a specification. When in doubt, include more phases rather than fewer." },
@@ -887,13 +889,13 @@ const IDEAS = [
 ];
 
 const SCENARIOS = [
-  { id: "feature", label: "Full feature", blurb: "A new capability that needs design, review, and sign-off. The default path.", stages: ["issue", "needs", "requirements", "design", "build", "deploy", "learn"], steps: ["create-issue", "create-needs-assessment", "create-requirements", "create-specifications", "create-plan", "create-tests", "create-implementation", "create-pr", "merge-pr", "deploy-pr", "create-learnings"] },
-  { id: "bug", label: "Bug fix", blurb: "A reported defect. Reproduce it first, fix it, then prove the before and after with recordings.", stages: ["issue", "build"], steps: ["check-duplicates", "reproduce-issue", "create-implementation", "validate-implementation", "create-pr"] },
-  { id: "hotfix", label: "Hotfix", blurb: "A production incident that cannot wait for the full pipeline.", stages: ["build", "deploy"], steps: ["create-implementation", "validate-implementation", "create-pr", "merge-pr", "deploy-pr"] },
-  { id: "config", label: "Config change", blurb: "A threshold, a feature flag, or a YAML value.", stages: ["build", "deploy"], steps: ["create-implementation", "create-pr", "merge-pr", "deploy-pr"] },
-  { id: "dep", label: "Dependency update", blurb: "Bump a library or patch a CVE in a transitive dependency.", stages: ["build"], steps: ["create-implementation", "validate-implementation", "create-pr", "review-pr", "merge-pr"] },
-  { id: "refactor", label: "Refactor", blurb: "A behavior-preserving change: rename, extract a helper, improve naming.", stages: ["build"], steps: ["create-tests", "create-implementation", "refactor-implementation", "validate-implementation", "create-pr", "review-pr", "merge-pr"] },
-  { id: "docs", label: "Docs only", blurb: "Fix a typo or add a missing example.", stages: ["build"], steps: ["create-documentation", "create-pr", "merge-pr"] }
+  { id: "feature", label: "Full feature", blurb: "A new capability that needs design, review, and sign-off. The default path.", stages: ["issue", "needs", "requirements", "design", "build", "deploy", "learn"], steps: ["create-issue", "create-needs-assessment", "create-requirements", "create-specifications", "create-plan", "create-tests", "create-implementation", "validate-implementation", "create-pr", "promote-pr", "merge-pr", "deploy-pr", "create-learnings"] },
+  { id: "bug", label: "Bug fix", blurb: "A reported defect. Reproduce it first, fix it, then prove the before and after with recordings.", stages: ["issue", "build"], steps: ["check-duplicates", "reproduce-issue", "create-implementation", "validate-implementation", "create-pr", "promote-pr"] },
+  { id: "hotfix", label: "Hotfix", blurb: "A production incident that cannot wait for the full pipeline.", stages: ["build", "deploy"], steps: ["create-implementation", "validate-implementation", "create-pr", "promote-pr", "merge-pr", "deploy-pr"] },
+  { id: "config", label: "Config change", blurb: "A threshold, a feature flag, or a YAML value.", stages: ["build", "deploy"], steps: ["create-implementation", "create-pr", "promote-pr", "merge-pr", "deploy-pr"] },
+  { id: "dep", label: "Dependency update", blurb: "Bump a library or patch a CVE in a transitive dependency.", stages: ["build"], steps: ["create-implementation", "validate-implementation", "create-pr", "promote-pr", "merge-pr"] },
+  { id: "refactor", label: "Refactor", blurb: "A behavior-preserving change: rename, extract a helper, improve naming.", stages: ["build"], steps: ["create-tests", "create-implementation", "refactor-implementation", "validate-implementation", "create-pr", "promote-pr", "merge-pr"] },
+  { id: "docs", label: "Docs only", blurb: "Fix a typo or add a missing example.", stages: ["build"], steps: ["create-documentation", "create-pr", "promote-pr", "merge-pr"] }
 ];
 
 const FAST_PATH_RULES = [
@@ -902,7 +904,10 @@ const FAST_PATH_RULES = [
   "Skip requirements, specification, plan, and tasks only when the change is well understood and fits in a single commit.",
   "Include review-implementation when the fix is non-trivial or touches security-adjacent code.",
   "Include create-tests when the change affects behavior or could regress.",
-  "Never skip CI verification before merging. Fast paths that skip review-pr run assess-pr-risk before merge instead."
+  "Include validate-implementation before create-pr whenever the change has a CLI or web UI surface; it self-reports surface: none (a no-op) for config and documentation-only changes.",
+  "Every PR opens as a draft and is promoted by promote-pr, so the same review bar (review-pr-full) applies on fast paths as on the full pipeline. A draft that does not pass stays a draft.",
+  "When a fast path drops a phase, state the phase and the signal that justified the skip.",
+  "Never skip CI verification before merging."
 ];
 
 const ARTIFACT_TREE = {
@@ -918,7 +923,11 @@ const ARTIFACT_TREE = {
       { name: "vocabulary.md", desc: "Domain and technical terms, so agents and humans share one language." },
       { name: "infrastructure.md", desc: "Technology stack, development tooling, CI/CD, environments, and deployment." },
       { name: "schema.dbml", desc: "Database schema in DBML, present when the project uses a database." },
-      { name: "goals.md, roadmap.md, service-levels.md", desc: "Objectives and KPIs, sequenced initiatives, and SLOs. Optional, each created by its own create-* skill." }
+      { name: "observability.md", desc: "Monitoring stack, instrumentation, alerting, and dashboards (optional)." },
+      { name: "telemetry.md", desc: "Analytics platform, event conventions, taxonomy, and privacy (optional)." },
+      { name: "service-levels.md", desc: "SLOs, SLIs, SLAs, and error budgets (optional)." },
+      { name: "service-levels.yaml", desc: "OpenSLO definitions companion to service-levels.md (optional)." },
+      { name: "goals.md, roadmap.md", desc: "Objectives and KPIs, sequenced initiatives. Optional, each created by its own create-* skill." }
     ] },
     { name: "features/", desc: "One directory per feature, named after its issue number.", children: [
       { name: "N-<slug>/", desc: "Example: 42-notification-system for issue #42. A p-prefix such as p1-onboarding marks a pending feature with no GitHub issue yet.", children: [
@@ -928,11 +937,14 @@ const ARTIFACT_TREE = {
         { name: "existing-solutions.md", desc: "Prior-art survey with an adopt, extend, or build recommendation." },
         { name: "codebase-analysis.md", desc: "The internal code and architecture the feature will touch, with changeability per component." },
         { name: "feasibility.md", desc: "Technical, financial, and operational viability. The second gate." },
-        { name: "specification.md", desc: "Architecture, data models, and API contracts. Companion api.yaml when there is an API." },
+        { name: "specification.md", desc: "Architecture, data models, and API contracts. Companion api.yaml when the feature has an API surface." },
+        { name: "api.yaml", desc: "OpenAPI 3 contract, companion to specification.md (when the feature has an API surface)." },
         { name: "lifecycle.md", desc: "Resource states, transitions, invariants, and retention." },
         { name: "mockups.md", desc: "UI wireframes, screens, states, and flows." },
+        { name: "mockups/", desc: "Per-screen HTML mockups, one file per screen (e.g. notification-list.html)." },
         { name: "telemetry.md", desc: "Analytics events, success metrics, and the funnel." },
-        { name: "observability.md", desc: "Logging, metrics, tracing, alerts, and SLOs. Companion alerts.yaml when alerts are defined." },
+        { name: "observability.md", desc: "Logging, metrics, tracing, alerts, and SLOs." },
+        { name: "alerts.yaml", desc: "Prometheus alert rules, companion to observability.md (when alerts are defined)." },
         { name: "plan.md", desc: "Phases, milestones, dependencies, and a risk register. Published for author sign-off." },
         { name: "assumption-validation.md", desc: "Minimal experiments run against the riskiest technical assumptions." },
         { name: "tasks/", desc: "One file per task. Status flows draft, pending, in-progress, blocked, done, cancelled." },
@@ -973,6 +985,8 @@ const SKILLS = [
   ["prioritize-issues", "Issue intake", "Score and rank a backlog by RICE: reach, impact, confidence, and effort."],
   ["check-duplicates", "Issue intake", "Check for duplicate issues and existing fix PRs before investing effort."],
   ["check-issue-status", "Issue intake", "Determine whether an issue is already addressed in the codebase."],
+  ["create-placeholder-issue", "Issue intake", "Promote a pending (p-prefixed) feature to issue-driven form by creating a placeholder GitHub issue."],
+  ["trace-issues", "Issue intake", "Trace issues to their PRs, commits, and implementing code; verify intents are still addressed."],
   ["check-issues-status", "Issue intake", "Batch-check which issues are already addressed in the code."],
   ["create-discussion", "Issue intake", "Create a GitHub Discussion for a feature request routed away from issues."],
   ["label-issue", "Issue intake", "Add relevant labels to an issue based on its description."],
@@ -983,6 +997,7 @@ const SKILLS = [
   ["create-requirements", "Requirements & research", "Draft functional and non-functional requirements from a brief or issue."],
   ["review-requirements", "Requirements & research", "Audit requirements for clarity, completeness, testability, and conflicts."],
   ["create-cli-design", "Requirements & research", "Design the command tree, options, exit codes, and example sessions."],
+  ["review-cli-design", "Requirements & research", "Review a CLI design for command-surface completeness, consistency, and usability."],
   ["create-existing-solutions", "Requirements & research", "Survey prior art and recommend adopt, extend, or build."],
   ["review-existing-solutions", "Requirements & research", "Audit search coverage, evaluation rigor, and recommendation soundness."],
   ["create-codebase-analysis", "Requirements & research", "Analyze the internal code and architecture a feature will touch."],
@@ -1020,10 +1035,10 @@ const SKILLS = [
   ["create-documentation", "Build & PR", "Create documentation following the Divio framework."],
   ["review-documentation", "Build & PR", "Audit documentation for completeness, accuracy, and clarity."],
   ["validate-implementation", "Build & PR", "Capture visual proof on the branch and get sign-off before the PR."],
-  ["create-pr", "Build & PR", "Open a PR with description, acceptance-criteria coverage, and reviewers."],
+  ["create-pr", "Build & PR", "Open a PR as a draft with description, acceptance-criteria coverage, and reviewers."],
   ["create-pr-description", "Build & PR", "Generate a PR description from the changes."],
-  ["write-pr-description", "Build & PR", "Draft a concise, reviewer-focused PR description."],
   ["update-pr-description", "Build & PR", "Keep an existing PR description accurate after new commits."],
+  ["promote-pr", "Build & PR", "Review a draft PR with review-pr-full and promote it to ready-for-review only when it clears the review bar."],
   ["assess-pr-risk", "Build & PR", "Estimate risk and confidence to route how much review a PR needs."],
   ["summarize-behavior-changes", "Build & PR", "Summarize what a PR changes behaviorally: before/after, consumers, breaking changes."],
   ["validate-pr", "Build & PR", "Judge whether a PR builds the right product."],
@@ -1031,13 +1046,24 @@ const SKILLS = [
   ["review-pr", "Build & PR", "Conduct the full code-craft review of a pull request."],
   ["review-pr-full", "Build & PR", "Orchestrate the complete review chain for a single PR."],
   ["analyze-test-coverage", "Build & PR", "Produce a test-coverage report for a set of changes."],
+  ["review-api-changes", "Build & PR", "Review API contract changes for breaking changes and consumer compatibility."],
+  ["review-cli-changes", "Build & PR", "Review CLI changes for compatibility, consistency, and usability."],
+  ["review-db-changes", "Build & PR", "Review database changes for lock safety, reversibility, and data integrity."],
+  ["review-sdk-changes", "Build & PR", "Review SDK or client-library changes for breaking changes and ergonomics."],
+  ["review-requested-prs", "Build & PR", "Orchestrate full PR reviews across all PRs where you are a requested reviewer."],
+  ["quick-pr-review", "Build & PR", "Rapidly review and approve a PR to unblock others."],
+  ["quick-pr-reviews", "Build & PR", "Run quick-pr-review on each changed PR where you are a requested reviewer."],
+  ["handle-failing-pr-ci", "Build & PR", "Fix failing CI across all your open PRs in parallel."],
+  ["prune-merged-worktrees", "Build & PR", "Remove worktrees whose PR was merged."],
+  ["resolve-pr-conflicts", "Build & PR", "Resolve merge conflicts across your open PRs in parallel."],
+  ["record-asciinema", "Build & PR", "Record a terminal demo with asciinema and render it to a GIF or SVG."],
+  ["record-playwright", "Build & PR", "Record a web UI demo with Playwright, capturing screenshots and video."],
+  ["triage-pr-feedback", "Build & PR", "Scan open PRs for unresolved reviewer feedback and fan out analysis."],
   ["handle-pr-ci", "Build & PR", "Diagnose failing CI, fix the root cause, push, and confirm green."],
   ["handle-pr-reviewer-feedback", "Build & PR", "Address reviewer comments, push, and re-request review."],
   ["handle-pr-comment", "Build & PR", "Reply to a PR comment, implementing changes when appropriate."],
   ["handle-pr-author-feedback", "Build & PR", "Verify that an author's commits address your review comments."],
   ["merge-pr", "Build & PR", "Check approvals and CI, then merge and clean up the branch."],
-  ["quick-pr-review", "Build & PR", "Rapidly review and approve a PR to unblock others."],
-  ["resolve-pr-conflicts", "Build & PR", "Resolve merge conflicts across your open PRs in parallel."],
   ["pr-review-send", "Build & PR", "Send review comments to GitHub by file and line number."],
 
   // Bug fixes
@@ -1091,6 +1117,10 @@ const SKILLS = [
   ["find-type-gaps", "Maintenance & audits", "Find functions and modules missing type annotations."],
   ["find-documentation-gaps", "Maintenance & audits", "Find public APIs and options that lack documentation."],
   ["improve-codebase", "Maintenance & audits", "Make a bounded set of safe, verified improvements each run."],
+  ["identify-bugs", "Maintenance & audits", "Discover latent bugs in the codebase and discard any already tracked by an issue."],
+  ["identify-codebase-improvements", "Maintenance & audits", "Discover concrete gaps and improvements not yet tracked by an issue."],
+  ["audit-gh-usage", "Maintenance & audits", "Scan a repo for gh CLI usage and classify it against ghx."],
+  ["learn-from-code-reviews", "Maintenance & audits", "Distill your received review feedback into durable rules."],
   ["sync-documentation", "Maintenance & audits", "Reconcile docs with the codebase and fix drift."]
 ];
 
@@ -1236,7 +1266,7 @@ let playTimer = null;
 function renderOverview() {
   const pills = [
     "<b>1</b> orchestrator",
-    "<b>25+</b> create/review pairs",
+    "<b>27+</b> create/review pairs",
     "<b>7</b> pipeline stages",
     "<b>4</b> knowledge record types"
   ];
