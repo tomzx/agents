@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'dark' });</script>
 <title>Agentic Development Methodology</title>
 <meta name="description" content="How I build software today: openchamber and opencode2 as the coding environment, plus Agentic, the local-first task tracker that ties together Slack, GitHub, Drive, and notes.">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -620,6 +622,21 @@ agentic operation list --limit 500</code></pre>
             <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://daisyui.com" class="text-primary hover:underline" target="_blank" rel="noopener">DaisyUI</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">saadeghi</td><td class="px-3 py-2 border-b border-slate-800">Tailwind component library and theme engine.</td><td class="px-3 py-2 border-b border-slate-800">This page</td></tr>
           </tbody>
         </table>
+      </div>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">How the tools fit together</h3>
+      <div class="mermaid">
+flowchart LR
+  OC[openchamber<br/>web UI] --> OC2[opencode2<br/>coding agent]
+  OC2 --> WT[git worktree<br/>per task]
+  A[agentic<br/>task tracker] --> OC2
+  A --> GHX[ghx<br/>GitHub data]
+  A --> SLX[slackx<br/>Slack data]
+  A --> GIT[git]
+  A --> UV[uv]
+  GHX -.fallback.-> GH[gh]
+  WT --> CODE[edited code]
+  CODE --> PR[PR via gh/ghx]
+  OC2 --> REC[asciinema / playwright<br/>recordings]
       </div>
       <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4">Prefer <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">ghx</code> over <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> for listing, searching, and viewing issues and PRs, and for getting and posting comments. Fall back to <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> only when ghx does not support the needed operation.</div>
     </section>
