@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+<title>Agentic Development Methodology</title>
+<meta name="description" content="How I build software today: openchamber and opencode2 as the coding environment, plus Agentic, the local-first task tracker that ties together Slack, GitHub, Drive, and notes.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          accent: '#4fd1c5',
+          accent2: '#f6ad55',
+          accent3: '#6ea8fe',
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: 1.5rem; }
+  pre { white-space: pre; }
+</style>
+</head>
+<body class="bg-base-100 text-base-content min-h-screen">
+
+<div id="progress" class="fixed top-0 left-0 h-0.5 bg-gradient-to-r from-primary to-secondary z-50 transition-all" style="width:0%"></div>
+
+<div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] min-h-screen">
+  <aside class="lg:sticky lg:top-0 lg:h-screen p-6 bg-base-200 backdrop-blur border-r border-base-300 overflow-y-auto flex flex-col gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary grid place-items-center text-base-content font-extrabold text-sm">AG</div>
+      <div>
+        <b class="block text-sm">Agentic methodology</b>
+        <span class="text-xs text-base-content/60">how I build software</span>
+      </div>
+    </div>
+    <label class="text-xs text-base-content/60">Theme
+      <select id="theme-select" class="select select-bordered select-sm w-full mt-1 bg-base-200 border-base-300 text-base-content">
+        <option value="dark">dark</option>
+        <option value="light">light</option>
+        <option value="cupcake">cupcake</option>
+        <option value="synthwave">synthwave</option>
+        <option value="retro">retro</option>
+        <option value="cyberpunk">cyberpunk</option>
+        <option value="valentine">valentine</option>
+        <option value="halloween">halloween</option>
+        <option value="garden">garden</option>
+        <option value="forest">forest</option>
+        <option value="aqua">aqua</option>
+        <option value="lofi">lofi</option>
+        <option value="pastel">pastel</option>
+        <option value="fantasy">fantasy</option>
+        <option value="wireframe">wireframe</option>
+        <option value="black">black</option>
+        <option value="luxury">luxury</option>
+        <option value="dracula">dracula</option>
+        <option value="cmyk">cmyk</option>
+        <option value="autumn">autumn</option>
+        <option value="business">business</option>
+        <option value="acid">acid</option>
+        <option value="lemonade">lemonade</option>
+        <option value="night">night</option>
+        <option value="coffee">coffee</option>
+        <option value="winter">winter</option>
+        <option value="dim">dim</option>
+        <option value="nord">nord</option>
+        <option value="sunset">sunset</option>
+        <option value="caramellatte">caramellatte</option>
+        <option value="abyss">abyss</option>
+        <option value="silk">silk</option>
+      </select>
+    </label>
+    <nav class="flex flex-col gap-1 text-sm" aria-label="Sections">
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Start</span>
+      <a href="#overview" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Overview</a>
+      <a href="#at-a-glance" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">At a glance</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Environment</span>
+      <a href="#environment" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">openchamber + opencode2</a>
+      <a href="#harnesses" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Harnesses</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Agentic</span>
+      <a href="#agentic-concepts" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Core concepts</a>
+      <a href="#task-flow" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Task flow</a>
+      <a href="#focus-stack" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Focus stack</a>
+      <a href="#worktrees-runs" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Worktrees and runs</a>
+      <a href="#sessions" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Sessions</a>
+      <a href="#context" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Task context</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Workflow</span>
+      <a href="#day" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">A typical day</a>
+      <a href="#filing" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Filing a task</a>
+      <a href="#starting-work" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Starting work</a>
+      <a href="#doing-work" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Doing work</a>
+      <a href="#ending" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Ending work</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Quality</span>
+      <a href="#changes" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Changes and metrics</a>
+      <a href="#autonomy" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Autonomy rate and yield</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Tooling</span>
+      <a href="#integrations" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Integrations</a>
+      <a href="#people" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">People</a>
+      <a href="#scheduled" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Scheduled tasks</a>
+      <a href="#operations" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Operations log</a>
+      <a href="#tools" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Tools relied on</a>
+      <a href="#related" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Related</a>
+      <span class="text-xs uppercase tracking-widest text-base-content/60 font-semibold mt-3 mb-1 ml-2">Reference</span>
+      <a href="#commands" class="navlink block px-3 py-2 rounded-lg text-base-content/70 hover:text-white hover:bg-base-300">Command cheat sheet</a>
+
+    </nav>
+    <div class="mt-auto text-xs text-base-content/60 leading-relaxed">
+      Sibling of <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">sdlc-guide.html</code>.<br>
+      Styled with Tailwind CSS (CDN).
+    </div>
+  </aside>
+
+  <main class="p-6 lg:p-10 max-w-5xl">
+    <section id="overview" class="mb-10">
+      <div class="rounded-2xl border border-base-300 bg-gradient-to-br from-primary/10 to-secondary/10 p-8 shadow-2xl">
+        <h1 class="text-3xl font-extrabold tracking-tight mb-3">Agentic Development Methodology</h1>
+        <p class="text-base-content/80 mb-2">This page describes how I build software today. The coding environment is <b>openchamber</b> running <b>opencode2</b>. The work tracker is <b>Agentic</b>, a local-first app I develop, which ties together the Slack threads, GitHub issues and pull requests, Drive docs, URLs, and notes that feed a unit of work.</p>
+        <p class="text-base-content/80 mb-4">The core idea: one task at a time, an isolated worktree per task, an agent that can pick up where I left off because the task carries its own summary and next steps, and a small set of metrics that tell me whether the factory is getting more autonomous over time.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="px-3 py-1 rounded-full bg-primary/15 text-primary border border-primary/30 text-xs">openchamber</span>
+          <span class="px-3 py-1 rounded-full bg-primary/15 text-primary border border-primary/30 text-xs">opencode2</span>
+          <span class="px-3 py-1 rounded-full bg-primary/15 text-primary border border-primary/30 text-xs">Agentic</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">focus stack</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">worktrees</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">agent runs</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">context refresh</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">autonomy rate</span>
+          <span class="px-3 py-1 rounded-full bg-base-300 text-base-content/80 border border-base-300 text-xs">DeepSeek v4.1 Flash 1017</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="at-a-glance" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">At a glance</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">Where I work</h4>
+          <p class="text-base-content/80 text-sm">openchamber is the web UI. opencode2 is the coding agent behind it. I keep one session per task and record the session id in Agentic so I can reopen it later.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">What I track</h4>
+          <p class="text-base-content/80 text-sm">Agentic holds tasks. Each task links to items: Slack threads, GitHub issues and PRs, Drive docs, URLs, notes, files. The task also carries a summary and next steps that an agent maintains.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">How I focus</h4>
+          <p class="text-base-content/80 text-sm">The focus stack puts one task on top. Everything else queues below. I pop the current task when it is done and the next one promotes automatically.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">How I isolate work</h4>
+          <p class="text-base-content/80 text-sm">Each task gets its own git worktree from a registered repository. Agent runs and edits happen inside that worktree, so tasks never step on each other.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">How I resume</h4>
+          <p class="text-base-content/80 text-sm">Task context (summary plus next steps) is rewritten by a context refresh run. When I return to a task, the agent reads it and continues without me re-explaining.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">How I measure</h4>
+          <p class="text-base-content/80 text-sm">Every piece of work that reaches production becomes a change. I track whether it needed human intervention (autonomy rate) and whether it survived (yield).</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">Main model</h4>
+          <p class="text-base-content/80 text-sm">I rely mostly on DeepSeek v4.1 Flash 1017 as my main model, used through opencode2 in openchamber.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="environment" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Environment: openchamber + opencode2</h2>
+      <p class="text-base-content/80 mb-4"><b>openchamber</b> is the web interface I use to talk to the agent. <b>opencode2</b> is the coding agent itself, reached over ACP. Together they replace the terminal-only loop: I can open a session, attach files and images, and let the agent edit and run commands while I watch.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Why this pair</h3>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80">
+        <li>openchamber keeps sessions, files, and diffs in one place, so switching tasks is a tab change instead of a context switch in my head.</li>
+        <li>opencode2 is the default harness Agentic seeds when it is installed. If it is missing, Agentic falls back to opencode, then to pi.</li>
+        <li>Sessions opened in openchamber can be recorded in Agentic as agent sessions, with their session id, harness, working directory, and label, so the links that reopen them are one click away.</li>
+      </ul>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Main model</h3>
+      <p class="text-base-content/80 mb-4">I rely mostly on <b>DeepSeek v4.1 Flash 1017</b> as my main model, run through opencode2 inside openchamber. It is the default I reach for when starting a run or a context refresh.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Text editor</h3>
+      <p class="text-base-content/80 mb-4">I also use <b>VS Code</b> as a text editor from time to time, because openchamber's built-in text editor is meh. openchamber stays the main surface for sessions, files, and diffs; VS Code is a fallback for editing.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Settings that connect the two</h3>
+      <p class="text-base-content/80 mb-2">Agentic stores three settings that make openchamber reachable from a task. I set them once.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic settings set --openchamber-url http://box:3001
+agentic settings set --openchamber-session-path "/?session={session}"
+agentic settings set --terminal-url-template "https://terminal.example/?cwd={cwd}"</code></pre>
+      <p class="text-base-content/80 mb-2">With these set, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic session get</code> and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic run get</code> print the links that reopen a session in openchamber or a terminal.</p>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200">The Agentic API has no authentication. I expose it only on a trusted network. The CLI talks to it at <code class="font-mono">http://127.0.0.1:8600</code> by default.</div>
+    </section>
+
+    <section id="harnesses" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Harnesses</h2>
+      <p class="text-base-content/80 mb-4">A harness is a coding-agent process reachable over ACP. Agentic does not care which agent I use; it just needs a command on PATH.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-left">
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Harness</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Command</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Notes</th>
+          </tr></thead>
+          <tbody>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">opencode2</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">opencode2 acp</td><td class="px-3 py-2 border-b border-slate-800">Seeded as the default when installed. This is the one I use.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">opencode</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">opencode acp</td><td class="px-3 py-2 border-b border-slate-800">Fallback when opencode2 is not installed.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">pi</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">pi-acp</td><td class="px-3 py-2 border-b border-slate-800">Also seeded. Useful for comparison runs.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-base-content/80 mt-4 mb-2">I can register a custom harness with a resume command template, so Agentic knows how to reopen a session for it.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic harness create myagent opencode --args acp --model gpt-x --resume-command "opencode --session {session}"</code></pre>
+      <p class="text-base-content/80"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">harness list</code> marks each harness available or missing by looking its command up on PATH.</p>
+    </section>
+
+    <section id="agentic-concepts" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Core concepts</h2>
+      <p class="text-base-content/80 mb-4">Everything in Agentic hangs off a task. These are the pieces.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Concept</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">What it is</th>
+          </tr></thead>
+          <tbody>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Task</td><td class="px-3 py-2 border-b border-slate-800">The unit of work. Carries status, priority, tags, a deadline, a summary, and next steps.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Item</td><td class="px-3 py-2 border-b border-slate-800">Something external: a Slack thread, GitHub issue or PR, Drive doc, URL, note, commit, or file. De-duplicated by URL or external id.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Association</td><td class="px-3 py-2 border-b border-slate-800">A link between an item and a task, with an optional note explaining why it is attached.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Repository</td><td class="px-3 py-2 border-b border-slate-800">A local git checkout registered by path.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Repository group</td><td class="px-3 py-2 border-b border-slate-800">A named set of repositories a task's agent should consider. Set with <code class="font-mono text-xs">--group-id</code>.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Worktree</td><td class="px-3 py-2 border-b border-slate-800">An isolated git worktree created for a task from a registered repository.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Agent run</td><td class="px-3 py-2 border-b border-slate-800">One prompt sent to a harness in a working directory. Its transcript is a stream of events.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Agent session</td><td class="px-3 py-2 border-b border-slate-800">A session recorded by hand, for one Agentic did not start, such as an openchamber session.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Context refresh</td><td class="px-3 py-2 border-b border-slate-800">A special agent run that reads the task and its items and rewrites the summary and next steps.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Change</td><td class="px-3 py-2 border-b border-slate-800">A unit of factory output recorded against a task and moved through a lifecycle.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Stack entry</td><td class="px-3 py-2 border-b border-slate-800">A task's place on the focus stack: position, whether it is current, and a soft-delete timestamp.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Task session</td><td class="px-3 py-2 border-b border-slate-800">A stretch of time a stack entry spent as the current task.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Scheduled task</td><td class="px-3 py-2 border-b border-slate-800">A shell command the app runs on a cron schedule, with run history.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Operation</td><td class="px-3 py-2 border-b border-slate-800">An audit record of a mutating request: method, path, status, client, and human or agent.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">Person</td><td class="px-3 py-2 border-b border-slate-800">Someone linked to tasks and items, so a task shows who it is for or about.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-base-content/80 mt-4">Every meaningful change writes a timeline event, so <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task timeline &lt;task&gt;</code> shows how a task evolved.</p>
+    </section>
+
+    <section id="task-flow" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Task flow</h2>
+      <p class="text-base-content/80 mb-4">A task moves through a simple lifecycle. Statuses are <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">open</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">in_progress</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">blocked</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">done</code>, and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">archived</code>. Priorities are 0 low, 1 medium, 2 high (default), 3 urgent.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">The common path</h3>
+      <ol class="list-decimal ml-6 space-y-1 text-base-content/80">
+        <li>File a task, often from a GitHub issue or a Slack thread.</li>
+        <li>Attach evidence: the Slack thread, the PR, the doc, the note.</li>
+        <li>Register a repository and create a worktree for the task.</li>
+        <li>Start an agent run in that worktree with a prompt.</li>
+        <li>Watch the run, then mark the task <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">in_progress</code>.</li>
+        <li>When the work lands, record a change, move it through verified, accepted.</li>
+        <li>Refresh context so the summary and next steps reflect reality.</li>
+        <li>Pop the task from the focus stack, which marks it done.</li>
+      </ol>
+      <div class="border-l-4 border-warning bg-warning/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4">Agent runs and context refreshes start a coding agent that can edit files and run commands, and permissions are auto-approved by default. I state the prompt and the working directory before starting one.</div>
+    </section>
+
+    <section id="focus-stack" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Focus stack</h2>
+      <p class="text-base-content/80 mb-4">The focus stack is the current task plus the queue below it. I work one thing at a time. The app materializes the stack from in-flight tasks: every task that is open, in progress, or blocked and has never been on the stack joins at the bottom automatically.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic stack list                 # the stack, current task first
+agentic stack current              # the current task (the top)
+agentic stack history              # soft-deleted entries, most recent first
+
+agentic stack push --title "Fix the flaky test"          # add a new task on top
+agentic stack push --task-id &lt;task&gt; --position next      # add an existing task after the current one
+agentic stack push --task-id &lt;task&gt; --position last      # add it at the bottom
+
+agentic stack pop                  # mark the current task done and promote the next one
+agentic stack promote &lt;entry&gt;      # move an entry to the top (make it current)
+agentic stack reorder &lt;entry&gt; 2    # move an entry to position 2 (0 is current)
+agentic stack edit &lt;entry&gt; --title "Better title" --description "..."
+agentic stack remove &lt;entry&gt;       # soft delete the entry; the task is kept</code></pre>
+      <p class="text-base-content/80"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--position</code> is <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">top</code> (becomes current), <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">next</code> (after the current task), or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">last</code> (the bottom). <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">pop</code> marks the task done. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">remove</code> only takes it off the stack and leaves the task as it was. A popped or removed task keeps its soft-deleted entry, so it is not re-added automatically; push it again to bring it back.</p>
+      <p class="text-base-content/80">Each entry's text line shows its execution count and total time as the current task, so I can see where my attention went.</p>
+    </section>
+
+    <section id="worktrees-runs" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Worktrees and runs</h2>
+      <h3 class="text-lg font-semibold text-primary mt-4 mb-2">Repositories and worktrees</h3>
+      <p class="text-base-content/80 mb-2">I register a repository once, then create a worktree per task. This keeps tasks isolated on disk.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic repository list
+agentic repository add /home/me/src/myrepo
+agentic repository add /home/me/src/myrepo --name myrepo
+agentic repository remove &lt;repository&gt;
+
+agentic worktree list &lt;task&gt;
+agentic worktree create &lt;task&gt;                                  # defaults to one of the task's repositories
+agentic worktree create &lt;task&gt; --repository-id &lt;repository&gt; --branch fix/ingest --base main
+agentic worktree remove &lt;task&gt; &lt;worktree&gt;</code></pre>
+      <div class="border-l-4 border-error bg-error/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">worktree remove</code> runs <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">git worktree remove --force</code> and prunes. Any uncommitted changes in that worktree are lost. I confirm before running it.</div>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Agent runs</h3>
+      <p class="text-base-content/80 mb-2">An agent run is one prompt sent to a harness in a working directory. Its transcript is a stream of events.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic run create &lt;task&gt; --prompt "Investigate the failing test"
+agentic run create &lt;task&gt; --worktree-id &lt;worktree&gt; --prompt "Implement the fix"
+agentic run create &lt;task&gt; --cwd /home/me/src/myrepo --harness-id opencode --prompt "Summarize the repo"
+
+agentic run list &lt;task&gt;
+agentic run get &lt;run-id&gt;          # includes session_id, cwd, and session links
+agentic run events &lt;run-id&gt;       # full transcript
+agentic run stream &lt;run-id&gt;       # live: JSON lines when piped, text on a TTY
+agentic run wait &lt;run-id&gt;         # polls every --interval (default 2s) up to --timeout (default 600s)
+agentic run cancel &lt;run-id&gt;</code></pre>
+      <p class="text-base-content/80 mb-2">Run statuses: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">queued</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">running</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">succeeded</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">failed</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">cancelled</code>. Run kinds: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">chat</code> (a normal prompt) and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">refresh_context</code> (started by <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">context refresh</code>).</p>
+      <p class="text-base-content/80 mb-2"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run create</code> picks the working directory in this order: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--cwd</code>, then <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--worktree-id</code>, then a default worktree or the task's first repository. Leave <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--harness-id</code> unset to use the task's harness, then the app default. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--model</code> overrides the harness's model for that run only.</p>
+      <p class="text-base-content/80">A run records the session it produced, so <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run get</code> shows the links that reopen it.</p>
+    </section>
+
+    <section id="sessions" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Sessions</h2>
+      <p class="text-base-content/80 mb-4">A session records an agent session against a task by hand, for one Agentic did not start, such as an openchamber session. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run get</code> and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">session get</code> both expose the links that reopen a session: openchamber, a terminal template, and the harness's resume command.</p>
+      <p class="text-base-content/80 mb-4">I can also start agent sessions directly from Agentic (via <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run create</code>). Agentic picks the working directory, launches the harness, and records the session id and reopen links automatically.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic session list &lt;task&gt;
+agentic session add &lt;task&gt; &lt;agent-session-id&gt; --harness-id opencode --cwd /home/me/src/myrepo --label "investigation"
+agentic session get &lt;task&gt; &lt;record-id&gt;
+agentic session update &lt;task&gt; &lt;record-id&gt; --label "renamed"
+agentic session remove &lt;task&gt; &lt;record-id&gt;</code></pre>
+      <p class="text-base-content/80 mb-2">Mind the two ids: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">session add</code> takes the agent's session id (the one the harness reports), while <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">get</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">update</code>, and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">remove</code> take the recorded session's id (the first column of <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">session list</code>). <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">session add</code> defaults the harness to the task's harness.</p>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200">This is the bridge between openchamber and Agentic. When I open a session in openchamber for a task, I record its id with <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">session add</code> so the task keeps a reopen link.</div>
+    </section>
+
+    <section id="context" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Task context</h2>
+      <p class="text-base-content/80 mb-4">The summary and next steps are agent-maintained and make resuming a task quick. This is the part that makes the methodology work across days: I do not re-explain the task to the agent each morning.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic context get &lt;task&gt;        # current summary and next steps
+agentic context refresh &lt;task&gt;    # starts a refresh_context run that rewrites them</code></pre>
+      <p class="text-base-content/80 mb-2"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">context refresh</code> returns a run; watch it with <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run wait</code> or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">run stream</code>. The run reads the task and its items and rewrites the summary and next steps.</p>
+      <p class="text-base-content/80">I can also hand-write a summary when I want to pin something the agent should not overwrite lightly.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic task update &lt;task&gt; --summary "hand-written summary"</code></pre>
+    </section>
+
+    <section id="day" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">A typical day</h2>
+      <p class="text-base-content/80 mb-4">In a typical day I work through the Agentic web UI, not the CLI. The web UI shows the focus stack, the current task's summary and next steps, its linked items, and the runs and sessions attached to it. The CLI commands below are there when I need them, but the web UI is the primary surface.</p>
+      <h3 class="text-lg font-semibold text-primary mt-4 mb-2">Morning</h3>
+      <ol class="list-decimal ml-6 space-y-1 text-base-content/80">
+        <li>Open the Agentic web UI and check the focus stack to see the current task.</li>
+        <li>Read the current task's summary and next steps in the web UI.</li>
+        <li>Open the linked openchamber session, or start a new run in the task's worktree.</li>
+      </ol>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">During the day</h3>
+      <ol class="list-decimal ml-6 space-y-1 text-base-content/80">
+        <li>Work inside the task's worktree. Agent runs and edits stay scoped there.</li>
+        <li>When a new thread or issue appears, file a task or attach it as an item from the web UI, instead of losing it in a tab.</li>
+        <li>When blocked on someone, park the task from the web UI.</li>
+        <li>When a task is done, record a change and move it through verified, accepted.</li>
+      </ol>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">End of day</h3>
+      <ol class="list-decimal ml-6 space-y-1 text-base-content/80">
+        <li>Refresh context for any task I touched.</li>
+        <li>Pop finished tasks from the focus stack.</li>
+        <li>Run the end-of-day review skill to summarize GitHub and Slack activity.</li>
+      </ol>
+    </section>
+
+    <section id="filing" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Filing a task</h2>
+      <p class="text-base-content/80 mb-4">My default path is the <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">create-issue</code> skill to write the GitHub issue, then I provide context in a new session. The issue becomes the task's anchor, and the new session is where I (or an agent) pick it up.</p>
+      <ol class="list-decimal ml-6 space-y-1 text-base-content/80 mb-4">
+        <li>Run the <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">create-issue</code> skill to draft the issue with background, acceptance criteria, and a time budget.</li>
+        <li>Create the GitHub issue (via <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">ghx</code>).</li>
+        <li>File the task in Agentic from the issue URL: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task create --github-url &lt;issue url&gt;</code>.</li>
+        <li>Open a new session (in openchamber or as an agent run) and provide the issue context so work can start.</li>
+      </ol>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Other entry points</h3>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80">
+        <li>From a Slack thread: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task create --slack-url &lt;thread url&gt;</code>. This fetches the thread, links it, and starts an agent run that names the task and summarizes the discussion.</li>
+        <li>By hand: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task create --title "..." --priority 3 --tags bug --tags ci</code>. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--tags</code> and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--repository-ids</code> are repeatable; pass <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--empty-tags</code> or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--empty-repository-ids</code> to clear them. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">create</code> takes <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--group-id</code> and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--harness-id</code>.</li>
+        <li>Parked work: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task create --title "Renew TLS cert" --snooze 2026-11-01</code>.</li>
+      </ul>
+    </section>
+
+    <section id="starting-work" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Starting work</h2>
+      <h3 class="text-lg font-semibold text-primary mt-4 mb-2">Attach evidence</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic link add &lt;task&gt; --item-id &lt;item&gt;
+agentic link add &lt;task&gt; --url https://github.com/o/r/issues/482 --note "the repro"
+agentic link add &lt;task&gt; --content "scratch note"
+agentic link remove &lt;task&gt; &lt;item&gt;</code></pre>
+      <p class="text-base-content/80 mb-4"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">link add</code> with no <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--item-id</code> creates a new item from <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--url</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--path</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--content</code>, or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--title</code>, then associates it. Use <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--note</code> to record why the item is attached.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Create the worktree and run</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic repository add /home/me/src/myrepo
+agentic worktree create &lt;task&gt; --branch fix/482
+agentic run create &lt;task&gt; --worktree-id &lt;worktree&gt; --prompt "Fix issue 482 and run the tests"
+agentic run wait &lt;run-id&gt;
+agentic task update &lt;task&gt; --status in_progress</code></pre>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Record a session opened elsewhere</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic session add &lt;task&gt; &lt;agent-session-id&gt; --cwd /home/me/src/myrepo --label "openchamber"</code></pre>
+    </section>
+
+    <section id="doing-work" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Doing work</h2>
+      <p class="text-base-content/80 mb-4">Once a task is filed and a worktree exists, the actual work happens inside that worktree. Agent runs and edits stay scoped there, so tasks never step on each other.</p>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80 mb-4">
+        <li>Work inside the task's worktree. Code changes, tests, and commits belong to that worktree.</li>
+        <li>Start an agent run with a prompt: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic run create &lt;task&gt; --worktree-id &lt;worktree&gt; --prompt "..."</code>.</li>
+        <li>Or start a run directly from Agentic, which picks the working directory and records the session and reopen links.</li>
+        <li>Open an openchamber session for hands-on editing when the agent's run is not enough.</li>
+        <li>Record a session opened elsewhere with <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic session add</code> so the task keeps a reopen link.</li>
+        <li>When a new thread or issue appears mid-work, file a task or attach it as an item instead of losing it in a tab.</li>
+        <li>When blocked on someone, park the task: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task update &lt;task&gt; --waiting-on &lt;person&gt; --follow-up 2026-11-05</code>.</li>
+      </ul>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200">Work stays scoped to the worktree. The agent's permissions are auto-approved by default, so I state the prompt and working directory before starting a run.</div>
+    </section>
+
+    <section id="ending" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Ending work</h2>
+      <h3 class="text-lg font-semibold text-primary mt-4 mb-2">Refresh context</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic context refresh &lt;task&gt;
+agentic run wait &lt;run-id&gt;</code></pre>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Record a change</h3>
+      <p class="text-base-content/80 mb-2">A change is the unit of factory output the metrics are computed from. I record one per piece of work that reaches production.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic change create &lt;task&gt; --title "Fix flaky ingest test"
+agentic change create &lt;task&gt; --title "Add retry" --change-class bugfix --external-ref &lt;sha&gt;
+agentic change create &lt;task&gt; --title "Add retry" --repository-id &lt;repository&gt; --worktree-id &lt;worktree&gt;
+
+agentic change verify &lt;change&gt;    # verified
+agentic change accept &lt;change&gt;    # reached production
+agentic change reject &lt;change&gt;    # rejected before acceptance
+agentic change revert &lt;change&gt;    # an accepted change that did not survive</code></pre>
+      <p class="text-base-content/80 mb-4">Change classes: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">feature</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">bugfix</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">refactor</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">chore</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">docs</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">test</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">trivial</code>. Statuses: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">proposed</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">verified</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">accepted</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">rejected</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">reverted</code>. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">change create</code> starts <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">proposed</code>.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Interventions</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic change intervene &lt;change&gt; --kind correction --note "fixed the migration by hand"</code></pre>
+      <p class="text-base-content/80 mb-4"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--kind</code> is one of <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">question</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">correction</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">manual_fix</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">rerun</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">approval</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">other</code>. Any intervention, including an approval, marks the change non-touchless, which lowers the autonomy rate.</p>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Pop the task</h3>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic stack pop    # marks the current task done and promotes the next one</code></pre>
+    </section>
+
+    <section id="changes" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Changes and metrics</h2>
+      <p class="text-base-content/80 mb-4">The metrics read the change records. They answer one question: is the factory getting more autonomous over time, and is the work surviving.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic metrics show                         # autonomy rate and yield vs their baselines
+agentic metrics show --window-days 30 --observation-days 14 --tolerance 0.02
+agentic metrics show --task-id &lt;task&gt; --change-class bugfix
+
+agentic metrics cycle-time                    # issue close, review wait, and review-to-merge trends per repository
+agentic metrics cycle-time --days 30 --bucket-days 7 --refresh
+agentic metrics cycle-time --repository &lt;repository&gt;
+
+agentic metrics baseline list
+agentic metrics baseline set autonomy_rate 0.2 --note "before the factory run"
+agentic metrics baseline set yield 0.8
+agentic metrics baseline delete autonomy_rate</code></pre>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80">
+        <li><b>Autonomy rate</b> is the share of accepted changes that needed no human intervention.</li>
+        <li><b>Yield</b> is the share of accepted changes that survived the observation window without being reverted.</li>
+        <li><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">metrics show</code> reports each metric's direction: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">improving</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">worsening</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">flat</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">no-baseline</code>, or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">no-data</code>.</li>
+        <li><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">metrics cycle-time</code> reads each repository's GitHub activity and reports issue-close, review-wait, and review-to-merge trends. It makes one request per repository with a GitHub remote.</li>
+      </ul>
+    </section>
+
+    <section id="autonomy" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Autonomy rate and yield</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">Autonomy rate</h4>
+          <p class="text-base-content/80 text-sm">Did the agent ship it without me? Any intervention marks the change non-touchless. The goal is for this to climb as the harness, prompts, and context improve.</p>
+        </div>
+        <div class="rounded-2xl border border-base-300 bg-base-200 p-5 shadow-xl">
+          <h4 class="text-secondary font-semibold mb-2">Yield</h4>
+          <p class="text-base-content/80 text-sm">Did it survive? A reverted change counts against yield. This catches changes that looked fine but broke something later.</p>
+        </div>
+      </div>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4">I set a baseline before a big change to the factory, then compare. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic metrics baseline set autonomy_rate 0.2 --note "before the factory run"</code>.</div>
+    </section>
+
+    <section id="integrations" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Integrations</h2>
+      <p class="text-base-content/80 mb-4">Agentic's items cover the sources that feed work. The source is inferred from <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--url</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--path</code>, or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--content</code>; pass <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--source</code> to override, and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--external-id</code> to set the upstream id used for de-duplication.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Source</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">How it enters</th>
+          </tr></thead>
+          <tbody>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">slack</td><td class="px-3 py-2 border-b border-slate-800"><code class="font-mono text-xs">agentic item create --url &lt;slack thread url&gt;</code>, or <code class="font-mono text-xs">task create --slack-url</code>.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">github</td><td class="px-3 py-2 border-b border-slate-800"><code class="font-mono text-xs">agentic item create --url &lt;issue or PR url&gt;</code>, or <code class="font-mono text-xs">task create --github-url</code>.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">gdrive</td><td class="px-3 py-2 border-b border-slate-800">Linked as a URL; refreshed by the background job.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">url</td><td class="px-3 py-2 border-b border-slate-800">Any web page.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">note</td><td class="px-3 py-2 border-b border-slate-800"><code class="font-mono text-xs">agentic item create --content "Remember to rotate the token"</code>.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">commit</td><td class="px-3 py-2 border-b border-slate-800">A commit reference.</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold">file</td><td class="px-3 py-2 border-b border-slate-800"><code class="font-mono text-xs">agentic item create --path /home/me/src/myrepo/notes.md</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">Refresh policy</h3>
+      <p class="text-base-content/80 mb-2">The background refresh job re-fetches Slack and GitHub items on a per-age schedule. I can tune it.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic settings set --slack-refresh-policy "1d=1h,7d=6h,30d=1d,*=7d"
+agentic settings set --github-refresh-policy "1d=1h,7d=6h"
+
+agentic item refresh &lt;item&gt;            # re-fetch metadata and content
+agentic item refresh-due               # re-fetch the items the policy says are due
+agentic item refresh-source slack      # re-fetch every item of one source now</code></pre>
+      <h3 class="text-lg font-semibold text-primary mt-6 mb-2">ghx and slackx</h3>
+      <p class="text-base-content/80 mb-2">Agentic runs ghx and slackx under the hood to fetch GitHub and Slack data. I can run them as CLI binaries or as RPC servers.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic settings set --ghx-backend rpc --ghx-rpc-url http://box:8010
+agentic settings set --ghx-backend cli
+agentic settings set --slackx-backend rpc --slackx-rpc-url http://box:8011 --slackx-rpc-token secret</code></pre>
+      <p class="text-base-content/80 mb-2">Slack conversations can be marked done so later replies are flagged rather than silently reopening the thread.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic item done &lt;item&gt;
+agentic item reopen &lt;item&gt;</code></pre>
+    </section>
+
+    <section id="people" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">People</h2>
+      <p class="text-base-content/80 mb-4">I link people to tasks and items so a task shows who it is for or about. Useful for follow-ups and waiting states.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic person list
+agentic person get &lt;person&gt;
+
+agentic person create --name "Alice Smith" --aliases alice --aliases alice@example.com
+agentic person update &lt;person&gt; --notes "owns ingest"
+agentic person update &lt;person&gt; --aliases alice   # replaces the whole alias list
+agentic person merge &lt;person&gt; --into &lt;person&gt;
+agentic person delete &lt;person&gt;
+
+agentic person link &lt;person&gt; --task &lt;task&gt;
+agentic person link &lt;person&gt; --item &lt;item&gt;
+agentic person link &lt;person&gt; --requested-by &lt;task&gt;
+agentic person unlink &lt;person&gt; --task &lt;task&gt;</code></pre>
+      <p class="text-base-content/80"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">person link</code> and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">unlink</code> take exactly one of <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--task</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--item</code>, or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--requested-by</code>. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">merge</code> folds one person into another, moving their aliases and links.</p>
+    </section>
+
+    <section id="scheduled" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Scheduled tasks</h2>
+      <p class="text-base-content/80 mb-4">A scheduled task runs a shell command on a cron schedule inside the app, separate from agent runs. Each keeps its run history. I use these for recurring checks.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic schedule list
+agentic schedule get &lt;schedule&gt;
+agentic schedule runs
+agentic schedule runs --schedule-id &lt;schedule&gt; --limit 50
+
+agentic schedule create "nightly" "npm test" "0 3 * * *"
+agentic schedule create "digest" "uv run digest" "0 9 * * 1-5" --cwd /home/me/src/repo --timezone Europe/Paris
+agentic schedule create "paused" "make audit" "0 0 1 * *" --disabled
+
+agentic schedule update &lt;schedule&gt; --schedule "30 4 * * *"
+agentic schedule update &lt;schedule&gt; --disable
+agentic schedule update &lt;schedule&gt; --enable
+
+agentic schedule run &lt;schedule&gt;
+agentic schedule delete &lt;schedule&gt;</code></pre>
+      <p class="text-base-content/80"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">create</code> takes <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">NAME</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">COMMAND</code>, and a 5-field cron <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">SCHEDULE</code>. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--cwd</code> defaults to the server's directory and <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--timezone</code> to the server's zone. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--disabled</code> creates the task paused.</p>
+    </section>
+
+    <section id="operations" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Operations log</h2>
+      <p class="text-base-content/80 mb-4">Every mutating API request is recorded with the client that sent it and whether a human or an agent was behind it. This is the cross-cutting view of how work entered the system, including operations with no task to hang a timeline event off, such as settings, repositories, harnesses, and people.</p>
+      <pre class="bg-slate-900 border border-base-300 rounded-xl p-4 overflow-x-auto font-mono text-sm leading-relaxed"><code>agentic operation list                       # newest first, up to 100 by default
+agentic operation list --client cli --actor agent
+agentic operation list --limit 500</code></pre>
+      <p class="text-base-content/80"><code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--client</code> is <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">web</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">cli</code>, or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">api</code>. <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--actor</code> is <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">human</code> or <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agent</code>. I set <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">AGENTIC_ACTOR=agent</code> so the server records my agent's mutations as agent-performed in the timeline and the operations log.</p>
+    </section>
+
+    <section id="tools" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Tools relied on</h2>
+      <p class="text-base-content/80 mb-4">The methodology leans on a small set of CLIs and services. Agentic calls several of them under the hood; I also run them directly.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Tool</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Owner</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Role</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Used by</th>
+          </tr></thead>
+          <tbody>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/TomzxCode/agentic" class="text-primary hover:underline" target="_blank" rel="noopener">agentic</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">TomzxCode <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-xs">mine</span></td><td class="px-3 py-2 border-b border-slate-800">The task tracker CLI. Tasks, items, links, worktrees, runs, sessions, context, metrics.</td><td class="px-3 py-2 border-b border-slate-800">The whole methodology</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/anomalyco/opencode" class="text-primary hover:underline" target="_blank" rel="noopener">opencode2</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">anomalyco</td><td class="px-3 py-2 border-b border-slate-800">The coding agent harness, reached over ACP. Default harness when installed.</td><td class="px-3 py-2 border-b border-slate-800">openchamber, agent runs</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/openchamber/openchamber" class="text-primary hover:underline" target="_blank" rel="noopener">openchamber</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">openchamber</td><td class="px-3 py-2 border-b border-slate-800">Web UI for sessions, files, and diffs.</td><td class="px-3 py-2 border-b border-slate-800">Daily coding</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://code.visualstudio.com" class="text-primary hover:underline" target="_blank" rel="noopener">VS Code</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">microsoft</td><td class="px-3 py-2 border-b border-slate-800">Text editor, used from time to time when openchamber's built-in editor is not enough.</td><td class="px-3 py-2 border-b border-slate-800">Editing</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/TomzxCode/ghx" class="text-primary hover:underline" target="_blank" rel="noopener">ghx</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">TomzxCode <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-xs">mine</span></td><td class="px-3 py-2 border-b border-slate-800">Extended GitHub CLI: cached issue and PR browsing, inline review comments, line-range comments, thread replies, pending reviews, comment stash, edit and delete.</td><td class="px-3 py-2 border-b border-slate-800">Agentic (issue import), review skills</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/cli/cli" class="text-primary hover:underline" target="_blank" rel="noopener">gh</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">cli</td><td class="px-3 py-2 border-b border-slate-800">GitHub CLI. Used where ghx does not cover the operation (repo search, merge, PR creation).</td><td class="px-3 py-2 border-b border-slate-800">Agentic, git workflows</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/TomzxCode/slackx" class="text-primary hover:underline" target="_blank" rel="noopener">slackx</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">TomzxCode <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-xs">mine</span></td><td class="px-3 py-2 border-b border-slate-800">Slack cache and reader: threads, channel history, DMs, users, channels, with a local SQLite store.</td><td class="px-3 py-2 border-b border-slate-800">Agentic (Slack items), Slack skills</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://git-scm.com" class="text-primary hover:underline" target="_blank" rel="noopener">git</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">git-scm</td><td class="px-3 py-2 border-b border-slate-800">Version control, worktrees, branches.</td><td class="px-3 py-2 border-b border-slate-800">Worktrees, commits</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/astral-sh/uv" class="text-primary hover:underline" target="_blank" rel="noopener">uv</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">astral-sh</td><td class="px-3 py-2 border-b border-slate-800">Python package manager and runner.</td><td class="px-3 py-2 border-b border-slate-800">Agentic server, scripts</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/jqlang/jq" class="text-primary hover:underline" target="_blank" rel="noopener">jq</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">jqlang</td><td class="px-3 py-2 border-b border-slate-800">JSON filtering for piped CLI output.</td><td class="px-3 py-2 border-b border-slate-800">Scripting</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/asciinema/asciinema" class="text-primary hover:underline" target="_blank" rel="noopener">asciinema</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">asciinema</td><td class="px-3 py-2 border-b border-slate-800">Terminal demo recording, rendered to GIF or SVG.</td><td class="px-3 py-2 border-b border-slate-800">verify-pr, validate-implementation</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/microsoft/playwright" class="text-primary hover:underline" target="_blank" rel="noopener">playwright</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">microsoft</td><td class="px-3 py-2 border-b border-slate-800">Web UI recording and screenshots.</td><td class="px-3 py-2 border-b border-slate-800">verify-pr, validate-implementation</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/astral-sh/ruff" class="text-primary hover:underline" target="_blank" rel="noopener">ruff</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">astral-sh</td><td class="px-3 py-2 border-b border-slate-800">Python linter and formatter.</td><td class="px-3 py-2 border-b border-slate-800">Python projects</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://github.com/pytest-dev/pytest" class="text-primary hover:underline" target="_blank" rel="noopener">pytest</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">pytest-dev</td><td class="px-3 py-2 border-b border-slate-800">Python test runner.</td><td class="px-3 py-2 border-b border-slate-800">Python projects</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://tailwindcss.com" class="text-primary hover:underline" target="_blank" rel="noopener">Tailwind CSS</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">tailwindlabs</td><td class="px-3 py-2 border-b border-slate-800">Utility-first CSS framework (via CDN).</td><td class="px-3 py-2 border-b border-slate-800">This page</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800 font-semibold"><a href="https://daisyui.com" class="text-primary hover:underline" target="_blank" rel="noopener">DaisyUI</a></td><td class="px-3 py-2 border-b border-slate-800 text-base-content/70">saadeghi</td><td class="px-3 py-2 border-b border-slate-800">Tailwind component library and theme engine.</td><td class="px-3 py-2 border-b border-slate-800">This page</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="border-l-4 border-teal-400 bg-primary/10 p-4 rounded-r-lg text-sm text-slate-200 mt-4">Prefer <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">ghx</code> over <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> for listing, searching, and viewing issues and PRs, and for getting and posting comments. Fall back to <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">gh</code> only when ghx does not support the needed operation.</div>
+    </section>
+
+    <section id="related" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Related resources</h2>
+      <ul class="list-disc ml-6 space-y-1 text-base-content/80">
+        <li><a href="sdlc-guide.html" class="text-primary hover:underline">SDLC, an interactive guide</a>: the software development lifecycle encoded as composable agent skills. The agentic methodology builds on it.</li>
+      </ul>
+    </section>
+
+    <section id="commands" class="mb-12">
+      <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-slate-800">Command cheat sheet</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Goal</th>
+            <th class="text-primary font-semibold bg-base-300 px-3 py-2 border-b border-slate-800">Command</th>
+          </tr></thead>
+          <tbody>
+
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">List tasks</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic task list</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Current task</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic stack current</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Show the stack</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic stack list</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Task details</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic task get &lt;task&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Task timeline</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic task timeline &lt;task&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Context</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic context get &lt;task&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Refresh context</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic context refresh &lt;task&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Start a run</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic run create &lt;task&gt; --prompt "..."</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Wait for a run</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic run wait &lt;run-id&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Stream a run</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic run stream &lt;run-id&gt;</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Create a worktree</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic worktree create &lt;task&gt; --branch fix/x</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Record a session</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic session add &lt;task&gt; &lt;session-id&gt; --label openchamber</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Pop the current task</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic stack pop</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Metrics</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic metrics show</td></tr>
+            <tr class="hover:bg-base-300"><td class="px-3 py-2 border-b border-slate-800">Cycle time</td><td class="px-3 py-2 border-b border-slate-800 font-mono text-xs">agentic metrics cycle-time</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-base-content/80 mt-4">The CLI emits JSON when piped, so <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">agentic task list | jq</code> works without a flag. Pass <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--format text</code> for the human-readable form even when piped. Global options: <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--api-url</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--format</code>, <code class="font-mono bg-base-300 px-1.5 py-0.5 rounded">--timeout</code>.</p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Theme switcher
+  const themeSelect = document.getElementById('theme-select');
+  const savedTheme = localStorage.getItem('agentic-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  themeSelect.value = savedTheme;
+  themeSelect.addEventListener('change', (e) => {
+    document.documentElement.setAttribute('data-theme', e.target.value);
+    localStorage.setItem('agentic-theme', e.target.value);
+  });
+
+  const progress = document.getElementById('progress');
+  function updateProgress() {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    progress.style.width = (scrolled * 100) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  const links = document.querySelectorAll('.navlink');
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('bg-primary/15','text-white','border','border-primary/30'));
+        const a = document.querySelector('.navlink[href="#' + e.target.id + '"]');
+        if (a) a.classList.add('bg-primary/15','text-white','border','border-primary/30');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
