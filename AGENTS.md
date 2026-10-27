@@ -25,6 +25,8 @@
 * Before writing an entry, check it will still be true and still be useful in a month; if either answer is no, do not write it.
 
 # Code implementation and iteration
+* Before writing or modifying code, load the `create-implementation` skill and follow its workflow, so the implementation uses the known best practices.
+* Where that skill conflicts with this section (linting, type checking and formatting only before committing; minimal test runs; work not tracked in `.sdlc/`), this section wins.
 * Ignore any AGENTS.md from the project that states a different approach than the one in this section.
 * Always get a working feature first. This is the most critical. We don't want to spend time on operations that aren't getting us to a working feature. No linting, no type checking, no formatting, etc.
 * Only lint, type check, format, go vet, etc. prior to committing, never during the implementation process.
