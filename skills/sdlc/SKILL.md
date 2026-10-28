@@ -455,6 +455,7 @@ Architectural choices made during any phase are logged via `/create-decision` to
 | `pr` | Visual proof captured (or skipped); ready to open a pull request |
 | `assess-pr-risk` | PR is open; decide how much review it needs before spending review effort (advisory; also run before `merge-pr` on fast paths that skip review) |
 | `summarize-behavior-changes` | PR is open; get a reviewer-facing summary of what changes behaviorally (before/after, consumers, breaking changes) before reviewing (advisory, never blocks; runs as part of `promote-pr` and is also invocable directly) |
+| `adversarial-pr-review` | PR is open; find the most likely ways it breaks and try to reproduce them with scratch probes (advisory in the review chain, but a reproduced failure blocks automatic promotion; runs as part of `promote-pr` and is also invocable directly) |
 | `validate-pr` | PR is open; judge whether it builds the right product before spending a build |
 | `verify-pr` | Right product confirmed; verify conformance to the acceptance criteria (traceability + runtime proof) |
 | `handle-pr-ci` | PR has failing CI checks to fix |
@@ -742,6 +743,7 @@ Each phase consumes output from the previous phase:
 | validate-pr | Pull request | Validation report: verdict on whether the PR builds the right product; needs/criteria/scope findings |
 | verify-pr | Pull request | Conformance report: criteria-to-code traceability + runtime proof per criterion (asciinema/Playwright recordings) |
 | review-pr | Pull request | Code review findings (resolve before merge) |
+| adversarial-pr-review | Pull request | Adversarial findings: reproduced failures, ruled-out attacks, and unproven scenarios (a reproduced failure blocks automatic promotion) |
 | handle-pr-ci | PR with failing CI checks | Root cause diagnosed, fix committed, CI green (repeat until passing) |
 | handle-pr-reviewer-feedback | PR with reviewer comments | Addressed comments, pushed, re-review requested (repeat until approved) |
 | merge-pr | Approved PR with green CI | Merged PR, deleted branch, closed issue |

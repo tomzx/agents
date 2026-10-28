@@ -15,7 +15,7 @@ None of those answer "what will behave differently", which is what a reviewer, r
 It is **descriptive, not judgmental**: it reports behavior changes and flags the ones that are breaking or undeclared, but it does not score risk, judge craft, or gate anything.
 Its marker verdict is always `informational`, and it never halts the pipeline.
 
-It is self-contained: it gathers evidence from the diff and the codebase only, so `review-pr-full` dispatches it in parallel with `analyze-test-coverage` and `assess-pr-risk`.
+It is self-contained: it gathers evidence from the diff and the codebase only, so `review-pr-full` dispatches it in parallel with `analyze-test-coverage`, `assess-pr-risk`, and `adversarial-pr-review`.
 It never reads or waits for sibling reports.
 
 ## Prerequisites
@@ -24,7 +24,7 @@ It never reads or waits for sibling reports.
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
-- Self-contained evidence: the summary needs only the diff and the codebase; it never reads or waits for sibling reports (`analyze-test-coverage`, `validate-pr`, `verify-pr`, `review-pr`, `assess-pr-risk`)
+- Self-contained evidence: the summary needs only the diff and the codebase; it never reads or waits for sibling reports (`analyze-test-coverage`, `validate-pr`, `verify-pr`, `review-pr`, `assess-pr-risk`, `adversarial-pr-review`)
 - Orchestrators (`review-pr-full`, `review-requested-prs`) dispatch this skill concurrently with the analyze-test-coverage -> validate -> verify -> review chain and provide `WORKTREE_DIR`
 
 ### Skill attribution (GitHub)
@@ -225,7 +225,7 @@ fi
 
 ## Orchestrated runs (review-pr-full)
 
-When dispatched by `review-pr-full`, this step runs **in parallel** with `assess-pr-risk` and the first chain step (`analyze-test-coverage`).
+When dispatched by `review-pr-full`, this step runs **in parallel** with `assess-pr-risk`, `adversarial-pr-review`, and the first chain step (`analyze-test-coverage`).
 The worktree already exists at `$WORKTREE_DIR`; use it and do not create or remove one.
 Resolve the PR context and diff as in steps 1 and 3, produce the summary, and write the report per step 8.
 
@@ -318,7 +318,7 @@ The report lists the removal under Removed behavior with the replacement, and ra
 
 **Scenario 4: Called by review-pr-full**
 ```
-review-pr-full dispatches this skill in parallel with assess-pr-risk and analyze-test-coverage, passing WORKTREE_DIR.
+review-pr-full dispatches this skill in parallel with assess-pr-risk, adversarial-pr-review, and analyze-test-coverage, passing WORKTREE_DIR.
 ```
 The skill reuses the worktree, writes its report with the `informational` marker, and never gates the chain.
 
@@ -326,7 +326,7 @@ The skill reuses the worktree, writes its report with the `informational` marker
 
 | Skill | Relationship |
 |---|---|
-| `review-pr-full` | Dispatches this skill in parallel with assess-pr-risk and the analyze-test-coverage -> validate -> verify -> review chain; its report carries the commit marker the staleness script tracks |
+| `review-pr-full` | Dispatches this skill in parallel with assess-pr-risk, adversarial-pr-review, and the analyze-test-coverage -> validate -> verify -> review chain; its report carries the commit marker the staleness script tracks |
 | `analyze-test-coverage` | Sibling parallel/early step: asks whether the behavior changes are covered by tests; this skill asks what the behavior changes are |
 | `assess-pr-risk` | Sibling parallel step: judges how risky the changes are; this skill describes what the changes do |
 | `review-pr` | Code-craft review: answers whether the change is well built, not what behavior it changes |

@@ -425,7 +425,7 @@ Rules:
 
 Context-level review skills (`review-goals`, `review-roadmap`, `review-service-levels`) write their findings beside the context artifact instead of under a feature directory: `.sdlc/context/review-goals.md`, `.sdlc/context/review-roadmap.md`, and `.sdlc/context/review-service-levels.md`, with the same frontmatter (`artifact`, `verdict`, `reviewed_at`) and verdict semantics.
 
-## PR Review Reports (validate-pr / verify-pr / review-pr / analyze-test-coverage / assess-pr-risk / summarize-behavior-changes / review-cli-changes / review-sdk-changes / review-api-changes / review-db-changes)
+## PR Review Reports (validate-pr / verify-pr / review-pr / analyze-test-coverage / assess-pr-risk / summarize-behavior-changes / adversarial-pr-review / review-cli-changes / review-sdk-changes / review-api-changes / review-db-changes)
 
 PR code-review reports are **reviewer-owned artifacts**, not project artifacts. They never live in the reviewed repository's `.sdlc/` tree (doing so pollutes external/upstream checkouts and couples them to the worktree lifecycle). The local file is the reviewer's personal copy. Whether it is posted as a GitHub comment is decided by `should-post-to-github` (see `~/.sdlc/config.yaml`: `post_github_comments`, `excluded_owners`, `excluded_repos`, `excluded_authors`). When posting is disabled the report is saved locally only.
 
@@ -448,6 +448,7 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 | `review-pr` | `review.yaml` | `review-pr.<sha>.md` (`review-pr.report.md`), plus `gh-pr-view.md` (raw PR cache) |
 | `assess-pr-risk` | none (stateless; cheap to re-run) | `assess-pr-risk.<sha>.md` (`assess-pr-risk.report.md`) |
 | `summarize-behavior-changes` | none (stateless; cheap to re-run) | `summarize-behavior-changes.<sha>.md` (`summarize-behavior-changes.report.md`) |
+| `adversarial-pr-review` | none (stateless; cheap to re-run) | `adversarial-pr-review.<sha>.md` (`adversarial-pr-review.report.md`) |
 | `analyze-test-coverage` | none (stateless; cheap to re-run) | `analyze-test-coverage.<sha>.md` (`analyze-test-coverage.report.md`) |
 | `review-cli-changes` | none (stateless; cheap to re-run) | `review-cli-changes.<sha>.md` (`review-cli-changes.report.md`) |
 | `review-sdk-changes` | none (stateless; cheap to re-run) | `review-sdk-changes.<sha>.md` (`review-sdk-changes.report.md`) |
@@ -457,6 +458,8 @@ $HOME/.sdlc/{owner}/{repository}/pull-requests/{PR_NUMBER}/
 `assess-pr-risk` is dispatched by `review-pr-full` in parallel with the analyze-test-coverage -> validate -> verify -> review chain and is self-contained: it gathers its evidence from the diff, the codebase, and churn of the touched files, and never reads the chain skills' reports (they usually do not exist yet when it runs, so the parallel dispatch never weakens the estimate). It has no findings state: its staleness is marker-based (the orchestrator script checks `assess-pr-risk` markers like the others), and a re-run at the same head simply recomputes. Its marker verdict is a routing token (`fast-track` / `confirm` / `investigate` / `decide` / `block` / `hold`), not pass/fail, and the marker also carries the `risk` and `confidence` levels so the orchestrator's summary table can display them.
 
 `summarize-behavior-changes` is dispatched by `review-pr-full` in parallel with the same chain and with `assess-pr-risk`, and is self-contained: it reads only the diff and the codebase, so it never depends on a sibling report. It has no findings state (marker-based staleness like the others), and its marker verdict is always `informational`; it never gates a chain step and is never gated or dropped by one. Its report is the reviewer-facing answer to what will behave differently after merge (what changed, from what to what, which consumers are affected, which changes are breaking).
+
+`adversarial-pr-review` is dispatched by `review-pr-full` in parallel with the same chain and with `assess-pr-risk` and `summarize-behavior-changes`, and is self-contained: it reads the diff, the codebase, the PR description, and the linked issue, so it never depends on a sibling report. It has no findings state (marker-based staleness like the others). Its marker verdict is `breaks` (at least one plausible failure reproduced at `L3 - Executed` or `L4 - Reproduced`), `unproven` (a decisive scenario could not be executed), or `holds` (every selected scenario ruled out, with at least one probe executed, or a diff with no executable surface); the marker also carries the `reproduced_count` and `unproven_count` values. It is advisory and never gates a chain step, and a chain step never gates it, but a `breaks` verdict is reproduced evidence and the orchestrator's summary and readiness light surface it.
 
 `analyze-test-coverage` is the first chain step (before `validate-pr`, `verify-pr`, and `review-pr`), so its report exists as evidence before anything else judges the change. It writes the same per-run report and marker (`pass` when every behavior change is covered and no uncovered code is listed, `fail` otherwise), and its verdict never gates anything. When `review-pr`, `verify-pr`, or `review-implementation` delegates to it, it writes nothing and only returns its tables to the parent.
 
@@ -507,6 +510,7 @@ The overall light is the worst of the property lights, rendered through the step
 | `analyze-test-coverage` | No gaps | SHOULD/MAY gaps only | Any MUST gap |
 | `assess-pr-risk` | `fast-track`, `confirm` | `decide`, `investigate` | `block`, `hold` |
 | `summarize-behavior-changes` | Declared changes only | Unstated behavior change | Breaking change with no migration note |
+| `adversarial-pr-review` | `holds` | `unproven` | `breaks` |
 
 A property light is the worst finding severity in that property: any MUST finding is 🔴, any SHOULD or MAY finding is 🟡, none is 🟢.
 The light renders the verdict and findings the step already reached; it never adds a judgment of its own.

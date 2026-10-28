@@ -18,7 +18,7 @@ This skill judges neither code craft (that is `/review-pr`), conformance (`/veri
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
-- Self-contained evidence: the assessment needs only the diff, the codebase, and churn of the touched files; it never reads or waits for sibling reports (`summarize-behavior-changes`, `analyze-test-coverage`, `validate-pr`, `verify-pr`, `review-pr`)
+- Self-contained evidence: the assessment needs only the diff, the codebase, and churn of the touched files; it never reads or waits for sibling reports (`summarize-behavior-changes`, `adversarial-pr-review`, `analyze-test-coverage`, `validate-pr`, `verify-pr`, `review-pr`)
 - Orchestrators (`review-pr-full`, `review-requested-prs`) dispatch this skill concurrently with the analyze-test-coverage -> validate -> verify -> review chain and provide `WORKTREE_DIR`; because it shares no evidence with the chain, the parallel dispatch never weakens the estimate.
 
 ### Skill attribution (GitHub)

@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-244-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-249-green" alt="Skill count">
 </p>
 
 ## What
@@ -219,8 +219,8 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
-| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment, behavior change summary, and the conditional CLI/SDK/API/DB surface reviews in parallel with coverage, validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
-| `/review-requested-prs` | Fan out full reviews (assess-pr-risk, summarize-behavior-changes, the conditional surface reviews, validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
+| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment, behavior change summary, adversarial review, and the conditional CLI/SDK/API/DB surface reviews in parallel with coverage, validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
+| `/review-requested-prs` | Fan out full reviews (assess-pr-risk, summarize-behavior-changes, adversarial-pr-review, the conditional surface reviews, validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. Owns the feedback contract and the analyze-only / execute modes. |
 | `/triage-pr-feedback` | Orchestrate reviewer-feedback triage: scan your open PRs for new feedback, run `handle-pr-reviewer-feedback --analyze-only` per PR, then prompt for decisions and hand off execution; built to run on a 10-15 minute schedule. |
@@ -235,6 +235,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/verify-pr` | Verify conformance to acceptance criteria: traceability plus runtime proof (build, run, record demos). |
 | `/assess-pr-risk` | Estimate a PR's risk and the confidence of that estimate, and recommend the next reviewer action. |
 | `/summarize-behavior-changes` | Summarize what a PR changes behaviorally (before/after, consumers affected, breaking changes); runs in parallel with assess-pr-risk. |
+| `/adversarial-pr-review` | Attack a PR adversarially: rank the most likely ways it breaks, then reproduce them with throwaway probes (`L3`/`L4`) and report `breaks`, `unproven`, or `holds`. |
 | `/record-asciinema` | Record a terminal/CLI demo with asciinema and render to GIF/SVG. |
 | `/record-playwright` | Capture web UI screenshots/video with Playwright across viewports. |
 | `/deploy-pr` | Deploy merged changes, run smoke tests, verify rollback. |

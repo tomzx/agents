@@ -12,7 +12,7 @@
 Discovers PRs needing review (requested from you, open PRs you have already
 reviewed, plus PRs where a team you belong to was requested and the request was
 later dropped because a teammate answered it), checks staleness of
-assess-pr-risk / summarize-behavior-changes / review-cli-changes /
+assess-pr-risk / summarize-behavior-changes / adversarial-pr-review / review-cli-changes /
 review-sdk-changes / review-api-changes / review-db-changes /
 analyze-test-coverage / validate-pr / verify-pr / review-pr comment markers
 against each PR's HEAD commit, and outputs which review steps need to be
@@ -25,9 +25,12 @@ team comments or reviews, GitHub removes the team request for everyone, so
 notifications only when ``--notifications`` is passed, per repo for explicit
 ``owner/repo`` targets and globally when no repo is given.
 
-assess-pr-risk and summarize-behavior-changes run in parallel with the
-analyze-test-coverage -> validate -> verify -> review chain: each is stale
-independently of the chain, never gates a chain step, and is never gated by one.
+assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review run in parallel
+with the analyze-test-coverage -> validate -> verify -> review chain: each is
+stale independently of the chain, never gates a chain step, and is never gated
+by one.
+The adversarial review is advisory too: its ``breaks`` verdict (a failure reproduced at
+L3/L4) is reported but never cuts the chain.
 
 The surface reviews (review-cli-changes, review-sdk-changes, review-api-changes,
 review-db-changes) are conditional: a surface step is only stale when the PR's
@@ -46,9 +49,9 @@ an isolated hold.
 
 The human summary table puts a merge-readiness light beside each PR number,
 derived from the collected signals (review-step staleness, chain verdicts,
-approvals, changes requested, and the assess-pr-risk route): green when the
-PR could be approved automatically, yellow when something still needs
-attention, red when a signal blocks approval.
+approvals, changes requested, the assess-pr-risk route, and an adversarial review
+``breaks`` verdict): green when the PR could be approved automatically, yellow
+when something still needs attention, red when a signal blocks approval.
 
 All GitHub access goes through PyGithub (token from GITHUB_TOKEN env var
 or ``gh auth token`` as fallback).
@@ -161,9 +164,9 @@ LEGACY_MARKER_PATTERNS: dict[str, re.Pattern[str]] = {
 
 CHAIN_STEPS = ("analyze-test-coverage", "validate-pr", "verify-pr", "review-pr")
 
-# assess-pr-risk and summarize-behavior-changes run in parallel with the chain:
-# independent staleness, no gating in either direction.
-PARALLEL_STEPS = ("assess-pr-risk", "summarize-behavior-changes")
+# assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review run in parallel
+# with the chain: independent staleness, no gating in either direction.
+PARALLEL_STEPS = ("assess-pr-risk", "summarize-behavior-changes", "adversarial-pr-review")
 
 # Surface-specific reviews. They are conditional: a surface step is stale only
 # when the PR's changed files touch that surface (SURFACE_STEP_PATTERNS), and
@@ -230,6 +233,7 @@ VERDICT_FIELDS: dict[str, str] = {
 STEP_TO_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_commit",
     "summarize-behavior-changes": "behavior_commit",
+    "adversarial-pr-review": "adversarial_commit",
     "review-cli-changes": "cli_commit",
     "review-sdk-changes": "sdk_commit",
     "review-api-changes": "api_commit",
@@ -243,6 +247,7 @@ STEP_TO_FIELD: dict[str, str] = {
 STEP_TO_POSTED_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_posted",
     "summarize-behavior-changes": "behavior_posted",
+    "adversarial-pr-review": "adversarial_posted",
     "review-cli-changes": "cli_posted",
     "review-sdk-changes": "sdk_posted",
     "review-api-changes": "api_posted",
@@ -256,6 +261,7 @@ STEP_TO_POSTED_FIELD: dict[str, str] = {
 STEP_TO_VERDICT_FIELD: dict[str, str] = {
     "assess-pr-risk": "assess_verdict",
     "summarize-behavior-changes": "behavior_verdict",
+    "adversarial-pr-review": "adversarial_verdict",
     "review-cli-changes": "cli_verdict",
     "review-sdk-changes": "sdk_verdict",
     "review-api-changes": "api_verdict",
@@ -272,6 +278,9 @@ VERDICT_STYLES: dict[str, str] = {
     "pass": "green",
     "fail": "red",
     "informational": "blue",
+    "holds": "green",
+    "breaks": "red",
+    "unproven": "yellow",
     "": "dim",
 }
 
@@ -279,6 +288,9 @@ VERDICT_DISPLAY: dict[str, str] = {
     "pass": "✅",
     "fail": "❌",
     "informational": "ℹ️",
+    "holds": "✅",
+    "breaks": "❌",
+    "unproven": "⚠️",
 }
 
 # assess-pr-risk report fields. Risk/confidence travel in the marker JSON
@@ -342,6 +354,7 @@ class PRReviewState:
     coverage_commit: str = ""
     assess_commit: str = ""
     behavior_commit: str = ""
+    adversarial_commit: str = ""
     cli_commit: str = ""
     sdk_commit: str = ""
     api_commit: str = ""
@@ -352,6 +365,7 @@ class PRReviewState:
     coverage_posted: bool = False
     assess_posted: bool = False
     behavior_posted: bool = False
+    adversarial_posted: bool = False
     cli_posted: bool = False
     sdk_posted: bool = False
     api_posted: bool = False
@@ -362,6 +376,7 @@ class PRReviewState:
     coverage_verdict: str = ""
     assess_verdict: str = ""
     behavior_verdict: str = ""
+    adversarial_verdict: str = ""
     cli_verdict: str = ""
     sdk_verdict: str = ""
     api_verdict: str = ""
@@ -1280,6 +1295,7 @@ def check_local_markers(pr: PRReviewState) -> None:
         pr=pr.number,
         assess_commit=pr.assess_commit[:8] or "none",
         behavior_commit=pr.behavior_commit[:8] or "none",
+        adversarial_commit=pr.adversarial_commit[:8] or "none",
         cli_commit=pr.cli_commit[:8] or "none",
         sdk_commit=pr.sdk_commit[:8] or "none",
         api_commit=pr.api_commit[:8] or "none",
@@ -1297,6 +1313,7 @@ def check_local_markers(pr: PRReviewState) -> None:
         review_verdict=pr.review_verdict or "none",
         coverage_verdict=pr.coverage_verdict or "none",
         behavior_verdict=pr.behavior_verdict or "none",
+        adversarial_verdict=pr.adversarial_verdict or "none",
     )
 
 
@@ -1319,9 +1336,9 @@ def applicable_surface_steps(pr: PRReviewState) -> list[str]:
 def determine_stale_steps(pr: PRReviewState) -> list[str]:
     """Return the ordered list of review steps that are stale for *pr*.
 
-    assess-pr-risk and summarize-behavior-changes come first so they can be
-    dispatched concurrently with the first stale chain step; each is stale
-    independently of the chain.
+    assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review come first so
+    they can be dispatched concurrently with the first stale chain step; each is
+    stale independently of the chain.
     The applicable surface reviews (SURFACE_STEPS) follow them: they are
     conditional on the changed files and are stale like the parallel steps,
     never gating and never gated.
@@ -1337,6 +1354,7 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
     core_at_head = (
         pr.assess_commit == head
         and pr.behavior_commit == head
+        and pr.adversarial_commit == head
         and pr.coverage_commit == head
         and pr.validate_commit == head
         and pr.verify_commit == head
@@ -1354,6 +1372,9 @@ def determine_stale_steps(pr: PRReviewState) -> list[str]:
 
     if pr.behavior_commit != head:
         steps.append("summarize-behavior-changes")
+
+    if pr.adversarial_commit != head:
+        steps.append("adversarial-pr-review")
 
     for step in surfaces:
         if getattr(pr, STEP_TO_FIELD[step]) != head:
@@ -1532,17 +1553,21 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
         table.add_column("Review", justify="center")
         table.add_column("Risk", justify="center")
         table.add_column("Behavior", justify="center")
+        table.add_column("Adversarial", justify="center")
         table.add_column("Surfaces", justify="center")
         table.add_column("Blocks", justify="right")
         table.add_column("Status")
         table.add_column("Approver")
 
         for pr in repo_prs:
+            signal = readiness_signal(pr)
             status = (
                 f"[red]Error: {pr.error}[/red]"
                 if pr.error
                 else "[green]Ready for approval[/green]"
-                if not pr.stale_steps
+                if signal == "green"
+                else "[red]Blocked[/red]"
+                if signal == "red"
                 else "[bold yellow]Needs review[/bold yellow]"
             )
             approver_col = (
@@ -1591,6 +1616,13 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 pr.head_commit,
                 _step_report_path(pr, "behavior_commit"),
             )
+            adversarial_col = _marker_cell(
+                pr.adversarial_commit,
+                pr.adversarial_posted,
+                pr.adversarial_verdict,
+                pr.head_commit,
+                _step_report_path(pr, "adversarial_commit"),
+            )
             table.add_row(
                 _pr_cell(pr),
                 pr.author or "[dim]—[/dim]",
@@ -1606,6 +1638,7 @@ def build_summary_table(prs: list[PRReviewState]) -> Group:
                 review_col,
                 assess_col,
                 behavior_col,
+                adversarial_col,
                 _surfaces_cell(pr),
                 _blocking_depth_cell(pr.blocking_depth),
                 status,
@@ -1649,12 +1682,14 @@ def readiness_signal(pr: PRReviewState) -> str:
     """Classify whether a PR could be approved automatically from its signals.
 
     Returns ``green``, ``yellow``, or ``red``. Red is a hard blocker: a fetch
-    error, a failing chain verdict, a standing changes-requested review, or an
-    assess-pr-risk ``block``/``hold`` route. Green means the PR could be
+    error, a failing chain verdict, a standing changes-requested review, a
+    reproduced failure (``breaks``), or an assess-pr-risk
+    ``block``/``hold`` route. Green means the PR could be
     approved automatically: not a draft, no stale review steps, a passing
     review verdict, no advisory coverage fail, no failing applicable surface
     review (a surface ``changes-requested`` keeps it out of green but is not
-    itself a red block), and no ``decide``/``investigate`` route asking for a
+    itself a red block), no ``unproven`` verdict, and no
+    ``decide``/``investigate`` route asking for a
     closer look. Everything else is yellow. An existing
     approval is not required for green; this light decides whether to approve,
     not whether approval already happened.
@@ -1666,16 +1701,22 @@ def readiness_signal(pr: PRReviewState) -> str:
         for verdict in (pr.validate_verdict, pr.verify_verdict, pr.review_verdict)
     ):
         return "red"
-    if pr.changes_requested or pr.assess_verdict in BLOCKING_ROUTES:
+    if (
+        pr.changes_requested
+        or pr.assess_verdict in BLOCKING_ROUTES
+        or pr.adversarial_verdict == "breaks"
+    ):
         return "red"
     if (
         not pr.draft
         and not pr.stale_steps
         and pr.review_verdict == "pass"
         and pr.coverage_verdict != "fail"
+        and pr.adversarial_verdict != "unproven"
         and pr.assess_verdict not in SLOW_ROUTES
         and all(
-            getattr(pr, STEP_TO_VERDICT_FIELD[step]) != "fail"
+            getattr(pr, STEP_TO_VERDICT_FIELD[step])
+            not in ("changes-requested", "rejected")
             for step in applicable_surface_steps(pr)
         )
     ):
@@ -1876,9 +1917,9 @@ def effective_stale_steps(pr: PRReviewState) -> list[str]:
     """Return the stale steps not skipped because an earlier chain step failed.
 
     A failed chain step cuts off the chain steps at and after it, but the
-    parallel steps (assess-pr-risk, summarize-behavior-changes) and the
-    conditional surface reviews (SURFACE_STEPS) are never cut off: they neither
-    gate nor are gated.
+    parallel steps (assess-pr-risk, summarize-behavior-changes, adversarial-pr-review)
+    and the conditional surface reviews (SURFACE_STEPS) are never cut off: they
+    neither gate nor are gated.
     analyze-test-coverage is advisory (its fail never cuts) and precedes
     validate-pr, so a validate fail does not cut it either.
     """
@@ -1962,7 +2003,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Discover PRs needing review and determine which review steps "
-            "(assess-pr-risk, summarize-behavior-changes, analyze-test-coverage, "
+            "(assess-pr-risk, summarize-behavior-changes, adversarial-pr-review, "
+            "analyze-test-coverage, "
             "validate-pr, verify-pr, review-pr) are stale."
         ),
     )

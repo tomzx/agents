@@ -19,7 +19,7 @@ Writes findings to a structured markdown file.
 
 - Apply the shared SDLC conventions in `skills/sdlc/references/shared.md`.
 - Apply the shared evidence standard in [`../sdlc/references/evidence.md`](../sdlc/references/evidence.md): label every finding with a level in the form `L<n> - <Name>`.
-  This review is static, so its ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
+  This review is static, so its ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr` (does the accepted behavior work?) or `/adversarial-pr-review` (does a plausible failure happen?).
 - If no argument is provided, target the pull request from `$PR_NUMBER` (and `$REPO`).
 - `gh` CLI authenticated with read access to the target repository
 - `git worktree` available
@@ -146,7 +146,7 @@ If worktree creation fails, stop.
 This skill is static code-craft review.
 It does not build or run the code (that is `/verify-pr`'s conformance role) and does not judge whether the target is the right product (that is `/validate-pr`'s role).
 Establish context, then review craft.
-Its evidence ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr`.
+Its evidence ceiling is `L2 - Ruled out`; a claim that needs execution routes to `/verify-pr` (does the accepted behavior work?) or `/adversarial-pr-review` (does a plausible failure happen?).
 
 Before diving into the code:
 

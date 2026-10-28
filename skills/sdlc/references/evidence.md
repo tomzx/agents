@@ -42,4 +42,5 @@ The run must not modify the subject under audit.
 | `review-implementation` | `L3 - Executed` for a 🔴 MUST finding | A blocking finding cannot rest on an assertion. |
 | `review-pr` | `L2 - Ruled out` | The review is static and does not build or run the code. A claim that needs execution routes to `verify-pr`. |
 | `review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes` | `L2 - Ruled out`; `L3 - Executed` for a decisive claim proven by a read-only command | Surface-focused and static; running the changed CLI, SDK, API, or migration is `verify-pr`'s, and a destructive migration is never run to review it. |
+| `adversarial-pr-review` | `L4 - Reproduced` | It runs throwaway probes against the PR's code to confirm or rule out plausible failures; a failure that cannot be executed is declared unproven. |
 | `verify-pr` | `L4 - Reproduced` | It builds the PR and runs each criterion. |
