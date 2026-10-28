@@ -1,0 +1,21 @@
+{
+  "skill_name": "weekly-slack-update",
+  "evals": [
+    {
+      "id": 0,
+      "name": "typical-mixed-week",
+      "prompt": "We just wrapped up the week. Can you put together a Slack update I can paste into our #product channel summarizing what shipped on main over the past week? Repo is at the provided path.",
+      "expected_output": "A copy-paste Slack message in a fenced code block, grouped into stakeholder sections (New & improved / Fixes), using Slack composer markdown (*bold*, - bullets, raw URLs), with internal refactor/chore/test commits dropped and changes rewritten in plain language.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "noisy-internal-only-week",
+      "prompt": "Generate the weekly shipped-changes Slack message from the git history of this repo's default branch over the last 7 days.",
+      "expected_output": "A Slack message that, when the week is mostly internal work, drops the internal commits and either surfaces only the genuinely user-facing changes or states plainly that no customer-facing changes shipped, rather than padding with refactors/chores.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

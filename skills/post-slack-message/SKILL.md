@@ -34,6 +34,7 @@ This skill contains the compose-and-confirm flow so it can use the question tool
 - **message:** the message body in Slack mrkdwn (`*bold*`, `<@USERID>` mentions, `<https://url|label>` links).
   Provided as a trailing argument, via `--file <path>`, or via `--stdin`.
   Exactly one source.
+  If the draft was written in regular markdown (the copy/paste convention), convert it to Slack mrkdwn before sending.
 - **mode:** `--yes` for immediate send; otherwise review mode.
 - **dry-run:** `--dry-run` resolves the channel and shows what would be posted without sending.
   Use it to pre-validate credentials and targeting.

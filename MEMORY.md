@@ -1,5 +1,11 @@
 # Memory
 
+## 2026-10-28: Slack messages handed to the user are regular markdown, not Slack mrkdwn
+
+- When the user will copy/paste a Slack message (drafts, announcements, thread replies), write it in regular markdown (`**bold**`, `[label](url)`), not Slack mrkdwn (`*bold*`, `<url|label>`).
+- Slack does not render markdown headers (`#`, `##`, `###`), so use a bold line on its own instead of a heading.
+- Slack mrkdwn stays correct for messages the agent posts through the Slack API (`post_slack_message.py`), because Slack renders it; convert a markdown draft to mrkdwn at post time.
+
 ## 2026-10-13: adding an SDLC context file is a cross-skill change
 
 - Adding a file under `.sdlc/context/` requires updating every skill that creates, reconciles, interviews for, or reviews the context set, plus the canonical template and the hand-maintained SDLC HTML docs. Adding the template and the `shared.md` list alone is incomplete.
