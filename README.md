@@ -9,7 +9,7 @@
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/format-Agent%20Skills-blue" alt="Agent Skills format"></a>
   <img src="https://img.shields.io/badge/content-Markdown%20skills-blue" alt="Markdown skills">
   <img src="https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platform">
-  <img src="https://img.shields.io/badge/skills-249-green" alt="Skill count">
+  <img src="https://img.shields.io/badge/skills-250-green" alt="Skill count">
 </p>
 
 ## What
@@ -410,6 +410,7 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/write-cli` | Read, create, update, sync, comment on, and delete Write.quick documents via the `write-cli` CLI. |
 | `/agentic` | Drive the Agentic app via the `agentic` CLI: tasks, items, links, dependencies, the focus stack, worktrees, agent runs, sessions, and task context. |
 | `/gws-pull-transcripts` | Pull Google Meet transcripts from Google Drive. |
+| `/tuple-pull-transcripts` | Pull Tuple call transcripts from the local Tuple app. |
 | `/vacation-handoff` | Generate a handoff covering deadlines and in-flight work. |
 
 ### Conventions
