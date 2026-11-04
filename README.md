@@ -219,8 +219,9 @@ Only `/pdlc` is directly invocable. The remaining skills are **internal sub-skil
 | `/update-pr-description` | Update a PR description after new commits. |
 | `/quick-pr-review` | Rapidly review and approve a PR to unblock others. |
 | `/quick-pr-reviews` | Check all PRs where you are a requested reviewer. |
-| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment, behavior change summary, adversarial review, and the conditional CLI/SDK/API/DB surface reviews in parallel with coverage, validate, verify, review), skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
-| `/review-requested-prs` | Fan out full reviews (assess-pr-risk, summarize-behavior-changes, adversarial-pr-review, the conditional surface reviews, validate, verify, review) across review-requested PRs, one `review-pr-full` session per PR. |
+| `/review-pr-full` | Orchestrate a full review of a single PR (risk assessment, behavior change summary, adversarial review, and the conditional CLI/SDK/API/DB surface reviews in parallel with coverage, validate, verify, review), then build a guided HTML walkthrough for large PRs, skipping up-to-date steps. Accepts a precomputed plan to skip GitHub re-checks. |
+| `/create-pr-walkthrough` | Build a self-contained HTML page that walks a reviewer through a large PR: reading order, annotated hunks, risks, and findings. |
+| `/review-requested-prs` | Fan out full reviews (assess-pr-risk, summarize-behavior-changes, adversarial-pr-review, the conditional surface reviews, validate, verify, review, plus a guided walkthrough page for large PRs) across review-requested PRs, one `review-pr-full` session per PR. |
 | `/handle-pr-comment` | Reply to a comment on a PR. |
 | `/handle-pr-reviewer-feedback` | Respond to reviewer comments on your PR, implement or explain, then push. Owns the feedback contract and the analyze-only / execute modes. |
 | `/triage-pr-feedback` | Orchestrate reviewer-feedback triage: scan your open PRs for new feedback, run `handle-pr-reviewer-feedback --analyze-only` per PR, then prompt for decisions and hand off execution; built to run on a 10-15 minute schedule. |

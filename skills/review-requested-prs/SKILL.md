@@ -1,13 +1,13 @@
 ---
 name: review-requested-prs
-description: Orchestrate full PR reviews (assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr, plus the conditional surface reviews review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes when the diff touches that surface) across all PRs where you are a requested reviewer (including PRs where a team request was later dropped), or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
+description: Orchestrate full PR reviews (assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review in parallel with analyze-test-coverage, validate-pr, verify-pr, review-pr, plus the conditional surface reviews review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes when the diff touches that surface, then a guided walkthrough page for large PRs) across all PRs where you are a requested reviewer (including PRs where a team request was later dropped), or on a specific PR by URL. Fans out one independent review-pr-full session per PR so a slow step on one PR never blocks another. Never posts anything to GitHub directly; each sub-skill posts its own report.
 allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, ~/.agents/scripts/stop_sibling_sessions.py:*, opencode run:*), Read, Write, Glob, Grep, Task
 argument-hint: "[pr-url ... | owner/repo ...]"
 ---
 
 # Review Requested PRs
 
-Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/summarize-behavior-changes`, `/adversarial-pr-review`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, plus which of the conditional surface reviews (`/review-cli-changes`, `/review-sdk-changes`, `/review-api-changes`, `/review-db-changes`) the PR's changed files call for and whether those are stale, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment, behavior change summary, adversarial review, and applicable surface reviews concurrently with the chain).
+Finds all open PRs where you are a requested reviewer (or accepts specific PR URLs), plus PRs where a team you belong to was requested and the request was later dropped (recovered from notifications), computes for each PR which of `/assess-pr-risk`, `/summarize-behavior-changes`, `/adversarial-pr-review`, `/analyze-test-coverage`, `/validate-pr`, `/verify-pr`, and `/review-pr` are stale for its current HEAD, plus which of the conditional surface reviews (`/review-cli-changes`, `/review-sdk-changes`, `/review-api-changes`, `/review-db-changes`) the PR's changed files call for and whether those are stale, then hands each PR to its own `review-pr-full` session that runs that PR's stale steps to completion (the risk assessment, behavior change summary, adversarial review, and applicable surface reviews concurrently with the chain, then a guided walkthrough page for large PRs).
 
 The orchestrator (this session) only discovers work and aggregates results.
 It never runs a review step itself.
@@ -57,6 +57,7 @@ The script reads these markers (both GitHub PR comments and local report files u
 `adversarial-pr-review` also sits outside the cutoff: it is stale independently of the chain, its `breaks` verdict is reported but never gates a chain step, and a failed chain step does not drop it.
 `analyze-test-coverage` also sits outside the cutoff: it runs before `validate-pr`, its `fail` verdict never gates anything, and a failed `validate-pr` does not drop it.
 The four surface reviews also sit outside the cutoff: each is stale only when the PR's changed files touch that surface (the script's `SURFACE_STEP_PATTERNS` path heuristics, mirrored in `review-pr-full`), and like the parallel steps a surface review is never dropped because a chain step failed and never drops a chain step.
+`create-pr-walkthrough` is not a staleness-tracked step: `review-pr-full` builds the page after the chain for large PRs (200 changed lines or 10 files, applied with judgment) from the diff and whichever reports exist. It never gates anything, and its page is committed with the reports.
 The legacy marker format (`<!-- validate-pr:SHA -->`) is still supported for backward compatibility, though it does not carry a verdict.
 
 Run without `--dispatch-prs`, the script prints a human summary table whose PR number carries an auto-approve light (🟢 could be approved automatically, 🟡 needs attention, 🔴 blocked) derived from the same signals: chain verdicts, review-step staleness, approvals, changes requested, the assess-pr-risk route, and an adversarial review `breaks` verdict.
@@ -68,7 +69,7 @@ An existing approval is not required for green; the light decides whether to app
 - `gh` CLI authenticated (used by the script as a token fallback, and by `review-pr-full` to fetch head branches)
 - `opencode2` CLI (optional): used by the step 0 concurrency guard to list, detect, and stop older sessions in this directory.
   When it is unavailable the guard warns and is skipped.
-- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`, `adversarial-pr-review`, and the four conditional surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) skills available
+- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`, `adversarial-pr-review`, `create-pr-walkthrough`, and the four conditional surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) skills available
 - Sub-agent dispatch via the `Task` tool (`subagent_type: "general"`).
   If unavailable, fall back to sequential mode.
 
@@ -310,3 +311,4 @@ The script's cutoff drops verify-pr and review-pr but keeps assess-pr-risk, summ
 | `review-sdk-changes` | Conditional SDK surface review, listed only when the changed files touch an SDK surface; advisory, never halts the pipeline. |
 | `review-api-changes` | Conditional API surface review, listed only when the changed files touch an API surface; advisory, never halts the pipeline. |
 | `review-db-changes` | Conditional database surface review, listed only when the changed files touch a migration or schema surface; advisory, never halts the pipeline. |
+| `create-pr-walkthrough` | Builds the guided HTML walkthrough page for a large PR after the chain; never gates anything, and its page is committed with the reports. |

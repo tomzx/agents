@@ -1,7 +1,7 @@
 ---
 name: review-pr-full
-description: Orchestrate a full PR review for a single PR, running assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain, plus the conditional surface reviews (review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes) when the diff touches that surface. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
-allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, ~/.agents/scripts/review-progress:*), Task
+description: Orchestrate a full PR review for a single PR, running assess-pr-risk, summarize-behavior-changes, and adversarial-pr-review in parallel with the analyze-test-coverage -> validate-pr -> verify-pr -> review-pr chain, plus the conditional surface reviews (review-cli-changes, review-sdk-changes, review-api-changes, review-db-changes) when the diff touches that surface, then building a guided HTML walkthrough for large PRs. Skips steps already completed for the current commit. Accepts a PR URL or a PR number with optional repository.
+allowed-tools: Bash(uv run:*, gh:*, git:*, ~/.agents/scripts/review_requested_prs.py:*, ~/.agents/scripts/review-progress:*), Read, Grep, Task
 argument-hint: "<pr-number> [repository] | <pr-url>"
 ---
 
@@ -10,7 +10,8 @@ argument-hint: "<pr-number> [repository] | <pr-url>"
 Runs the complete review pipeline on a single PR: `/assess-pr-risk` (how risky is this change, how confident is that estimate?), `/summarize-behavior-changes` (what will behave differently after this merges?), and `/adversarial-pr-review` (which likely failure can I reproduce?) dispatched in parallel with the sequential chain `/analyze-test-coverage` (is the change well covered by tests?), then `/validate-pr` (are we building the right product?), then `/verify-pr` (does it conform to the acceptance criteria?), then `/review-pr` (is the code well-crafted?).
 When the diff touches a CLI, SDK, API, or database surface, the matching conditional surface review (`/review-cli-changes`, `/review-sdk-changes`, `/review-api-changes`, `/review-db-changes`) is dispatched alongside them (see Conditional surface reviews).
 Each step posts its own report (updating that step's existing comment when there is one, see step 4) and marks the commit it reviewed.
-When the run finishes, it commits this PR's report directory (reports plus any assets they reference, such as screenshots and casts) in the user-global reviews store and pushes it (see step 6).
+For a large PR, it then dispatches `/create-pr-walkthrough` to turn the diff and those reports into a guided HTML page (suggested reading order, annotated hunks, risks, findings) (see step 5), and commits it with the reports (see step 7).
+When the run finishes, it commits this PR's report directory (reports plus any assets they reference, such as screenshots, casts, and the walkthrough page) in the user-global reviews store and pushes it (see step 7).
 
 `/analyze-test-coverage` runs as the first chain step so the coverage determination is explicit, tracked, and available before anything else judges the change: it is cheap static analysis, its report is posted before the rest of the chain starts, and the later steps (`validate-pr`, `verify-pr`, `review-pr`) can read it as evidence.
 `verify-pr` and `review-pr` also embed parts of the coverage analysis in their own reports; the standalone step guarantees the introduced-tests / change-coverage / uncovered-code determination exists for the current commit even when the chain halts early.
@@ -46,7 +47,7 @@ This keeps the parent orchestrator from becoming a bottleneck: one `review-pr-fu
 
 - `uv` installed (for running the Python script)
 - `gh` CLI authenticated (used by the script as a token fallback)
-- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`, `adversarial-pr-review`, and the four conditional surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) skills available
+- `validate-pr`, `verify-pr`, `review-pr`, `analyze-test-coverage`, `assess-pr-risk`, `summarize-behavior-changes`, `adversarial-pr-review`, `create-pr-walkthrough`, and the four conditional surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) skills available
 
 ## Workflow
 
@@ -88,6 +89,10 @@ date"           |   else resolve via gh pr view)
               analyze-test-coverage -> validate-pr
               -> verify-pr -> review-pr
             Check for blocking verdict after each chain step
+                |
+                v
+            Dispatch create-pr-walkthrough
+              (large PRs only)
                 |
                 v
             Clean up worktree
@@ -157,6 +162,7 @@ The `--dispatch` flag makes the script output one command per line for each stal
 
 If the script outputs nothing, all steps are up to date for the current commit.
 Report "All review steps are up to date for PR #N in owner/repo" and stop.
+This path does not rebuild the walkthrough page: if it is missing or stale, run `/create-pr-walkthrough {PR} {REPO}` directly.
 
 Each line has the format:
 
@@ -198,10 +204,11 @@ When a precomputed plan was given, skip the `ISSUE_NUMBER` lookup (it is a namin
 
 If the worktree already exists (e.g. from a previous run), skip creation and reuse it.
 
-Capture the short SHA of the commit under review, which is the worktree HEAD (the fetched PR head), and the current session ID.
-Both are used in the commit message in step 6, after the worktree has been removed:
+Capture the full SHA of the commit under review, which is the worktree HEAD (the fetched PR head), its short form, and the current session ID.
+The full SHA is used by the walkthrough freshness check; the short SHA and session ID are used in the commit message in step 7, after the worktree has been removed:
 
 ```bash
+HEAD_COMMIT=$(git -C "$WORKTREE_DIR" rev-parse HEAD)
 HEAD_SHORT_SHA=$(git -C "$WORKTREE_DIR" rev-parse --short HEAD)
 SESSION_ID="${OPENCODE_SESSION_ID:-}"
 ```
@@ -224,7 +231,7 @@ Do not parallelize chain steps, because each step may halt the pipeline.
 If an advisory step (assess-pr-risk, summarize-behavior-changes, adversarial-pr-review, or a surface review) is stale but no chain step is (or the chain halts before finishing), it still runs and its report still applies on its own.
 
 Each sub-skill reuses the shared worktree, runs its analysis, and posts a comment (or writes locally when posting is disabled) with the commit SHA marker.
-While a step runs it also publishes an empty `<skill>.<sha>.in-progress` marker in the PR's report directory and removes it when it returns, so a UI can show that step as running (see `sdlc/references/shared.md`, In-progress marker). The orchestrator does not write or remove those markers itself, apart from clearing leftovers in step 5.
+While a step runs it also publishes an empty `<skill>.<sha>.in-progress` marker in the PR's report directory and removes it when it returns, so a UI can show that step as running (see `sdlc/references/shared.md`, In-progress marker). The orchestrator does not write or remove those markers itself, apart from clearing leftovers in step 6.
 
 #### Posting mode (append or replace)
 
@@ -233,11 +240,11 @@ The choice is read from the `PR_REVIEW_POST_MODE` environment variable:
 
 | `PR_REVIEW_POST_MODE` | Effect on that step's existing comment |
 |---|---|
-| `replace` (default) | The body is swapped for the new report: one comment per step, always showing the latest reviewed commit, plus an index of the commits reviewed (most recent first), each linking to the review commit in the reviews repository that holds that run's reports (step 6 links the current run's entry after committing), and a link to the PR's directory there |
+| `replace` (default) | The body is swapped for the new report: one comment per step, always showing the latest reviewed commit, plus an index of the commits reviewed (most recent first), each linking to the review commit in the reviews repository that holds that run's reports (step 7 links the current run's entry after committing), and a link to the PR's directory there |
 | `append` | The new report is added below the existing body: one comment per step holding every reviewed commit's report, oldest first, newest last (no index, since the earlier reports are already there) |
 
 Set the variable before running; it is passed to each subagent through the prompt line above, so the machine running `review-pr-full` is the one whose setting applies.
-In `replace` mode the index and the reviews-repository link come from the reviews store: it lists every commit the store recorded for this PR (its commit messages name the reviewed commits, and the commits themselves hold the reports), most recent first, each entry linking to its review commit, and the block ends with a link to that PR's directory in the reviews repository. The current run's entry is listed first with `(this review)` and no link, because its review commit does not exist yet when the step posts; step 6 below patches it to point at that commit once it has been made.
+In `replace` mode the index and the reviews-repository link come from the reviews store: it lists every commit the store recorded for this PR (its commit messages name the reviewed commits, and the commits themselves hold the reports), most recent first, each entry linking to its review commit, and the block ends with a link to that PR's directory in the reviews repository. The current run's entry is listed first with `(this review)` and no link, because its review commit does not exist yet when the step posts; step 7 below patches it to point at that commit once it has been made.
 Prefer `replace` for the usual case (the comment reads as the current review and still points at the history; the per-run reports and the end-of-run commit are that history).
 Prefer `append` when a comment should instead read as the timeline of reviews across commits.
 When the variable is unset, `replace` is used, so re-runs stop duplicating comments either way.
@@ -358,9 +365,43 @@ Run the review-pr skill: /review-pr {PR} {REPO}
 The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill reuses it and does not create or remove its own worktree.
 ```
 
-### 5. Clean up the shared worktree
+### 5. Generate the walkthrough page for a large PR
 
-After all stale steps complete (or the pipeline halts), remove the shared worktree:
+After the chain finishes (or halts), decide whether this PR needs a guided walkthrough.
+The page is for the human reviewer: it turns the diff and the reports into an overview, a suggested reading order, annotated hunks, and the risk and findings panels.
+It never gates anything and never changes the pipeline status.
+
+Use the PR's size from GitHub:
+
+```bash
+PR_REVIEW_DIR="$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER"
+ADDITIONS=$(gh pr view $PR_NUMBER --repo $REPO --json additions --jq .additions)
+DELETIONS=$(gh pr view $PR_NUMBER --repo $REPO --json deletions --jq .deletions)
+CHANGED_FILES=$(gh pr view $PR_NUMBER --repo $REPO --json changedFiles --jq .changedFiles)
+CHANGED_LINES=$((ADDITIONS + DELETIONS))
+```
+
+Build the page when `CHANGED_LINES >= 200` or `CHANGED_FILES >= 10`.
+Apply judgment first: build it below the threshold when the change is hard to follow linearly (concurrency, a state machine, a security boundary, a protocol, a migration), and skip it above the threshold when the diff is mechanical (lockfile, generated code, mass rename, formatting only).
+Record the decision and the reason in the summary.
+
+If `$PR_REVIEW_DIR/pr-walkthrough.html` already exists and its embedded marker has `"sha":"$HEAD_COMMIT"`, the page matches the current head; skip regeneration.
+
+Dispatch a subagent with this exact prompt.
+Use the `general` subagent type.
+
+```
+Run the create-pr-walkthrough skill: /create-pr-walkthrough {PR} {REPO}
+The worktree is already created at {WORKTREE_DIR}. Set WORKTREE_DIR to that path so the skill uses it for code context.
+```
+
+The GitHub counts above are a cheap pre-filter; the skill recomputes from the diff and its judgment is authoritative, so it may still skip a mechanical diff.
+It writes `$PR_REVIEW_DIR/pr-walkthrough.html`, plus its intermediate `narrative.json` and `pr.diff` under `$PR_REVIEW_DIR/walkthrough/`.
+If it fails or skips, note the outcome and continue; the review reports stand on their own.
+
+### 6. Clean up the shared worktree
+
+After all stale steps and the walkthrough complete (or the pipeline halts), remove the shared worktree:
 
 ```bash
 git worktree remove $WORKTREE_DIR
@@ -372,7 +413,7 @@ Then clear any in-progress marker the run left behind, in case a subagent was ki
 ~/.agents/scripts/review-progress clear --repo "$REPO" --pr "$PR_NUMBER"
 ```
 
-### 6. Commit and push the review reports
+### 7. Commit and push the review reports
 
 The per-run reports and findings state written by the steps above live in the user-global reviews store at `$HOME/.sdlc/$REPO/pull-requests/$PR_NUMBER/`, which is itself a git checkout of the automated-reviews repository (see `git -C "$HOME/.sdlc" remote -v`).
 Commit exactly this PR's Markdown reports **and every asset they reference** and push, so the reports are durable and shareable across machines.
@@ -385,7 +426,7 @@ if git -C "$REVIEWS_REPO" rev-parse --git-dir >/dev/null 2>&1; then
   # Stage only this PR's reports and the assets they reference. Each file is
   # added individually: `git add` fails entirely when any pathspec matches
   # nothing, and most asset extensions are absent on a given run.
-  for ext in md png jpg jpeg gif svg webp cast webm mp4; do
+  for ext in md html png jpg jpeg gif svg webp cast webm mp4; do
     for f in "$PR_REVIEW_DIR"/*."$ext"; do
       if [ -e "$f" ]; then
         git -C "$REVIEWS_REPO" add -- "$f"
@@ -432,18 +473,19 @@ fi
 
 The commit message is always `review-pr-full: {owner}/{repo}#{PR} @ {short_sha}`, followed by a `session: {session_id}` line when a session ID is available, so every run is identifiable by repository, PR, the commit it reviewed, and the run that produced it.
 
-After a successful push, step 6 also makes the current entry in each step's reviewed-commits index clickable: the steps posted before the commit existed, so they listed `$HEAD_SHORT_SHA` as a plain hash with `(this review)`, and this patch replaces that line with a link to the new review commit (the one holding this run's reports).
+After a successful push, step 7 also makes the current entry in each step's reviewed-commits index clickable: the steps posted before the commit existed, so they listed `$HEAD_SHORT_SHA` as a plain hash with `(this review)`, and this patch replaces that line with a link to the new review commit (the one holding this run's reports).
 It looks only for that exact placeholder in each step's own comment, so it is a no-op when posting was skipped, in `append` mode (there is no index), or for steps that did not post.
 When the store is not a git checkout, has no `origin` remote, its `origin` is not an HTTP(S) GitHub URL, or the commit or push failed, the patch is skipped and that entry stays a plain hash.
 
-Any assets the steps create (screenshots, images, asciinema casts, video clips) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed.
-Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions in the staging loop (`.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
+Any assets the steps create (screenshots, images, asciinema casts, video clips, the walkthrough page) must live inside `$PR_REVIEW_DIR` and are committed in the same commit as the reports that reference them, so a report never links to a file that was not committed.
+Only files inside the PR's directory are staged: the Markdown reports (`*.md`) plus the asset extensions in the staging loop (`.html`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.cast`, `.webm`, `.mp4`).
 Each file is added on its own, because `git add` fails as a whole when any pathspec matches nothing and most runs have no assets at all.
+The walkthrough's intermediate `walkthrough/` directory (`narrative.json`, `pr.diff`) is deliberately left uncommitted.
 Findings-state YAML files, `gh-pr-view` caches, in-progress markers (`<skill>.<sha>.in-progress`), and stray non-report files such as `.DS_Store` are deliberately left uncommitted.
 If there is nothing staged (all steps up to date, or a re-run that changed nothing), skip the commit entirely.
 If the store is not a git checkout, or the commit or push fails, note it and continue: this step is best-effort and never changes the pipeline verdict.
 
-### 7. Report summary
+### 8. Report summary
 
 After processing, output the summary table and finish with a single machine-readable verdict line, so a parent orchestrator (`review-requested-prs`) can aggregate results without parsing the table:
 
@@ -467,12 +509,14 @@ The same applies to analyze-test-coverage: it is the first chain step and nothin
 `summarize-behavior-changes` is always `informational` and likewise never changes the status.
 `adversarial-pr-review` also never changes the status: a `breaks` verdict is reproduced evidence, so it goes in the summary note and the table, and the human reviewer decides whether it blocks the merge.
 The surface reviews (`review-cli-changes`, `review-sdk-changes`, `review-api-changes`, `review-db-changes`) also never change the status: a `fail` (changes-requested) is reported in the summary and the table, and whether to act on it is the human reviewer's call.
+The walkthrough page likewise never changes the status: it is a reading aid, so a run that builds it still reports `completed`, `stopped-validate`, or whatever the review chain produced.
 
 Then show the table:
 
 | Repository | PR | Steps run | Result |
 |---|---|---|---|
 | owner/repo | #42 | assess, behavior, adversarial review, coverage, validate, verify, review | Completed |
+| owner/repo | #42 | assess, behavior, adversarial review, coverage, validate, verify, review, walkthrough | Completed (walkthrough page built) |
 | owner/repo | #42 | verify, review | Completed (assess, behavior, adversarial review, coverage, validate up to date) |
 | owner/repo | #42 | assess | Completed (chain up to date) |
 | owner/repo | #42 | behavior | Completed (rest up to date; summary posted) |
@@ -581,7 +625,7 @@ Summary shows "Completed (rest up to date; summary posted)".
 The PR gained commits since the last run, so all stale steps (including the adversarial review and any applicable surface review) re-run.
 Each step finds its own existing comment (the one carrying that step's marker) and appends the new report below the old one, so one comment per step carries the review history for the PR, oldest review first, newest last.
 With the default `replace` mode, each step would instead swap its comment body so the comment shows only the latest reviewed commit, and would end it with the list of commits reviewed (most recent first), each entry linking to the review commit in the reviews repository that holds that run's reports, plus a link to the PR's directory there, so the earlier feedback stays reachable.
-Step 6 then commits and pushes the new reports and patches each comment so the current run's entry links to that commit too.
+Step 7 then commits and pushes the new reports and patches each comment so the current run's entry links to that commit too.
 
 **Scenario 13: Only the database surface review is stale**
 ```
@@ -599,6 +643,14 @@ The assess, behavior, coverage, and chain markers all match HEAD, but the advers
 Dispatches only `/adversarial-pr-review 93 acme/api`.
 It reproduces an unhandled exception on an empty filter and reports `breaks`.
 Because the adversarial review is advisory, the status stays `completed`, and the reproduced failure is reported in the summary note so the reviewer can act on it before approving.
+
+**Scenario 15: Large PR gets a walkthrough page**
+```
+/review-pr-full 120 acme/api
+```
+The PR changes 24 files and 1,400 lines. After the review chain finishes, the walkthrough step dispatches `/create-pr-walkthrough 120 acme/api`, which writes `$PR_REVIEW_DIR/pr-walkthrough.html` and reports its path without opening it.
+The HTML is committed with the reports.
+Summary shows "Completed (walkthrough page built)"; the status is unchanged by the page.
 
 ## Script Reference
 
@@ -623,4 +675,5 @@ Because the adversarial review is advisory, the status stays `completed`, and th
 | `review-sdk-changes` | Conditional surface review for an SDK change (public symbols, signatures, types, packaging); dispatched only when the diff touches an SDK surface, advisory, never halts the pipeline. |
 | `review-api-changes` | Conditional surface review for an API contract change (endpoints, fields, status codes, versioning); dispatched only when the diff touches an API surface, advisory, never halts the pipeline. |
 | `review-db-changes` | Conditional surface review for a database change (migrations, locks, reversibility, backfills); dispatched only when the diff touches a database surface, advisory, never halts the pipeline. |
+| `create-pr-walkthrough` | Builds the guided HTML walkthrough page for a large PR from the diff and the reports; dispatched after the chain, never gates anything, and its page is committed with the reports. |
 | `quick-pr-review` | Lightweight counterpart: rapid auto-approve to unblock. Use this skill when you need deep review, not rapid unblocking. |
