@@ -130,8 +130,12 @@ If invoked directly (not by a parent skill), include these findings in the repor
 ### 6. Return the analysis
 
 Return the findings list and the three tables.
-If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes nothing.
+If called by a parent skill that embeds them (review-pr, verify-pr, review-implementation), the parent embeds them into its own report and this skill writes no report. When that parent is reviewing a PR and `$REPO` and `$PR_NUMBER` are set, still write `analyze-test-coverage.yaml` (see Write the findings state) so the gaps stay addressable; when it has no PR context (review-implementation), write nothing.
 If invoked directly or orchestrated by review-pr-full, continue with the orchestrated-run contract below.
+
+### Write the findings state
+
+Whenever the run has a PR context (a `review-pr-full` step, a direct analysis of a PR, or a parent reviewing a PR), write `$PR_REVIEW_DIR/analyze-test-coverage.yaml` per `sdlc/references/shared.md` (Findings state): one entry per finding from step 5, with its severity lowercased, `status: open`, and `first_seen_sha: $HEAD_COMMIT`. A run that found no gap writes the header with `findings: []`. Rewrite the list on each run (a gap that is now covered is dropped) but keep the reviewer's existing `decision` and `decided_at` on a finding whose title recurs. This is the state `review-pr` reads instead of copying the coverage findings into `review.yaml`.
 
 ## Orchestrated runs (review-pr-full)
 
@@ -182,6 +186,8 @@ Below the marker, add the traffic-light header (Report header (traffic light)): 
 ```
 
 Then point the stable name at it: `ln -sf "analyze-test-coverage.$SHORT_SHA.md" "$PR_REVIEW_DIR/analyze-test-coverage.report.md"`.
+
+Also write the findings state (see Write the findings state above).
 
 5. Post the report as a PR comment, decided by `should-post-to-github`.
    If `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"` exits 1, skip posting (the report is already saved).

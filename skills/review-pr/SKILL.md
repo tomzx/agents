@@ -388,9 +388,9 @@ Writing this section drives the Approach & Simplicity findings: if you cannot fi
 
 Include a Coverage section built from the `/analyze-test-coverage` output: (1) **Introduced tests** table, (2) **Change coverage** table, (3) **Uncovered code** table.
 Append (4) what manual testing was done to confirm the change works (from the PR description, comments, or linked issue), and (5) what is missing.
-Uncovered behavior changes and uncovered code should be raised as findings (severity proportional to risk) in the Findings section, not only listed in the Coverage section.
+Uncovered behavior changes and uncovered code are findings: raise them (severity proportional to risk) in the Findings section, not only in the Coverage section. The exception is ownership: when `analyze-test-coverage` wrote its own state for this commit (`analyze-test-coverage.yaml` with `last_reviewed_sha` equal to the head), the coverage findings belong to that step, so do not copy them into `review.yaml` (drop a copy an earlier run added, keeping the reviewer's decision if the title recurs); the Coverage tables in this report still show them. See `sdlc/references/shared.md` (Findings state) for who owns a finding.
 
-First update the review state file `$PR_REVIEW_DIR/review.yaml`: set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`).
+First update the review state file `$PR_REVIEW_DIR/review.yaml` per `sdlc/references/shared.md` (Findings state): set `updated_at` (ISO 8601), `last_reviewed_sha: $HEAD_COMMIT`, `last_reviewed_tree: $HEAD_TREE`, add the newly identified findings, and apply the `status` flips decided during the review (`open` / `addressed` / `stale` / `wontfix`).
 `title` is a finding's identity: when a delta looks like an existing finding, update that entry instead of adding a duplicate.
 `first_seen_sha` is informational provenance.
 Then move the review checkpoint tag to the reviewed head: `git tag -f "prs/$PR_NUMBER/review" "$HEAD_COMMIT" >/dev/null 2>&1 || true` (see `sdlc/references/shared.md`, Review checkpoint tags).

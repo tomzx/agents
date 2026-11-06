@@ -196,6 +196,8 @@ Start the file with the marker, substituting the verdict token, the risk level, 
 <!-- {"step":"assess-pr-risk","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"VERDICT_TOKEN","risk":"RISK_LEVEL","confidence":"CONFIDENCE_LEVEL"} -->
 ```
 
+Then write `$PR_REVIEW_DIR/assess-pr-risk.yaml` per `sdlc/references/shared.md` (Findings state): one entry per High or Medium risk driver from **Top risk drivers**, with `severity: should` for High and `severity: may` for Medium, a `description` naming the concrete failure or cost with `file:line`, `status: open`, and `first_seen_sha: $HEAD_COMMIT`. A Low-risk run writes the header with `findings: []`. Keep the reviewer's existing `decision` and `decided_at` on a driver whose title recurs.
+
 Posting as a PR comment is decided by `should-post-to-github`.
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
 If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer per `../github-post-attribution/SKILL.md`, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="assess-pr-risk"`).

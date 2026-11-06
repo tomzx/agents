@@ -209,6 +209,8 @@ The verdict is always `informational`; this step never gates anything.
 Below the marker, add the traffic-light header from `sdlc/references/shared.md` (Report header (traffic light)): the title, one overall go/no-go line, then one line each for Behavior changes, Breaking changes, and Declaration with their own lights.
 The lights report what the diff shows; they gate nothing.
 
+Then write `$PR_REVIEW_DIR/summarize-behavior-changes.yaml` per `sdlc/references/shared.md` (Findings state): one entry per finding from step 7, with the MUST/SHOULD/MAY severity lowercased, `status: open`, and `first_seen_sha: $HEAD_COMMIT`. A run with no undeclared behavior change writes the header with `findings: []`. Keep the reviewer's existing `decision` and `decided_at` on a finding whose title recurs.
+
 Posting as a PR comment is decided by `should-post-to-github`.
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
 If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer per `../github-post-attribution/SKILL.md`, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="summarize-behavior-changes"`).

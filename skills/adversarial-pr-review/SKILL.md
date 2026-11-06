@@ -271,6 +271,8 @@ Start the file with the marker, then the traffic-light header from `sdlc/referen
 <!-- {"step":"adversarial-pr-review","sha":"HEAD_COMMIT","tree":"HEAD_TREE","verdict":"VERDICT_TOKEN","reproduced_count":N,"unproven_count":N} -->
 ```
 
+Then write `$PR_REVIEW_DIR/adversarial-pr-review.yaml` per `sdlc/references/shared.md` (Findings state): one entry per reproduced failure under **Reproduced failures**, with its MUST/SHOULD/MAY severity lowercased, a `description` carrying the trigger, mechanism with `file:line`, probe, observed, and impact, `status: open`, and `first_seen_sha: $HEAD_COMMIT`. A run that reproduced nothing writes the header with `findings: []`; a scenario in **Unproven** is not a finding.
+
 Posting as a PR comment is decided by `should-post-to-github`.
 Run `~/.agents/scripts/should-post-to-github --repo "$REPO" --author "$PR_AUTHOR"`; if it exits 1, skip posting (the report is saved locally).
 If it exits 0, set `REPORT` to the report file's contents and `FOOTER` to the attribution footer per `../github-post-attribution/SKILL.md`, then post with the **Posting a review report** recipe in `skills/sdlc/references/shared.md` (`STEP="adversarial-pr-review"`).
