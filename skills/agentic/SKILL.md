@@ -266,13 +266,14 @@ A session records an agent session against a task by hand, for one the app did n
 
 ```bash
 agentic session list <task>
+agentic session tasks <agent-session-id>        # the tasks a session is recorded against
 agentic session add <task> <agent-session-id> --harness-id opencode --cwd /home/me/src/myrepo --label "investigation"
 agentic session get <task> <record-id>          # shows the recorded session and how to reopen it
 agentic session update <task> <record-id> --label "renamed"
 agentic session remove <task> <record-id>       # removes the record only; the session itself is untouched
 ```
 
-Mind the two ids: `session add` takes the agent's session id (the one the harness reports), while `get`, `update`, and `remove` take the recorded session's id (the first column of `session list`).
+Mind the two ids: `session add` and `session tasks` take the agent's session id (the one the harness reports), while `get`, `update`, and `remove` take the recorded session's id (the first column of `session list`).
 `session add` defaults the harness to the task's harness.
 
 ## Task context
