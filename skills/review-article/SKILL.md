@@ -79,7 +79,7 @@ Each finding is prioritized with 🔴 MUST fix, 🟡 SHOULD fix, or 🟢 MAY fix
 - Are em-dashes avoided in favor of commas or parentheses?
 - Is the writing concise without hedging every claim?
 - Is the same point restated across multiple sections (redundancy)?
-- Apply the shared catalog in [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md), and report each finding by rule ID (for example `writing-rules.md#8` for an em dash).
+- Apply [`../communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md), and report each finding by its writing-rules ID (for example `writing-rules.md#8` for an em dash).
 
 ## Output Format
 

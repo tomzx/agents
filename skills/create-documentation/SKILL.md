@@ -11,7 +11,7 @@ Produces documentation for a feature or component organized according to the [Di
 **For detailed Divio guidance** (DO/DON'T lists, decision trees, per-type structures), consult the `divio-documentation` skill.
 This skill focuses on the production workflow: deciding which types to write and producing the output.
 
-Apply the shared writing rules in [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence.
+Apply [`../communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md) to every sentence.
 
 ## Prerequisites
 

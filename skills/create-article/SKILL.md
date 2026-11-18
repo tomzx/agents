@@ -48,8 +48,8 @@ Draft from `plan.md` when one exists, so the article delivers the planned argume
 
 ## Formatting Rules
 
-- **Shared writing rules**: Apply [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md) to every sentence.
-  It owns the catalog of machine-writing patterns to remove.
+- **Communication guidelines**: Read [`../communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md) before drafting and apply it to every sentence.
+  It owns the concision, tone, and machine-writing patterns to remove.
 - **One sentence per line**: Each sentence occupies its own line in the markdown source.
   This produces cleaner git diffs since changes to one sentence don't affect adjacent lines.
   Paragraphs are separated by a blank line, with sentences within a paragraph on consecutive lines (not separated by blank lines).
@@ -200,7 +200,7 @@ If no related articles exist in the repository, omit the "See also" section enti
 - Em-dash sentence structures; use commas or parentheses instead
 - Reaching for uncommon words when a simpler word means the same thing, while keeping technical terms where they fit
 - The banned terms listed in `banned-terms.txt` at the skills library root (one per line), unless one is genuinely the most appropriate term
-- Machine-writing patterns from [`../communication-guidelines/references/writing-rules.md`](../communication-guidelines/references/writing-rules.md)
+- The machine-writing patterns and other rules in [`../communication-guidelines/SKILL.md`](../communication-guidelines/SKILL.md)
 
 ## Output Format
 
